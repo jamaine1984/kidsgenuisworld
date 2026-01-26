@@ -1,0 +1,411 @@
+import React, { useState, useEffect } from 'react';
+import { ArrowLeft, Check, Star, Type, Image as ImageIcon, Volume2, Mic2, Sparkles, Book, Ear, X } from 'lucide-react';
+import { playSuccess, playWrongBuzzer, playPop, speak, speakCorrect, speakWrong, speakQuestion } from '../services/audioService';
+
+interface ReadingRoomProps {
+  onBack: () => void;
+  onReward: () => void;
+  level: number; // 1-7 corresponds to grade levels
+}
+
+// Enhanced Vocabulary with grade levels and more words
+const VOCABULARY = [
+  // PRE-K (Level 1) - Simple CVC words
+  { word: 'Cat', emoji: '🐱', level: 1, rhyme: 'Bat', segments: ['C','a','t'], sentence: 'The cat is fluffy.' },
+  { word: 'Dog', emoji: '🐶', level: 1, rhyme: 'Log', segments: ['D','o','g'], sentence: 'The dog runs fast.' },
+  { word: 'Pig', emoji: '🐷', level: 1, rhyme: 'Wig', segments: ['P','i','g'], sentence: 'The pig is pink.' },
+  { word: 'Sun', emoji: '☀️', level: 1, rhyme: 'Run', segments: ['S','u','n'], sentence: 'The sun is hot.' },
+  { word: 'Bus', emoji: '🚌', level: 1, rhyme: 'Us', segments: ['B','u','s'], sentence: 'I ride the bus.' },
+  { word: 'Bed', emoji: '🛏️', level: 1, rhyme: 'Red', segments: ['B','e','d'], sentence: 'I sleep in bed.' },
+  { word: 'Hat', emoji: '🎩', level: 1, rhyme: 'Bat', segments: ['H','a','t'], sentence: 'I wear a hat.' },
+  { word: 'Pen', emoji: '🖊️', level: 1, rhyme: 'Hen', segments: ['P','e','n'], sentence: 'I write with a pen.' },
+  { word: 'Mop', emoji: '🧹', level: 1, rhyme: 'Top', segments: ['M','o','p'], sentence: 'I clean with a mop.' },
+  { word: 'Cup', emoji: '🥤', level: 1, rhyme: 'Up', segments: ['C','u','p'], sentence: 'I drink from a cup.' },
+
+  // KINDERGARTEN (Level 2) - Blends/4-letter words
+  { word: 'Frog', emoji: '🐸', level: 2, rhyme: 'Log', segments: ['Fr','o','g'], sentence: 'The frog can jump.' },
+  { word: 'Duck', emoji: '🦆', level: 2, rhyme: 'Truck', segments: ['D','u','ck'], sentence: 'The duck says quack.' },
+  { word: 'Book', emoji: '📖', level: 2, rhyme: 'Cook', segments: ['B','oo','k'], sentence: 'I read a book.' },
+  { word: 'Ball', emoji: '⚽', level: 2, rhyme: 'Call', segments: ['B','a','ll'], sentence: 'I throw the ball.' },
+  { word: 'Moon', emoji: '🌙', level: 2, rhyme: 'Spoon', segments: ['M','oo','n'], sentence: 'The moon shines at night.' },
+  { word: 'Tree', emoji: '🌳', level: 2, rhyme: 'Bee', segments: ['Tr','ee'], sentence: 'The tree is tall.' },
+  { word: 'Star', emoji: '⭐', level: 2, rhyme: 'Car', segments: ['St','ar'], sentence: 'I see a star.' },
+  { word: 'Fish', emoji: '🐟', level: 2, rhyme: 'Dish', segments: ['F','i','sh'], sentence: 'The fish can swim.' },
+  { word: 'Cake', emoji: '🎂', level: 2, rhyme: 'Lake', segments: ['C','a','ke'], sentence: 'I eat cake.' },
+  { word: 'Ring', emoji: '💍', level: 2, rhyme: 'King', segments: ['R','i','ng'], sentence: 'She has a ring.' },
+
+  // FIRST GRADE (Level 3) - Digraphs/Longer words
+  { word: 'Sheep', emoji: '🐑', level: 3, rhyme: 'Jeep', segments: ['Sh','ee','p'], sentence: 'The sheep has wool.' },
+  { word: 'Train', emoji: '🚂', level: 3, rhyme: 'Rain', segments: ['Tr','ai','n'], sentence: 'The train goes choo choo!' },
+  { word: 'House', emoji: '🏠', level: 3, rhyme: 'Mouse', segments: ['H','ou','se'], sentence: 'I live in a house.' },
+  { word: 'Grape', emoji: '🍇', level: 3, rhyme: 'Tape', segments: ['Gr','a','pe'], sentence: 'I like grapes.' },
+  { word: 'Cloud', emoji: '☁️', level: 3, rhyme: 'Loud', segments: ['Cl','ou','d'], sentence: 'The cloud is white.' },
+  { word: 'Chair', emoji: '🪑', level: 3, rhyme: 'Bear', segments: ['Ch','ai','r'], sentence: 'I sit on a chair.' },
+  { word: 'Whale', emoji: '🐋', level: 3, rhyme: 'Tail', segments: ['Wh','a','le'], sentence: 'The whale is huge!' },
+  { word: 'Bread', emoji: '🍞', level: 3, rhyme: 'Head', segments: ['Br','ea','d'], sentence: 'I eat bread.' },
+  { word: 'Snake', emoji: '🐍', level: 3, rhyme: 'Lake', segments: ['Sn','a','ke'], sentence: 'The snake slithers.' },
+  { word: 'Plane', emoji: '✈️', level: 3, rhyme: 'Lane', segments: ['Pl','a','ne'], sentence: 'The plane can fly.' },
+
+  // SECOND GRADE (Level 4) - Multi-syllable words
+  { word: 'Robot', emoji: '🤖', level: 4, rhyme: 'Dot', segments: ['Ro','bot'], sentence: 'The robot can dance!' },
+  { word: 'Apple', emoji: '🍎', level: 4, rhyme: 'Snapple', segments: ['Ap','ple'], sentence: 'An apple a day keeps the doctor away.' },
+  { word: 'Monkey', emoji: '🐒', level: 4, rhyme: 'Funky', segments: ['Mon','key'], sentence: 'The monkey swings in trees.' },
+  { word: 'Pizza', emoji: '🍕', level: 4, rhyme: 'Lisa', segments: ['Piz','za'], sentence: 'I love eating pizza.' },
+  { word: 'Tiger', emoji: '🐯', level: 4, rhyme: 'Liger', segments: ['Ti','ger'], sentence: 'The tiger has stripes.' },
+  { word: 'Butter', emoji: '🧈', level: 4, rhyme: 'Mutter', segments: ['But','ter'], sentence: 'I put butter on toast.' },
+  { word: 'Spider', emoji: '🕷️', level: 4, rhyme: 'Cider', segments: ['Spi','der'], sentence: 'The spider spins a web.' },
+  { word: 'Dragon', emoji: '🐉', level: 4, rhyme: 'Wagon', segments: ['Dra','gon'], sentence: 'The dragon breathes fire!' },
+  { word: 'Rabbit', emoji: '🐰', level: 4, rhyme: 'Habit', segments: ['Rab','bit'], sentence: 'The rabbit hops fast.' },
+  { word: 'Pumpkin', emoji: '🎃', level: 4, rhyme: 'Munchkin', segments: ['Pump','kin'], sentence: 'We carve a pumpkin.' },
+
+  // THIRD GRADE (Level 5) - More complex
+  { word: 'Rocket', emoji: '🚀', level: 5, rhyme: 'Pocket', segments: ['Roc','ket'], sentence: 'The rocket flies to space.' },
+  { word: 'Rainbow', emoji: '🌈', level: 5, rhyme: 'Brain Show', segments: ['Rain','bow'], sentence: 'The rainbow has many colors.' },
+  { word: 'Dolphin', emoji: '🐬', level: 5, rhyme: 'Golfin', segments: ['Dol','phin'], sentence: 'The dolphin is very smart.' },
+  { word: 'Penguin', emoji: '🐧', level: 5, rhyme: 'Fin', segments: ['Pen','guin'], sentence: 'The penguin lives in the cold.' },
+  { word: 'Tornado', emoji: '🌪️', level: 5, rhyme: 'Avocado', segments: ['Tor','na','do'], sentence: 'A tornado is very strong.' },
+  { word: 'Thunder', emoji: '⚡', level: 5, rhyme: 'Wonder', segments: ['Thun','der'], sentence: 'Thunder is loud!' },
+  { word: 'Volcano', emoji: '🌋', level: 5, rhyme: 'No', segments: ['Vol','ca','no'], sentence: 'The volcano can erupt.' },
+  { word: 'Crystal', emoji: '💎', level: 5, rhyme: 'Pistol', segments: ['Crys','tal'], sentence: 'The crystal sparkles.' },
+  { word: 'Bicycle', emoji: '🚲', level: 5, rhyme: 'Icicle', segments: ['Bi','cy','cle'], sentence: 'I ride my bicycle to school.' },
+  { word: 'Pancake', emoji: '🥞', level: 5, rhyme: 'Awake', segments: ['Pan','cake'], sentence: 'I eat pancakes for breakfast.' },
+
+  // FOURTH GRADE (Level 6) - Advanced
+  { word: 'Treasure', emoji: '💰', level: 6, rhyme: 'Measure', segments: ['Trea','sure'], sentence: 'Pirates look for treasure.' },
+  { word: 'Adventure', emoji: '🗺️', level: 6, rhyme: 'Venture', segments: ['Ad','ven','ture'], sentence: 'I love going on adventures.' },
+  { word: 'Dinosaur', emoji: '🦕', level: 6, rhyme: 'More', segments: ['Di','no','saur'], sentence: 'Dinosaurs lived long ago.' },
+  { word: 'Astronaut', emoji: '👨‍🚀', level: 6, rhyme: 'Caught', segments: ['As','tro','naut'], sentence: 'The astronaut went to space.' },
+  { word: 'Microscope', emoji: '🔬', level: 6, rhyme: 'Scope', segments: ['Mi','cro','scope'], sentence: 'I look through the microscope.' },
+  { word: 'Telescope', emoji: '🔭', level: 6, rhyme: 'Hope', segments: ['Tel','e','scope'], sentence: 'I see stars with my telescope.' },
+  { word: 'Hurricane', emoji: '🌀', level: 6, rhyme: 'Pain', segments: ['Hur','ri','cane'], sentence: 'A hurricane is a big storm.' },
+  { word: 'Butterfly', emoji: '🦋', level: 6, rhyme: 'Fly', segments: ['But','ter','fly'], sentence: 'The butterfly is beautiful.' },
+  { word: 'Strawberry', emoji: '🍓', level: 6, rhyme: 'Very', segments: ['Straw','ber','ry'], sentence: 'I picked a strawberry.' },
+  { word: 'Crocodile', emoji: '🐊', level: 6, rhyme: 'Smile', segments: ['Croc','o','dile'], sentence: 'The crocodile has sharp teeth.' },
+
+  // FIFTH GRADE (Level 7) - Most advanced
+  { word: 'Encyclopedia', emoji: '📚', level: 7, rhyme: 'Media', segments: ['En','cy','clo','pe','di','a'], sentence: 'I learn from the encyclopedia.' },
+  { word: 'Constellation', emoji: '✨', level: 7, rhyme: 'Nation', segments: ['Con','stel','la','tion'], sentence: 'Orion is a constellation.' },
+  { word: 'Hippopotamus', emoji: '🦛', level: 7, rhyme: 'Famous', segments: ['Hip','po','pot','a','mus'], sentence: 'The hippopotamus is heavy.' },
+  { word: 'Metamorphosis', emoji: '🦋', level: 7, rhyme: 'This', segments: ['Met','a','mor','pho','sis'], sentence: 'A caterpillar goes through metamorphosis.' },
+  { word: 'Archaeology', emoji: '🏺', level: 7, rhyme: 'Ology', segments: ['Ar','chae','ol','o','gy'], sentence: 'Archaeology studies old things.' },
+  { word: 'Photosynthesis', emoji: '🌱', level: 7, rhyme: 'This', segments: ['Pho','to','syn','the','sis'], sentence: 'Plants do photosynthesis.' },
+  { word: 'Camouflage', emoji: '🦎', level: 7, rhyme: 'Garage', segments: ['Cam','ou','flage'], sentence: 'The lizard uses camouflage.' },
+  { word: 'Temperature', emoji: '🌡️', level: 7, rhyme: 'Nature', segments: ['Tem','per','a','ture'], sentence: 'The temperature is warm today.' },
+  { word: 'Experiment', emoji: '🧪', level: 7, rhyme: 'Meant', segments: ['Ex','per','i','ment'], sentence: 'We did a science experiment.' },
+  { word: 'Civilization', emoji: '🏛️', level: 7, rhyme: 'Nation', segments: ['Civ','i','li','za','tion'], sentence: 'Ancient civilizations built pyramids.' },
+];
+
+type Activity = 'MATCH' | 'SPELL' | 'RHYME' | 'PHONICS';
+
+export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, level }) => {
+  const [mode, setMode] = useState<Activity>('MATCH');
+  const [score, setScore] = useState(0);
+  const [currentWord, setCurrentWord] = useState(VOCABULARY[0]);
+  const [options, setOptions] = useState<string[]>([]);
+  const [scrambledLetters, setScrambledLetters] = useState<{id: number, char: string}[]>([]);
+  const [spelledWord, setSpelledWord] = useState<string>('');
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [showWrong, setShowWrong] = useState(false);
+
+  // Phonics State
+  const [isRecording, setIsRecording] = useState(false);
+  const [activeSegment, setActiveSegment] = useState<number | null>(null);
+
+  const shuffle = (array: any[]) => [...array].sort(() => Math.random() - 0.5);
+
+  const getWordsForLevel = () => {
+    const maxLvl = Math.min(Math.max(level, 1), 7);
+    const list = VOCABULARY.filter(v => v.level <= maxLvl);
+    return list.length > 0 ? list : VOCABULARY;
+  };
+
+  const nextRound = () => {
+    setShowSuccess(false);
+    setShowWrong(false);
+    setSpelledWord('');
+    const pool = getWordsForLevel();
+    const next = pool[Math.floor(Math.random() * pool.length)];
+    setCurrentWord(next);
+
+    if (mode === 'MATCH') {
+      const distractors = shuffle(VOCABULARY.filter(v => v.word !== next.word)).slice(0, 3);
+      setOptions(shuffle([next, ...distractors]).map(o => o.emoji));
+      setTimeout(() => {
+        speakQuestion(`Find the ${next.word}`);
+      }, 300);
+
+    } else if (mode === 'SPELL') {
+      const letters = next.word.toUpperCase().split('').map((char, i) => ({ id: i, char }));
+      setScrambledLetters(shuffle(letters));
+      setTimeout(() => {
+        speakQuestion(`Spell the word ${next.word}`);
+      }, 300);
+
+    } else if (mode === 'RHYME') {
+      const distractors = shuffle(VOCABULARY.filter(v => v.rhyme !== next.rhyme && v.word !== next.word)).slice(0, 2);
+      const correctRhyme = next.rhyme;
+      const wrongRhymes = distractors.map(d => d.rhyme);
+      setOptions(shuffle([correctRhyme, ...wrongRhymes]));
+      setTimeout(() => {
+        speakQuestion(`What rhymes with ${next.word}?`);
+      }, 300);
+
+    } else if (mode === 'PHONICS') {
+      setTimeout(() => {
+        speakQuestion(`Let's sound out the word ${next.word}`);
+      }, 300);
+    }
+  };
+
+  useEffect(() => {
+    speak("Welcome to the Reading Library! Let's learn some words!");
+    const timer = setTimeout(() => nextRound(), 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    nextRound();
+  }, [mode, level]);
+
+  const handleOptionClick = (val: string) => {
+    let correct = false;
+    if (mode === 'MATCH' && val === currentWord.emoji) correct = true;
+    if (mode === 'RHYME' && val === currentWord.rhyme) correct = true;
+
+    if (correct) {
+      playSuccess();
+      setShowSuccess(true);
+      setScore(s => s + 1);
+      speakCorrect(`${currentWord.word}! ${currentWord.sentence}`);
+      if (score > 0 && score % 3 === 0) onReward();
+      setTimeout(nextRound, 2500);
+    } else {
+      playWrongBuzzer();
+      setShowWrong(true);
+      if (mode === 'MATCH') {
+        speakWrong(`That's not ${currentWord.word}. Look for the ${currentWord.emoji} emoji!`);
+      } else if (mode === 'RHYME') {
+        speakWrong(`${val} doesn't rhyme with ${currentWord.word}. The answer is ${currentWord.rhyme}!`);
+      }
+      setTimeout(() => setShowWrong(false), 2000);
+    }
+  };
+
+  const handleSpellClick = (charObj: {id: number, char: string}) => {
+    playPop();
+    const newSpelled = spelledWord + charObj.char;
+    setSpelledWord(newSpelled);
+    setScrambledLetters(prev => prev.filter(l => l.id !== charObj.id));
+
+    if (newSpelled === currentWord.word.toUpperCase()) {
+      playSuccess();
+      setShowSuccess(true);
+      setScore(s => s + 1);
+      speakCorrect(`You spelled ${currentWord.word}! ${currentWord.sentence}`);
+      if (score > 0 && score % 3 === 0) onReward();
+      setTimeout(nextRound, 2500);
+    } else if (newSpelled.length === currentWord.word.length && newSpelled !== currentWord.word.toUpperCase()) {
+      // Wrong spelling
+      playWrongBuzzer();
+      setShowWrong(true);
+      speakWrong(`That's not quite right. The word is spelled ${currentWord.word.split('').join(' ')}.`);
+      setTimeout(() => {
+        setShowWrong(false);
+        nextRound();
+      }, 3000);
+    }
+  };
+
+  // Phonics Handlers
+  const playSegment = async (segment: string, index: number) => {
+    setActiveSegment(index);
+    speak(`The sound is... ${segment}`);
+    setTimeout(() => setActiveSegment(null), 1000);
+  };
+
+  const handleMicClick = () => {
+    setIsRecording(true);
+    speak(`Say the word ${currentWord.word}!`);
+    setTimeout(async () => {
+      setIsRecording(false);
+      playSuccess();
+      speakCorrect(`Excellent pronunciation! You said ${currentWord.word} perfectly!`);
+      setScore(s => s + 1);
+      if (score > 0 && score % 3 === 0) onReward();
+      setTimeout(nextRound, 2500);
+    }, 3500);
+  };
+
+  const speakCurrentWord = () => {
+    speak(currentWord.word);
+  };
+
+  return (
+    <div className="h-full w-full bg-orange-50 flex flex-col items-center relative overflow-hidden">
+      <div className="absolute top-0 w-full h-64 bg-orange-200 rounded-b-[50%] z-0"></div>
+
+      <header className="w-full p-4 flex justify-between items-center z-10 flex-wrap gap-2">
+        <button onClick={onBack} className="bg-white p-3 rounded-full shadow-lg hover:bg-orange-100">
+          <ArrowLeft className="text-orange-600" />
+        </button>
+
+        <div className="flex bg-white/80 p-1 rounded-2xl backdrop-blur-sm overflow-x-auto max-w-[60vw] shadow-sm">
+          {(['MATCH', 'SPELL', 'RHYME', 'PHONICS'] as const).map(m => (
+            <button
+              key={m}
+              onClick={() => setMode(m)}
+              className={`px-4 py-2 rounded-xl font-bold text-sm flex gap-2 items-center whitespace-nowrap transition-all ${mode === m ? 'bg-orange-500 text-white shadow-md scale-105' : 'text-orange-800 hover:bg-orange-100'}`}
+            >
+              {m === 'MATCH' && <ImageIcon size={16} />}
+              {m === 'SPELL' && <Type size={16} />}
+              {m === 'RHYME' && <Sparkles size={16} />}
+              {m === 'PHONICS' && <Mic2 size={16} />}
+              {m}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm border-2 border-orange-100">
+          <Star className="text-yellow-400 fill-yellow-400" />
+          <span className="font-bold text-orange-800">{score}</span>
+        </div>
+      </header>
+
+      <div className="z-10 flex flex-col items-center mt-8 w-full max-w-4xl px-4">
+
+        {/* Main Content Area */}
+        <div className="bg-white p-8 rounded-[40px] shadow-2xl border-b-8 border-orange-300 mb-8 text-center w-full max-w-md relative animate-pop-in">
+
+          {/* Global Volume Button */}
+          <button
+            onClick={speakCurrentWord}
+            className="absolute top-6 right-6 p-2 bg-orange-100 rounded-full text-orange-500 hover:bg-orange-200 hover:scale-110 transition-all"
+          >
+            <Volume2 size={24} />
+          </button>
+
+          {showSuccess && (
+            <div className="absolute inset-0 bg-green-100/90 rounded-[32px] flex flex-col items-center justify-center z-20 animate-fade-in">
+              <Check size={80} className="text-green-600 animate-bounce" />
+              <span className="text-green-700 font-bold text-2xl">Great Job!</span>
+            </div>
+          )}
+
+          {showWrong && (
+            <div className="absolute inset-0 bg-red-100/90 rounded-[32px] flex flex-col items-center justify-center z-20 animate-fade-in">
+              <X size={80} className="text-red-500" />
+              <span className="text-red-600 font-bold text-xl">Try Again!</span>
+            </div>
+          )}
+
+          {/* Mode Specific Headers */}
+          {mode === 'MATCH' && <h1 className="text-6xl font-bold text-orange-600 mb-8 mt-4">{currentWord.word}</h1>}
+          {mode === 'SPELL' && <div className="text-8xl mb-6 animate-bounce">{currentWord.emoji}</div>}
+          {mode === 'RHYME' && (
+            <div>
+              <div className="text-6xl mb-4">{currentWord.emoji}</div>
+              <h1 className="text-2xl font-bold text-orange-800 mb-6">What rhymes with <span className="text-orange-600 underline">{currentWord.word}</span>?</h1>
+            </div>
+          )}
+
+          {/* PHONICS VIEW */}
+          {mode === 'PHONICS' && (
+            <div className="flex flex-col items-center">
+              <div className="text-6xl mb-4">{currentWord.emoji}</div>
+
+              {/* Segmented Word */}
+              <div className="flex gap-2 mb-8 flex-wrap justify-center">
+                {currentWord.segments ? currentWord.segments.map((seg, i) => (
+                  <button
+                    key={i}
+                    onClick={() => playSegment(seg, i)}
+                    className={`
+                      px-4 py-4 rounded-2xl text-3xl font-bold border-b-4 transition-all active:scale-95
+                      ${activeSegment === i
+                        ? 'bg-yellow-400 text-yellow-900 border-yellow-600 scale-110'
+                        : 'bg-orange-100 text-orange-600 border-orange-200 hover:bg-orange-200'}
+                    `}
+                  >
+                    {seg}
+                  </button>
+                )) : (
+                  <span className="text-5xl font-bold text-orange-600">{currentWord.word}</span>
+                )}
+              </div>
+
+              <div className="text-xs text-gray-400 font-bold uppercase tracking-widest mb-6">Tap blocks to sound it out</div>
+
+              {/* Interaction Buttons */}
+              <div className="flex gap-4 w-full">
+                <button
+                  onClick={() => speak(`The word is ${currentWord.word}. ${currentWord.sentence}`)}
+                  className="flex-1 bg-indigo-500 hover:bg-indigo-400 text-white py-4 rounded-2xl font-bold text-lg shadow-[0_4px_0_rgb(55,48,163)] active:shadow-none active:translate-y-1 flex items-center justify-center gap-2"
+                >
+                  <Ear /> Listen
+                </button>
+                <button
+                  onClick={handleMicClick}
+                  disabled={isRecording}
+                  className={`
+                    flex-1 py-4 rounded-2xl font-bold text-lg shadow-[0_4px_0_rgb(180,83,9)] active:shadow-none active:translate-y-1 flex items-center justify-center gap-2
+                    ${isRecording ? 'bg-red-500 text-white animate-pulse' : 'bg-orange-500 hover:bg-orange-400 text-white'}
+                  `}
+                >
+                  <Mic2 /> {isRecording ? 'Listening...' : 'Read it!'}
+                </button>
+              </div>
+
+              {/* Fake Waveform */}
+              {isRecording && (
+                <div className="flex gap-1 mt-4 h-8 items-center">
+                  {[1,2,3,4,5,6,7,8].map(i => (
+                    <div key={i} className="w-2 bg-red-400 rounded-full animate-bounce" style={{height: Math.random() * 24 + 4 + 'px', animationDelay: i * 0.1 + 's'}}></div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Interaction Area (Options/Spelling) */}
+        {(mode === 'MATCH' || mode === 'RHYME') && (
+          <div className="grid grid-cols-2 gap-4 w-full max-w-md">
+            {options.map((opt, i) => (
+              <button
+                key={i}
+                onClick={() => handleOptionClick(opt)}
+                className="h-28 bg-white rounded-3xl text-4xl font-bold flex items-center justify-center shadow-lg hover:bg-orange-50 border-b-8 border-orange-100 active:border-b-0 active:translate-y-2 transition-all"
+              >
+                {opt}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {mode === 'SPELL' && (
+          <div className="flex flex-col items-center gap-6 w-full">
+            <div className="flex gap-2 h-24 justify-center items-end flex-wrap">
+              {currentWord.word.split('').map((_, i) => (
+                <div key={i} className="w-14 h-20 border-b-8 border-orange-300 flex items-center justify-center text-5xl font-bold text-orange-800 bg-white/60 rounded-t-xl">
+                  {spelledWord[i] || ''}
+                </div>
+              ))}
+            </div>
+            <div className="flex flex-wrap justify-center gap-3">
+              {scrambledLetters.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => handleSpellClick(item)}
+                  className="w-16 h-16 bg-yellow-400 hover:bg-yellow-300 rounded-2xl shadow-[0_6px_0_rgb(200,150,0)] text-4xl font-bold text-yellow-900 active:translate-y-2 active:shadow-none transition-all"
+                >
+                  {item.char}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
+};

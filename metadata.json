@@ -1,0 +1,7 @@
+{
+  "name": "Kid Genius World",
+  "description": "A 3D-style interactive learning hub for kids featuring Math, Reading, Art, Music, and Logic puzzles with an AI guide.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}

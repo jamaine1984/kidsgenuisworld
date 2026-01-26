@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- App Sandbox - Full isolation -->
+    <key>com.apple.security.app-sandbox</key>
+    <true/>
+
+    <!-- NO network access entitlement - fully offline -->
+    <!-- NO keychain sharing - no sensitive data -->
+    <!-- NO iCloud - no data leaves device -->
+    <!-- NO HealthKit - not needed -->
+    <!-- NO HomeKit - not needed -->
+
+    <!-- In-App Purchase capability (for future IAP) -->
+    <key>com.apple.developer.in-app-payments</key>
+    <array>
+        <string>merchant.com.kidgeniusworld</string>
+    </array>
+</dict>
+</plist>

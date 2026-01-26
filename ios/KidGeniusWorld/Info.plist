@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- App Identity -->
+    <key>CFBundleName</key>
+    <string>Kid Genius World</string>
+    <key>CFBundleDisplayName</key>
+    <string>Kid Genius World</string>
+    <key>CFBundleIdentifier</key>
+    <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0.0</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleExecutable</key>
+    <string>$(EXECUTABLE_NAME)</string>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>en</string>
+
+    <!-- iOS Configuration -->
+    <key>LSRequiresIPhoneOS</key>
+    <true/>
+    <key>UIRequiresFullScreen</key>
+    <true/>
+    <key>UILaunchStoryboardName</key>
+    <string>LaunchScreen</string>
+
+    <!-- Supported Orientations -->
+    <key>UISupportedInterfaceOrientations</key>
+    <array>
+        <string>UIInterfaceOrientationPortrait</string>
+        <string>UIInterfaceOrientationLandscapeLeft</string>
+        <string>UIInterfaceOrientationLandscapeRight</string>
+    </array>
+    <key>UISupportedInterfaceOrientations~ipad</key>
+    <array>
+        <string>UIInterfaceOrientationPortrait</string>
+        <string>UIInterfaceOrientationPortraitUpsideDown</string>
+        <string>UIInterfaceOrientationLandscapeLeft</string>
+        <string>UIInterfaceOrientationLandscapeRight</string>
+    </array>
+
+    <!-- App Transport Security - Strict for Kids Apps -->
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <!-- Allow ONLY local file access, block all network -->
+        <key>NSAllowsArbitraryLoads</key>
+        <false/>
+        <key>NSAllowsLocalNetworking</key>
+        <false/>
+    </dict>
+
+    <!-- Status Bar -->
+    <key>UIStatusBarHidden</key>
+    <true/>
+    <key>UIViewControllerBasedStatusBarAppearance</key>
+    <false/>
+
+    <!-- Background Modes - NONE (no background activity) -->
+    <!-- Intentionally omitted UIBackgroundModes -->
+
+    <!-- ============================================== -->
+    <!-- KIDS CATEGORY COMPLIANCE - NO TRACKING        -->
+    <!-- ============================================== -->
+
+    <!-- NO Tracking - Do NOT include NSUserTrackingUsageDescription -->
+    <!-- NO IDFA - Do NOT import AdSupport framework -->
+    <!-- NO third-party analytics SDKs -->
+
+    <!-- ============================================== -->
+    <!-- PERMISSIONS - MINIMAL FOR KIDS SAFETY         -->
+    <!-- ============================================== -->
+
+    <!-- NO camera permission requested -->
+    <!-- NO microphone permission requested -->
+    <!-- NO location permission requested -->
+    <!-- NO contacts permission requested -->
+    <!-- NO photos permission requested -->
+    <!-- NO Bluetooth permission requested -->
+
+    <!-- ============================================== -->
+    <!-- ADDITIONAL KIDS SAFETY SETTINGS               -->
+    <!-- ============================================== -->
+
+    <!-- Disable web content that could load external resources -->
+    <key>WKAppBoundDomains</key>
+    <array>
+        <!-- Only allow bundled content, no external domains -->
+    </array>
+
+    <!-- Scene Configuration for SwiftUI -->
+    <key>UIApplicationSceneManifest</key>
+    <dict>
+        <key>UIApplicationSupportsMultipleScenes</key>
+        <false/>
+    </dict>
+
+    <!-- Capabilities -->
+    <key>ITSAppUsesNonExemptEncryption</key>
+    <false/>
+</dict>
+</plist>

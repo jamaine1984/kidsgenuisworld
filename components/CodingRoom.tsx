@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, Code, Play, RotateCcw, Star, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Repeat, Zap, Volume2 } from 'lucide-react';
-import { speak, speakCorrect, speakWrong, speakQuestion, playSuccess, playError, playWrongBuzzer } from '../services/audioService';
+import { speak, speakAsync, speakCorrect, speakWrong, speakQuestion, playSuccess, playError, playWrongBuzzer } from '../services/audioService';
 
 interface CodingRoomProps {
   level: number; // 1-7 corresponds to Pre-K through 5th grade
@@ -41,7 +41,7 @@ interface Challenge {
 }
 
 // 20 challenges organized by difficulty/grade level
-const CHALLENGES: Challenge[] = [
+export const CHALLENGES: Challenge[] = [
   // PRE-K (Level 1) - Super simple, 1-2 moves
   {
     id: 'c1',
@@ -386,21 +386,46 @@ export const CodingRoom: React.FC<CodingRoomProps> = ({ level, onBack, onReward 
   const [path, setPath] = useState<{ x: number; y: number }[]>([]);
   const [won, setWon] = useState(false);
   const [score, setScore] = useState(0);
+  const [coachTip, setCoachTip] = useState('');
+  const hasAnnouncedFirstChallenge = useRef(false);
+
+  const codingTip = useMemo(() => {
+    if (level <= 2) return 'Build the path one step at a time.';
+    if (level <= 4) return 'Watch the robot direction before you add a turn.';
+    return 'Plan the path first, then use repeat blocks to stay efficient.';
+  }, [level]);
+
+  const teacherIntro = useMemo(() => {
+    if (level <= 2) return 'Teacher says: Watch the path and help the robot move one step at a time.';
+    if (level <= 4) return 'Teacher says: Think about which way the robot is facing before each move.';
+    return 'Teacher says: Plan the full path first, then build the code carefully.';
+  }, [level]);
 
   useEffect(() => {
-    // Welcome message - read the story aloud
-    speak("Welcome to Coding Corner! Let's help Robot solve puzzles!");
-    setTimeout(() => {
-      speakQuestion(challenge.story);
-    }, 2000);
-  }, []);
+    const startLesson = async () => {
+      await speakAsync(`Welcome to Coding Corner. ${codingTip}`);
+      await speakAsync(teacherIntro, 0.88, 1.03);
+      await speakAsync(challenge.story, 0.86, 1.03);
+      hasAnnouncedFirstChallenge.current = true;
+    };
+    void startLesson();
+  }, [codingTip, challenge.story, teacherIntro]);
 
   // When challenge changes, read the new story
   useEffect(() => {
-    if (challenge) {
-      speakQuestion(challenge.story);
+    if (!challenge) return;
+
+    setCoachTip(codingTip);
+
+    if (!hasAnnouncedFirstChallenge.current) {
+      return;
     }
-  }, [challenge.id]);
+
+    void (async () => {
+      await speakAsync(teacherIntro, 0.88, 1.03);
+      await speakAsync(challenge.story, 0.86, 1.03);
+    })();
+  }, [challenge.id, codingTip, challenge.story, teacherIntro]);
 
   const resetChallenge = () => {
     setRobotPos({ ...challenge.startPos });
@@ -420,7 +445,7 @@ export const CodingRoom: React.FC<CodingRoomProps> = ({ level, onBack, onReward 
   };
 
   const speakHint = () => {
-    speak(challenge.hint);
+    void speakAsync(`Teacher hint. ${challenge.hint}`, 0.84, 1.02);
   };
 
   const runCode = async () => {
@@ -497,11 +522,11 @@ export const CodingRoom: React.FC<CodingRoomProps> = ({ level, onBack, onReward 
       setWon(true);
       setScore(s => s + 1);
       playSuccess();
-      speakCorrect("You solved it! You're becoming a real programmer!");
+      void speakCorrect("You solved it. You are becoming a real programmer.");
       onReward();
     } else {
       playWrongBuzzer();
-      speakWrong("Robot didn't reach the star. Try a different path!");
+      void speakWrong("The robot did not reach the star. Try a different path.");
     }
 
     setIsRunning(false);
@@ -575,6 +600,7 @@ export const CodingRoom: React.FC<CodingRoomProps> = ({ level, onBack, onReward 
               </button>
             </div>
             <p className="text-gray-600">{challenge.story}</p>
+            <p className="text-sm text-indigo-900 font-semibold mt-2">Coach Tip: {coachTip}</p>
             <p className="text-indigo-600 mt-2 font-medium">💡 {challenge.hint}</p>
           </div>
 

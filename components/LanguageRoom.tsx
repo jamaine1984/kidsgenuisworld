@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, Languages, Star, Volume2, Flag, Heart } from 'lucide-react';
 import { LanguageWord } from '../types';
-import { speak, speakCorrect, speakWrong, speakQuestion, playSuccess, playWrongBuzzer } from '../services/audioService';
+import { speak, speakAsync, speakCorrect, speakWrong, speakQuestion, playSuccess, playWrongBuzzer } from '../services/audioService';
 
 interface LanguageRoomProps {
   level: number;
@@ -10,7 +10,7 @@ interface LanguageRoomProps {
 }
 
 // Language vocabulary with translations
-const VOCABULARY: { [key: string]: LanguageWord[] } = {
+export const VOCABULARY: { [key: string]: LanguageWord[] } = {
   spanish: [
     // Greetings
     { english: 'Hello', translation: 'Hola', pronunciation: 'OH-lah', language: 'spanish', category: 'greetings' },
@@ -91,7 +91,7 @@ const VOCABULARY: { [key: string]: LanguageWord[] } = {
   ],
 };
 
-const LANGUAGE_INFO = {
+export const LANGUAGE_INFO = {
   spanish: { flag: '🇪🇸', name: 'Spanish', color: 'from-red-500 to-yellow-500' },
   french: { flag: '🇫🇷', name: 'French', color: 'from-blue-500 to-red-500' },
   mandarin: { flag: '🇨🇳', name: 'Mandarin', color: 'from-red-500 to-yellow-400' },
@@ -117,6 +117,17 @@ export const LanguageRoom: React.FC<LanguageRoomProps> = ({ level, onBack, onRew
   const [score, setScore] = useState(0);
   const [wordsLearned, setWordsLearned] = useState<Set<string>>(new Set());
   const [mode, setMode] = useState<'learn' | 'quiz'>('learn');
+  const [coachTip, setCoachTip] = useState('');
+
+  const languageTip = useMemo(() => {
+    if (mode === 'learn') return 'Listen, say it, then notice the pronunciation pattern.';
+    return 'Think of the sound first, then choose the translation.';
+  }, [mode]);
+
+  const teacherIntro = useMemo(() => {
+    if (mode === 'learn') return 'Teacher says: Listen first, then repeat the new word clearly.';
+    return 'Teacher says: Think of the translation before you choose your answer.';
+  }, [mode]);
 
   const getNewWord = () => {
     const words = VOCABULARY[selectedLanguage];
@@ -134,28 +145,31 @@ export const LanguageRoom: React.FC<LanguageRoomProps> = ({ level, onBack, onRew
     setOptions(allOptions);
     setSelectedAnswer(null);
     setShowResult(false);
+    setCoachTip(languageTip);
 
-    // Read the question in quiz mode
-    if (mode === 'quiz') {
-      setTimeout(() => {
-        speakQuestion(`How do you say ${word.english} in ${LANGUAGE_INFO[selectedLanguage].name}?`);
-      }, 500);
-    } else {
-      setTimeout(() => {
-        speak(`In ${LANGUAGE_INFO[selectedLanguage].name}, ${word.english} is ${word.translation}.`);
-      }, 500);
-    }
+    void (async () => {
+      await speakAsync(teacherIntro, 0.88, 1.03);
+      if (mode === 'quiz') {
+        await speakAsync(`How do you say ${word.english} in ${LANGUAGE_INFO[selectedLanguage].name}?`, 0.86, 1.04);
+      } else {
+        await speakAsync(`In ${LANGUAGE_INFO[selectedLanguage].name}, ${word.english} is ${word.translation}.`, 0.86, 1.04);
+        await speakAsync(`Say it after me. ${word.translation}.`, 0.82, 1.0);
+      }
+    })();
   };
 
   useEffect(() => {
-    getNewWord();
-    speak("Welcome to the Language Lab! Let's learn new words!");
-  }, [selectedLanguage]);
+    const startLesson = async () => {
+      await speakAsync(`Welcome to the Language Lab. ${languageTip}`);
+      getNewWord();
+    };
+    void startLesson();
+  }, [selectedLanguage, mode, languageTip]);
 
   const speakWord = () => {
     if (currentWord) {
       // Speak the translation with pronunciation guide
-      speak(`${currentWord.translation}. It sounds like: ${currentWord.pronunciation}`);
+      void speakAsync(`Teacher says: ${currentWord.translation}. It sounds like ${currentWord.pronunciation}.`, 0.82, 1.0);
     }
   };
 
@@ -171,11 +185,11 @@ export const LanguageRoom: React.FC<LanguageRoomProps> = ({ level, onBack, onRew
       playSuccess();
       setScore(s => s + 1);
       setWordsLearned(prev => new Set(prev).add(currentWord.english));
-      speakCorrect(`${currentWord.translation} means ${currentWord.english}! Great job learning ${langInfo.name}!`);
+      void speakCorrect(`${currentWord.translation} means ${currentWord.english}. Great job learning ${langInfo.name}.`);
       setTimeout(() => onReward(), 2000);
     } else {
       playWrongBuzzer();
-      speakWrong(`The answer is ${currentWord.translation}. It sounds like ${currentWord.pronunciation}.`);
+      void speakWrong(`The answer is ${currentWord.translation}. It sounds like ${currentWord.pronunciation}.`);
     }
   };
 
@@ -247,6 +261,10 @@ export const LanguageRoom: React.FC<LanguageRoomProps> = ({ level, onBack, onRew
             <span className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-wider px-4 py-2 rounded-full bg-gradient-to-r from-pink-100 to-purple-100 text-purple-700">
               {CATEGORY_EMOJIS[currentWord.category]} {currentWord.category}
             </span>
+          </div>
+          <div className="bg-purple-50 border-2 border-purple-100 rounded-2xl px-4 py-3 mb-5">
+            <div className="text-xs font-black uppercase tracking-[0.2em] text-purple-500 mb-1">Language Coach</div>
+            <div className="text-purple-900 font-semibold">{coachTip}</div>
           </div>
 
           {mode === 'learn' ? (

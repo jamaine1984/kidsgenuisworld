@@ -1,4 +1,21 @@
 let audioContext: AudioContext | null = null;
+let currentAudio: HTMLAudioElement | null = null;
+let currentAudioUrl: string | null = null;
+let currentNarrationContext = 'general';
+
+type NarrationStyle = 'gentle' | 'energetic' | 'phonics' | 'story';
+
+interface SpeechPreferences {
+  speechRate: number;
+  narrationStyle: NarrationStyle;
+  ageGroup: 'early' | 'elementary' | 'older';
+}
+
+let speechPreferences: SpeechPreferences = {
+  speechRate: 1.0,
+  narrationStyle: 'gentle',
+  ageGroup: 'elementary',
+};
 
 export const getAudioContext = () => {
   if (!audioContext) {
@@ -15,8 +32,8 @@ export const resumeAudioContext = async () => {
 };
 
 // ============================================
-// FREE TEXT-TO-SPEECH USING WEB SPEECH API
-// Works offline, no API costs, kid-friendly
+// TEXT-TO-SPEECH
+// ElevenLabs via local proxy first, native/web fallback second
 // ============================================
 
 // Check if running in iOS native wrapper
@@ -29,6 +46,88 @@ const hasWebSpeech = (): boolean => {
   return 'speechSynthesis' in window;
 };
 
+const hasElevenLabsProxy = (): boolean => {
+  return typeof window !== 'undefined';
+};
+
+const buildVoiceSettings = () => {
+  const styleMap: Record<NarrationStyle, { stability: number; similarity_boost: number; style: number; speed: number; }> = {
+    gentle: { stability: 0.72, similarity_boost: 0.82, style: 0.2, speed: 0.94 },
+    energetic: { stability: 0.45, similarity_boost: 0.88, style: 0.65, speed: 1.02 },
+    phonics: { stability: 0.86, similarity_boost: 0.8, style: 0.05, speed: 0.82 },
+    story: { stability: 0.58, similarity_boost: 0.9, style: 0.78, speed: 0.96 },
+  };
+
+  const ageRateMap = {
+    early: 0.88,
+    elementary: 0.96,
+    older: 1.0,
+  };
+
+  const selected = styleMap[speechPreferences.narrationStyle];
+  const effectiveSpeed = Math.max(0.7, Math.min(1.15, selected.speed * speechPreferences.speechRate * ageRateMap[speechPreferences.ageGroup]));
+
+  return {
+    stability: selected.stability,
+    similarity_boost: selected.similarity_boost,
+    style: selected.style,
+    use_speaker_boost: true,
+    speed: effectiveSpeed,
+  };
+};
+
+export const setSpeechPreferences = (preferences: Partial<SpeechPreferences>) => {
+  speechPreferences = {
+    ...speechPreferences,
+    ...preferences,
+  };
+};
+
+export const setNarrationContext = (context: string) => {
+  currentNarrationContext = context;
+};
+
+const playElevenLabsSpeech = async (text: string): Promise<void> => {
+  const response = await fetch('/api/tts', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      text,
+      context: currentNarrationContext,
+      voice_settings: buildVoiceSettings(),
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`TTS proxy failed with status ${response.status}`);
+  }
+
+  const audioBlob = await response.blob();
+  const audioUrl = URL.createObjectURL(audioBlob);
+  const audio = new Audio(audioUrl);
+  currentAudio = audio;
+  currentAudioUrl = audioUrl;
+
+  return new Promise((resolve) => {
+    const cleanup = () => {
+      if (currentAudio === audio) {
+        currentAudio = null;
+      }
+      if (currentAudioUrl === audioUrl) {
+        URL.revokeObjectURL(audioUrl);
+        currentAudioUrl = null;
+      }
+      resolve();
+    };
+
+    audio.onended = cleanup;
+    audio.onerror = cleanup;
+    void audio.play().catch(() => cleanup());
+  });
+};
+
 // ============================================
 // SPEECH QUEUE SYSTEM - Prevents overlapping
 // ============================================
@@ -37,6 +136,7 @@ interface SpeechItem {
   rate: number;
   pitch: number;
   resolve: () => void;
+  style?: NarrationStyle;
 }
 
 let speechQueue: SpeechItem[] = [];
@@ -51,7 +151,16 @@ const processQueue = async () => {
     const item = speechQueue.shift();
     if (!item) break;
 
+    const previousStyle = speechPreferences.narrationStyle;
+    if (item.style) {
+      setSpeechPreferences({ narrationStyle: item.style });
+    }
+
     await speakAndWait(item.text, item.rate, item.pitch);
+
+    if (item.style) {
+      setSpeechPreferences({ narrationStyle: previousStyle });
+    }
     item.resolve();
 
     // Small pause between sentences for natural flow
@@ -75,6 +184,35 @@ const speakAndWait = (text: string, rate: number, pitch: number): Promise<void> 
       // Estimate duration based on text length
       const estimatedDuration = Math.max(1000, text.length * 80);
       setTimeout(resolve, estimatedDuration);
+    } else if (hasElevenLabsProxy()) {
+      playElevenLabsSpeech(text)
+        .then(resolve)
+        .catch(() => {
+          if (!hasWebSpeech()) {
+            resolve();
+            return;
+          }
+
+          const utterance = new SpeechSynthesisUtterance(text);
+          utterance.rate = rate;
+          utterance.pitch = pitch;
+          utterance.volume = 1.0;
+
+          const voices = window.speechSynthesis.getVoices();
+          const preferredVoice = voices.find(v =>
+            v.name.includes('Samantha') ||
+            v.name.includes('Google US English') ||
+            (v.lang.startsWith('en') && !v.name.includes('Male'))
+          );
+          if (preferredVoice) {
+            utterance.voice = preferredVoice;
+          }
+
+          utterance.onend = () => resolve();
+          utterance.onerror = () => resolve();
+
+          window.speechSynthesis.speak(utterance);
+        });
     } else if (hasWebSpeech()) {
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.rate = rate;
@@ -103,9 +241,9 @@ const speakAndWait = (text: string, rate: number, pitch: number): Promise<void> 
 };
 
 // Queue speech - adds to queue and processes in order
-export const queueSpeak = (text: string, rate: number = 0.9, pitch: number = 1.1): Promise<void> => {
+export const queueSpeak = (text: string, rate: number = 0.9, pitch: number = 1.1, style?: NarrationStyle): Promise<void> => {
   return new Promise((resolve) => {
-    speechQueue.push({ text, rate, pitch, resolve });
+    speechQueue.push({ text, rate, pitch, resolve, style });
     processQueue();
   });
 };
@@ -137,13 +275,28 @@ export const stopSpeaking = (): void => {
     (window as any).webkit.messageHandlers.iosHandler.postMessage({
       type: 'stopSpeaking'
     });
-  } else if (hasWebSpeech()) {
+  }
+
+  if (currentAudio) {
+    currentAudio.pause();
+    currentAudio.currentTime = 0;
+    currentAudio = null;
+    if (currentAudioUrl) {
+      URL.revokeObjectURL(currentAudioUrl);
+      currentAudioUrl = null;
+    }
+  }
+
+  if (hasWebSpeech()) {
     window.speechSynthesis.cancel();
   }
 };
 
 // Check if currently speaking
 export const isSpeaking = (): boolean => {
+  if (currentAudio && !currentAudio.paused) {
+    return true;
+  }
   if (hasWebSpeech()) {
     return window.speechSynthesis.speaking || speechQueue.length > 0;
   }
@@ -234,8 +387,9 @@ export const playNote = (freq: number = 440, type: OscillatorType = 'sine', dura
   };
 
   // Read a question aloud
-  export const speakQuestion = (question: string): void => {
-    speak(question, 0.85, 1.1); // Slightly slower for clarity
+export const speakQuestion = (question: string): void => {
+    const questionStyle = speechPreferences.ageGroup === 'early' ? 'phonics' : speechPreferences.narrationStyle;
+    void queueSpeak(question, 0.85, 1.1, questionStyle);
   };
 
   // Welcome messages for rooms

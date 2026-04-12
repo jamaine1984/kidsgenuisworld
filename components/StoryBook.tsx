@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, BookOpen, Play, Pause, ChevronLeft, ChevronRight, Star, Volume2, Mic2, Heart } from 'lucide-react';
 import { speakAsync, stopSpeaking, isSpeaking, playSuccess } from '../services/audioService';
 
@@ -20,7 +20,75 @@ interface Story {
 }
 
 // 50 Stories organized by grade level
-const STORIES: Story[] = [
+export const STORIES: Story[] = [
+  // PRE-K (Level 1)
+  {
+    id: 'pk-1', title: 'Pip and the Puddle', author: 'Kid Genius Originals', cover: '💧', gradeLevel: 1, category: 'nature',
+    pages: [
+      'Pip puts on tiny yellow boots.',
+      'Pip sees a puddle by the garden gate.',
+      'Splish! Splash! Pip jumps high and giggles.',
+      'A bird drinks water from the puddle too.',
+      'Pip waves and says, "Rain can be fun!"'
+    ],
+    moral: 'Small moments can be joyful.'
+  },
+  {
+    id: 'pk-2', title: 'Nora Finds a Nest', author: 'Kid Genius Originals', cover: '🪺', gradeLevel: 1, category: 'animals',
+    pages: [
+      'Nora walks softly under a tall tree.',
+      'She spots a nest tucked in the branches.',
+      'Three baby birds open their beaks wide.',
+      'Nora steps back and watches very quietly.',
+      'The mother bird returns with breakfast.'
+    ],
+    moral: 'Quiet watching helps us learn.'
+  },
+  {
+    id: 'pk-3', title: 'The Sleepy Seed', author: 'Kid Genius Originals', cover: '🌱', gradeLevel: 1, category: 'learning',
+    pages: [
+      'A tiny seed sleeps in warm brown soil.',
+      'Rain taps above it. Sunlight glows nearby.',
+      'The seed stretches one little root down.',
+      'Then a green sprout pops up to say hello.',
+      'Growing takes time, water, and light.'
+    ],
+    moral: 'Growing happens step by step.'
+  },
+  // KINDERGARTEN (Level 2)
+  {
+    id: 'k-1', title: 'Milo Builds a Bridge', author: 'Kid Genius Originals', cover: '🌉', gradeLevel: 2, category: 'learning',
+    pages: [
+      'Milo wants his toy fox to cross a pretend river.',
+      'He tries paper first, but it bends and sinks.',
+      'He tries blocks next, but they tip sideways.',
+      'Then Milo lays wide sticks across two boxes.',
+      'The fox crosses safely. Milo cheers for engineering!'
+    ],
+    moral: 'Trying again helps ideas grow stronger.'
+  },
+  {
+    id: 'k-2', title: 'Luna and the Library Lamp', author: 'Kid Genius Originals', cover: '🏮', gradeLevel: 2, category: 'fantasy',
+    pages: [
+      'At story time, Luna notices a lamp glowing beside the books.',
+      'Whenever the librarian opens a story, the lamp shines brighter.',
+      'Luna imagines forests, castles, and oceans around her chair.',
+      'When the story ends, the room looks normal again.',
+      'Luna smiles. "Books turn light into adventures."'
+    ],
+    moral: 'Stories help imagination shine.'
+  },
+  {
+    id: 'k-3', title: 'The Helpful Parade', author: 'Kid Genius Originals', cover: '🥁', gradeLevel: 2, category: 'friendship',
+    pages: [
+      'The class makes a parade for Family Day.',
+      'One wheel falls off the toy drum cart.',
+      'Everyone brings one idea to help fix it.',
+      'Tape, string, and teamwork save the parade.',
+      'The music starts, and the whole class marches proudly.'
+    ],
+    moral: 'Helping together makes hard jobs easier.'
+  },
   // GRADE 1 (Level 3) - Simple sentences, 2-3 pages
   {
     id: 'g1-1', title: 'The Red Ball', author: 'Kid Genius', cover: '🔴', gradeLevel: 3, category: 'adventure',
@@ -563,14 +631,49 @@ const STORIES: Story[] = [
 ];
 
 export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward }) => {
-  // Filter stories by grade level
-  const availableStories = STORIES.filter(s => s.gradeLevel <= level);
+  const availableStories = useMemo(() => STORIES.filter(s => s.gradeLevel <= level), [level]);
 
   const [currentStory, setCurrentStory] = useState<Story | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
   const [isReading, setIsReading] = useState(false);
   const [mode, setMode] = useState<'select' | 'listen' | 'read'>('select');
   const [completedStories, setCompletedStories] = useState<Set<string>>(new Set());
+  const [coverImages, setCoverImages] = useState<Record<string, string | null>>({});
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadCovers = async () => {
+      for (const story of availableStories.slice(0, 8)) {
+        if (coverImages[story.id] !== undefined) continue;
+        try {
+          const res = await fetch('/api/story-cover', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              title: story.title,
+              category: story.category,
+              gradeLevel: story.gradeLevel,
+              promptSeed: `Focus on ${story.cover} energy and a friendly scene from the story.`,
+            }),
+          });
+          const data = await res.json();
+          if (!cancelled) {
+            setCoverImages(prev => ({ ...prev, [story.id]: data?.imageUrl || null }));
+          }
+        } catch {
+          if (!cancelled) {
+            setCoverImages(prev => ({ ...prev, [story.id]: null }));
+          }
+        }
+      }
+    };
+
+    void loadCovers();
+    return () => {
+      cancelled = true;
+    };
+  }, [availableStories, coverImages]);
 
   const selectStory = (story: Story) => {
     setCurrentStory(story);
@@ -677,7 +780,7 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
 
         {/* Story Grid */}
         <div className="flex-1 overflow-auto p-4">
-          <p className="text-center text-gray-600 mb-4">Choose a story to read!</p>
+          <p className="text-center text-gray-600 mb-4">Choose a story to read. New shelves open as your grade level grows.</p>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {availableStories.map(story => (
               <button
@@ -690,8 +793,15 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
                     <Star size={16} fill="white" />
                   </div>
                 )}
-                <div className="text-5xl text-center mb-3">{story.cover}</div>
+                <div className="mb-3 rounded-2xl overflow-hidden aspect-[3/4] bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center">
+                  {coverImages[story.id] ? (
+                    <img src={coverImages[story.id] || ''} alt={story.title} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="text-6xl">{story.cover}</div>
+                  )}
+                </div>
                 <h3 className="font-bold text-gray-800 text-sm mb-1 line-clamp-2">{story.title}</h3>
+                <p className="text-xs text-gray-500 mb-2">Grade {story.gradeLevel} • {story.pages.length} pages</p>
                 <span className={`text-xs px-2 py-1 rounded-full bg-gradient-to-r ${getCategoryColor(story.category)} text-white`}>
                   {story.category}
                 </span>

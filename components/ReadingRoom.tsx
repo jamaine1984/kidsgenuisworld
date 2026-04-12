@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, Check, Star, Type, Image as ImageIcon, Volume2, Mic2, Sparkles, Book, Ear, X } from 'lucide-react';
-import { playSuccess, playWrongBuzzer, playPop, speak, speakCorrect, speakWrong, speakQuestion } from '../services/audioService';
+import { playSuccess, playWrongBuzzer, playPop, speak, speakAsync, speakCorrect, speakWrong, speakQuestion } from '../services/audioService';
 
 interface ReadingRoomProps {
   onBack: () => void;
@@ -9,7 +9,7 @@ interface ReadingRoomProps {
 }
 
 // Enhanced Vocabulary with grade levels and more words
-const VOCABULARY = [
+export const VOCABULARY = [
   // PRE-K (Level 1) - Simple CVC words
   { word: 'Cat', emoji: '🐱', level: 1, rhyme: 'Bat', segments: ['C','a','t'], sentence: 'The cat is fluffy.' },
   { word: 'Dog', emoji: '🐶', level: 1, rhyme: 'Log', segments: ['D','o','g'], sentence: 'The dog runs fast.' },
@@ -106,12 +106,54 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
   const [spelledWord, setSpelledWord] = useState<string>('');
   const [showSuccess, setShowSuccess] = useState(false);
   const [showWrong, setShowWrong] = useState(false);
+  const [coachTip, setCoachTip] = useState('');
 
   // Phonics State
   const [isRecording, setIsRecording] = useState(false);
   const [activeSegment, setActiveSegment] = useState<number | null>(null);
+  const hasInitializedMode = useRef(false);
 
   const shuffle = (array: any[]) => [...array].sort(() => Math.random() - 0.5);
+
+  const modeTip = useMemo(() => {
+    switch (mode) {
+      case 'MATCH': return 'Look at the word, then find the picture that fits.';
+      case 'SPELL': return 'Say each letter as you build the word.';
+      case 'RHYME': return 'Listen for the ending sound.';
+      case 'PHONICS': return 'Tap each sound block slowly, then blend them.';
+    }
+  }, [mode]);
+
+  const buildTeacherPrompt = useCallback((word: typeof VOCABULARY[number]) => {
+    switch (mode) {
+      case 'MATCH':
+        return `Teacher says: We are matching the word ${word.word}. Look at the letters, then find the picture that fits.`;
+      case 'SPELL':
+        return `Teacher says: We are spelling the word ${word.word}. Say each letter slowly as you build it.`;
+      case 'RHYME':
+        return `Teacher says: Listen for the ending sound in ${word.word}. We want a word that sounds the same at the end.`;
+      case 'PHONICS':
+        return `Teacher says: We are going to tap each sound in ${word.word}, then blend the sounds together.`;
+    }
+  }, [mode]);
+
+  const narrateRound = useCallback(async (word: typeof VOCABULARY[number]) => {
+    await speakAsync(buildTeacherPrompt(word), 0.88, 1.04);
+    switch (mode) {
+      case 'MATCH':
+        await speakAsync(`Find the picture for ${word.word}. ${word.sentence}`, 0.86, 1.04);
+        break;
+      case 'SPELL':
+        await speakAsync(`Spell the word ${word.word}. ${word.sentence}`, 0.86, 1.04);
+        break;
+      case 'RHYME':
+        await speakAsync(`What rhymes with ${word.word}? Listen to the ending sound.`, 0.86, 1.04);
+        break;
+      case 'PHONICS':
+        await speakAsync(`Let us sound out the word ${word.word}. Tap each sound block, then read the whole word.`, 0.84, 1.02);
+        break;
+    }
+  }, [buildTeacherPrompt, mode]);
 
   const getWordsForLevel = () => {
     const maxLvl = Math.min(Math.max(level, 1), 7);
@@ -123,6 +165,7 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
     setShowSuccess(false);
     setShowWrong(false);
     setSpelledWord('');
+    setCoachTip(modeTip);
     const pool = getWordsForLevel();
     const next = pool[Math.floor(Math.random() * pool.length)];
     setCurrentWord(next);
@@ -130,40 +173,36 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
     if (mode === 'MATCH') {
       const distractors = shuffle(VOCABULARY.filter(v => v.word !== next.word)).slice(0, 3);
       setOptions(shuffle([next, ...distractors]).map(o => o.emoji));
-      setTimeout(() => {
-        speakQuestion(`Find the ${next.word}`);
-      }, 300);
 
     } else if (mode === 'SPELL') {
       const letters = next.word.toUpperCase().split('').map((char, i) => ({ id: i, char }));
       setScrambledLetters(shuffle(letters));
-      setTimeout(() => {
-        speakQuestion(`Spell the word ${next.word}`);
-      }, 300);
 
     } else if (mode === 'RHYME') {
       const distractors = shuffle(VOCABULARY.filter(v => v.rhyme !== next.rhyme && v.word !== next.word)).slice(0, 2);
       const correctRhyme = next.rhyme;
       const wrongRhymes = distractors.map(d => d.rhyme);
       setOptions(shuffle([correctRhyme, ...wrongRhymes]));
-      setTimeout(() => {
-        speakQuestion(`What rhymes with ${next.word}?`);
-      }, 300);
 
     } else if (mode === 'PHONICS') {
-      setTimeout(() => {
-        speakQuestion(`Let's sound out the word ${next.word}`);
-      }, 300);
     }
+
+    void narrateRound(next);
   };
 
   useEffect(() => {
-    speak("Welcome to the Reading Library! Let's learn some words!");
-    const timer = setTimeout(() => nextRound(), 1500);
-    return () => clearTimeout(timer);
+    const startLesson = async () => {
+      await speakAsync(`Welcome to the Reading Library. ${modeTip}`);
+      nextRound();
+      hasInitializedMode.current = true;
+    };
+    void startLesson();
   }, []);
 
   useEffect(() => {
+    if (!hasInitializedMode.current) {
+      return;
+    }
     nextRound();
   }, [mode, level]);
 
@@ -176,16 +215,16 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
       playSuccess();
       setShowSuccess(true);
       setScore(s => s + 1);
-      speakCorrect(`${currentWord.word}! ${currentWord.sentence}`);
+      void speakCorrect(`Great reading. ${currentWord.word}. ${currentWord.sentence}`);
       if (score > 0 && score % 3 === 0) onReward();
       setTimeout(nextRound, 2500);
     } else {
       playWrongBuzzer();
       setShowWrong(true);
       if (mode === 'MATCH') {
-        speakWrong(`That's not ${currentWord.word}. Look for the ${currentWord.emoji} emoji!`);
+        void speakWrong(`That is not ${currentWord.word}. Look again and find the matching picture.`);
       } else if (mode === 'RHYME') {
-        speakWrong(`${val} doesn't rhyme with ${currentWord.word}. The answer is ${currentWord.rhyme}!`);
+        void speakWrong(`${val} does not rhyme with ${currentWord.word}. The rhyming answer is ${currentWord.rhyme}.`);
       }
       setTimeout(() => setShowWrong(false), 2000);
     }
@@ -201,14 +240,14 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
       playSuccess();
       setShowSuccess(true);
       setScore(s => s + 1);
-      speakCorrect(`You spelled ${currentWord.word}! ${currentWord.sentence}`);
+      void speakCorrect(`You spelled ${currentWord.word}. ${currentWord.sentence}`);
       if (score > 0 && score % 3 === 0) onReward();
       setTimeout(nextRound, 2500);
     } else if (newSpelled.length === currentWord.word.length && newSpelled !== currentWord.word.toUpperCase()) {
       // Wrong spelling
       playWrongBuzzer();
       setShowWrong(true);
-      speakWrong(`That's not quite right. The word is spelled ${currentWord.word.split('').join(' ')}.`);
+      void speakWrong(`Let us spell it together. ${currentWord.word.split('').join(' ')}.`);
       setTimeout(() => {
         setShowWrong(false);
         nextRound();
@@ -219,17 +258,17 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
   // Phonics Handlers
   const playSegment = async (segment: string, index: number) => {
     setActiveSegment(index);
-    speak(`The sound is... ${segment}`);
+    await speakAsync(`Teacher says the sound is ${segment}.`, 0.78, 1.0);
     setTimeout(() => setActiveSegment(null), 1000);
   };
 
   const handleMicClick = () => {
     setIsRecording(true);
-    speak(`Say the word ${currentWord.word}!`);
+    void speakAsync(`Teacher says: Read the word ${currentWord.word} out loud.`, 0.84, 1.02);
     setTimeout(async () => {
       setIsRecording(false);
       playSuccess();
-      speakCorrect(`Excellent pronunciation! You said ${currentWord.word} perfectly!`);
+      void speakCorrect(`Excellent pronunciation. You said ${currentWord.word} very clearly.`);
       setScore(s => s + 1);
       if (score > 0 && score % 3 === 0) onReward();
       setTimeout(nextRound, 2500);
@@ -237,7 +276,7 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
   };
 
   const speakCurrentWord = () => {
-    speak(currentWord.word);
+    void speakAsync(`Teacher says the word is ${currentWord.word}. ${currentWord.sentence}`, 0.86, 1.02);
   };
 
   return (
@@ -272,6 +311,10 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
       </header>
 
       <div className="z-10 flex flex-col items-center mt-8 w-full max-w-4xl px-4">
+        <div className="mb-5 bg-orange-50 border-2 border-orange-100 rounded-2xl px-4 py-3 text-left w-full max-w-md">
+          <div className="text-xs font-black uppercase tracking-[0.2em] text-orange-500 mb-1">Reading Coach</div>
+          <div className="text-orange-900 font-semibold">{coachTip}</div>
+        </div>
 
         {/* Main Content Area */}
         <div className="bg-white p-8 rounded-[40px] shadow-2xl border-b-8 border-orange-300 mb-8 text-center w-full max-w-md relative animate-pop-in">

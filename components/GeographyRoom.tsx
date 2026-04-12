@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, Globe2, MapPin, Star, Plane, Volume2 } from 'lucide-react';
 import { GeographyQuestion } from '../types';
-import { speak, speakCorrect, speakWrong, speakQuestion, playSuccess, playWrongBuzzer } from '../services/audioService';
+import { speak, speakAsync, speakCorrect, speakWrong, speakQuestion, playSuccess, playWrongBuzzer } from '../services/audioService';
 
 interface GeographyRoomProps {
   level: number; // 1-7 corresponds to grade levels
@@ -10,7 +10,7 @@ interface GeographyRoomProps {
 }
 
 // Geography questions organized by grade level
-const GEOGRAPHY_QUESTIONS: (GeographyQuestion & { gradeLevel: number })[] = [
+export const GEOGRAPHY_QUESTIONS: (GeographyQuestion & { gradeLevel: number })[] = [
   // PRE-K (Level 1) - Very simple
   { gradeLevel: 1, type: 'country', question: 'Do you live on planet Earth? 🌍', answer: 'Yes!', options: ['Yes!', 'No', 'Maybe', 'I don\'t know'], funFact: 'Earth is our home planet! It\'s the only planet with people on it!' },
   { gradeLevel: 1, type: 'landmark', question: 'What color is the sky on a sunny day? ☀️', answer: 'Blue', options: ['Blue', 'Green', 'Red', 'Purple'], funFact: 'The sky looks blue because of how sunlight bounces around!' },
@@ -76,25 +76,42 @@ export const GeographyRoom: React.FC<GeographyRoomProps> = ({ level, onBack, onR
   const [isCorrect, setIsCorrect] = useState(false);
   const [score, setScore] = useState(0);
   const [countriesLearned, setCountriesLearned] = useState<Set<string>>(new Set());
+  const [coachTip, setCoachTip] = useState('');
+
+  const geographyTip = useMemo(() => {
+    if (level <= 2) return 'Use pictures, flags, and what feels familiar.';
+    if (level <= 4) return 'Look for clues in landmarks, capitals, and continents.';
+    return 'Pause, compare the options, and eliminate what does not fit.';
+  }, [level]);
+
+  const teacherIntro = useMemo(() => {
+    if (level <= 2) return 'Teacher says: Let us look for the biggest clue first.';
+    if (level <= 4) return 'Teacher says: Think about landmarks, flags, and map clues.';
+    return 'Teacher says: Compare the choices and rule out what does not fit.';
+  }, [level]);
 
   const getNewQuestion = () => {
     const randomQ = availableQuestions[Math.floor(Math.random() * availableQuestions.length)];
-    // Shuffle options
     const shuffledOptions = [...randomQ.options].sort(() => Math.random() - 0.5);
+    const cleanQuestion = randomQ.question.replace(/🇺🇸|🇬🇧|🇯🇵|🇫🇷|🇧🇷|🇨🇦|🇦🇺|🇮🇹|🇲🇽|🇨🇳|🇮🇳|🇪🇸|🇷🇺|🇰🇷|🇿🇦|🌍|☀️|🌊/g, '');
     setQuestion({ ...randomQ, options: shuffledOptions });
     setSelectedAnswer(null);
     setShowResult(false);
+    setCoachTip(geographyTip);
 
-    // Read the question aloud
-    setTimeout(() => {
-      speakQuestion(randomQ.question.replace(/🇺🇸|🇬🇧|🇯🇵|🇫🇷|🇧🇷|🇨🇦|🇦🇺|🇮🇹|🇲🇽|🇨🇳|🇮🇳|🇪🇸|🇷🇺|🇰🇷|🇿🇦|🌍|☀️|🌊/g, ''));
-    }, 500);
+    void (async () => {
+      await speakAsync(teacherIntro, 0.88, 1.03);
+      await speakAsync(`${geographyTip} ${cleanQuestion}`, 0.86, 1.02);
+    })();
   };
 
   useEffect(() => {
-    speak("Welcome to Geography Globe! Let's explore the world!");
-    setTimeout(() => getNewQuestion(), 1500);
-  }, []);
+    const startLesson = async () => {
+      await speakAsync(`Welcome to Geography Globe. ${geographyTip}`);
+      getNewQuestion();
+    };
+    void startLesson();
+  }, [geographyTip]);
 
   const readQuestionAloud = () => {
     if (question) {
@@ -114,11 +131,11 @@ export const GeographyRoom: React.FC<GeographyRoomProps> = ({ level, onBack, onR
       playSuccess();
       setScore(s => s + 1);
       setCountriesLearned(prev => new Set(prev).add(question.answer));
-      speakCorrect(question.funFact);
+      void speakCorrect(`Correct. ${question.funFact}`);
       setTimeout(() => onReward(), 2000);
     } else {
       playWrongBuzzer();
-      speakWrong(`The answer is ${question.answer}. ${question.funFact}`);
+      void speakWrong(`The answer is ${question.answer}. ${question.funFact}`);
     }
   };
 
@@ -193,6 +210,8 @@ export const GeographyRoom: React.FC<GeographyRoomProps> = ({ level, onBack, onR
 
           {/* Question */}
           <div className="bg-gradient-to-r from-blue-100 to-cyan-100 rounded-xl p-6 mb-6 relative">
+            <div className="text-xs font-black uppercase tracking-[0.2em] text-blue-500 mb-2">Travel Tip</div>
+            <p className="text-sm font-semibold text-blue-900 mb-3">{coachTip}</p>
             <p className="text-2xl font-bold text-gray-800 text-center leading-relaxed">
               {question.question}
             </p>

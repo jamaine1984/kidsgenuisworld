@@ -184,6 +184,7 @@ export interface AccessibilitySettings {
   colorBlindMode: 'none' | 'protanopia' | 'deuteranopia' | 'tritanopia';
   speechRate: number; // 0.5 - 2.0
   autoReadQuestions: boolean;
+  narrationStyle: 'gentle' | 'energetic' | 'phonics' | 'story';
 }
 
 // ============================================
@@ -472,7 +473,8 @@ export const DEFAULT_ACCESSIBILITY: AccessibilitySettings = {
   screenReaderOptimized: false,
   colorBlindMode: 'none',
   speechRate: 1.0,
-  autoReadQuestions: false
+  autoReadQuestions: false,
+  narrationStyle: 'gentle'
 };
 
 export const DEFAULT_AVATAR: AvatarCustomization = {

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { MessageCircle, Volume2 } from 'lucide-react';
-import { getGuideMessage } from '../services/geminiService';
-import { speak as speakText, isSpeaking } from '../services/audioService';
+import { Volume2 } from 'lucide-react';
+import { speak as speakText, isSpeaking, setNarrationContext } from '../services/audioService';
 import { RoomType } from '../types';
 
 interface GuideProps {
@@ -11,23 +10,64 @@ interface GuideProps {
 
 export const Guide: React.FC<GuideProps> = ({ room, trigger }) => {
   const [message, setMessage] = useState("Welcome to Kid Genius World!");
-  const [isLoading, setIsLoading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  useEffect(() => {
-    const fetchMessage = async () => {
-      setIsLoading(true);
-      const msg = await getGuideMessage(room === RoomType.HUB ? "Main Hall" : `${room} Room`);
-      setMessage(msg);
-      setIsLoading(false);
+  const getGuideMessage = (currentRoom: RoomType) => {
+    const messages: Record<RoomType, string[]> = {
+      [RoomType.HUB]: [
+        "Pick a room and let's start learning.",
+        "Tap a place on the map for your next adventure.",
+      ],
+      [RoomType.MATH]: [
+        "Count carefully and take your time in Math Lab.",
+        "Let's solve one problem at a time.",
+      ],
+      [RoomType.READING]: [
+        "Tap the speaker anytime to hear the word again.",
+        "Let's read the word slowly together.",
+      ],
+      [RoomType.PUZZLE]: [
+        "Look for patterns before you choose.",
+      ],
+      [RoomType.MUSIC]: [
+        "Listen first, then tap along with the beat.",
+      ],
+      [RoomType.ART]: [
+        "Be creative. There is more than one good idea here.",
+      ],
+      [RoomType.PLAYGROUND]: [
+        "Take a fun break, then jump back into learning.",
+      ],
+      [RoomType.SCIENCE]: [
+        "Think like a scientist and test your best idea.",
+      ],
+      [RoomType.GEOGRAPHY]: [
+        "Look closely at the clues before you answer.",
+      ],
+      [RoomType.CODING]: [
+        "Try one step, then check what the robot does.",
+      ],
+      [RoomType.LANGUAGE]: [
+        "Listen to the new word, then say it back.",
+      ],
+      [RoomType.STORYBOOK]: [
+        "Sit back and listen to the story page by page.",
+      ],
     };
-    fetchMessage();
+
+    const roomMessages = messages[currentRoom] || messages[RoomType.HUB];
+    return roomMessages[trigger % roomMessages.length];
+  };
+
+  useEffect(() => {
+    const msg = getGuideMessage(room);
+    setMessage(msg);
   }, [room, trigger]);
 
   const speak = () => {
     if (isPlaying) return;
     setIsPlaying(true);
-    // Use FREE Web Speech API instead of paid Gemini TTS
+    setNarrationContext(`${room}-guide`);
     speakText(message);
     // Check periodically if speech has finished
     const checkSpeaking = setInterval(() => {
@@ -48,7 +88,7 @@ export const Guide: React.FC<GuideProps> = ({ room, trigger }) => {
       {/* Speech Bubble */}
       <div className="bg-white p-4 rounded-2xl rounded-br-none shadow-xl mb-2 max-w-xs border-4 border-yellow-400 animate-bounce-slight pointer-events-auto transform transition-all hover:scale-105">
         <p className="text-slate-800 font-bold text-lg leading-tight">
-            {isLoading ? "Thinking..." : message}
+            {message}
         </p>
         <button 
             onClick={speak}

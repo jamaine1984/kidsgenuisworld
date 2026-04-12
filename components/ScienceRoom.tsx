@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, FlaskConical, Lightbulb, Star, Sparkles, Volume2, X, Check } from 'lucide-react';
 import { ScienceExperiment } from '../types';
-import { speak, speakCorrect, speakWrong, speakQuestion, playSuccess, playWrongBuzzer } from '../services/audioService';
+import { speak, speakAsync, speakCorrect, speakWrong, speakQuestion, playSuccess, playWrongBuzzer } from '../services/audioService';
 
 interface ScienceRoomProps {
   level: number; // 1-7 corresponds to grade levels
@@ -10,7 +10,7 @@ interface ScienceRoomProps {
 }
 
 // Science experiments/questions organized by grade level
-const SCIENCE_EXPERIMENTS: (ScienceExperiment & { gradeLevel: number })[] = [
+export const SCIENCE_EXPERIMENTS: (ScienceExperiment & { gradeLevel: number })[] = [
   // PRE-K (Level 1) - Very simple observations
   {
     id: 'pk1', gradeLevel: 1, title: 'Day and Night',
@@ -306,6 +306,19 @@ export const ScienceRoom: React.FC<ScienceRoomProps> = ({ level, onBack, onRewar
   const [isCorrect, setIsCorrect] = useState(false);
   const [showFunFact, setShowFunFact] = useState(false);
   const [score, setScore] = useState(0);
+  const [coachTip, setCoachTip] = useState('');
+
+  const scienceTip = useMemo(() => {
+    if (level <= 2) return 'Look at the choices and think about the real world.';
+    if (level <= 4) return 'Use what you have seen in nature, school, or home.';
+    return 'Read carefully, then use the clue in the experiment title.';
+  }, [level]);
+
+  const teacherIntro = useMemo(() => {
+    if (level <= 2) return 'Teacher says: Look at the choices and think about the world around you.';
+    if (level <= 4) return 'Teacher says: Use what you have noticed in nature, home, and school.';
+    return 'Teacher says: Read the science clue carefully, then choose the best answer.';
+  }, [level]);
 
   const getNewExperiment = () => {
     const randomExp = availableExperiments[Math.floor(Math.random() * availableExperiments.length)];
@@ -313,17 +326,21 @@ export const ScienceRoom: React.FC<ScienceRoomProps> = ({ level, onBack, onRewar
     setSelectedAnswer(null);
     setShowResult(false);
     setShowFunFact(false);
+    setCoachTip(scienceTip);
 
-    // Read the question aloud
-    setTimeout(() => {
-      speakQuestion(randomExp.question);
-    }, 500);
+    void (async () => {
+      await speakAsync(teacherIntro, 0.88, 1.03);
+      await speakAsync(`${scienceTip} ${randomExp.question}`, 0.86, 1.02);
+    })();
   };
 
   useEffect(() => {
-    speak("Welcome to the Science Lab! Let's discover amazing things about our world!");
-    setTimeout(() => getNewExperiment(), 1500);
-  }, []);
+    const startLesson = async () => {
+      await speakAsync(`Welcome to the Science Lab. ${scienceTip}`);
+      getNewExperiment();
+    };
+    void startLesson();
+  }, [scienceTip]);
 
   const readQuestionAloud = () => {
     if (experiment) {
@@ -342,14 +359,14 @@ export const ScienceRoom: React.FC<ScienceRoomProps> = ({ level, onBack, onRewar
     if (correct) {
       playSuccess();
       setScore(s => s + 1);
-      speakCorrect(experiment.explanation);
+      void speakCorrect(`That is right. ${experiment.explanation}`);
       setTimeout(() => {
         onReward();
         setShowFunFact(true);
       }, 2500);
     } else {
       playWrongBuzzer();
-      speakWrong(experiment.explanation);
+      void speakWrong(`Let us learn it together. ${experiment.explanation}`);
     }
   };
 
@@ -411,6 +428,8 @@ export const ScienceRoom: React.FC<ScienceRoomProps> = ({ level, onBack, onRewar
 
           {/* Question */}
           <div className="bg-gradient-to-r from-teal-100 to-cyan-100 rounded-xl p-4 mb-4">
+            <div className="text-xs font-black uppercase tracking-[0.2em] text-teal-500 mb-2">Science Coach</div>
+            <p className="text-sm font-semibold text-teal-900 mb-3">{coachTip}</p>
             <div className="flex items-start gap-2">
               <Lightbulb className="text-yellow-500 flex-shrink-0 mt-1" size={24} />
               <p className="text-lg font-semibold text-gray-700">{experiment.question}</p>

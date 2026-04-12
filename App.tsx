@@ -31,8 +31,9 @@ import {
   DEFAULT_LEARNING_PROFILE,
   DEFAULT_ACCESSIBILITY
 } from './types';
-import { resumeAudioContext, playSuccess, speak, speakWelcome } from './services/audioService';
+import { resumeAudioContext, playSuccess, speak, stopSpeaking, setNarrationContext, setSpeechPreferences } from './services/audioService';
 import { updateSkillMetrics, updateLearningProfile, getEncouragingMessage } from './services/adaptiveLearning';
+import { warmVoiceCache } from './services/voiceCacheService';
 import { Play, Sparkles } from 'lucide-react';
 
 const App: React.FC = () => {
@@ -65,6 +66,107 @@ const App: React.FC = () => {
   useEffect(() => {
     localStorage.setItem('kidGeniusProgress', JSON.stringify(progress));
   }, [progress]);
+
+  useEffect(() => {
+    const ageGroup =
+      progress.currentGrade === GradeLevel.PRE_K || progress.currentGrade === GradeLevel.KINDERGARTEN
+        ? 'early'
+        : progress.currentGrade === GradeLevel.FOURTH_GRADE || progress.currentGrade === GradeLevel.FIFTH_GRADE
+          ? 'older'
+          : 'elementary';
+
+    setSpeechPreferences({
+      speechRate: progress.accessibility?.speechRate || 1.0,
+      narrationStyle: progress.accessibility?.narrationStyle || 'gentle',
+      ageGroup,
+    });
+    setNarrationContext(currentRoom);
+  }, [progress.currentGrade, progress.accessibility, currentRoom]);
+
+  useEffect(() => {
+    if (!hasStarted) {
+      return;
+    }
+
+    const cacheProfile = JSON.stringify({
+      level: progress.currentLevel,
+      narrationStyle: progress.accessibility?.narrationStyle || 'gentle',
+      speechRate: progress.accessibility?.speechRate || 1.0,
+    });
+    const cacheKey = 'kidGeniusVoiceCacheProfile';
+
+    if (localStorage.getItem(cacheKey) === cacheProfile) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const warmCacheInBackground = async () => {
+      try {
+        await warmVoiceCache(progress.currentLevel, progress.accessibility || DEFAULT_ACCESSIBILITY);
+        if (!cancelled) {
+          localStorage.setItem(cacheKey, cacheProfile);
+        }
+      } catch {
+        // Keep this silent in the kid UI. Parent Dashboard exposes manual warmup status.
+      }
+    };
+
+    void warmCacheInBackground();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [hasStarted, progress.currentLevel, progress.accessibility]);
+
+  const updateProfileForReward = (
+    updater: (profile: UserProgress['learningProfile']) => UserProgress['learningProfile']
+  ) => {
+    setProgress(prev => {
+      const nextProfile = updateLearningProfile(updater(prev.learningProfile));
+      return {
+        ...prev,
+        learningProfile: nextProfile,
+      };
+    });
+  };
+
+  const recordMathSkill = () => {
+    updateProfileForReward(profile => {
+      const mathSkills = { ...profile.mathSkills };
+      const targetSkill =
+        progress.currentLevel <= 2
+          ? (Math.random() > 0.45 ? 'addition' : 'subtraction')
+          : progress.currentLevel <= 4
+            ? (Math.random() > 0.5 ? 'addition' : progress.currentLevel === 4 ? 'multiplication' : 'subtraction')
+            : progress.currentLevel <= 6
+              ? (Math.random() > 0.45 ? 'multiplication' : 'division')
+              : ['addition', 'subtraction', 'multiplication', 'division'][Math.floor(Math.random() * 4)] as keyof typeof mathSkills;
+
+      mathSkills[targetSkill] = updateSkillMetrics(mathSkills[targetSkill], true, 4000);
+      return { ...profile, mathSkills };
+    });
+  };
+
+  const recordReadingSkill = (skill: keyof UserProgress['learningProfile']['readingSkills']) => {
+    updateProfileForReward(profile => ({
+      ...profile,
+      readingSkills: {
+        ...profile.readingSkills,
+        [skill]: updateSkillMetrics(profile.readingSkills[skill], true, 3500),
+      },
+    }));
+  };
+
+  const recordSubjectSkill = (
+    skill: 'scienceSkills' | 'geographySkills' | 'codingSkills' | 'languageSkills',
+    timeMs: number
+  ) => {
+    updateProfileForReward(profile => ({
+      ...profile,
+      [skill]: updateSkillMetrics(profile[skill], true, timeMs),
+    }));
+  };
 
   // Check for achievements
   const checkAchievements = (newProgress: UserProgress) => {
@@ -197,11 +299,13 @@ const App: React.FC = () => {
   };
 
   const handleEnterRoom = (room: RoomType) => {
+    stopSpeaking();
     setCurrentRoom(room);
     setGuideTrigger(p => p + 1);
   };
 
   const handleBack = () => {
+    stopSpeaking();
     setCurrentRoom(RoomType.HUB);
     setShowDashboard(false);
     setShowParentDashboard(false);
@@ -300,6 +404,7 @@ const App: React.FC = () => {
       const newProgress = { ...p, mathScore: p.mathScore + 1 };
       return checkAchievements(newProgress);
     });
+    recordMathSkill();
     addSticker('math');
   };
 
@@ -308,6 +413,7 @@ const App: React.FC = () => {
       const newProgress = { ...p, readingScore: p.readingScore + 1 };
       return checkAchievements(newProgress);
     });
+    recordReadingSkill('sightWords');
     addSticker('reading');
   };
 
@@ -316,6 +422,7 @@ const App: React.FC = () => {
       const newProgress = { ...p, scienceScore: (p.scienceScore || 0) + 1 };
       return checkAchievements(newProgress);
     });
+    recordSubjectSkill('scienceSkills', 5000);
     addSticker('science');
   };
 
@@ -324,6 +431,7 @@ const App: React.FC = () => {
       const newProgress = { ...p, geographyScore: (p.geographyScore || 0) + 1 };
       return checkAchievements(newProgress);
     });
+    recordSubjectSkill('geographySkills', 4500);
     addSticker('geography');
   };
 
@@ -332,6 +440,7 @@ const App: React.FC = () => {
       const newProgress = { ...p, codingScore: (p.codingScore || 0) + 1 };
       return checkAchievements(newProgress);
     });
+    recordSubjectSkill('codingSkills', 6500);
     addSticker('coding');
   };
 
@@ -340,6 +449,7 @@ const App: React.FC = () => {
       const newProgress = { ...p, languageScore: (p.languageScore || 0) + 1 };
       return checkAchievements(newProgress);
     });
+    recordSubjectSkill('languageSkills', 4500);
     addSticker('language');
   };
 
@@ -348,6 +458,7 @@ const App: React.FC = () => {
       const newProgress = { ...p, storybookScore: (p.storybookScore || 0) + 1 };
       return checkAchievements(newProgress);
     });
+    recordReadingSkill('comprehension');
     addSticker('reading');
   };
 
@@ -614,10 +725,16 @@ const App: React.FC = () => {
         return (
           <WorldMap
             onEnterRoom={handleEnterRoom}
-            onOpenDashboard={() => setShowDashboard(true)}
+            onOpenDashboard={() => {
+              stopSpeaking();
+              setShowDashboard(true);
+            }}
             onOpenAchievements={() => setShowAchievements(true)}
             onOpenPet={() => setShowPet(true)}
-            onOpenSettings={() => setShowParentDashboard(true)}
+            onOpenSettings={() => {
+              stopSpeaking();
+              setShowParentDashboard(true);
+            }}
             progress={progress}
           />
         );

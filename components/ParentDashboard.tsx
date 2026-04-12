@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import {
   ArrowLeft, BarChart3, Clock, Target, TrendingUp,
   Star, Award, Brain, Calendar, ChevronRight, Lock,
-  Settings, Shield, Volume2, Eye, Type
+  Settings, Shield, Volume2, Eye, Type, BookOpen
 } from 'lucide-react';
 import { UserProgress, RoomType, AccessibilitySettings } from '../types';
+import { warmVoiceCache } from '../services/voiceCacheService';
 
 interface ParentDashboardProps {
   progress: UserProgress;
@@ -20,10 +21,13 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
   requireParentGate = true,
 }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'skills' | 'settings'>('overview');
+  const [isWarmingVoiceCache, setIsWarmingVoiceCache] = useState(false);
+  const [voiceCacheSummary, setVoiceCacheSummary] = useState<string>('');
 
   // Calculate stats
   const totalProblems = progress.mathScore + progress.readingScore + progress.scienceScore +
-                        progress.geographyScore + progress.codingScore + progress.languageScore;
+                        progress.geographyScore + progress.codingScore + progress.languageScore +
+                        (progress.storybookScore || 0);
 
   const getAccuracyColor = (accuracy: number) => {
     if (accuracy >= 80) return 'text-green-600';
@@ -35,6 +39,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
     return [
       { name: 'Math', score: progress.mathScore, icon: '🔢', color: 'bg-blue-500' },
       { name: 'Reading', score: progress.readingScore, icon: '📚', color: 'bg-green-500' },
+      { name: 'Story Time', score: progress.storybookScore || 0, icon: '📖', color: 'bg-amber-500' },
       { name: 'Science', score: progress.scienceScore, icon: '🔬', color: 'bg-purple-500' },
       { name: 'Geography', score: progress.geographyScore, icon: '🌍', color: 'bg-cyan-500' },
       { name: 'Coding', score: progress.codingScore, icon: '💻', color: 'bg-indigo-500' },
@@ -45,22 +50,22 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
   const maxScore = Math.max(...getSubjectData().map(s => s.score), 1);
 
   return (
-    <div className="w-full h-full bg-gray-50 flex flex-col overflow-hidden" style={{ maxHeight: '100vh' }}>
+    <div className="w-full h-full bg-gray-50 flex flex-col overflow-y-auto overflow-x-hidden kid-scroll">
       {/* Header */}
-      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-4 text-white">
-        <div className="flex items-center justify-between mb-4">
-          <button onClick={onBack} className="p-2 bg-white/20 rounded-full hover:bg-white/30 transition">
+      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-4 text-white sticky top-0 z-20">
+        <div className="flex items-center justify-between gap-3 mb-4">
+          <button onClick={onBack} className="p-2 bg-white/20 rounded-full hover:bg-white/30 transition shrink-0">
             <ArrowLeft size={24} />
           </button>
-          <h1 className="text-xl font-bold flex items-center gap-2">
+          <h1 className="text-base sm:text-xl font-bold flex items-center gap-2 min-w-0 text-center">
             <Shield size={24} />
             Parent Dashboard
           </h1>
-          <div className="w-10" /> {/* Spacer */}
+          <div className="w-10 shrink-0" /> {/* Spacer */}
         </div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="bg-white/20 rounded-xl p-3 text-center">
             <p className="text-3xl font-bold">{progress.currentLevel}</p>
             <p className="text-xs opacity-80">Level</p>
@@ -77,7 +82,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
       </div>
 
       {/* Tabs */}
-      <div className="flex bg-white border-b">
+      <div className="grid grid-cols-3 bg-white border-b sticky top-[140px] sm:top-[120px] z-10">
         {[
           { id: 'overview', label: 'Overview', icon: <BarChart3 size={18} /> },
           { id: 'skills', label: 'Skills', icon: <Brain size={18} /> },
@@ -86,20 +91,20 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
-            className={`flex-1 py-3 flex items-center justify-center gap-2 font-semibold transition ${
+            className={`py-3 px-2 flex items-center justify-center gap-2 font-semibold transition text-sm sm:text-base ${
               activeTab === tab.id
                 ? 'text-indigo-600 border-b-2 border-indigo-600'
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
             {tab.icon}
-            {tab.label}
+            <span className="hidden sm:inline">{tab.label}</span>
           </button>
         ))}
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-auto p-4">
+      <div className="p-4">
         {activeTab === 'overview' && (
           <div className="space-y-6">
             {/* Current Grade */}
@@ -108,12 +113,12 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 <Award size={20} className="text-indigo-500" />
                 Current Progress
               </h3>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-2xl font-bold text-indigo-600">{progress.currentGrade}</p>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="min-w-0">
+                  <p className="text-xl sm:text-2xl font-bold text-indigo-600 break-words">{progress.currentGrade}</p>
                   <p className="text-sm text-gray-500">Grade Level</p>
                 </div>
-                <div className="text-right">
+                <div className="text-left sm:text-right">
                   <p className="text-2xl font-bold text-green-600">{progress.currentStreak}</p>
                   <p className="text-sm text-gray-500">Day Streak</p>
                 </div>
@@ -173,7 +178,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 <Clock size={20} className="text-blue-500" />
                 Time Summary
               </h3>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="text-center p-3 bg-blue-50 rounded-lg">
                   <p className="text-2xl font-bold text-blue-600">{progress.totalPlayTimeMinutes}</p>
                   <p className="text-xs text-gray-500">Total Minutes</p>
@@ -206,7 +211,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
             {/* Math Skills */}
             <div className="bg-white rounded-xl p-4 shadow-sm">
               <h3 className="font-semibold text-gray-700 mb-3">🔢 Math Skills</h3>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {Object.entries(progress.learningProfile.mathSkills).map(([skill, metrics]) => (
                   <div key={skill} className="bg-gray-50 rounded-lg p-3">
                     <p className="font-medium capitalize text-sm">{skill}</p>
@@ -236,7 +241,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
             {/* Reading Skills */}
             <div className="bg-white rounded-xl p-4 shadow-sm">
               <h3 className="font-semibold text-gray-700 mb-3">📚 Reading Skills</h3>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {Object.entries(progress.learningProfile.readingSkills).map(([skill, metrics]) => (
                   <div key={skill} className="bg-gray-50 rounded-lg p-3">
                     <p className="font-medium capitalize text-sm">{skill.replace(/([A-Z])/g, ' $1')}</p>
@@ -354,6 +359,91 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                   className="w-full"
                 />
               </div>
+
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-gray-600 mb-2">
+                  Narration Style
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { key: 'gentle', label: 'Gentle' },
+                    { key: 'energetic', label: 'Energetic' },
+                    { key: 'phonics', label: 'Phonics' },
+                    { key: 'story', label: 'Story' },
+                  ].map(option => (
+                    <button
+                      key={option.key}
+                      onClick={() => onUpdateAccessibility({
+                        ...progress.accessibility,
+                        narrationStyle: option.key as AccessibilitySettings['narrationStyle']
+                      })}
+                      className={`py-2 rounded-lg font-medium transition ${
+                        progress.accessibility.narrationStyle === option.key
+                          ? 'bg-indigo-500 text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl p-4 shadow-sm">
+              <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <BookOpen size={20} className="text-amber-500" />
+                Reading Journey
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="bg-amber-50 rounded-lg p-3 text-center">
+                  <p className="text-2xl font-bold text-amber-600">{progress.readingScore}</p>
+                  <p className="text-xs text-gray-500">Reading Wins</p>
+                </div>
+                <div className="bg-yellow-50 rounded-lg p-3 text-center">
+                  <p className="text-2xl font-bold text-yellow-600">{progress.storybookScore || 0}</p>
+                  <p className="text-xs text-gray-500">Stories Completed</p>
+                </div>
+                <div className="bg-indigo-50 rounded-lg p-3 text-center">
+                  <p className="text-2xl font-bold text-indigo-600">{progress.learningProfile.readingSkills.comprehension.masteryLevel}%</p>
+                  <p className="text-xs text-gray-500">Comprehension Mastery</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl p-4 shadow-sm">
+              <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <Volume2 size={20} className="text-indigo-500" />
+                Voice Cache
+              </h3>
+              <p className="text-sm text-gray-600 mb-3">
+                Pre-render lesson and story narration for this grade so repeated play uses local cached audio.
+              </p>
+              <button
+                onClick={async () => {
+                  setIsWarmingVoiceCache(true);
+                  setVoiceCacheSummary('');
+                  try {
+                    const result = await warmVoiceCache(progress.currentLevel, progress.accessibility);
+                    setVoiceCacheSummary(`Cached ${result.requested} phrases. Hits: ${result.hits}, new files: ${result.misses}, errors: ${result.errors}.`);
+                  } catch (error) {
+                    setVoiceCacheSummary(error instanceof Error ? error.message : 'Voice cache warmup failed.');
+                  } finally {
+                    setIsWarmingVoiceCache(false);
+                  }
+                }}
+                disabled={isWarmingVoiceCache}
+                className={`w-full py-3 font-semibold rounded-lg transition ${
+                  isWarmingVoiceCache
+                    ? 'bg-gray-200 text-gray-500'
+                    : 'bg-indigo-500 text-white hover:bg-indigo-600'
+                }`}
+              >
+                {isWarmingVoiceCache ? 'Warming Voice Cache...' : 'Warm Voice Cache'}
+              </button>
+              {voiceCacheSummary && (
+                <p className="text-sm text-gray-600 mt-3">{voiceCacheSummary}</p>
+              )}
             </div>
 
             {/* Data & Privacy */}

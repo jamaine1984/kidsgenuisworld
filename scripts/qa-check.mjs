@@ -314,6 +314,18 @@ if (!artRoomSource.includes('Creative Studio Mission') || !artRoomSource.include
 if (!musicRoomSource.includes('Music Mission Board') || !musicRoomSource.includes('Explore Sound')) {
   fail('Music room needs a clearer kid-facing mission panel.');
 }
+if (!appSource.includes('<ArtRoom level={progress.currentLevel}') || !appSource.includes('<MusicRoom level={progress.currentLevel}') || !appSource.includes('<PuzzleRoom level={progress.currentLevel}')) {
+  fail('Creative rooms must receive the active grade level for pacing.');
+}
+if (!artRoomSource.includes('ART_MISSIONS') || !artRoomSource.includes('minStrokes') || !artRoomSource.includes('Pattern Artist')) {
+  fail('Art room needs grade-paced missions and stroke requirements.');
+}
+if (!musicRoomSource.includes('MUSIC_MISSIONS') || !musicRoomSource.includes('noteGoal') || !musicRoomSource.includes('loopGoal')) {
+  fail('Music room needs grade-paced note and rhythm goals.');
+}
+if (!puzzleRoomSource.includes('PUZZLE_MISSIONS') || !puzzleRoomSource.includes('patternAnswer') || !puzzleRoomSource.includes('mission.pairCount')) {
+  fail('Puzzle room needs grade-paced puzzle depth and a stable pattern answer.');
+}
 if (musicRoomSource.includes('transparenttextures.com')) {
   fail('Music room should not load decorative third-party texture assets.');
 }

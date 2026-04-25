@@ -1188,11 +1188,11 @@ const App: React.FC = () => {
       case RoomType.STORYBOOK:
         return <StoryBook level={progress.currentLevel} onBack={handleBack} onReward={handleStorybookReward} />;
       case RoomType.ART:
-        return <ArtRoom onBack={handleBack} onReward={() => handleCreativeReward('art')} />;
+        return <ArtRoom level={progress.currentLevel} onBack={handleBack} onReward={() => handleCreativeReward('art')} />;
       case RoomType.MUSIC:
-        return <MusicRoom onBack={handleBack} onReward={handleMusicReward} />;
+        return <MusicRoom level={progress.currentLevel} onBack={handleBack} onReward={handleMusicReward} />;
       case RoomType.PUZZLE:
-        return <PuzzleRoom onBack={handleBack} onReward={() => addSticker('puzzle')} />;
+        return <PuzzleRoom level={progress.currentLevel} onBack={handleBack} onReward={() => addSticker('puzzle')} />;
       case RoomType.HUB:
       default:
         return (

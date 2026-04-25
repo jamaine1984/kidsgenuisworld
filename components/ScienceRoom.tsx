@@ -294,6 +294,132 @@ export const SCIENCE_EXPERIMENTS: (ScienceExperiment & { gradeLevel: number })[]
     funFact: 'All life on Earth shares a common ancestor from billions of years ago!',
     category: 'biology', icon: '🦎'
   },
+  {
+    id: 'pk5', gradeLevel: 1, title: 'Sink or Float',
+    question: 'Which object is most likely to float in water?',
+    hypothesis: ['A leaf', 'A rock', 'A coin', 'A key'],
+    correctAnswer: 0,
+    explanation: 'A leaf is light and can float on top of water.',
+    funFact: 'Scientists test ideas by trying them and watching carefully.',
+    category: 'physics', icon: 'leaf'
+  },
+  {
+    id: 'pk6', gradeLevel: 1, title: 'Animal Sounds',
+    question: 'Which animal says moo?',
+    hypothesis: ['Cow', 'Duck', 'Cat', 'Horse'],
+    correctAnswer: 0,
+    explanation: 'A cow says moo. Listening is one way scientists observe animals.',
+    funFact: 'Animals use sounds to communicate with each other.',
+    category: 'biology', icon: 'cow'
+  },
+  {
+    id: 'k5', gradeLevel: 2, title: 'Five Senses',
+    question: 'Which sense do you use to smell a flower?',
+    hypothesis: ['Sight', 'Hearing', 'Smell', 'Touch'],
+    correctAnswer: 2,
+    explanation: 'Your nose helps you smell flowers, food, and many other things.',
+    funFact: 'Smell can help people notice danger, like smoke.',
+    category: 'biology', icon: 'nose'
+  },
+  {
+    id: 'k6', gradeLevel: 2, title: 'Weather Clothes',
+    question: 'What should you wear when it is rainy?',
+    hypothesis: ['Raincoat', 'Swimsuit', 'Sandals only', 'Party hat'],
+    correctAnswer: 0,
+    explanation: 'A raincoat helps keep your body dry in wet weather.',
+    funFact: 'Meteorologists study weather so people can plan ahead.',
+    category: 'nature', icon: 'rain'
+  },
+  {
+    id: '1g5', gradeLevel: 3, title: 'Plant Parts',
+    question: 'Which part of a plant takes in water from soil?',
+    hypothesis: ['Flower', 'Roots', 'Petals', 'Fruit'],
+    correctAnswer: 1,
+    explanation: 'Roots take in water and help hold the plant in the ground.',
+    funFact: 'Some roots, like carrots, store food for the plant.',
+    category: 'biology', icon: 'root'
+  },
+  {
+    id: '1g6', gradeLevel: 3, title: 'Push and Pull',
+    question: 'Which action is a pull?',
+    hypothesis: ['Dragging a wagon toward you', 'Kicking a ball away', 'Dropping a toy', 'Watching a kite'],
+    correctAnswer: 0,
+    explanation: 'A pull moves something closer to you.',
+    funFact: 'Pushes and pulls are forces that can change motion.',
+    category: 'physics', icon: 'force'
+  },
+  {
+    id: '2g5', gradeLevel: 4, title: 'Water Cycle',
+    question: 'What happens when the sun warms water and it rises into the air?',
+    hypothesis: ['Evaporation', 'Freezing', 'Melting', 'Magnetism'],
+    correctAnswer: 0,
+    explanation: 'Evaporation is when liquid water changes into water vapor.',
+    funFact: 'The water cycle keeps moving water around Earth.',
+    category: 'nature', icon: 'water'
+  },
+  {
+    id: '2g6', gradeLevel: 4, title: 'Simple Machines',
+    question: 'Which tool is a simple machine called a lever?',
+    hypothesis: ['Seesaw', 'Blanket', 'Sponge', 'Balloon'],
+    correctAnswer: 0,
+    explanation: 'A seesaw is a lever because it turns around a fixed point.',
+    funFact: 'Simple machines help people do work with less effort.',
+    category: 'physics', icon: 'lever'
+  },
+  {
+    id: '3g5', gradeLevel: 5, title: 'Food Webs',
+    question: 'What starts most food chains?',
+    hypothesis: ['Plants making food from sunlight', 'Rocks rolling downhill', 'Clouds making thunder', 'Fish swimming fast'],
+    correctAnswer: 0,
+    explanation: 'Plants use sunlight to make food, then animals get energy by eating plants or other animals.',
+    funFact: 'A food web shows many connected food chains.',
+    category: 'biology', icon: 'web'
+  },
+  {
+    id: '3g6', gradeLevel: 5, title: 'Balanced Forces',
+    question: 'If two teams pull a rope equally in opposite directions, what happens?',
+    hypothesis: ['The rope stays mostly still', 'The rope flies away', 'The rope melts', 'The rope turns invisible'],
+    correctAnswer: 0,
+    explanation: 'Equal forces in opposite directions are balanced, so motion may not change.',
+    funFact: 'Engineers think about balanced forces when building bridges.',
+    category: 'physics', icon: 'balance'
+  },
+  {
+    id: '4g5', gradeLevel: 6, title: 'Inherited Traits',
+    question: 'Which trait can be inherited from parents?',
+    hypothesis: ['Eye color', 'A favorite song', 'A learned dance', 'A new haircut'],
+    correctAnswer: 0,
+    explanation: 'Eye color can be inherited because genes pass traits from parents to children.',
+    funFact: 'Some traits are inherited, and some are learned from experience.',
+    category: 'biology', icon: 'dna'
+  },
+  {
+    id: '4g6', gradeLevel: 6, title: 'Energy Transfer',
+    question: 'What happens when a metal spoon sits in hot soup?',
+    hypothesis: ['Heat moves into the spoon', 'The spoon makes snow', 'The spoon becomes a magnet', 'Nothing can happen'],
+    correctAnswer: 0,
+    explanation: 'Heat can transfer from hot soup into the metal spoon.',
+    funFact: 'Metal conducts heat better than wood or plastic.',
+    category: 'physics', icon: 'heat'
+  },
+  {
+    id: '5g7', gradeLevel: 7, title: 'Earth Systems',
+    question: 'Which system includes oceans, rivers, lakes, and ice?',
+    hypothesis: ['Hydrosphere', 'Biosphere', 'Geosphere', 'Atmosphere'],
+    correctAnswer: 0,
+    explanation: 'The hydrosphere includes water on Earth in liquid, solid, and vapor forms.',
+    funFact: 'Earth systems interact, so a change in one system can affect another.',
+    category: 'nature', icon: 'earth'
+  },
+  {
+    id: '5g8', gradeLevel: 7, title: 'Mixtures and Solutions',
+    question: 'What happens when salt dissolves in water?',
+    hypothesis: ['It forms a solution', 'It becomes a plant', 'It turns into glass', 'It disappears from the universe'],
+    correctAnswer: 0,
+    explanation: 'Salt mixes evenly with water to form a solution.',
+    funFact: 'A solution can look clear even when something is dissolved in it.',
+    category: 'chemistry', icon: 'solution'
+  },
 ];
 
 export const ScienceRoom: React.FC<ScienceRoomProps> = ({ level, onBack, onReward }) => {

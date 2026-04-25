@@ -5,9 +5,20 @@ import { playPop } from '../services/audioService';
 interface ArtRoomProps {
   onBack: () => void;
   onReward: () => void;
+  level: number;
 }
 
-export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward }) => {
+const ART_MISSIONS = [
+  { gradeLevel: 1, title: 'Color Explorer', prompt: 'Draw three big color marks.', minStrokes: 3, focus: 'Name the colors you used.', checks: ['Pick colors', 'Make big strokes', 'Tell about it'] },
+  { gradeLevel: 2, title: 'Shape Builder', prompt: 'Draw a picture with two shapes and two colors.', minStrokes: 4, focus: 'Look for circles, squares, and lines.', checks: ['Use shapes', 'Use colors', 'Finish neatly'] },
+  { gradeLevel: 3, title: 'Story Picture', prompt: 'Draw a picture that shows a character, a place, and one action.', minStrokes: 5, focus: 'Make the picture tell what happened.', checks: ['Character', 'Place', 'Action'] },
+  { gradeLevel: 4, title: 'Pattern Artist', prompt: 'Create a repeating color or shape pattern.', minStrokes: 6, focus: 'Repeat a design so the pattern is easy to spot.', checks: ['Repeat', 'Contrast', 'Explain pattern'] },
+  { gradeLevel: 5, title: 'Science Sketch', prompt: 'Sketch an object from nature and add details you notice.', minStrokes: 7, focus: 'Use careful observation before decorating.', checks: ['Observe', 'Details', 'Label idea'] },
+  { gradeLevel: 6, title: 'Perspective Scene', prompt: 'Draw a scene with foreground, middle ground, and background.', minStrokes: 8, focus: 'Make close things larger and far things smaller.', checks: ['Foreground', 'Middle', 'Background'] },
+  { gradeLevel: 7, title: 'Design Challenge', prompt: 'Create a poster that teaches one idea clearly.', minStrokes: 9, focus: 'Use layout, color, and symbols to communicate.', checks: ['Main idea', 'Useful symbols', 'Clear layout'] },
+];
+
+export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [color, setColor] = useState('#FF5733');
   const [size, setSize] = useState(10);
@@ -16,6 +27,7 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward }) => {
   const [isComplete, setIsComplete] = useState(false);
 
   const colors = ['#FF5733', '#FFBD33', '#DBFF33', '#75FF33', '#33FF57', '#33FFBD', '#33DBFF', '#3357FF', '#7533FF', '#FF33BD', '#000000', '#FFFFFF'];
+  const mission = ART_MISSIONS[Math.min(Math.max(level, 1), 7) - 1];
 
   // Fixed canvas size (A4-ish ratio)
   const CANVAS_WIDTH = 800;
@@ -97,7 +109,7 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward }) => {
   }
 
   const completeArtwork = () => {
-      if (isComplete || strokeCount < 3) return;
+      if (isComplete || strokeCount < mission.minStrokes) return;
       setIsComplete(true);
       onReward();
   };
@@ -110,13 +122,13 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward }) => {
         </button>
         <div className="text-center">
           <h1 className="text-2xl font-bold text-pink-700 flex items-center justify-center gap-2"><Palette /> Art Studio</h1>
-          <p className="text-xs font-bold text-pink-700/80">Use at least 3 strokes, then finish your masterpiece.</p>
+          <p className="text-xs font-bold text-pink-700/80">{mission.title}: {mission.prompt}</p>
         </div>
         <div className="flex gap-2">
              <button
                 onClick={completeArtwork}
-                disabled={strokeCount < 3 || isComplete}
-                className={`p-2 rounded-full shadow-sm ${strokeCount >= 3 && !isComplete ? 'bg-emerald-500 text-white hover:bg-emerald-600' : 'bg-white text-gray-300'}`}
+                disabled={strokeCount < mission.minStrokes || isComplete}
+                className={`p-2 rounded-full shadow-sm ${strokeCount >= mission.minStrokes && !isComplete ? 'bg-emerald-500 text-white hover:bg-emerald-600' : 'bg-white text-gray-300'}`}
                 title="Complete artwork"
              >
                 <CheckCircle2 />
@@ -131,6 +143,7 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward }) => {
         <div className="w-24 bg-white/95 shadow-xl z-20 flex flex-col items-center py-4 gap-4 overflow-y-auto kid-scroll shrink-0">
             <div className="rounded-2xl bg-pink-50 px-2 py-3 text-center text-[10px] font-black uppercase tracking-wide text-pink-700 ring-1 ring-pink-100">
               Creative Studio Mission
+              <div className="mt-1 text-[9px] normal-case tracking-normal text-pink-500">{mission.title}</div>
             </div>
             {colors.map(c => (
                 <button 
@@ -158,9 +171,11 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward }) => {
             <div className="absolute top-4 left-32 right-8 z-10 hidden rounded-2xl bg-white/90 p-3 shadow-lg ring-1 ring-pink-100 md:block">
               <div className="text-xs font-black uppercase tracking-[0.22em] text-pink-600">Artist Checklist</div>
               <div className="mt-1 flex flex-wrap gap-2 text-xs font-bold text-slate-600">
-                <span className="rounded-full bg-pink-50 px-3 py-1">Pick colors</span>
-                <span className="rounded-full bg-yellow-50 px-3 py-1">Try brush size</span>
-                <span className="rounded-full bg-emerald-50 px-3 py-1">{strokeCount}/3 strokes</span>
+                {mission.checks.map(check => (
+                  <span key={check} className="rounded-full bg-pink-50 px-3 py-1">{check}</span>
+                ))}
+                <span className="rounded-full bg-yellow-50 px-3 py-1">{mission.focus}</span>
+                <span className="rounded-full bg-emerald-50 px-3 py-1">{strokeCount}/{mission.minStrokes} strokes</span>
               </div>
             </div>
             <div className="shadow-2xl relative">

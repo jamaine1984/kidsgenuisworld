@@ -1,15 +1,26 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { ArrowLeft, RefreshCw, Shapes, Grid3X3, BrainCircuit } from 'lucide-react';
 import { playSuccess, playError, playPop } from '../services/audioService';
 
 interface PuzzleRoomProps {
   onBack: () => void;
   onReward: () => void;
+  level: number;
 }
 
 type PuzzleMode = 'MEMORY' | 'PATTERN' | 'SHAPES';
 
-export const PuzzleRoom: React.FC<PuzzleRoomProps> = ({ onBack, onReward }) => {
+const PUZZLE_MISSIONS = [
+  { gradeLevel: 1, title: 'Memory Match', pairCount: 3, patternLength: 4, prompt: 'Match pictures and notice what repeats.' },
+  { gradeLevel: 2, title: 'Shape Focus', pairCount: 4, patternLength: 5, prompt: 'Look carefully before you choose.' },
+  { gradeLevel: 3, title: 'Pattern Finder', pairCount: 5, patternLength: 5, prompt: 'Find the rule, then predict the next item.' },
+  { gradeLevel: 4, title: 'Strategy Builder', pairCount: 6, patternLength: 6, prompt: 'Use a plan and remember where each card was.' },
+  { gradeLevel: 5, title: 'Logic Coach', pairCount: 6, patternLength: 7, prompt: 'Compare options and rule out weak choices.' },
+  { gradeLevel: 6, title: 'Complex Patterns', pairCount: 6, patternLength: 8, prompt: 'Track more than one repeating part.' },
+  { gradeLevel: 7, title: 'Puzzle Mastery', pairCount: 6, patternLength: 9, prompt: 'Solve with accuracy, memory, and explanation.' },
+];
+
+export const PuzzleRoom: React.FC<PuzzleRoomProps> = ({ onBack, onReward, level }) => {
   const [mode, setMode] = useState<PuzzleMode>('MEMORY');
   
   // Memory State
@@ -20,6 +31,7 @@ export const PuzzleRoom: React.FC<PuzzleRoomProps> = ({ onBack, onReward }) => {
   // Pattern State
   const [sequence, setSequence] = useState<string[]>([]);
   const [patternOptions, setPatternOptions] = useState<string[]>([]);
+  const [patternAnswer, setPatternAnswer] = useState('');
   const [missingIndex, setMissingIndex] = useState(0);
 
   // Shapes State
@@ -29,32 +41,39 @@ export const PuzzleRoom: React.FC<PuzzleRoomProps> = ({ onBack, onReward }) => {
   const ITEMS = ['🦄', '🦕', '🍕', '🚀', '🎈', '🎁'];
   const SHAPES = ['🟥', '🟦', '🟩', '🟨', '🟠', '🟣'];
 
+  const mission = useMemo(() => PUZZLE_MISSIONS[Math.min(Math.max(level, 1), 7) - 1], [level]);
+
   const initGame = () => {
     if (mode === 'MEMORY') {
-        const deck = [...ITEMS, ...ITEMS].sort(() => Math.random() - 0.5).map((emoji, i) => ({
+        const missionItems = [...ITEMS].sort(() => Math.random() - 0.5).slice(0, mission.pairCount);
+        const deck = [...missionItems, ...missionItems].sort(() => Math.random() - 0.5).map((emoji, i) => ({
             id: i, emoji, isFlipped: false, isMatched: false
         }));
         setCards(deck);
         setFlipped([]);
         setIsLocked(false);
     } else if (mode === 'PATTERN') {
-        // Create pattern like A B A B ?
-        const a = ITEMS[Math.floor(Math.random() * ITEMS.length)];
-        const b = ITEMS[Math.floor(Math.random() * ITEMS.length)];
-        setSequence([a, b, a, b, '?']);
-        setMissingIndex(4);
-        setPatternOptions([a, b, ITEMS[0] === a ? ITEMS[1] : ITEMS[0]].sort(() => Math.random() - 0.5));
+        const shuffled = [...ITEMS].sort(() => Math.random() - 0.5);
+        const patternSize = level >= 5 ? 3 : 2;
+        const pattern = shuffled.slice(0, patternSize);
+        const built = Array.from({ length: mission.patternLength }, (_, i) => pattern[i % pattern.length]);
+        const answer = built[built.length - 1];
+        setSequence([...built.slice(0, -1), '?']);
+        setPatternAnswer(answer);
+        setMissingIndex(built.length - 1);
+        const options = Array.from(new Set([...pattern, answer, ...shuffled])).slice(0, Math.max(3, patternSize + 1));
+        setPatternOptions(options.sort(() => Math.random() - 0.5));
     } else if (mode === 'SHAPES') {
         const target = SHAPES[Math.floor(Math.random() * SHAPES.length)];
         setTargetShape(target);
-        setShapeOptions([...SHAPES].sort(() => Math.random() - 0.5).slice(0, 4));
-        if (!shapeOptions.includes(target)) shapeOptions[0] = target; // Ensure answer exists
+        const distractors = SHAPES.filter(shape => shape !== target).sort(() => Math.random() - 0.5).slice(0, level >= 5 ? 5 : 3);
+        setShapeOptions([target, ...distractors].sort(() => Math.random() - 0.5));
     }
   };
 
   useEffect(() => {
     initGame();
-  }, [mode]);
+  }, [mode, level]);
 
   const handleMemoryClick = (id: number) => {
     if (isLocked) return;
@@ -88,9 +107,7 @@ export const PuzzleRoom: React.FC<PuzzleRoomProps> = ({ onBack, onReward }) => {
   };
 
   const handlePatternClick = (opt: string) => {
-      // Assuming simple A B A B logic
-      const answer = sequence[0]; // If A B A B, next is A
-      if (opt === answer) {
+      if (opt === patternAnswer) {
           playSuccess();
           setSequence(prev => prev.map(p => p === '?' ? opt : p));
           setTimeout(() => {
@@ -132,6 +149,8 @@ export const PuzzleRoom: React.FC<PuzzleRoomProps> = ({ onBack, onReward }) => {
 
       <div className="mx-auto mb-4 max-w-3xl rounded-2xl bg-white/95 p-4 text-center shadow-lg ring-1 ring-teal-100">
         <div className="text-xs font-black uppercase tracking-[0.22em] text-teal-600">Puzzle Brain Gym</div>
+        <div className="mt-1 text-lg font-black text-slate-800">{mission.title}</div>
+        <div className="text-xs font-bold text-slate-500">{mission.prompt}</div>
         <div className="mt-2 grid grid-cols-3 gap-2">
           {[
             ['Memory', 'Flip and match'],

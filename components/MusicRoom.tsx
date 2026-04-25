@@ -5,9 +5,20 @@ import { playNote, playSuccess, playError, playPop } from '../services/audioServ
 interface MusicRoomProps {
   onBack: () => void;
   onReward: () => void;
+  level: number;
 }
 
-export const MusicRoom: React.FC<MusicRoomProps> = ({ onBack, onReward }) => {
+const MUSIC_MISSIONS = [
+  { gradeLevel: 1, title: 'Sound Explorer', noteGoal: 5, loopGoal: 2, prompt: 'Play high and low sounds.' },
+  { gradeLevel: 2, title: 'Beat Builder', noteGoal: 6, loopGoal: 2, prompt: 'Make a steady beat and repeat it.' },
+  { gradeLevel: 3, title: 'Melody Maker', noteGoal: 7, loopGoal: 3, prompt: 'Use notes that move up and down.' },
+  { gradeLevel: 4, title: 'Rhythm Mixer', noteGoal: 8, loopGoal: 3, prompt: 'Combine a beat with a short melody.' },
+  { gradeLevel: 5, title: 'Mood Composer', noteGoal: 9, loopGoal: 3, prompt: 'Make the music sound happy, calm, or exciting.' },
+  { gradeLevel: 6, title: 'Layered Arrangement', noteGoal: 10, loopGoal: 4, prompt: 'Layer rhythm and melody with control.' },
+  { gradeLevel: 7, title: 'Performance Take', noteGoal: 12, loopGoal: 4, prompt: 'Build a short performance with a beginning and ending.' },
+];
+
+export const MusicRoom: React.FC<MusicRoomProps> = ({ onBack, onReward, level }) => {
   const [tab, setTab] = useState<'PIANO' | 'DJ'>('PIANO');
   const [instrument, setInstrument] = useState<'PIANO' | 'SYNTH' | '8BIT'>('PIANO');
   const [notesPlayed, setNotesPlayed] = useState(0);
@@ -31,6 +42,7 @@ export const MusicRoom: React.FC<MusicRoomProps> = ({ onBack, onReward }) => {
     { id: 6, note: 'B', freq: 493.88, color: 'bg-indigo-500', border: 'border-indigo-700' },
     { id: 7, note: 'C2', freq: 523.25, color: 'bg-purple-500', border: 'border-purple-700' },
   ];
+  const mission = MUSIC_MISSIONS[Math.min(Math.max(level, 1), 7) - 1];
 
   const djPads = [
       { id: 1, name: 'Kick', freq: 100, type: 'square', pattern: 500 },
@@ -84,7 +96,7 @@ export const MusicRoom: React.FC<MusicRoomProps> = ({ onBack, onReward }) => {
       };
   }, []);
 
-  const hasFinishedPattern = notesPlayed >= 5 || loopsTried >= 2;
+  const hasFinishedPattern = notesPlayed >= mission.noteGoal || loopsTried >= mission.loopGoal;
 
   const completeMusicMission = () => {
       if (!hasFinishedPattern || isComplete) return;
@@ -133,8 +145,8 @@ export const MusicRoom: React.FC<MusicRoomProps> = ({ onBack, onReward }) => {
         <div className="text-center text-xs font-black uppercase tracking-[0.24em] text-fuchsia-100">Music Mission Board</div>
         <div className="mt-3 grid grid-cols-3 gap-2">
           {[
-            ['Explore Sound', `${notesPlayed}/5 notes`],
-            ['Build Rhythm', `${loopsTried}/2 loops`],
+            ['Explore Sound', `${notesPlayed}/${mission.noteGoal} notes`],
+            ['Build Rhythm', `${loopsTried}/${mission.loopGoal} loops`],
             ['Finish', hasFinishedPattern ? 'Ready' : 'Keep playing'],
           ].map(([title, copy]) => (
             <div key={title} className="rounded-xl bg-white/15 p-3 text-center ring-1 ring-white/15">
@@ -161,7 +173,7 @@ export const MusicRoom: React.FC<MusicRoomProps> = ({ onBack, onReward }) => {
                 ))}
             </div>
             <p className="z-10 mb-5 rounded-full bg-white/15 px-4 py-2 text-sm font-bold text-white">
-              Play 5 notes or start 2 loops to complete this music mission.
+              {mission.title}: {mission.prompt}
             </p>
 
             <div className="flex gap-1 md:gap-3 h-64 md:h-80 items-end z-10 perspective-[1000px] w-full justify-center px-4 mb-10">

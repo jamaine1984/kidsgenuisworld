@@ -557,7 +557,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
               </div>
             </div>
 
-            <div className="bg-white rounded-xl p-4 shadow-sm border border-indigo-100">
+            <div className="printable-parent-report bg-white rounded-xl p-4 shadow-sm border border-indigo-100">
               <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 mb-4">
                 <div>
                   <p className="text-xs font-black uppercase tracking-[0.16em] text-indigo-600">Parent Learning Report</p>
@@ -566,9 +566,18 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                     A plain-language report parents can use to understand practice quality, pacing, and what to do next.
                   </p>
                 </div>
-                <div className="rounded-xl bg-indigo-50 border border-indigo-100 px-4 py-3 text-left md:text-right">
-                  <p className="text-2xl font-black text-indigo-700">{weeklyGoalPercent}%</p>
-                  <p className="text-xs font-semibold text-indigo-700">weekly goal progress</p>
+                <div className="flex flex-col sm:flex-row md:flex-col gap-2">
+                  <div className="rounded-xl bg-indigo-50 border border-indigo-100 px-4 py-3 text-left md:text-right">
+                    <p className="text-2xl font-black text-indigo-700">{weeklyGoalPercent}%</p>
+                    <p className="text-xs font-semibold text-indigo-700">weekly goal progress</p>
+                  </div>
+                  <button
+                    onClick={() => window.print()}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-3 text-sm font-black text-white hover:bg-indigo-700"
+                  >
+                    <Printer size={16} />
+                    Print Weekly Report
+                  </button>
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-3">

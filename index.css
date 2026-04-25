@@ -447,4 +447,9 @@
   .kid-scroll {
     overflow: visible !important;
   }
+
+  .printable-parent-report {
+    break-inside: avoid;
+    box-shadow: none !important;
+  }
 }

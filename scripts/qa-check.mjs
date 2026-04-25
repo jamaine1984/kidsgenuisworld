@@ -313,7 +313,7 @@ for (const strand of ['Social-emotional learning', 'Engineering', 'Fluency', 'De
 if (!parentDashboardSource.includes('Parent Activity') || !parentDashboardSource.includes('Success check')) {
   fail('Parent-guided curriculum activities are not visible in the roadmap.');
 }
-if (!parentDashboardSource.includes('Parent Learning Report') || !parentDashboardSource.includes('Practice rhythm') || !parentDashboardSource.includes('Next parent actions')) {
+if (!parentDashboardSource.includes('Parent Learning Report') || !parentDashboardSource.includes('Practice rhythm') || !parentDashboardSource.includes('Next parent actions') || !parentDashboardSource.includes('Print Weekly Report')) {
   fail('Parent dashboard needs plain-language weekly learning insights for paid-user readiness.');
 }
 if (!worldMapSource.includes('At-home idea') || !worldMapSource.includes('Review in') || !worldMapSource.includes('Story Time')) {

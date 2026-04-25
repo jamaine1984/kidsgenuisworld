@@ -318,6 +318,7 @@ export interface UserProgress {
   achievements: string[]; // unlocked achievement IDs
   completedUnitIds: string[];
   unitPracticeCounts: { [unitId: string]: number };
+  learningJournal: LearningJournalEntry[];
 
   // Adaptive learning
   learningProfile: LearningProfile;
@@ -347,6 +348,20 @@ export interface UserProgress {
   // Family
   familyId?: string;
   memberId?: string;
+}
+
+export interface LearningJournalEntry {
+  id: string;
+  createdAt: number;
+  room: RoomType;
+  roomLabel: string;
+  unitId?: string;
+  unitTitle: string;
+  objective: string;
+  successCheck?: string;
+  parentActivity?: string;
+  practiceCount: number;
+  mastered: boolean;
 }
 
 export interface ChildProfile {
@@ -535,6 +550,7 @@ export const createDefaultProgress = (childName = 'Learner'): UserProgress => ({
   achievements: [],
   completedUnitIds: [],
   unitPracticeCounts: {},
+  learningJournal: [],
   learningProfile: { ...DEFAULT_LEARNING_PROFILE },
   avatar: { ...DEFAULT_AVATAR },
   totalPlayTimeMinutes: 0,

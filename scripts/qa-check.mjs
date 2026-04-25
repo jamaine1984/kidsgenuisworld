@@ -319,6 +319,9 @@ if (!parentDashboardSource.includes('Parent Learning Report') || !parentDashboar
 if (!appSource.includes('Learning Reflection') || !appSource.includes('Explain what you learned') || !appSource.includes('Teach it back') || !appSource.includes('practice rounds')) {
   fail('Reward flow needs a kid-facing learning reflection after practice.');
 }
+if (!typesSource.includes('LearningJournalEntry') || !appSource.includes('learningJournal') || !parentDashboardSource.includes('Learning Journal') || !parentDashboardSource.includes('Recent proof of practice')) {
+  fail('Parent evidence trail learning journal is missing.');
+}
 if (!worldMapSource.includes('Review Quest') || !worldMapSource.includes('Start Review') || !parentDashboardSource.includes('Spaced Review Queue')) {
   fail('Spaced review must be visible to kids and parents.');
 }

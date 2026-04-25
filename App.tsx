@@ -220,6 +220,7 @@ const loadProgressForProfile = (profile: ChildProfile): UserProgress => {
         gradeRoomVisits: savedProgress.gradeRoomVisits || {},
         completedUnitIds: Array.isArray(savedProgress.completedUnitIds) ? savedProgress.completedUnitIds : [],
         unitPracticeCounts: savedProgress.unitPracticeCounts || {},
+        learningJournal: Array.isArray(savedProgress.learningJournal) ? savedProgress.learningJournal : [],
         weeklyGoalMinutes: savedProgress.weeklyGoalMinutes || 60,
         dailySessionLimitMinutes: savedProgress.dailySessionLimitMinutes || 20,
       };
@@ -729,6 +730,27 @@ const App: React.FC = () => {
       const nextCompletedUnitIds = practicedActiveUnitToMastery
         ? Array.from(new Set([...(prev.completedUnitIds || []), activeUnitId]))
         : (prev.completedUnitIds || []);
+      const journalRoomLabel = roomReflectionLabels[currentRoom] || (
+        subject ? subject.replace(/^\w/, letter => letter.toUpperCase()) : 'Learning'
+      );
+      const journalUnit = activeUnitId
+        ? getUnitsForGrade(prev.currentGrade).find(unit => unit.id === activeUnitId)
+        : undefined;
+      const journalPracticeCount = activeUnitId ? Math.min(nextUnitPracticeCounts[activeUnitId] || 1, 3) : 1;
+      const journalEntry = {
+        id: `journal-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        createdAt: Date.now(),
+        room: currentRoom,
+        roomLabel: journalRoomLabel,
+        unitId: journalUnit?.id,
+        unitTitle: journalUnit?.title || `${journalRoomLabel} practice`,
+        objective: journalUnit?.objective || `Practiced ${journalRoomLabel.toLowerCase()} and explained one idea.`,
+        successCheck: journalUnit?.successCheck,
+        parentActivity: journalUnit?.parentActivity,
+        practiceCount: journalPracticeCount,
+        mastered: Boolean(activeUnitId && journalPracticeCount >= 3),
+      };
+      const nextLearningJournal = [journalEntry, ...(prev.learningJournal || [])].slice(0, 25);
 
       if (earnedNewSticker) {
         newStickers.push(nextSticker);
@@ -774,6 +796,7 @@ const App: React.FC = () => {
         stickers: newStickers,
         completedUnitIds: nextCompletedUnitIds,
         unitPracticeCounts: nextUnitPracticeCounts,
+        learningJournal: nextLearningJournal,
         currentLevel: newLevel,
         currentGrade: newGrade,
         xp: prev.xp + 10,

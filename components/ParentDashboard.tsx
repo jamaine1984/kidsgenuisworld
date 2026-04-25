@@ -248,6 +248,9 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
     ? [...subjectData].reverse().find(subject => subject.score < (masteryMinimum || 3)) || subjectData[subjectData.length - 1]
     : undefined;
   const nextPlanItem = weeklyPlan[0];
+  const recentLearningJournal = [...(progress.learningJournal || [])]
+    .sort((a, b) => b.createdAt - a.createdAt)
+    .slice(0, 5);
   const learningReportCards = [
     {
       label: 'Practice rhythm',
@@ -611,6 +614,70 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                   ))}
                 </div>
               </div>
+            </div>
+
+            <div className="bg-white rounded-xl p-4 shadow-sm border border-emerald-100">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
+                <div>
+                  <h3 className="font-semibold text-gray-800 flex items-center gap-2">
+                    <BookOpen size={20} className="text-emerald-600" />
+                    Learning Journal
+                  </h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Recent proof of practice parents can review during check-ins.
+                  </p>
+                </div>
+                <div className="rounded-xl bg-emerald-50 border border-emerald-100 px-3 py-2 text-sm font-black text-emerald-700">
+                  {recentLearningJournal.length} saved
+                </div>
+              </div>
+              {recentLearningJournal.length > 0 ? (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                  {recentLearningJournal.map(entry => (
+                    <div key={entry.id} className="rounded-xl border border-gray-100 bg-slate-50 p-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-xs font-black uppercase tracking-[0.12em] text-emerald-600">
+                            {entry.roomLabel}
+                          </p>
+                          <h4 className="font-black text-gray-900 mt-1">{entry.unitTitle}</h4>
+                        </div>
+                        <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-black ${
+                          entry.mastered
+                            ? 'bg-emerald-100 text-emerald-700'
+                            : 'bg-amber-100 text-amber-700'
+                        }`}>
+                          {entry.mastered ? 'Mastered' : `${Math.min(entry.practiceCount, 3)}/3`}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600 mt-2">{entry.objective}</p>
+                      <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                        <div className="rounded-lg bg-white border border-gray-100 p-2">
+                          <p className="font-black text-gray-700 flex items-center gap-1">
+                            <CheckCircle2 size={14} className="text-emerald-500" />
+                            Success check
+                          </p>
+                          <p className="text-gray-600 mt-1">{entry.successCheck || 'Ask the child to teach back one idea.'}</p>
+                        </div>
+                        <div className="rounded-lg bg-white border border-gray-100 p-2">
+                          <p className="font-black text-gray-700 flex items-center gap-1">
+                            <Calendar size={14} className="text-sky-500" />
+                            Parent follow-up
+                          </p>
+                          <p className="text-gray-600 mt-1">{entry.parentActivity || 'Try one short real-world example together.'}</p>
+                        </div>
+                      </div>
+                      <p className="text-xs text-gray-400 mt-3">
+                        Saved {new Date(entry.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' })} at {new Date(entry.createdAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-xl border border-dashed border-emerald-200 bg-emerald-50/60 p-4 text-sm text-emerald-800">
+                  Completed rewards will appear here as a local learning journal.
+                </div>
+              )}
             </div>
 
             <div className="bg-gradient-to-br from-slate-900 via-indigo-900 to-sky-800 rounded-xl p-4 shadow-sm text-white">

@@ -391,7 +391,7 @@ export interface ScienceExperiment {
 }
 
 export interface GeographyQuestion {
-  type: 'country' | 'capital' | 'flag' | 'continent' | 'landmark';
+  type: 'country' | 'capital' | 'flag' | 'continent' | 'landmark' | 'nature' | 'map' | 'climate';
   question: string;
   answer: string;
   options: string[];

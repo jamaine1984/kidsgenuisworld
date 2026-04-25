@@ -262,6 +262,12 @@ for (const gradeLevel of [1, 2, 3, 4, 5, 6, 7]) {
     fail(`Coding room has too few challenges for level ${gradeLevel}: found ${challengeCount}, expected at least 5.`);
   }
 }
+for (const gradeLevel of [1, 2, 3, 4, 5, 6, 7]) {
+  const geographyCount = (geographyRoomSource.match(new RegExp(`gradeLevel: ${gradeLevel}`, 'g')) || []).length;
+  if (geographyCount < 8) {
+    fail(`Geography room has too few questions for level ${gradeLevel}: found ${geographyCount}, expected at least 8.`);
+  }
+}
 for (const [file, marker] of [
   ['components/ArtRoom.tsx', 'Complete artwork'],
   ['components/MusicRoom.tsx', 'Complete music mission'],
@@ -310,6 +316,9 @@ if (!readingRoomSource.includes('READING_PASSAGES') || !readingRoomSource.includ
 }
 if (!scienceRoomSource.includes('Junior Lab Bench') || !scienceRoomSource.includes('Observe') || !geographyRoomSource.includes('Travel Passport') || !geographyRoomSource.includes('Map clue')) {
   fail('Science and Geography rooms need destination-style visual learning props.');
+}
+if (!geographyRoomSource.includes("type: 'map'") || !geographyRoomSource.includes("type: 'climate'") || !geographyRoomSource.includes('Compass rose') || !geographyRoomSource.includes('Longitude')) {
+  fail('Geography room needs grade-paced map skills and climate questions.');
 }
 if (!codingRoomSource.includes('Robot Command Center') || !codingRoomSource.includes('Plan') || !languageRoomSource.includes('Word Passport') || !languageRoomSource.includes('Listen, Say, Match')) {
   fail('Coding and Language rooms need destination-style visual learning props.');

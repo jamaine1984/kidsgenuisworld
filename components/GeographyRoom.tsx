@@ -11,59 +11,75 @@ interface GeographyRoomProps {
 
 // Geography questions organized by grade level
 export const GEOGRAPHY_QUESTIONS: (GeographyQuestion & { gradeLevel: number })[] = [
-  // PRE-K (Level 1) - Very simple
-  { gradeLevel: 1, type: 'country', question: 'Do you live on planet Earth? 🌍', answer: 'Yes!', options: ['Yes!', 'No', 'Maybe', 'I don\'t know'], funFact: 'Earth is our home planet! It\'s the only planet with people on it!' },
-  { gradeLevel: 1, type: 'landmark', question: 'What color is the sky on a sunny day? ☀️', answer: 'Blue', options: ['Blue', 'Green', 'Red', 'Purple'], funFact: 'The sky looks blue because of how sunlight bounces around!' },
-  { gradeLevel: 1, type: 'nature', question: 'What do we call the big blue areas of water on Earth? 🌊', answer: 'Oceans', options: ['Oceans', 'Rivers', 'Puddles', 'Pools'], funFact: 'Oceans cover most of Earth! That\'s why Earth is called the Blue Planet!' },
+  // PRE-K (Level 1): places, land, water, and familiar map ideas
+  { gradeLevel: 1, type: 'country', question: 'Do people live on planet Earth?', answer: 'Yes', options: ['Yes', 'No', 'Only fish', 'Only birds'], funFact: 'Earth is our home planet, and people live in many places on it.' },
+  { gradeLevel: 1, type: 'nature', question: 'What do we call the very big blue water on Earth?', answer: 'Ocean', options: ['Ocean', 'Road', 'Mountain', 'House'], funFact: 'Oceans cover most of Earth, so Earth can look blue from space.' },
+  { gradeLevel: 1, type: 'nature', question: 'Which place is tall and rocky?', answer: 'Mountain', options: ['Mountain', 'Puddle', 'Chair', 'Cloud'], funFact: 'Mountains rise high above the land around them.' },
+  { gradeLevel: 1, type: 'map', question: 'What picture can help us find places?', answer: 'Map', options: ['Map', 'Spoon', 'Shoe', 'Blanket'], funFact: 'A map is a picture that shows where places are.' },
+  { gradeLevel: 1, type: 'nature', question: 'Where would you see lots of trees together?', answer: 'Forest', options: ['Forest', 'Desert', 'Kitchen', 'Sidewalk'], funFact: 'A forest is an area with many trees growing together.' },
+  { gradeLevel: 1, type: 'nature', question: 'What place has lots of sand and very little rain?', answer: 'Desert', options: ['Desert', 'Ocean', 'River', 'Farm'], funFact: 'Deserts are very dry places, and some are hot while others are cold.' },
+  { gradeLevel: 1, type: 'map', question: 'Which direction is usually at the top of a map?', answer: 'North', options: ['North', 'Snack', 'Circle', 'Music'], funFact: 'Many maps place north at the top to help people read directions.' },
+  { gradeLevel: 1, type: 'country', question: 'What do we call a place where people live together with streets and buildings?', answer: 'City', options: ['City', 'Ocean', 'Cloud', 'Cave'], funFact: 'Cities often have many homes, stores, schools, and roads close together.' },
 
-  // KINDERGARTEN (Level 2)
-  { gradeLevel: 2, type: 'flag', question: 'Which country has this flag? 🇺🇸', answer: 'United States', options: ['United States', 'United Kingdom', 'France', 'Canada'], funFact: 'The US flag has 50 stars - one for each state!' },
-  { gradeLevel: 2, type: 'continent', question: 'Which is the largest continent?', answer: 'Asia', options: ['Africa', 'Europe', 'Asia', 'North America'], funFact: 'More than half of the world\'s people live in Asia!' },
-  { gradeLevel: 2, type: 'landmark', question: 'Where is the Statue of Liberty?', answer: 'United States', options: ['France', 'United States', 'Italy', 'Greece'], funFact: 'The Statue of Liberty was a gift from France!' },
-  { gradeLevel: 2, type: 'country', question: 'Which country has kangaroos?', answer: 'Australia', options: ['Africa', 'Australia', 'South America', 'Indonesia'], funFact: 'Baby kangaroos are called joeys!' },
+  // KINDERGARTEN (Level 2): continents, simple countries, and symbols
+  { gradeLevel: 2, type: 'flag', question: 'What symbol can represent a country?', answer: 'Flag', options: ['Flag', 'Pencil', 'Lunchbox', 'Pillow'], funFact: 'Countries use flags as symbols with special colors and shapes.' },
+  { gradeLevel: 2, type: 'continent', question: 'Which continent includes the United States, Canada, and Mexico?', answer: 'North America', options: ['North America', 'Asia', 'Australia', 'Antarctica'], funFact: 'North America has countries, mountains, forests, deserts, and coastlines.' },
+  { gradeLevel: 2, type: 'country', question: 'Which country has kangaroos living in the wild?', answer: 'Australia', options: ['Australia', 'Canada', 'France', 'Egypt'], funFact: 'Australia is known for kangaroos, koalas, and the Great Barrier Reef.' },
+  { gradeLevel: 2, type: 'landmark', question: 'Where is the Statue of Liberty?', answer: 'United States', options: ['United States', 'France', 'Italy', 'Japan'], funFact: 'The Statue of Liberty stands in New York Harbor.' },
+  { gradeLevel: 2, type: 'nature', question: 'What do we call water that flows across land?', answer: 'River', options: ['River', 'Mountain', 'Desert', 'Flag'], funFact: 'Rivers move water from higher land toward lakes, seas, or oceans.' },
+  { gradeLevel: 2, type: 'map', question: 'What map tool shows north, south, east, and west?', answer: 'Compass rose', options: ['Compass rose', 'Thermometer', 'Ruler', 'Clock'], funFact: 'A compass rose helps map readers know directions.' },
+  { gradeLevel: 2, type: 'continent', question: 'Which continent is covered in ice and has penguins nearby?', answer: 'Antarctica', options: ['Antarctica', 'Europe', 'Africa', 'South America'], funFact: 'Antarctica is the coldest continent on Earth.' },
+  { gradeLevel: 2, type: 'country', question: 'Which country is directly north of the United States?', answer: 'Canada', options: ['Canada', 'Brazil', 'Spain', 'India'], funFact: 'Canada and the United States share one of the longest borders in the world.' },
 
-  // FIRST GRADE (Level 3)
-  { gradeLevel: 3, type: 'flag', question: 'Which country has this flag? 🇬🇧', answer: 'United Kingdom', options: ['Australia', 'United Kingdom', 'New Zealand', 'Iceland'], funFact: 'The UK flag is called the Union Jack!' },
-  { gradeLevel: 3, type: 'flag', question: 'Which country has this flag? 🇯🇵', answer: 'Japan', options: ['China', 'Korea', 'Japan', 'Vietnam'], funFact: 'Japan is called the Land of the Rising Sun!' },
-  { gradeLevel: 3, type: 'continent', question: 'Which continent has penguins and is covered in ice?', answer: 'Antarctica', options: ['Arctic', 'Antarctica', 'Australia', 'Europe'], funFact: 'Antarctica is the coldest, windiest, and driest continent!' },
-  { gradeLevel: 3, type: 'landmark', question: 'Where is the Eiffel Tower?', answer: 'France', options: ['Italy', 'Spain', 'France', 'Germany'], funFact: 'The Eiffel Tower was only meant to stand for 20 years!' },
-  { gradeLevel: 3, type: 'country', question: 'Which country is shaped like a boot?', answer: 'Italy', options: ['Spain', 'Italy', 'Greece', 'France'], funFact: 'Italy is famous for pizza, pasta, and gelato!' },
+  // FIRST GRADE (Level 3): landmarks, continents, and map reading
+  { gradeLevel: 3, type: 'continent', question: 'Which is the largest continent?', answer: 'Asia', options: ['Asia', 'Africa', 'Europe', 'Australia'], funFact: 'Asia has the largest land area and the most people of any continent.' },
+  { gradeLevel: 3, type: 'landmark', question: 'Where is the Eiffel Tower?', answer: 'France', options: ['France', 'Spain', 'Italy', 'Germany'], funFact: 'The Eiffel Tower is a famous landmark in Paris, France.' },
+  { gradeLevel: 3, type: 'country', question: 'Which country is shaped like a boot?', answer: 'Italy', options: ['Italy', 'Greece', 'Spain', 'Norway'], funFact: 'Italy is a peninsula, which means water surrounds it on three sides.' },
+  { gradeLevel: 3, type: 'map', question: 'What does a map key explain?', answer: 'Map symbols', options: ['Map symbols', 'Lunch choices', 'Song words', 'Animal sounds'], funFact: 'A map key tells what symbols and colors mean on a map.' },
+  { gradeLevel: 3, type: 'nature', question: 'What do we call land with water on all sides?', answer: 'Island', options: ['Island', 'Valley', 'Hill', 'Road'], funFact: 'An island is land surrounded by water.' },
+  { gradeLevel: 3, type: 'country', question: 'Which country is known as the Land of the Rising Sun?', answer: 'Japan', options: ['Japan', 'Egypt', 'Brazil', 'Canada'], funFact: 'Japan is an island country in East Asia.' },
+  { gradeLevel: 3, type: 'continent', question: 'Which continent has the Sahara Desert?', answer: 'Africa', options: ['Africa', 'Europe', 'Australia', 'Antarctica'], funFact: 'The Sahara is the largest hot desert in the world.' },
+  { gradeLevel: 3, type: 'landmark', question: 'Where are the pyramids of Giza?', answer: 'Egypt', options: ['Egypt', 'Mexico', 'Peru', 'China'], funFact: 'The pyramids of Giza were built thousands of years ago.' },
 
-  // SECOND GRADE (Level 4)
-  { gradeLevel: 4, type: 'flag', question: 'Which country has this flag? 🇫🇷', answer: 'France', options: ['Italy', 'France', 'Belgium', 'Ireland'], funFact: 'The Eiffel Tower in France is visited by 7 million people every year!' },
-  { gradeLevel: 4, type: 'flag', question: 'Which country has this flag? 🇧🇷', answer: 'Brazil', options: ['Portugal', 'Argentina', 'Brazil', 'Mexico'], funFact: 'Brazil is the largest country in South America!' },
-  { gradeLevel: 4, type: 'flag', question: 'Which country has this flag? 🇨🇦', answer: 'Canada', options: ['United States', 'Canada', 'Switzerland', 'Japan'], funFact: 'Canada has more lakes than all other countries combined!' },
-  { gradeLevel: 4, type: 'capital', question: 'What is the capital of the United States?', answer: 'Washington D.C.', options: ['New York', 'Washington D.C.', 'Los Angeles', 'Chicago'], funFact: 'Washington D.C. is not in any state!' },
-  { gradeLevel: 4, type: 'capital', question: 'What is the capital of France?', answer: 'Paris', options: ['Lyon', 'Paris', 'Nice', 'Marseille'], funFact: 'Paris is called the City of Light!' },
-  { gradeLevel: 4, type: 'landmark', question: 'Where is the Great Wall?', answer: 'China', options: ['Japan', 'China', 'India', 'Korea'], funFact: 'The Great Wall is over 13,000 miles long!' },
+  // SECOND GRADE (Level 4): capitals, landforms, climate, and regions
+  { gradeLevel: 4, type: 'capital', question: 'What is the capital of the United States?', answer: 'Washington D.C.', options: ['Washington D.C.', 'New York', 'Los Angeles', 'Chicago'], funFact: 'Washington D.C. is the capital city and is not part of any state.' },
+  { gradeLevel: 4, type: 'capital', question: 'What is the capital of France?', answer: 'Paris', options: ['Paris', 'Lyon', 'Nice', 'Marseille'], funFact: 'Paris is a major city on the Seine River.' },
+  { gradeLevel: 4, type: 'landmark', question: 'Where is the Great Wall?', answer: 'China', options: ['China', 'Japan', 'India', 'South Korea'], funFact: 'The Great Wall is one of the longest structures ever built.' },
+  { gradeLevel: 4, type: 'country', question: 'Which country is the largest in South America?', answer: 'Brazil', options: ['Brazil', 'Argentina', 'Chile', 'Peru'], funFact: 'Brazil includes much of the Amazon rainforest.' },
+  { gradeLevel: 4, type: 'map', question: 'Which line divides Earth into Northern and Southern Hemispheres?', answer: 'Equator', options: ['Equator', 'Prime Meridian', 'Border', 'Trail'], funFact: 'The Equator is an imaginary line around the middle of Earth.' },
+  { gradeLevel: 4, type: 'climate', question: 'Which climate word means very dry?', answer: 'Arid', options: ['Arid', 'Humid', 'Rainy', 'Frozen'], funFact: 'Arid places get very little rain.' },
+  { gradeLevel: 4, type: 'nature', question: 'What do we call a low area between mountains?', answer: 'Valley', options: ['Valley', 'Island', 'Ocean', 'Capital'], funFact: 'Many rivers flow through valleys.' },
+  { gradeLevel: 4, type: 'continent', question: 'Which continent has the Amazon rainforest?', answer: 'South America', options: ['South America', 'Europe', 'Antarctica', 'Australia'], funFact: 'The Amazon rainforest spreads across several countries in South America.' },
 
-  // THIRD GRADE (Level 5)
-  { gradeLevel: 5, type: 'flag', question: 'Which country has this flag? 🇦🇺', answer: 'Australia', options: ['Australia', 'New Zealand', 'United Kingdom', 'Fiji'], funFact: 'Australia is both a country and a continent!' },
-  { gradeLevel: 5, type: 'flag', question: 'Which country has this flag? 🇮🇹', answer: 'Italy', options: ['Mexico', 'Italy', 'Ireland', 'Hungary'], funFact: 'Pizza was invented in Italy!' },
-  { gradeLevel: 5, type: 'flag', question: 'Which country has this flag? 🇲🇽', answer: 'Mexico', options: ['Mexico', 'Italy', 'Spain', 'Brazil'], funFact: 'Mexico introduced chocolate to the world!' },
-  { gradeLevel: 5, type: 'capital', question: 'What is the capital of Japan?', answer: 'Tokyo', options: ['Osaka', 'Kyoto', 'Tokyo', 'Hokkaido'], funFact: 'Tokyo is one of the biggest cities in the world!' },
-  { gradeLevel: 5, type: 'capital', question: 'What is the capital of the United Kingdom?', answer: 'London', options: ['Manchester', 'London', 'Edinburgh', 'Liverpool'], funFact: 'London has been a major city for nearly 2,000 years!' },
-  { gradeLevel: 5, type: 'continent', question: 'Which continent has the most countries?', answer: 'Africa', options: ['Europe', 'Asia', 'Africa', 'South America'], funFact: 'Africa has 54 countries!' },
-  { gradeLevel: 5, type: 'landmark', question: 'Where are the Pyramids?', answer: 'Egypt', options: ['Mexico', 'Egypt', 'Greece', 'Morocco'], funFact: 'The pyramids are over 4,500 years old!' },
+  // THIRD GRADE (Level 5): stronger world knowledge
+  { gradeLevel: 5, type: 'capital', question: 'What is the capital of Japan?', answer: 'Tokyo', options: ['Tokyo', 'Osaka', 'Kyoto', 'Sapporo'], funFact: 'Tokyo is one of the largest metropolitan areas in the world.' },
+  { gradeLevel: 5, type: 'capital', question: 'What is the capital of the United Kingdom?', answer: 'London', options: ['London', 'Manchester', 'Edinburgh', 'Liverpool'], funFact: 'London grew along the River Thames.' },
+  { gradeLevel: 5, type: 'continent', question: 'Which continent has the most countries?', answer: 'Africa', options: ['Africa', 'Asia', 'Europe', 'South America'], funFact: 'Africa has 54 internationally recognized countries.' },
+  { gradeLevel: 5, type: 'country', question: 'Which country introduced chocolate to the world through cacao?', answer: 'Mexico', options: ['Mexico', 'Italy', 'Spain', 'Brazil'], funFact: 'Cacao was important to ancient cultures in Mexico and Central America.' },
+  { gradeLevel: 5, type: 'landmark', question: 'Where is the Colosseum?', answer: 'Italy', options: ['Italy', 'Greece', 'France', 'Turkey'], funFact: 'The Colosseum is an ancient Roman amphitheater in Rome.' },
+  { gradeLevel: 5, type: 'map', question: 'Which imaginary line passes through Greenwich, England?', answer: 'Prime Meridian', options: ['Prime Meridian', 'Equator', 'Arctic Circle', 'Tropic of Cancer'], funFact: 'The Prime Meridian helps measure longitude.' },
+  { gradeLevel: 5, type: 'nature', question: 'What is a chain of mountains called?', answer: 'Mountain range', options: ['Mountain range', 'Peninsula', 'Harbor', 'Capital'], funFact: 'The Andes are a long mountain range in South America.' },
+  { gradeLevel: 5, type: 'climate', question: 'Which climate has warm temperatures and heavy rain for much of the year?', answer: 'Tropical', options: ['Tropical', 'Polar', 'Arid', 'Temperate'], funFact: 'Tropical climates are often found near the Equator.' },
 
-  // FOURTH GRADE (Level 6)
-  { gradeLevel: 6, type: 'flag', question: 'Which country has this flag? 🇨🇳', answer: 'China', options: ['Japan', 'China', 'Vietnam', 'Korea'], funFact: 'The Great Wall of China is so long it would take 18 months to walk!' },
-  { gradeLevel: 6, type: 'flag', question: 'Which country has this flag? 🇮🇳', answer: 'India', options: ['India', 'Niger', 'Ireland', 'Ivory Coast'], funFact: 'India has more people than any other country except China!' },
-  { gradeLevel: 6, type: 'flag', question: 'Which country has this flag? 🇪🇸', answer: 'Spain', options: ['Spain', 'Portugal', 'Italy', 'Colombia'], funFact: 'Spanish is spoken in over 20 countries!' },
-  { gradeLevel: 6, type: 'capital', question: 'What is the capital of Australia?', answer: 'Canberra', options: ['Sydney', 'Melbourne', 'Canberra', 'Brisbane'], funFact: 'Canberra was specially built to be the capital!' },
-  { gradeLevel: 6, type: 'continent', question: 'Which continent is also a country?', answer: 'Australia', options: ['Antarctica', 'Australia', 'Europe', 'Africa'], funFact: 'Australia has animals found nowhere else, like kangaroos and koalas!' },
-  { gradeLevel: 6, type: 'landmark', question: 'Where is Big Ben?', answer: 'United Kingdom', options: ['United States', 'France', 'Germany', 'United Kingdom'], funFact: 'Big Ben is actually the name of the bell inside the clock tower!' },
-  { gradeLevel: 6, type: 'country', question: 'Which country has the most people?', answer: 'China', options: ['United States', 'India', 'China', 'Brazil'], funFact: 'China has over 1.4 billion people!' },
+  // FOURTH GRADE (Level 6): capitals, population, regions, and map skills
+  { gradeLevel: 6, type: 'capital', question: 'What is the capital of Australia?', answer: 'Canberra', options: ['Canberra', 'Sydney', 'Melbourne', 'Brisbane'], funFact: 'Canberra was planned as the capital between Sydney and Melbourne.' },
+  { gradeLevel: 6, type: 'country', question: 'Which country has the largest population?', answer: 'India', options: ['India', 'China', 'United States', 'Brazil'], funFact: 'India became the world population leader in the 2020s.' },
+  { gradeLevel: 6, type: 'continent', question: 'Which continent is also a country?', answer: 'Australia', options: ['Australia', 'Antarctica', 'Europe', 'Africa'], funFact: 'Australia is both a country and the name of a continent.' },
+  { gradeLevel: 6, type: 'landmark', question: 'Where is Big Ben located?', answer: 'United Kingdom', options: ['United Kingdom', 'France', 'Germany', 'United States'], funFact: 'Big Ben is the nickname for the bell inside the clock tower.' },
+  { gradeLevel: 6, type: 'map', question: 'Which direction is opposite of east?', answer: 'West', options: ['West', 'North', 'South', 'Northeast'], funFact: 'Cardinal directions help people describe location and movement.' },
+  { gradeLevel: 6, type: 'climate', question: 'Which region is known for very cold polar climate?', answer: 'Arctic', options: ['Arctic', 'Amazon', 'Sahara', 'Caribbean'], funFact: 'The Arctic is around the North Pole.' },
+  { gradeLevel: 6, type: 'country', question: 'Which country is famous for the cities Madrid and Barcelona?', answer: 'Spain', options: ['Spain', 'Portugal', 'Italy', 'Colombia'], funFact: 'Spain is on the Iberian Peninsula in Europe.' },
+  { gradeLevel: 6, type: 'nature', question: 'What do we call a piece of land almost surrounded by water?', answer: 'Peninsula', options: ['Peninsula', 'Island', 'Valley', 'Plateau'], funFact: 'Florida and Italy are examples of peninsulas.' },
 
-  // FIFTH GRADE (Level 7)
-  { gradeLevel: 7, type: 'flag', question: 'Which country has this flag? 🇷🇺', answer: 'Russia', options: ['France', 'Russia', 'Netherlands', 'Luxembourg'], funFact: 'Russia is the largest country in the world by land area!' },
-  { gradeLevel: 7, type: 'flag', question: 'Which country has this flag? 🇰🇷', answer: 'South Korea', options: ['Japan', 'China', 'South Korea', 'Taiwan'], funFact: 'South Korea is known for K-pop music and amazing technology!' },
-  { gradeLevel: 7, type: 'flag', question: 'Which country has this flag? 🇿🇦', answer: 'South Africa', options: ['South Africa', 'Nigeria', 'Kenya', 'Ethiopia'], funFact: 'South Africa has 11 official languages!' },
-  { gradeLevel: 7, type: 'capital', question: 'What is the capital of Germany?', answer: 'Berlin', options: ['Munich', 'Berlin', 'Frankfurt', 'Hamburg'], funFact: 'The Berlin Wall divided the city for 28 years!' },
-  { gradeLevel: 7, type: 'capital', question: 'What is the capital of Italy?', answer: 'Rome', options: ['Rome', 'Milan', 'Venice', 'Florence'], funFact: 'Rome was the center of the ancient Roman Empire!' },
-  { gradeLevel: 7, type: 'capital', question: 'What is the capital of China?', answer: 'Beijing', options: ['Shanghai', 'Beijing', 'Hong Kong', 'Guangzhou'], funFact: 'Beijing hosted the Summer Olympics in 2008!' },
-  { gradeLevel: 7, type: 'landmark', question: 'Where is the Taj Mahal?', answer: 'India', options: ['Pakistan', 'India', 'Bangladesh', 'Nepal'], funFact: 'The Taj Mahal took over 20 years to build!' },
-  { gradeLevel: 7, type: 'landmark', question: 'Where is Machu Picchu?', answer: 'Peru', options: ['Mexico', 'Peru', 'Chile', 'Colombia'], funFact: 'Machu Picchu was built by the Inca civilization over 500 years ago!' },
+  // FIFTH GRADE (Level 7): advanced landmarks, capitals, regions, and reasoning
+  { gradeLevel: 7, type: 'country', question: 'Which country is the largest by land area?', answer: 'Russia', options: ['Russia', 'Canada', 'China', 'Brazil'], funFact: 'Russia stretches across parts of Europe and Asia.' },
+  { gradeLevel: 7, type: 'capital', question: 'What is the capital of Germany?', answer: 'Berlin', options: ['Berlin', 'Munich', 'Frankfurt', 'Hamburg'], funFact: 'Berlin is Germanys capital and largest city.' },
+  { gradeLevel: 7, type: 'capital', question: 'What is the capital of Italy?', answer: 'Rome', options: ['Rome', 'Milan', 'Venice', 'Florence'], funFact: 'Rome was the center of the ancient Roman Empire.' },
+  { gradeLevel: 7, type: 'capital', question: 'What is the capital of China?', answer: 'Beijing', options: ['Beijing', 'Shanghai', 'Hong Kong', 'Guangzhou'], funFact: 'Beijing is the capital of China.' },
+  { gradeLevel: 7, type: 'landmark', question: 'Where is the Taj Mahal?', answer: 'India', options: ['India', 'Pakistan', 'Bangladesh', 'Nepal'], funFact: 'The Taj Mahal is a marble mausoleum in Agra, India.' },
+  { gradeLevel: 7, type: 'landmark', question: 'Where is Machu Picchu?', answer: 'Peru', options: ['Peru', 'Mexico', 'Chile', 'Colombia'], funFact: 'Machu Picchu was built by the Inca civilization in the Andes Mountains.' },
+  { gradeLevel: 7, type: 'map', question: 'Which map measurement tells how far east or west a place is from the Prime Meridian?', answer: 'Longitude', options: ['Longitude', 'Latitude', 'Elevation', 'Population'], funFact: 'Longitude lines run from the North Pole to the South Pole.' },
+  { gradeLevel: 7, type: 'climate', question: 'Which word describes the usual weather pattern of a place over many years?', answer: 'Climate', options: ['Climate', 'Address', 'Border', 'Landmark'], funFact: 'Climate is different from daily weather because it describes long-term patterns.' },
 ];
 
 export const GeographyRoom: React.FC<GeographyRoomProps> = ({ level, onBack, onReward }) => {
@@ -93,7 +109,7 @@ export const GeographyRoom: React.FC<GeographyRoomProps> = ({ level, onBack, onR
   const getNewQuestion = () => {
     const randomQ = availableQuestions[Math.floor(Math.random() * availableQuestions.length)];
     const shuffledOptions = [...randomQ.options].sort(() => Math.random() - 0.5);
-    const cleanQuestion = randomQ.question.replace(/🇺🇸|🇬🇧|🇯🇵|🇫🇷|🇧🇷|🇨🇦|🇦🇺|🇮🇹|🇲🇽|🇨🇳|🇮🇳|🇪🇸|🇷🇺|🇰🇷|🇿🇦|🌍|☀️|🌊/g, '');
+    const cleanQuestion = randomQ.question;
     setQuestion({ ...randomQ, options: shuffledOptions });
     setSelectedAnswer(null);
     setShowResult(false);
@@ -115,7 +131,7 @@ export const GeographyRoom: React.FC<GeographyRoomProps> = ({ level, onBack, onR
 
   const readQuestionAloud = () => {
     if (question) {
-      speakQuestion(question.question.replace(/🇺🇸|🇬🇧|🇯🇵|🇫🇷|🇧🇷|🇨🇦|🇦🇺|🇮🇹|🇲🇽|🇨🇳|🇮🇳|🇪🇸|🇷🇺|🇰🇷|🇿🇦|🌍|☀️|🌊/g, ''));
+      speakQuestion(question.question);
     }
   };
 
@@ -139,15 +155,17 @@ export const GeographyRoom: React.FC<GeographyRoomProps> = ({ level, onBack, onR
     }
   };
 
-  const getTypeIcon = (type: string) => {
+  const getTypeLabel = (type: string) => {
     switch (type) {
-      case 'flag': return '🏳️';
-      case 'continent': return '🌍';
-      case 'capital': return '🏛️';
-      case 'landmark': return '🗿';
-      case 'country': return '📍';
-      case 'nature': return '🌊';
-      default: return '🌎';
+      case 'flag': return 'Flag Clue';
+      case 'continent': return 'Continent';
+      case 'capital': return 'Capital City';
+      case 'landmark': return 'Landmark';
+      case 'country': return 'Country';
+      case 'nature': return 'Land and Water';
+      case 'map': return 'Map Skill';
+      case 'climate': return 'Climate';
+      default: return 'World Skill';
     }
   };
 
@@ -159,6 +177,8 @@ export const GeographyRoom: React.FC<GeographyRoomProps> = ({ level, onBack, onR
       case 'landmark': return 'from-yellow-400 to-orange-500';
       case 'country': return 'from-pink-400 to-rose-500';
       case 'nature': return 'from-cyan-400 to-blue-500';
+      case 'map': return 'from-amber-400 to-lime-500';
+      case 'climate': return 'from-orange-400 to-sky-500';
       default: return 'from-cyan-400 to-blue-500';
     }
   };
@@ -183,22 +203,21 @@ export const GeographyRoom: React.FC<GeographyRoomProps> = ({ level, onBack, onR
       </div>
 
       {/* Floating decorations */}
-      <div className="absolute top-20 left-10 text-4xl animate-float opacity-50">✈️</div>
-      <div className="absolute top-40 right-10 text-4xl animate-float-delayed opacity-50">🌍</div>
-      <div className="absolute bottom-40 left-20 text-4xl animate-float opacity-50">🗺️</div>
-      <div className="absolute bottom-20 right-20 text-4xl animate-float-delayed opacity-50">🧭</div>
+      <div className="absolute top-20 left-10 h-14 w-14 animate-float rounded-full border-4 border-white/40 bg-sky-300/40 opacity-60" />
+      <div className="absolute top-40 right-10 h-16 w-16 animate-float-delayed rounded-full border-4 border-emerald-200/50 bg-emerald-400/30 opacity-60" />
+      <div className="absolute bottom-40 left-20 h-12 w-20 animate-float rounded-2xl border-4 border-white/40 bg-amber-200/50 opacity-60 rotate-12" />
+      <div className="absolute bottom-20 right-20 h-16 w-16 animate-float-delayed rounded-full border-4 border-yellow-200/60 bg-blue-500/20 opacity-60" />
 
       {/* Main Content */}
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="bg-white rounded-3xl shadow-2xl p-5 sm:p-6 max-w-2xl w-full relative overflow-hidden">
           {/* Decorative globe background */}
-          <div className="absolute -right-16 -top-16 text-[150px] opacity-10 rotate-12">🌍</div>
+          <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full border-[18px] border-sky-200/50 bg-emerald-100/40 opacity-70 rotate-12" />
 
           {/* Type Badge */}
           <div className="text-center mb-4 flex items-center justify-center gap-2">
             <span className={`inline-flex items-center gap-2 text-sm font-bold uppercase tracking-wider px-4 py-2 rounded-full bg-gradient-to-r ${getTypeColor(question.type)} text-white shadow-lg`}>
-              <span>{getTypeIcon(question.type)}</span>
-              {question.type}
+              {getTypeLabel(question.type)}
             </span>
             <button
               onClick={readQuestionAloud}
@@ -277,7 +296,9 @@ export const GeographyRoom: React.FC<GeographyRoomProps> = ({ level, onBack, onR
           {showResult && (
             <div className={`p-4 rounded-xl mb-4 ${isCorrect ? 'bg-green-100' : 'bg-orange-100'}`}>
               <div className="flex items-start gap-3">
-                <span className="text-2xl">{isCorrect ? '🎉' : '🌟'}</span>
+                <span className="rounded-full bg-white px-3 py-1 text-sm font-black uppercase tracking-wide text-slate-700">
+                  {isCorrect ? 'Nice' : 'Learn'}
+                </span>
                 <div>
                   <p className={`font-bold ${isCorrect ? 'text-green-700' : 'text-orange-700'}`}>
                     {isCorrect ? 'Correct!' : `The answer is ${question.answer}`}

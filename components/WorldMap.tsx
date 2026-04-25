@@ -5,7 +5,7 @@ import {
   Clock, Target, CheckCircle2, MapPin, HeartPulse, Sparkles, X,
 } from 'lucide-react';
 import { playPop } from '../services/audioService';
-import { getDailyMission, getWeeklyLearningPlan } from '../services/curriculum';
+import { getDailyMission, getUnitsForGrade, getWeeklyLearningPlan, type CurriculumUnit } from '../services/curriculum';
 
 interface WorldMapProps {
   onEnterRoom: (room: RoomType, unitId?: string) => void;
@@ -90,6 +90,26 @@ export const WorldMap: React.FC<WorldMapProps> = ({
     RoomType.MUSIC,
     RoomType.PUZZLE,
   ];
+  const currentGradeUnits = getUnitsForGrade(progress.currentGrade);
+  const nextUnitByRoom = requiredGradeRooms.reduce((unitsByRoom, room) => {
+    const roomUnits = currentGradeUnits
+      .filter(unit => unit.room === room)
+      .sort((a, b) => {
+        const aCompleted = completedUnitIds.has(a.id) ? 1 : 0;
+        const bCompleted = completedUnitIds.has(b.id) ? 1 : 0;
+        if (aCompleted !== bCompleted) return aCompleted - bCompleted;
+        const aPractice = unitPracticeCounts[a.id] || 0;
+        const bPractice = unitPracticeCounts[b.id] || 0;
+        if (aPractice !== bPractice) return aPractice - bPractice;
+        return a.reviewCycleDays - b.reviewCycleDays;
+      });
+
+    if (roomUnits[0]) {
+      unitsByRoom[room] = roomUnits[0];
+    }
+
+    return unitsByRoom;
+  }, {} as Partial<Record<RoomType, CurriculumUnit>>);
   const masteryMinimum = gradeMasteryMinimums[progress.currentLevel];
   const subjectScores = [
     progress.mathScore || 0,
@@ -547,6 +567,8 @@ export const WorldMap: React.FC<WorldMapProps> = ({
             const isVisited = visitedRooms.has(room.type);
             const isMissionRoom = mission.room === room.type;
             const score = roomScores[room.type] || 0;
+            const nextUnit = nextUnitByRoom[room.type];
+            const nextUnitPractice = nextUnit ? Math.min(unitPracticeCounts[nextUnit.id] || 0, 3) : 0;
 
             return (
               <button
@@ -589,6 +611,15 @@ export const WorldMap: React.FC<WorldMapProps> = ({
 
                     <div className="rounded-2xl bg-white/90 p-3 shadow-lg">
                       <p className="text-sm font-black text-slate-900">{details.detail}</p>
+                      {nextUnit && (
+                        <div className="mt-2 rounded-xl bg-slate-50 p-2">
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-500">Next lesson</p>
+                            <p className="text-[10px] font-black text-emerald-700">{nextUnitPractice}/3</p>
+                          </div>
+                          <p className="mt-1 text-xs font-black text-slate-800">{nextUnit.title}</p>
+                        </div>
+                      )}
                       <div className="mt-2 flex items-center justify-between gap-2">
                         <span className="rounded-full bg-slate-100 px-2 py-1 text-[11px] font-black text-slate-700">{score} wins</span>
                         <span className="rounded-full bg-slate-900 px-3 py-1 text-[11px] font-black uppercase tracking-[0.14em] text-white">Enter</span>

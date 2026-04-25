@@ -340,6 +340,9 @@ if (!worldMapSource.includes('Offline Break') || !worldMapSource.includes('daily
 if (!worldMapSource.includes('room-destination-tile') || !worldMapSource.includes('room-scene') || !worldMapSource.includes('Mission') || !worldMapSource.includes('Visited')) {
   fail('World map room tiles are too basic; destination scenes and progress badges are missing.');
 }
+if (!worldMapSource.includes('Next lesson') || !worldMapSource.includes('nextUnitByRoom') || !worldMapSource.includes('getUnitsForGrade')) {
+  fail('World map room tiles must show the next structured lesson for each room.');
+}
 if (!mathRoomSource.includes('renderMathManipulatives') || !mathRoomSource.includes('First number') || !readingRoomSource.includes('Word Stage') || !readingRoomSource.includes('modeSteps')) {
   fail('Core Math and Reading rooms need richer kid-facing visual learning props.');
 }

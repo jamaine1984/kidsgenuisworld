@@ -1,14 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Music, PlayCircle, Repeat, Disc, Speaker, Mic2, Piano } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Disc, Piano, Speaker } from 'lucide-react';
 import { playNote, playSuccess, playError, playPop } from '../services/audioService';
 
 interface MusicRoomProps {
   onBack: () => void;
+  onReward: () => void;
 }
 
-export const MusicRoom: React.FC<MusicRoomProps> = ({ onBack }) => {
+export const MusicRoom: React.FC<MusicRoomProps> = ({ onBack, onReward }) => {
   const [tab, setTab] = useState<'PIANO' | 'DJ'>('PIANO');
   const [instrument, setInstrument] = useState<'PIANO' | 'SYNTH' | '8BIT'>('PIANO');
+  const [notesPlayed, setNotesPlayed] = useState(0);
+  const [loopsTried, setLoopsTried] = useState(0);
+  const [isComplete, setIsComplete] = useState(false);
   
   // DJ State
   const [activeLoops, setActiveLoops] = useState<number[]>([]);
@@ -43,6 +47,7 @@ export const MusicRoom: React.FC<MusicRoomProps> = ({ onBack }) => {
 
   const handleNoteClick = (id: number) => {
       setActiveNote(id);
+      setNotesPlayed(count => count + 1);
       playNote(notes[id].freq, getOscType(), 0.5);
       setTimeout(() => setActiveNote(null), 200);
   };
@@ -58,6 +63,7 @@ export const MusicRoom: React.FC<MusicRoomProps> = ({ onBack }) => {
       } else {
           // Start
           setActiveLoops(prev => [...prev, padId]);
+          setLoopsTried(count => count + 1);
           const pad = djPads.find(p => p.id === padId);
           if (pad) {
              // Play immediately
@@ -78,9 +84,18 @@ export const MusicRoom: React.FC<MusicRoomProps> = ({ onBack }) => {
       };
   }, []);
 
+  const hasFinishedPattern = notesPlayed >= 5 || loopsTried >= 2;
+
+  const completeMusicMission = () => {
+      if (!hasFinishedPattern || isComplete) return;
+      setIsComplete(true);
+      playSuccess();
+      onReward();
+  };
+
   return (
-    <div className="h-full w-full bg-purple-900 flex flex-col items-center relative overflow-hidden">
-      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-30"></div>
+    <div className="h-full w-full bg-[radial-gradient(circle_at_top,#7c3aed_0,#4c1d95_48%,#111827_100%)] flex flex-col items-center relative overflow-hidden">
+      <div className="absolute inset-0 opacity-40 [background-image:radial-gradient(circle_at_20%_20%,rgba(255,255,255,.35)_0_2px,transparent_3px),radial-gradient(circle_at_70%_35%,rgba(255,255,255,.25)_0_2px,transparent_3px),radial-gradient(circle_at_40%_75%,rgba(255,255,255,.2)_0_2px,transparent_3px)]"></div>
       <div className="absolute bottom-0 left-0 w-32 h-96 bg-yellow-400 opacity-20 blur-2xl transform rotate-12 origin-bottom"></div>
       <div className="absolute bottom-0 right-0 w-32 h-96 bg-blue-400 opacity-20 blur-2xl transform -rotate-12 origin-bottom"></div>
 
@@ -103,11 +118,36 @@ export const MusicRoom: React.FC<MusicRoomProps> = ({ onBack }) => {
                 <Disc size={18} /> DJ Booth
             </button>
         </div>
+
+        <button
+          onClick={completeMusicMission}
+          disabled={!hasFinishedPattern || isComplete}
+          className={`p-3 rounded-full shadow-lg ${hasFinishedPattern && !isComplete ? 'bg-emerald-400 text-emerald-950' : 'bg-white/30 text-white/50'}`}
+          title="Complete music mission"
+        >
+          <CheckCircle2 />
+        </button>
       </header>
+
+      <div className="absolute left-1/2 top-24 z-10 w-[min(92vw,760px)] -translate-x-1/2 rounded-2xl bg-white/12 p-4 text-white shadow-2xl ring-1 ring-white/20 backdrop-blur-md">
+        <div className="text-center text-xs font-black uppercase tracking-[0.24em] text-fuchsia-100">Music Mission Board</div>
+        <div className="mt-3 grid grid-cols-3 gap-2">
+          {[
+            ['Explore Sound', `${notesPlayed}/5 notes`],
+            ['Build Rhythm', `${loopsTried}/2 loops`],
+            ['Finish', hasFinishedPattern ? 'Ready' : 'Keep playing'],
+          ].map(([title, copy]) => (
+            <div key={title} className="rounded-xl bg-white/15 p-3 text-center ring-1 ring-white/15">
+              <div className="text-sm font-black">{title}</div>
+              <div className="text-xs font-semibold text-white/75">{copy}</div>
+            </div>
+          ))}
+        </div>
+      </div>
 
       {/* PIANO MODE */}
       {tab === 'PIANO' && (
-        <div className="flex flex-col items-center justify-center w-full h-full pt-20">
+        <div className="flex flex-col items-center justify-center w-full h-full pt-44">
             {/* Instrument Switcher */}
             <div className="flex gap-4 mb-10 z-10">
                 {(['PIANO', 'SYNTH', '8BIT'] as const).map(inst => (
@@ -120,6 +160,9 @@ export const MusicRoom: React.FC<MusicRoomProps> = ({ onBack }) => {
                     </button>
                 ))}
             </div>
+            <p className="z-10 mb-5 rounded-full bg-white/15 px-4 py-2 text-sm font-bold text-white">
+              Play 5 notes or start 2 loops to complete this music mission.
+            </p>
 
             <div className="flex gap-1 md:gap-3 h-64 md:h-80 items-end z-10 perspective-[1000px] w-full justify-center px-4 mb-10">
                 {notes.map((n) => (
@@ -143,7 +186,7 @@ export const MusicRoom: React.FC<MusicRoomProps> = ({ onBack }) => {
 
       {/* DJ MODE */}
       {tab === 'DJ' && (
-          <div className="flex flex-col items-center justify-center w-full h-full pt-20 z-10">
+          <div className="flex flex-col items-center justify-center w-full h-full pt-44 z-10">
               <h2 className="text-white text-4xl font-bold mb-8 animate-pulse">Kid DJ Station</h2>
               <div className="grid grid-cols-2 gap-8">
                   {djPads.map(pad => (

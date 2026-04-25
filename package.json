@@ -6,7 +6,17 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "serve": "node server/production-server.mjs",
+    "qa": "npm run build && node scripts/qa-check.mjs && node scripts/launch-readiness.mjs",
+    "qa:source": "node scripts/qa-check.mjs",
+    "qa:launch": "node scripts/launch-readiness.mjs",
+    "voice:cache": "node scripts/warm-voice-cache.mjs",
+    "r2:upload-tts": "node scripts/upload-tts-cache-r2.mjs",
+    "cf:dev": "wrangler dev",
+    "cf:deploy": "npm run qa && wrangler deploy",
+    "cf:secret:elevenlabs": "wrangler secret put ELEVENLABS_API_KEY",
+    "cf:secret:openrouter": "wrangler secret put OPENROUTER_API_KEY"
   },
   "dependencies": {
     "lucide-react": "^0.554.0",
@@ -16,7 +26,11 @@
   "devDependencies": {
     "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^5.0.0",
+    "autoprefixer": "^10.5.0",
+    "postcss": "^8.5.10",
+    "tailwindcss": "^3.4.19",
     "typescript": "~5.8.2",
-    "vite": "^6.2.0"
+    "vite": "^6.2.0",
+    "wrangler": "^4.85.0"
   }
 }

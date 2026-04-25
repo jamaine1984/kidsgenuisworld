@@ -55,6 +55,25 @@ export default defineConfig(({ mode }) => {
 
     const getTtsCachePath = ({
       text,
+      voiceId,
+      modelId,
+      voiceSettings,
+    }: {
+      text: string;
+      voiceId: string;
+      modelId: string;
+      voiceSettings: any;
+    }) =>
+      path.join(
+        cacheDir,
+        `${crypto
+          .createHash('sha256')
+          .update(JSON.stringify({ text: normalizeSpeechText(text), voiceId, modelId, voiceSettings }))
+          .digest('hex')}.mp3`
+      );
+
+    const getLegacyTtsCachePath = ({
+      text,
       context,
       voiceId,
       modelId,
@@ -73,6 +92,36 @@ export default defineConfig(({ mode }) => {
           .update(JSON.stringify({ text: normalizeSpeechText(text), context, voiceId, modelId, voiceSettings }))
           .digest('hex')}.mp3`
       );
+
+    const findCachedTtsPath = ({
+      text,
+      context,
+      voiceId,
+      modelId,
+      voiceSettings,
+    }: {
+      text: string;
+      context: string;
+      voiceId: string;
+      modelId: string;
+      voiceSettings: any;
+    }) => {
+      const primaryPath = getTtsCachePath({ text, voiceId, modelId, voiceSettings });
+      if (fs.existsSync(primaryPath)) {
+        return { cachePath: primaryPath, migrated: false };
+      }
+
+      const legacyContexts = Array.from(new Set([context, 'general'].filter(Boolean)));
+      for (const legacyContext of legacyContexts) {
+        const legacyPath = getLegacyTtsCachePath({ text, context: legacyContext, voiceId, modelId, voiceSettings });
+        if (fs.existsSync(legacyPath)) {
+          fs.copyFileSync(legacyPath, primaryPath);
+          return { cachePath: primaryPath, migrated: true };
+        }
+      }
+
+      return { cachePath: primaryPath, migrated: false };
+    };
     return {
       server: {
         port: 3000,
@@ -193,7 +242,7 @@ export default defineConfig(({ mode }) => {
                   style: 0.35,
                   use_speaker_boost: true,
                 });
-                const cachePath = getTtsCachePath({ text, context, voiceId, modelId, voiceSettings });
+                const { cachePath, migrated } = findCachedTtsPath({ text, context, voiceId, modelId, voiceSettings });
 
                 if (!text) {
                   res.statusCode = 400;
@@ -205,7 +254,7 @@ export default defineConfig(({ mode }) => {
                 if (fs.existsSync(cachePath)) {
                   res.statusCode = 200;
                   res.setHeader('Content-Type', 'audio/mpeg');
-                  res.setHeader('X-TTS-Cache', 'HIT');
+                  res.setHeader('X-TTS-Cache', migrated ? 'MIGRATED' : 'HIT');
                   res.end(fs.readFileSync(cachePath));
                   return;
                 }
@@ -276,16 +325,18 @@ export default defineConfig(({ mode }) => {
               try {
                 const body = JSON.parse(Buffer.concat(chunks).toString('utf8'));
                 const texts = Array.isArray(body?.texts)
-                  ? body.texts.map((text: unknown) => (typeof text === 'string' ? normalizeSpeechText(text) : '')).filter(Boolean)
+                  ? body.texts.map((text: unknown) => (typeof text === 'string' ? normalizeSpeechText(text) : '')).filter(Boolean).slice(0, 500)
                   : [];
+                const migrateOnly = body?.migrate_only === true;
                 const voiceSettings = resolveVoiceSettings(body?.voice_settings);
 
                 let hits = 0;
                 let misses = 0;
                 let errors = 0;
+                let skipped = 0;
 
                 for (const text of texts) {
-                  const cachePath = getTtsCachePath({
+                  const { cachePath } = findCachedTtsPath({
                     text,
                     context: 'general',
                     voiceId,
@@ -295,6 +346,11 @@ export default defineConfig(({ mode }) => {
 
                   if (fs.existsSync(cachePath)) {
                     hits += 1;
+                    continue;
+                  }
+
+                  if (migrateOnly) {
+                    skipped += 1;
                     continue;
                   }
 
@@ -335,6 +391,7 @@ export default defineConfig(({ mode }) => {
                   hits,
                   misses,
                   errors,
+                  skipped,
                 }));
               } catch (error) {
                 res.statusCode = 500;

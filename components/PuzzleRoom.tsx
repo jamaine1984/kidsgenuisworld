@@ -113,13 +113,13 @@ export const PuzzleRoom: React.FC<PuzzleRoomProps> = ({ onBack, onReward }) => {
   }
 
   return (
-    <div className="h-full w-full bg-teal-600 flex flex-col p-4 relative">
+    <div className="h-full w-full bg-[radial-gradient(circle_at_top_left,#bef264_0,#14b8a6_34%,#0f766e_70%,#134e4a_100%)] flex flex-col p-4 relative overflow-auto">
       <header className="flex justify-between items-center mb-4 z-10">
         <button onClick={onBack} className="bg-white p-2 rounded-full shadow-lg">
           <ArrowLeft className="text-teal-600" />
         </button>
         
-        <div className="flex bg-teal-800/50 p-1 rounded-xl backdrop-blur-md">
+        <div className="flex bg-teal-900/50 p-1 rounded-xl backdrop-blur-md shadow-lg">
             <button onClick={() => setMode('MEMORY')} className={`p-2 rounded-lg ${mode==='MEMORY'?'bg-white text-teal-800':'text-white'}`}><Grid3X3 /></button>
             <button onClick={() => setMode('PATTERN')} className={`p-2 rounded-lg ${mode==='PATTERN'?'bg-white text-teal-800':'text-white'}`}><BrainCircuit /></button>
             <button onClick={() => setMode('SHAPES')} className={`p-2 rounded-lg ${mode==='SHAPES'?'bg-white text-teal-800':'text-white'}`}><Shapes /></button>
@@ -129,6 +129,22 @@ export const PuzzleRoom: React.FC<PuzzleRoomProps> = ({ onBack, onReward }) => {
            <RefreshCw size={20} />
         </button>
       </header>
+
+      <div className="mx-auto mb-4 max-w-3xl rounded-2xl bg-white/95 p-4 text-center shadow-lg ring-1 ring-teal-100">
+        <div className="text-xs font-black uppercase tracking-[0.22em] text-teal-600">Puzzle Brain Gym</div>
+        <div className="mt-2 grid grid-cols-3 gap-2">
+          {[
+            ['Memory', 'Flip and match'],
+            ['Pattern', 'Find what comes next'],
+            ['Shapes', 'Compare carefully'],
+          ].map(([title, copy]) => (
+            <div key={title} className="rounded-xl bg-teal-50 p-2">
+              <div className="text-sm font-black text-slate-800">{title}</div>
+              <div className="text-xs font-semibold text-slate-500">{copy}</div>
+            </div>
+          ))}
+        </div>
+      </div>
 
       <div className="flex-1 flex items-center justify-center flex-col">
         

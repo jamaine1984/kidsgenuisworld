@@ -36,6 +36,23 @@ const ROOM_INTROS = [
 ];
 
 const GENERAL_FEEDBACK = [
+  'Welcome back to Kid Genius World!',
+  'Welcome to Kid Genius World!',
+  'Learning is an adventure!',
+  'Great! You are in Pre-K. Let us learn together!',
+  'Great! You are in Kindergarten. Let us learn together!',
+  'Great! You are in 1st Grade. Let us learn together!',
+  'Great! You are in 2nd Grade. Let us learn together!',
+  'Great! You are in 3rd Grade. Let us learn together!',
+  'Great! You are in 4th Grade. Let us learn together!',
+  'Great! You are in 5th Grade. Let us learn together!',
+  'Congratulations! You are now in Pre-K!',
+  'Congratulations! You are now in Kindergarten!',
+  'Congratulations! You are now in 1st Grade!',
+  'Congratulations! You are now in 2nd Grade!',
+  'Congratulations! You are now in 3rd Grade!',
+  'Congratulations! You are now in 4th Grade!',
+  'Congratulations! You are now in 5th Grade!',
   'Great job!',
   'Awesome!',
   'You are so smart!',
@@ -148,6 +165,15 @@ export const warmVoiceCache = async (
   accessibility: AccessibilitySettings
 ): Promise<VoiceWarmupResult> => {
   const texts = getVoiceCacheTexts(level);
+  if (typeof window !== 'undefined' && window.localStorage.getItem('kidGeniusAllowExternalVoice') !== 'true') {
+    return {
+      requested: texts.length,
+      hits: 0,
+      misses: 0,
+      errors: 0,
+    };
+  }
+
   const response = await fetch('/api/tts-precache', {
     method: 'POST',
     headers: {

@@ -1,0 +1,25 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "kid-genius-world",
+  "main": "./cloudflare/worker.ts",
+  "compatibility_date": "2026-04-25",
+  "assets": {
+    "directory": "./dist/",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application"
+  },
+  "r2_buckets": [
+    {
+      "binding": "MEDIA_CACHE",
+      "bucket_name": "kid-genius-world-media-cache"
+    }
+  ],
+  "vars": {
+    "ELEVENLABS_VOICE_ID": "JBFqnCBsd6RMkjVDRZzb",
+    "ELEVENLABS_MODEL_ID": "eleven_flash_v2_5",
+    "OPENROUTER_IMAGE_MODEL": "google/gemini-3.1-flash-image-preview"
+  },
+  "observability": {
+    "enabled": true
+  }
+}

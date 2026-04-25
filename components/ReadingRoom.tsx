@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, Check, Star, Type, Image as ImageIcon, Volume2, Mic2, Sparkles, Book, Ear, X } from 'lucide-react';
 import { playSuccess, playWrongBuzzer, playPop, speak, speakAsync, speakCorrect, speakWrong, speakQuestion } from '../services/audioService';
 
@@ -279,9 +279,19 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
     void speakAsync(`Teacher says the word is ${currentWord.word}. ${currentWord.sentence}`, 0.86, 1.02);
   };
 
+  const modeSteps = [
+    { id: 'MATCH', label: 'Match', hint: 'Picture clue' },
+    { id: 'SPELL', label: 'Spell', hint: 'Build letters' },
+    { id: 'RHYME', label: 'Rhyme', hint: 'Hear endings' },
+    { id: 'PHONICS', label: 'Sound', hint: 'Tap sounds' },
+  ];
+
   return (
     <div className="h-full w-full bg-orange-50 flex flex-col items-center relative overflow-hidden">
-      <div className="absolute top-0 w-full h-64 bg-orange-200 rounded-b-[50%] z-0"></div>
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,#fff7ed_0%,#fed7aa_34%,#fdba74_64%,#fb923c_100%)]"></div>
+      <div className="absolute top-0 w-full h-64 bg-orange-200/80 rounded-b-[50%] z-0"></div>
+      <div className="absolute left-8 top-28 h-28 w-20 rotate-[-10deg] rounded-xl bg-white/40 shadow-xl"></div>
+      <div className="absolute right-10 bottom-16 h-24 w-32 rotate-6 rounded-[28px] bg-yellow-200/50 shadow-xl"></div>
 
       <header className="w-full p-4 flex justify-between items-center z-10 flex-wrap gap-2">
         <button onClick={onBack} className="bg-white p-3 rounded-full shadow-lg hover:bg-orange-100">
@@ -310,14 +320,29 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
         </div>
       </header>
 
-      <div className="z-10 flex flex-col items-center mt-8 w-full max-w-4xl px-4">
+      <div className="z-10 flex flex-col items-center mt-8 w-full max-w-5xl px-4">
+        <div className="mb-5 grid w-full max-w-4xl grid-cols-2 gap-3 sm:grid-cols-4">
+          {modeSteps.map(step => (
+            <button
+              key={step.id}
+              onClick={() => setMode(step.id as Activity)}
+              className={`rounded-2xl border-2 px-3 py-3 text-left shadow-sm transition ${mode === step.id ? 'border-orange-500 bg-white text-orange-700 scale-[1.03]' : 'border-white/50 bg-white/70 text-orange-900 hover:bg-white'}`}
+            >
+              <p className="text-sm font-black">{step.label}</p>
+              <p className="text-[11px] font-bold opacity-70">{step.hint}</p>
+            </button>
+          ))}
+        </div>
         <div className="mb-5 bg-orange-50 border-2 border-orange-100 rounded-2xl px-4 py-3 text-left w-full max-w-md">
           <div className="text-xs font-black uppercase tracking-[0.2em] text-orange-500 mb-1">Reading Coach</div>
           <div className="text-orange-900 font-semibold">{coachTip}</div>
         </div>
 
         {/* Main Content Area */}
-        <div className="bg-white p-8 rounded-[40px] shadow-2xl border-b-8 border-orange-300 mb-8 text-center w-full max-w-md relative animate-pop-in">
+        <div className="bg-white/95 p-8 rounded-[40px] shadow-2xl border-b-8 border-orange-300 mb-8 text-center w-full max-w-xl relative animate-pop-in">
+          <div className="absolute -top-7 left-1/2 -translate-x-1/2 rounded-full bg-orange-500 px-6 py-2 text-xs font-black uppercase tracking-[0.2em] text-white shadow-lg">
+            Word Stage
+          </div>
 
           {/* Global Volume Button */}
           <button
@@ -342,8 +367,14 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
           )}
 
           {/* Mode Specific Headers */}
-          {mode === 'MATCH' && <h1 className="text-6xl font-bold text-orange-600 mb-8 mt-4">{currentWord.word}</h1>}
-          {mode === 'SPELL' && <div className="text-8xl mb-6 animate-bounce">{currentWord.emoji}</div>}
+          <div className="mb-5 rounded-[28px] bg-gradient-to-br from-orange-100 to-yellow-50 p-5 shadow-inner">
+            <div className="text-7xl mb-3">{currentWord.emoji}</div>
+            <p className="text-5xl font-black text-orange-700">{currentWord.word}</p>
+            <p className="mt-3 rounded-2xl bg-white/80 px-4 py-2 text-sm font-bold text-orange-900">{currentWord.sentence}</p>
+          </div>
+
+          {mode === 'MATCH' && <h1 className="sr-only">{currentWord.word}</h1>}
+          {mode === 'SPELL' && <div className="mb-6 text-sm font-black uppercase tracking-[0.18em] text-orange-500">Build the word</div>}
           {mode === 'RHYME' && (
             <div>
               <div className="text-6xl mb-4">{currentWord.emoji}</div>

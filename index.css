@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    font-family: 'Comic Neue', cursive;
+    overflow: hidden;
+    background-color: #e0f2fe;
+  }
+
+  h1,
+  h2,
+  h3,
+  button {
+    font-family: 'Fredoka', sans-serif;
+  }
+}
+
+@layer utilities {
+  .high-contrast {
+    filter: contrast(1.22) saturate(1.08);
+  }
+
+  .font-dyslexia {
+    font-family: 'Comic Neue', Arial, sans-serif;
+  }
+
+  .reduce-motion *,
+  .reduce-motion *::before,
+  .reduce-motion *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+@media print {
+  body {
+    background: white;
+    overflow: visible;
+  }
+
+  button,
+  header,
+  .sticky {
+    display: none !important;
+  }
+
+  .kid-scroll {
+    overflow: visible !important;
+  }
+}

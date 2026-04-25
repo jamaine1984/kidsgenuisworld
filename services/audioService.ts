@@ -2,6 +2,7 @@ let audioContext: AudioContext | null = null;
 let currentAudio: HTMLAudioElement | null = null;
 let currentAudioUrl: string | null = null;
 let currentNarrationContext = 'general';
+let speechRunId = 0;
 
 type NarrationStyle = 'gentle' | 'energetic' | 'phonics' | 'story';
 
@@ -33,7 +34,8 @@ export const resumeAudioContext = async () => {
 
 // ============================================
 // TEXT-TO-SPEECH
-// ElevenLabs via local proxy first, native/web fallback second
+// ElevenLabs via local proxy with local server-side caching.
+// Browser speech is intentionally not used for lessons so kid-facing voices stay human.
 // ============================================
 
 // Check if running in iOS native wrapper
@@ -46,8 +48,15 @@ const hasWebSpeech = (): boolean => {
   return 'speechSynthesis' in window;
 };
 
+const allowsExternalVoice = (): boolean => {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+  return window.localStorage.getItem('kidGeniusAllowExternalVoice') === 'true';
+};
+
 const hasElevenLabsProxy = (): boolean => {
-  return typeof window !== 'undefined';
+  return allowsExternalVoice();
 };
 
 const buildVoiceSettings = () => {
@@ -107,6 +116,8 @@ const playElevenLabsSpeech = async (text: string): Promise<void> => {
   const audioBlob = await response.blob();
   const audioUrl = URL.createObjectURL(audioBlob);
   const audio = new Audio(audioUrl);
+
+  stopActiveSpeechPlayback();
   currentAudio = audio;
   currentAudioUrl = audioUrl;
 
@@ -146,8 +157,9 @@ const processQueue = async () => {
   if (isProcessingQueue || speechQueue.length === 0) return;
 
   isProcessingQueue = true;
+  const queueRunId = ++speechRunId;
 
-  while (speechQueue.length > 0) {
+  while (speechQueue.length > 0 && queueRunId === speechRunId) {
     const item = speechQueue.shift();
     if (!item) break;
 
@@ -156,7 +168,7 @@ const processQueue = async () => {
       setSpeechPreferences({ narrationStyle: item.style });
     }
 
-    await speakAndWait(item.text, item.rate, item.pitch);
+    await speakAndWait(item.text, item.rate, item.pitch, queueRunId);
 
     if (item.style) {
       setSpeechPreferences({ narrationStyle: previousStyle });
@@ -170,70 +182,43 @@ const processQueue = async () => {
   isProcessingQueue = false;
 };
 
+const stopActiveSpeechPlayback = (): void => {
+  if (isIOSNative()) {
+    (window as any).webkit.messageHandlers.iosHandler.postMessage({
+      type: 'stopSpeaking'
+    });
+  }
+
+  if (currentAudio) {
+    currentAudio.pause();
+    currentAudio.currentTime = 0;
+    currentAudio = null;
+  }
+
+  if (currentAudioUrl) {
+    URL.revokeObjectURL(currentAudioUrl);
+    currentAudioUrl = null;
+  }
+
+  if (hasWebSpeech()) {
+    window.speechSynthesis.cancel();
+  }
+};
+
 // Internal function that actually speaks and waits for completion
-const speakAndWait = (text: string, rate: number, pitch: number): Promise<void> => {
+const speakAndWait = (text: string, rate: number, pitch: number, runId: number): Promise<void> => {
   return new Promise((resolve) => {
-    if (isIOSNative()) {
-      // Use iOS native AVSpeechSynthesizer
-      (window as any).webkit.messageHandlers.iosHandler.postMessage({
-        type: 'speak',
-        text: text,
-        rate: rate * 0.5,
-        pitch: pitch
-      });
-      // Estimate duration based on text length
-      const estimatedDuration = Math.max(1000, text.length * 80);
-      setTimeout(resolve, estimatedDuration);
-    } else if (hasElevenLabsProxy()) {
+    if (runId !== speechRunId) {
+      resolve();
+      return;
+    }
+
+    stopActiveSpeechPlayback();
+
+    if (hasElevenLabsProxy()) {
       playElevenLabsSpeech(text)
         .then(resolve)
-        .catch(() => {
-          if (!hasWebSpeech()) {
-            resolve();
-            return;
-          }
-
-          const utterance = new SpeechSynthesisUtterance(text);
-          utterance.rate = rate;
-          utterance.pitch = pitch;
-          utterance.volume = 1.0;
-
-          const voices = window.speechSynthesis.getVoices();
-          const preferredVoice = voices.find(v =>
-            v.name.includes('Samantha') ||
-            v.name.includes('Google US English') ||
-            (v.lang.startsWith('en') && !v.name.includes('Male'))
-          );
-          if (preferredVoice) {
-            utterance.voice = preferredVoice;
-          }
-
-          utterance.onend = () => resolve();
-          utterance.onerror = () => resolve();
-
-          window.speechSynthesis.speak(utterance);
-        });
-    } else if (hasWebSpeech()) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = rate;
-      utterance.pitch = pitch;
-      utterance.volume = 1.0;
-
-      // Try to use a friendly voice
-      const voices = window.speechSynthesis.getVoices();
-      const preferredVoice = voices.find(v =>
-        v.name.includes('Samantha') ||
-        v.name.includes('Google US English') ||
-        (v.lang.startsWith('en') && !v.name.includes('Male'))
-      );
-      if (preferredVoice) {
-        utterance.voice = preferredVoice;
-      }
-
-      utterance.onend = () => resolve();
-      utterance.onerror = () => resolve();
-
-      window.speechSynthesis.speak(utterance);
+        .catch(resolve);
     } else {
       resolve();
     }
@@ -252,44 +237,30 @@ export const queueSpeak = (text: string, rate: number = 0.9, pitch: number = 1.1
 export const speak = (text: string, rate: number = 0.9, pitch: number = 1.1): void => {
   // Clear the queue and stop current speech
   speechQueue = [];
-  stopSpeaking();
+  const runId = ++speechRunId;
+  stopActiveSpeechPlayback();
 
   // Small delay to ensure previous speech is stopped
   setTimeout(() => {
-    speakAndWait(text, rate, pitch);
+    void speakAndWait(text, rate, pitch, runId);
   }, 50);
 };
 
 // Speak and wait for completion (blocking)
 export const speakAsync = async (text: string, rate: number = 0.9, pitch: number = 1.1): Promise<void> => {
   speechQueue = [];
-  stopSpeaking();
+  const runId = ++speechRunId;
+  stopActiveSpeechPlayback();
   await new Promise(r => setTimeout(r, 50));
-  await speakAndWait(text, rate, pitch);
+  await speakAndWait(text, rate, pitch, runId);
 };
 
 // Stop speaking and clear queue
 export const stopSpeaking = (): void => {
   speechQueue = [];
-  if (isIOSNative()) {
-    (window as any).webkit.messageHandlers.iosHandler.postMessage({
-      type: 'stopSpeaking'
-    });
-  }
-
-  if (currentAudio) {
-    currentAudio.pause();
-    currentAudio.currentTime = 0;
-    currentAudio = null;
-    if (currentAudioUrl) {
-      URL.revokeObjectURL(currentAudioUrl);
-      currentAudioUrl = null;
-    }
-  }
-
-  if (hasWebSpeech()) {
-    window.speechSynthesis.cancel();
-  }
+  speechRunId += 1;
+  isProcessingQueue = false;
+  stopActiveSpeechPlayback();
 };
 
 // Check if currently speaking

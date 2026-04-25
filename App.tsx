@@ -1,21 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { Suspense, lazy, useState, useEffect } from 'react';
 import { WorldMap } from './components/WorldMap';
 import { Guide } from './components/Guide';
-import { MathRoom } from './components/MathRoom';
-import { ArtRoom } from './components/ArtRoom';
-import { MusicRoom } from './components/MusicRoom';
-import { ReadingRoom } from './components/ReadingRoom';
-import { PuzzleRoom } from './components/PuzzleRoom';
-import { Playground } from './components/Playground';
 import { Dashboard } from './components/Dashboard';
-import { ScienceRoom } from './components/ScienceRoom';
-import { GeographyRoom } from './components/GeographyRoom';
-import { CodingRoom } from './components/CodingRoom';
-import { LanguageRoom } from './components/LanguageRoom';
-import { StoryBook } from './components/StoryBook';
 import { VirtualPetPanel, PetSelection } from './components/VirtualPet';
 import { AchievementsPanel, AchievementUnlockToast } from './components/AchievementsPanel';
 import { ParentDashboard } from './components/ParentDashboard';
+import { LegalInfo } from './components/LegalInfo';
 import {
   RoomType,
   UserProgress,
@@ -27,14 +17,198 @@ import {
   Achievement,
   ACHIEVEMENTS,
   AccessibilitySettings,
+  PrivacySettings,
+  DailyStats,
+  ChildProfile,
   createDefaultProgress,
   DEFAULT_LEARNING_PROFILE,
-  DEFAULT_ACCESSIBILITY
+  DEFAULT_ACCESSIBILITY,
+  DEFAULT_PRIVACY_SETTINGS
 } from './types';
 import { resumeAudioContext, playSuccess, speak, stopSpeaking, setNarrationContext, setSpeechPreferences } from './services/audioService';
 import { updateSkillMetrics, updateLearningProfile, getEncouragingMessage } from './services/adaptiveLearning';
-import { warmVoiceCache } from './services/voiceCacheService';
-import { Play, Sparkles } from 'lucide-react';
+import { BookOpen, CheckCircle2, LockKeyhole, Play, ShieldCheck, Sparkles } from 'lucide-react';
+
+const MathRoom = lazy(() => import('./components/MathRoom').then(module => ({ default: module.MathRoom })));
+const ReadingRoom = lazy(() => import('./components/ReadingRoom').then(module => ({ default: module.ReadingRoom })));
+const ScienceRoom = lazy(() => import('./components/ScienceRoom').then(module => ({ default: module.ScienceRoom })));
+const GeographyRoom = lazy(() => import('./components/GeographyRoom').then(module => ({ default: module.GeographyRoom })));
+const CodingRoom = lazy(() => import('./components/CodingRoom').then(module => ({ default: module.CodingRoom })));
+const LanguageRoom = lazy(() => import('./components/LanguageRoom').then(module => ({ default: module.LanguageRoom })));
+const StoryBook = lazy(() => import('./components/StoryBook').then(module => ({ default: module.StoryBook })));
+const ArtRoom = lazy(() => import('./components/ArtRoom').then(module => ({ default: module.ArtRoom })));
+const MusicRoom = lazy(() => import('./components/MusicRoom').then(module => ({ default: module.MusicRoom })));
+const PuzzleRoom = lazy(() => import('./components/PuzzleRoom').then(module => ({ default: module.PuzzleRoom })));
+
+const PROFILES_KEY = 'kidGeniusProfiles';
+const ACTIVE_PROFILE_KEY = 'kidGeniusActiveProfileId';
+
+const gradeToLevel: { [key in GradeLevel]: number } = {
+  [GradeLevel.PRE_K]: 1,
+  [GradeLevel.KINDERGARTEN]: 2,
+  [GradeLevel.FIRST_GRADE]: 3,
+  [GradeLevel.SECOND_GRADE]: 4,
+  [GradeLevel.THIRD_GRADE]: 5,
+  [GradeLevel.FOURTH_GRADE]: 6,
+  [GradeLevel.FIFTH_GRADE]: 7,
+};
+
+const gradeProgressionThresholds: { [level: number]: number } = {
+  1: 30,
+  2: 75,
+  3: 135,
+  4: 210,
+  5: 300,
+  6: 405,
+};
+
+const gradeMasteryMinimums: { [level: number]: number } = {
+  1: 3,
+  2: 6,
+  3: 10,
+  4: 15,
+  5: 21,
+  6: 28,
+};
+
+const requiredGradeRooms = [
+  RoomType.MATH,
+  RoomType.READING,
+  RoomType.STORYBOOK,
+  RoomType.SCIENCE,
+  RoomType.GEOGRAPHY,
+  RoomType.CODING,
+  RoomType.LANGUAGE,
+  RoomType.ART,
+  RoomType.MUSIC,
+  RoomType.PUZZLE,
+];
+
+const hasBalancedGradeMastery = (progress: UserProgress, level: number): boolean => {
+  const required = gradeMasteryMinimums[level] || Number.POSITIVE_INFINITY;
+  const subjectScores = [
+    progress.mathScore || 0,
+    progress.readingScore || 0,
+    progress.storybookScore || 0,
+    progress.scienceScore || 0,
+    progress.geographyScore || 0,
+    progress.codingScore || 0,
+    progress.languageScore || 0,
+  ];
+  return subjectScores.every(score => score >= required);
+};
+
+const hasVisitedEveryRoomForGrade = (progress: UserProgress, level: number): boolean => {
+  const visitedRooms = new Set(progress.gradeRoomVisits?.[String(level)] || []);
+  return requiredGradeRooms.every(room => visitedRooms.has(room));
+};
+
+const createProfileId = () => `profile-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+const getTodayKey = () => new Date().toISOString().slice(0, 10);
+
+const updateDailyStats = (
+  stats: DailyStats[] = [],
+  patch: Partial<Omit<DailyStats, 'date'>>
+): DailyStats[] => {
+  const today = getTodayKey();
+  const existing = stats.find(stat => stat.date === today);
+  const base: DailyStats = existing || {
+    date: today,
+    timeSpentMinutes: 0,
+    problemsAttempted: 0,
+    problemsCorrect: 0,
+    roomsVisited: [],
+    stickersEarned: 0,
+    achievementsUnlocked: [],
+  };
+
+  const updated: DailyStats = {
+    ...base,
+    timeSpentMinutes: base.timeSpentMinutes + (patch.timeSpentMinutes || 0),
+    problemsAttempted: base.problemsAttempted + (patch.problemsAttempted || 0),
+    problemsCorrect: base.problemsCorrect + (patch.problemsCorrect || 0),
+    stickersEarned: base.stickersEarned + (patch.stickersEarned || 0),
+    roomsVisited: Array.from(new Set([
+      ...base.roomsVisited,
+      ...(patch.roomsVisited || []),
+    ])),
+    achievementsUnlocked: Array.from(new Set([
+      ...base.achievementsUnlocked,
+      ...(patch.achievementsUnlocked || []),
+    ])),
+  };
+
+  return [
+    updated,
+    ...stats.filter(stat => stat.date !== today),
+  ]
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .slice(0, 30);
+};
+
+const loadProfiles = (): ChildProfile[] => {
+  try {
+    const saved = localStorage.getItem(PROFILES_KEY);
+    const profiles = saved ? JSON.parse(saved) : [];
+    if (Array.isArray(profiles) && profiles.length > 0) {
+      return profiles;
+    }
+  } catch {
+    // Fall through to default profile.
+  }
+
+  const defaultProfile: ChildProfile = {
+    id: 'default',
+    name: 'Learner',
+    grade: GradeLevel.KINDERGARTEN,
+    createdAt: Date.now(),
+    lastActiveAt: Date.now(),
+  };
+  localStorage.setItem(PROFILES_KEY, JSON.stringify([defaultProfile]));
+  localStorage.setItem(ACTIVE_PROFILE_KEY, defaultProfile.id);
+  return [defaultProfile];
+};
+
+const loadProgressForProfile = (profile: ChildProfile): UserProgress => {
+  const profileProgress = localStorage.getItem(`kidGeniusProgress:${profile.id}`);
+  const legacyProgress = localStorage.getItem('kidGeniusProgress');
+  const saved = profileProgress || legacyProgress;
+  if (saved) {
+    try {
+      const savedProgress = JSON.parse(saved);
+      return {
+        ...createDefaultProgress(profile.name),
+        ...savedProgress,
+        childName: profile.name,
+        currentGrade: profile.grade,
+        currentLevel: gradeToLevel[profile.grade],
+        memberId: profile.id,
+        accessibility: {
+          ...DEFAULT_ACCESSIBILITY,
+          ...(savedProgress.accessibility || {}),
+        },
+        privacy: {
+          ...DEFAULT_PRIVACY_SETTINGS,
+          ...(savedProgress.privacy || {}),
+        },
+        dailyStats: Array.isArray(savedProgress.dailyStats) ? savedProgress.dailyStats : [],
+        gradeRoomVisits: savedProgress.gradeRoomVisits || {},
+        completedUnitIds: Array.isArray(savedProgress.completedUnitIds) ? savedProgress.completedUnitIds : [],
+        weeklyGoalMinutes: savedProgress.weeklyGoalMinutes || 60,
+        dailySessionLimitMinutes: savedProgress.dailySessionLimitMinutes || 20,
+      };
+    } catch {
+      // Fall through to fresh progress.
+    }
+  }
+  return {
+    ...createDefaultProgress(profile.name),
+    currentGrade: profile.grade,
+    currentLevel: gradeToLevel[profile.grade],
+    memberId: profile.id,
+  };
+};
 
 const App: React.FC = () => {
   const [hasStarted, setHasStarted] = useState(false);
@@ -47,25 +221,56 @@ const App: React.FC = () => {
   const [showPetSelection, setShowPetSelection] = useState(false);
   const [guideTrigger, setGuideTrigger] = useState(0);
   const [newAchievement, setNewAchievement] = useState<Achievement | null>(null);
+  const [activeUnitId, setActiveUnitId] = useState<string | null>(null);
+  const [parentOnboarded, setParentOnboarded] = useState(() => localStorage.getItem('kidGeniusParentOnboarded') === 'true');
+  const [legalView, setLegalView] = useState<'privacy' | 'terms' | null>(null);
+  const [parentPin, setParentPin] = useState(() => localStorage.getItem('kidGeniusParentPin') || '');
+  const [pinDraft, setPinDraft] = useState('');
+  const [pinConfirmDraft, setPinConfirmDraft] = useState('');
+  const [pinSetupError, setPinSetupError] = useState('');
+  const [profiles, setProfiles] = useState<ChildProfile[]>(() => loadProfiles());
+  const [activeProfileId, setActiveProfileId] = useState(() => localStorage.getItem(ACTIVE_PROFILE_KEY) || loadProfiles()[0]?.id || 'default');
 
   // Global Progression State with all new features
   const [progress, setProgress] = useState<UserProgress>(() => {
-    // Load from localStorage if available
-    const saved = localStorage.getItem('kidGeniusProgress');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
-        return createDefaultProgress();
-      }
-    }
-    return createDefaultProgress();
+    const loadedProfiles = loadProfiles();
+    const activeId = localStorage.getItem(ACTIVE_PROFILE_KEY) || loadedProfiles[0]?.id || 'default';
+    const activeProfile = loadedProfiles.find(profile => profile.id === activeId) || loadedProfiles[0];
+    return loadProgressForProfile(activeProfile);
   });
 
   // Save progress to localStorage whenever it changes
   useEffect(() => {
+    localStorage.setItem(`kidGeniusProgress:${activeProfileId}`, JSON.stringify(progress));
     localStorage.setItem('kidGeniusProgress', JSON.stringify(progress));
-  }, [progress]);
+  }, [progress, activeProfileId]);
+
+  useEffect(() => {
+    const privacy = progress.privacy || DEFAULT_PRIVACY_SETTINGS;
+    localStorage.setItem('kidGeniusAllowExternalVoice', String(privacy.allowExternalVoice === true));
+    localStorage.setItem('kidGeniusAllowGeneratedStoryCovers', String(privacy.allowGeneratedStoryCovers === true));
+  }, [progress.privacy]);
+
+  useEffect(() => {
+    localStorage.setItem(PROFILES_KEY, JSON.stringify(profiles));
+    localStorage.setItem(ACTIVE_PROFILE_KEY, activeProfileId);
+  }, [profiles, activeProfileId]);
+
+  useEffect(() => {
+    if (!hasStarted) {
+      return;
+    }
+
+    const timer = window.setInterval(() => {
+      setProgress(prev => ({
+        ...prev,
+        totalPlayTimeMinutes: (prev.totalPlayTimeMinutes || 0) + 1,
+        dailyStats: updateDailyStats(prev.dailyStats, { timeSpentMinutes: 1 }),
+      }));
+    }, 60_000);
+
+    return () => window.clearInterval(timer);
+  }, [hasStarted]);
 
   useEffect(() => {
     const ageGroup =
@@ -88,10 +293,16 @@ const App: React.FC = () => {
       return;
     }
 
+    const privacy = progress.privacy || DEFAULT_PRIVACY_SETTINGS;
+    if (!privacy.allowExternalVoice) {
+      return;
+    }
+
     const cacheProfile = JSON.stringify({
       level: progress.currentLevel,
       narrationStyle: progress.accessibility?.narrationStyle || 'gentle',
       speechRate: progress.accessibility?.speechRate || 1.0,
+      humanVoice: privacy.allowExternalVoice,
     });
     const cacheKey = 'kidGeniusVoiceCacheProfile';
 
@@ -103,6 +314,7 @@ const App: React.FC = () => {
 
     const warmCacheInBackground = async () => {
       try {
+        const { warmVoiceCache } = await import('./services/voiceCacheService');
         await warmVoiceCache(progress.currentLevel, progress.accessibility || DEFAULT_ACCESSIBILITY);
         if (!cancelled) {
           localStorage.setItem(cacheKey, cacheProfile);
@@ -117,7 +329,7 @@ const App: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [hasStarted, progress.currentLevel, progress.accessibility]);
+  }, [hasStarted, progress.currentLevel, progress.accessibility, progress.privacy]);
 
   const updateProfileForReward = (
     updater: (profile: UserProgress['learningProfile']) => UserProgress['learningProfile']
@@ -254,33 +466,132 @@ const App: React.FC = () => {
   const handleStart = async () => {
     await resumeAudioContext();
     setHasStarted(true);
+    const today = new Date().toISOString().slice(0, 10);
+
+    setProgress(prev => {
+      const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+      const alreadyPlayedToday = prev.lastPlayedDate === today;
+      const continuedStreak = prev.lastPlayedDate === yesterday;
+      return {
+        ...prev,
+        sessionsCompleted: alreadyPlayedToday ? prev.sessionsCompleted : (prev.sessionsCompleted || 0) + 1,
+        currentStreak: alreadyPlayedToday ? prev.currentStreak : continuedStreak ? (prev.currentStreak || 0) + 1 : 1,
+        lastPlayedDate: today,
+      };
+    });
 
     // Check if this is a new player who needs to select grade and pet
     const isNewPlayer = !progress.pet || progress.currentGrade === GradeLevel.KINDERGARTEN && progress.totalXP === 0;
 
     if (isNewPlayer) {
-      setShowGradeSelection(true);
+      if (parentOnboarded) {
+        setShowGradeSelection(true);
+      }
     } else {
       speak("Welcome back to Kid Genius World!");
     }
   };
 
+  const handleParentOnboardingComplete = () => {
+    if (!/^\d{4,8}$/.test(pinDraft)) {
+      setPinSetupError('Choose a 4 to 8 digit parent PIN.');
+      return;
+    }
+    if (pinDraft !== pinConfirmDraft) {
+      setPinSetupError('The PIN entries do not match.');
+      return;
+    }
+    localStorage.setItem('kidGeniusParentPin', pinDraft);
+    localStorage.setItem('kidGeniusParentOnboarded', 'true');
+    setParentPin(pinDraft);
+    setParentOnboarded(true);
+    setShowGradeSelection(true);
+  };
+
+  const handleUpdateParentPin = (newPin: string) => {
+    localStorage.setItem('kidGeniusParentPin', newPin);
+    setParentPin(newPin);
+  };
+
+  const handleResetProgress = () => {
+    if (!window.confirm('Reset all local learning progress on this device? This cannot be undone.')) {
+      return;
+    }
+    localStorage.removeItem(`kidGeniusProgress:${activeProfileId}`);
+    localStorage.removeItem('kidGeniusVoiceCacheProfile');
+    const activeProfile = profiles.find(profile => profile.id === activeProfileId) || profiles[0];
+    setProgress(loadProgressForProfile(activeProfile));
+    setShowParentDashboard(false);
+    setCurrentRoom(RoomType.HUB);
+  };
+
+  const handleCreateChildProfile = (name: string, grade: GradeLevel) => {
+    const cleanName = name.trim() || 'Learner';
+    localStorage.setItem(`kidGeniusProgress:${activeProfileId}`, JSON.stringify(progress));
+    const profile: ChildProfile = {
+      id: createProfileId(),
+      name: cleanName,
+      grade,
+      createdAt: Date.now(),
+      lastActiveAt: Date.now(),
+    };
+    setProfiles(prev => [...prev, profile]);
+    setActiveProfileId(profile.id);
+    setProgress(loadProgressForProfile(profile));
+    setCurrentRoom(RoomType.HUB);
+    setShowParentDashboard(false);
+    setShowPetSelection(true);
+  };
+
+  const handleSwitchChildProfile = (profileId: string) => {
+    const nextProfile = profiles.find(profile => profile.id === profileId);
+    if (!nextProfile || nextProfile.id === activeProfileId) {
+      return;
+    }
+    localStorage.setItem(`kidGeniusProgress:${activeProfileId}`, JSON.stringify(progress));
+    const updatedProfiles = profiles.map(profile => (
+      profile.id === nextProfile.id
+        ? { ...profile, lastActiveAt: Date.now() }
+        : profile
+    ));
+    const updatedProfile = updatedProfiles.find(profile => profile.id === nextProfile.id) || nextProfile;
+    setProfiles(updatedProfiles);
+    setActiveProfileId(nextProfile.id);
+    setProgress(loadProgressForProfile(updatedProfile));
+    setCurrentRoom(RoomType.HUB);
+    setShowParentDashboard(false);
+  };
+
+  const handleUpdateChildProfile = (profileId: string, name: string, grade: GradeLevel) => {
+    const cleanName = name.trim() || 'Learner';
+    setProfiles(prev => prev.map(profile => (
+      profile.id === profileId
+        ? { ...profile, name: cleanName, grade, lastActiveAt: Date.now() }
+        : profile
+    )));
+    if (profileId === activeProfileId) {
+      setProgress(prev => ({
+        ...prev,
+        childName: cleanName,
+        currentGrade: grade,
+        currentLevel: gradeToLevel[grade],
+        memberId: profileId,
+      }));
+    }
+  };
+
   // Handle grade selection
   const handleGradeSelected = (grade: GradeLevel) => {
-    const gradeToLevel: { [key in GradeLevel]: number } = {
-      [GradeLevel.PRE_K]: 1,
-      [GradeLevel.KINDERGARTEN]: 2,
-      [GradeLevel.FIRST_GRADE]: 3,
-      [GradeLevel.SECOND_GRADE]: 4,
-      [GradeLevel.THIRD_GRADE]: 5,
-      [GradeLevel.FOURTH_GRADE]: 6,
-      [GradeLevel.FIFTH_GRADE]: 7,
-    };
-
+    setProfiles(prev => prev.map(profile => (
+      profile.id === activeProfileId
+        ? { ...profile, grade, lastActiveAt: Date.now() }
+        : profile
+    )));
     setProgress(prev => ({
       ...prev,
       currentGrade: grade,
       currentLevel: gradeToLevel[grade],
+      memberId: activeProfileId,
     }));
 
     speak(`Great! You're in ${grade}. Let's learn together!`);
@@ -298,8 +609,20 @@ const App: React.FC = () => {
     speak(`Welcome to Kid Genius World! ${pet.name} is excited to learn with you!`);
   };
 
-  const handleEnterRoom = (room: RoomType) => {
+  const handleEnterRoom = (room: RoomType, unitId?: string) => {
     stopSpeaking();
+    setActiveUnitId(unitId || null);
+    setProgress(prev => ({
+      ...prev,
+      dailyStats: updateDailyStats(prev.dailyStats, { roomsVisited: [room] }),
+      gradeRoomVisits: {
+        ...(prev.gradeRoomVisits || {}),
+        [String(prev.currentLevel)]: Array.from(new Set([
+          ...(prev.gradeRoomVisits?.[String(prev.currentLevel)] || []),
+          room,
+        ])),
+      },
+    }));
     setCurrentRoom(room);
     setGuideTrigger(p => p + 1);
   };
@@ -307,6 +630,7 @@ const App: React.FC = () => {
   const handleBack = () => {
     stopSpeaking();
     setCurrentRoom(RoomType.HUB);
+    setActiveUnitId(null);
     setShowDashboard(false);
     setShowParentDashboard(false);
     setGuideTrigger(p => p + 1);
@@ -335,68 +659,84 @@ const App: React.FC = () => {
     const seasonalStickers = SEASONAL_STICKERS[holiday];
     const availableStickers = [...STICKER_COLLECTION, ...seasonalStickers];
 
-    // Find a sticker we don't have yet, prefer new ones
-    const uncollected = availableStickers.filter(s => !progress.stickers.includes(s));
-    let nextSticker = '';
+    setProgress(prev => {
+      // Find a sticker we don't have yet, prefer new ones
+      const uncollected = availableStickers.filter(s => !prev.stickers.includes(s));
+      let nextSticker = '';
 
-    if (uncollected.length > 0 && Math.random() > 0.2) {
-      nextSticker = uncollected[Math.floor(Math.random() * uncollected.length)];
-    } else {
-      nextSticker = availableStickers[Math.floor(Math.random() * availableStickers.length)];
-    }
+      if (uncollected.length > 0 && Math.random() > 0.2) {
+        nextSticker = uncollected[Math.floor(Math.random() * uncollected.length)];
+      } else {
+        nextSticker = availableStickers[Math.floor(Math.random() * availableStickers.length)];
+      }
 
-    const stickersNeeded = progress.currentLevel * 5;
-    let newLevel = progress.currentLevel;
-    let newGrade = progress.currentGrade;
-    const newStickers = [...progress.stickers];
+      const stickersNeeded = gradeProgressionThresholds[prev.currentLevel] || Number.POSITIVE_INFINITY;
+      let newLevel = prev.currentLevel;
+      let newGrade = prev.currentGrade;
+      const newStickers = [...prev.stickers];
+      const earnedNewSticker = !newStickers.includes(nextSticker);
+      const nextCompletedUnitIds = activeUnitId
+        ? Array.from(new Set([...(prev.completedUnitIds || []), activeUnitId]))
+        : (prev.completedUnitIds || []);
 
-    // Add if not duplicate
-    if (!newStickers.includes(nextSticker)) {
-      newStickers.push(nextSticker);
-    }
+      if (earnedNewSticker) {
+        newStickers.push(nextSticker);
+      }
 
-    // Level up check
-    if (newStickers.length >= stickersNeeded && progress.currentLevel < 7) {
-      newLevel = Math.min(progress.currentLevel + 1, 7);
-      const grades = [
-        GradeLevel.PRE_K, GradeLevel.KINDERGARTEN, GradeLevel.FIRST_GRADE,
-        GradeLevel.SECOND_GRADE, GradeLevel.THIRD_GRADE, GradeLevel.FOURTH_GRADE, GradeLevel.FIFTH_GRADE
-      ];
-      newGrade = grades[newLevel - 1] || GradeLevel.FIFTH_GRADE;
-      speak(`Congratulations! You are now in ${newGrade}!`);
-    }
-
-    // Update pet XP
-    let updatedPet = progress.pet;
-    if (updatedPet) {
-      updatedPet = {
-        ...updatedPet,
-        xp: updatedPet.xp + 15,
-        happiness: Math.min(100, updatedPet.happiness + 5),
+      const progressForMasteryCheck: UserProgress = {
+        ...prev,
+        stickers: newStickers,
       };
 
-      // Pet level up
-      const petXpNeeded = updatedPet.level * 100;
-      if (updatedPet.xp >= petXpNeeded) {
-        updatedPet.level = Math.min(50, updatedPet.level + 1);
-        updatedPet.xp = updatedPet.xp - petXpNeeded;
+      if (
+        newStickers.length >= stickersNeeded &&
+        hasBalancedGradeMastery(progressForMasteryCheck, prev.currentLevel) &&
+        hasVisitedEveryRoomForGrade(progressForMasteryCheck, prev.currentLevel) &&
+        prev.currentLevel < 7
+      ) {
+        newLevel = Math.min(prev.currentLevel + 1, 7);
+        const grades = [
+          GradeLevel.PRE_K, GradeLevel.KINDERGARTEN, GradeLevel.FIRST_GRADE,
+          GradeLevel.SECOND_GRADE, GradeLevel.THIRD_GRADE, GradeLevel.FOURTH_GRADE, GradeLevel.FIFTH_GRADE
+        ];
+        newGrade = grades[newLevel - 1] || GradeLevel.FIFTH_GRADE;
+        speak(`Congratulations! You are now in ${newGrade}!`);
       }
-    }
 
-    let newProgress: UserProgress = {
-      ...progress,
-      stickers: newStickers,
-      currentLevel: newLevel,
-      currentGrade: newGrade,
-      xp: progress.xp + 10,
-      totalXP: (progress.totalXP || 0) + 10,
-      pet: updatedPet,
-    };
+      let updatedPet = prev.pet;
+      if (updatedPet) {
+        updatedPet = {
+          ...updatedPet,
+          xp: updatedPet.xp + 15,
+          happiness: Math.min(100, updatedPet.happiness + 5),
+        };
 
-    // Check for new achievements
-    newProgress = checkAchievements(newProgress);
+        const petXpNeeded = updatedPet.level * 100;
+        if (updatedPet.xp >= petXpNeeded) {
+          updatedPet.level = Math.min(50, updatedPet.level + 1);
+          updatedPet.xp = updatedPet.xp - petXpNeeded;
+        }
+      }
 
-    setProgress(newProgress);
+      let newProgress: UserProgress = {
+        ...prev,
+        stickers: newStickers,
+        completedUnitIds: nextCompletedUnitIds,
+        currentLevel: newLevel,
+        currentGrade: newGrade,
+        xp: prev.xp + 10,
+        totalXP: (prev.totalXP || 0) + 10,
+        pet: updatedPet,
+        dailyStats: updateDailyStats(prev.dailyStats, {
+          problemsAttempted: subject ? 1 : 0,
+          problemsCorrect: subject ? 1 : 0,
+          stickersEarned: earnedNewSticker ? 1 : 0,
+        }),
+      };
+
+      newProgress = checkAchievements(newProgress);
+      return newProgress;
+    });
   };
 
   const handleMathReward = () => {
@@ -462,12 +802,36 @@ const App: React.FC = () => {
     addSticker('reading');
   };
 
+  const handleMusicReward = () => {
+    setProgress(p => {
+      const newProgress = { ...p, musicScore: (p.musicScore || 0) + 1 };
+      return checkAchievements(newProgress);
+    });
+    addSticker('music');
+  };
+
+  const handleCreativeReward = (subject: string) => {
+    addSticker(subject);
+  };
+
   const handleUpdatePet = (pet: VirtualPet) => {
     setProgress(p => ({ ...p, pet }));
   };
 
   const handleUpdateAccessibility = (settings: AccessibilitySettings) => {
     setProgress(p => ({ ...p, accessibility: settings }));
+  };
+
+  const handleUpdatePrivacy = (settings: PrivacySettings) => {
+    setProgress(p => ({ ...p, privacy: settings }));
+  };
+
+  const handleUpdateLearningGoals = (weeklyGoalMinutes: number, dailySessionLimitMinutes: number) => {
+    setProgress(p => ({
+      ...p,
+      weeklyGoalMinutes: Math.max(10, Math.min(600, Math.round(weeklyGoalMinutes))),
+      dailySessionLimitMinutes: Math.max(5, Math.min(120, Math.round(dailySessionLimitMinutes))),
+    }));
   };
 
   // Apply accessibility styles
@@ -483,6 +847,11 @@ const App: React.FC = () => {
 
     return classes.join(' ');
   };
+
+  // Start Screen
+  if (legalView) {
+    return <LegalInfo type={legalView} onBack={() => setLegalView(null)} />;
+  }
 
   // Start Screen
   if (!hasStarted) {
@@ -628,6 +997,11 @@ const App: React.FC = () => {
           Choose your learning buddy inside!
           <span className="text-2xl">🐾</span>
         </div>
+
+        <div className="absolute bottom-3 left-0 right-0 z-20 flex justify-center gap-3 text-xs font-bold text-white/90">
+          <button onClick={() => setLegalView('privacy')} className="underline decoration-white/50 hover:text-white">Privacy</button>
+          <button onClick={() => setLegalView('terms')} className="underline decoration-white/50 hover:text-white">Terms</button>
+        </div>
       </div>
     );
   }
@@ -685,12 +1059,109 @@ const App: React.FC = () => {
     return <Dashboard progress={progress} onBack={handleBack} />;
   }
 
+  if (!parentOnboarded) {
+    return (
+      <div className="w-screen h-screen overflow-y-auto bg-slate-950 text-white">
+        <div className="min-h-full flex items-center justify-center p-4">
+          <div className="w-full max-w-4xl bg-white text-slate-900 rounded-3xl shadow-2xl overflow-hidden">
+            <div className="bg-gradient-to-r from-indigo-600 to-sky-600 p-6 text-white">
+              <div className="flex items-center gap-3 mb-3">
+                <ShieldCheck size={34} />
+                <div>
+                  <h1 className="text-3xl font-bold">Parent Setup</h1>
+                  <p className="text-white/85">A quick grown-up review before kids start learning.</p>
+                </div>
+              </div>
+            </div>
+            <div className="p-6 grid md:grid-cols-4 gap-4">
+              <div className="rounded-2xl border border-slate-200 p-4">
+                <LockKeyhole className="text-indigo-600 mb-3" size={28} />
+                <h2 className="font-bold text-lg mb-2">Parent Controls</h2>
+                <p className="text-sm text-slate-600">The parent dashboard now uses a grown-up check before settings, data controls, and progress details open.</p>
+              </div>
+              <div className="rounded-2xl border border-slate-200 p-4">
+                <BookOpen className="text-emerald-600 mb-3" size={28} />
+                <h2 className="font-bold text-lg mb-2">Learning Path</h2>
+                <p className="text-sm text-slate-600">The app recommends a daily mission, then lets kids explore stories, practice rooms, and reward play.</p>
+              </div>
+              <div className="rounded-2xl border border-slate-200 p-4">
+                <ShieldCheck className="text-sky-600 mb-3" size={28} />
+                <h2 className="font-bold text-lg mb-2">Privacy Notice</h2>
+                <p className="text-sm text-slate-600">Progress is local to this browser. Voice and generated cover features may call configured third-party services through your app server.</p>
+              </div>
+              <div className="rounded-2xl border border-slate-200 p-4">
+                <Sparkles className="text-amber-600 mb-3" size={28} />
+                <h2 className="font-bold text-lg mb-2">Family Plan</h2>
+                <p className="text-sm text-slate-600">Beta testing can start with local progress, but paid subscriptions need real accounts, billing, consent, and support flows first.</p>
+              </div>
+            </div>
+            <div className="px-6 pb-6">
+              <div className="rounded-2xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-900 mb-5">
+                Public launch still needs a formal privacy policy, terms, and COPPA review before collecting personal data, accounts, analytics, or payments.
+              </div>
+              <div className="flex justify-center gap-4 mb-4 text-sm font-bold text-indigo-700">
+                <button onClick={() => setLegalView('privacy')} className="underline">Read Privacy Notice</button>
+                <button onClick={() => setLegalView('terms')} className="underline">Read Terms</button>
+              </div>
+              <div className="rounded-2xl border border-slate-200 p-4 mb-5">
+                <h2 className="font-bold text-lg mb-2">Create Parent PIN</h2>
+                <p className="text-sm text-slate-600 mb-3">Use this PIN to open parent settings and data controls.</p>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <input
+                    value={pinDraft}
+                    onChange={(event) => {
+                      setPinDraft(event.target.value.replace(/\D/g, '').slice(0, 8));
+                      setPinSetupError('');
+                    }}
+                    inputMode="numeric"
+                    type="password"
+                    placeholder="4-8 digit PIN"
+                    className="rounded-xl border-2 border-slate-200 px-4 py-3 font-bold focus:border-indigo-500 focus:outline-none"
+                  />
+                  <input
+                    value={pinConfirmDraft}
+                    onChange={(event) => {
+                      setPinConfirmDraft(event.target.value.replace(/\D/g, '').slice(0, 8));
+                      setPinSetupError('');
+                    }}
+                    inputMode="numeric"
+                    type="password"
+                    placeholder="Confirm PIN"
+                    className="rounded-xl border-2 border-slate-200 px-4 py-3 font-bold focus:border-indigo-500 focus:outline-none"
+                  />
+                </div>
+                {pinSetupError && <p className="text-sm text-red-600 mt-2">{pinSetupError}</p>}
+              </div>
+              <button
+                onClick={handleParentOnboardingComplete}
+                className="w-full py-4 rounded-2xl bg-indigo-600 text-white font-bold text-lg hover:bg-indigo-700 transition flex items-center justify-center gap-2"
+              >
+                <CheckCircle2 size={24} />
+                I Understand - Continue Setup
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (showParentDashboard) {
     return (
       <ParentDashboard
         progress={progress}
         onBack={handleBack}
         onUpdateAccessibility={handleUpdateAccessibility}
+        onResetProgress={handleResetProgress}
+        parentPin={parentPin}
+        onUpdateParentPin={handleUpdateParentPin}
+        profiles={profiles}
+        activeProfileId={activeProfileId}
+        onCreateChildProfile={handleCreateChildProfile}
+        onSwitchChildProfile={handleSwitchChildProfile}
+        onUpdateChildProfile={handleUpdateChildProfile}
+        onUpdatePrivacy={handleUpdatePrivacy}
+        onUpdateLearningGoals={handleUpdateLearningGoals}
       />
     );
   }
@@ -713,13 +1184,11 @@ const App: React.FC = () => {
       case RoomType.STORYBOOK:
         return <StoryBook level={progress.currentLevel} onBack={handleBack} onReward={handleStorybookReward} />;
       case RoomType.ART:
-        return <ArtRoom onBack={handleBack} />;
+        return <ArtRoom onBack={handleBack} onReward={() => handleCreativeReward('art')} />;
       case RoomType.MUSIC:
-        return <MusicRoom onBack={handleBack} />;
+        return <MusicRoom onBack={handleBack} onReward={handleMusicReward} />;
       case RoomType.PUZZLE:
-        return <PuzzleRoom onBack={handleBack} onReward={addSticker} />;
-      case RoomType.PLAYGROUND:
-        return <Playground onBack={handleBack} />;
+        return <PuzzleRoom onBack={handleBack} onReward={() => addSticker('puzzle')} />;
       case RoomType.HUB:
       default:
         return (
@@ -743,7 +1212,16 @@ const App: React.FC = () => {
 
   return (
     <div className={`w-screen h-screen overflow-hidden bg-sky-100 relative ${getAccessibilityClasses()}`}>
-      {renderView()}
+      <Suspense fallback={
+        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-sky-200 to-emerald-200">
+          <div className="bg-white/90 rounded-3xl shadow-xl px-6 py-5 text-center border-4 border-white">
+            <p className="text-3xl mb-2">🎒</p>
+            <p className="font-black text-sky-800">Loading lesson...</p>
+          </div>
+        </div>
+      }>
+        {renderView()}
+      </Suspense>
       <Guide room={currentRoom} trigger={guideTrigger} />
 
       {/* Modals */}

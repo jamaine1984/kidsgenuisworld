@@ -166,7 +166,7 @@ export const GeographyRoom: React.FC<GeographyRoomProps> = ({ level, onBack, onR
   if (!question) return null;
 
   return (
-    <div className="w-full h-full bg-gradient-to-b from-blue-400 via-cyan-500 to-teal-600 flex flex-col overflow-auto">
+    <div className="w-full h-full bg-[radial-gradient(circle_at_top_left,#fef08a_0,#38bdf8_28%,#14b8a6_62%,#2563eb_100%)] flex flex-col overflow-auto relative">
       {/* Header */}
       <div className="flex items-center justify-between p-4 bg-white/20 backdrop-blur-sm">
         <button onClick={onBack} className="p-2 bg-white/30 rounded-full hover:bg-white/50 transition">
@@ -190,7 +190,7 @@ export const GeographyRoom: React.FC<GeographyRoomProps> = ({ level, onBack, onR
 
       {/* Main Content */}
       <div className="flex-1 flex items-center justify-center p-4">
-        <div className="bg-white rounded-3xl shadow-2xl p-6 max-w-lg w-full relative overflow-hidden">
+        <div className="bg-white rounded-3xl shadow-2xl p-5 sm:p-6 max-w-2xl w-full relative overflow-hidden">
           {/* Decorative globe background */}
           <div className="absolute -right-16 -top-16 text-[150px] opacity-10 rotate-12">🌍</div>
 
@@ -206,6 +206,34 @@ export const GeographyRoom: React.FC<GeographyRoomProps> = ({ level, onBack, onR
             >
               <Volume2 className="text-gray-600" size={16} />
             </button>
+          </div>
+
+          <div className="relative mb-5 overflow-hidden rounded-2xl border-2 border-sky-100 bg-gradient-to-br from-sky-50 via-white to-emerald-50 p-4 shadow-inner">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <div className="text-xs font-black uppercase tracking-[0.22em] text-sky-600">Travel Passport</div>
+                <div className="text-lg font-black text-slate-800">Stamp the route with map thinking</div>
+              </div>
+              <div className="rounded-full bg-white px-3 py-1 text-xs font-black uppercase text-sky-700 shadow-sm">
+                {countriesLearned.size} stamps
+              </div>
+            </div>
+            <div className="relative grid grid-cols-3 gap-2">
+              <div className="absolute left-[16%] right-[16%] top-5 h-1 rounded-full bg-sky-200" />
+              {[
+                ['Map clue', 'Read the question'],
+                ['Compare', 'Check each place'],
+                ['Remember', 'Save the fact'],
+              ].map(([title, copy], index) => (
+                <div key={title} className="relative rounded-xl bg-white/95 p-3 text-center shadow-sm ring-1 ring-sky-100">
+                  <div className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-sky-500 to-emerald-500 text-sm font-black text-white">
+                    {index + 1}
+                  </div>
+                  <div className="text-sm font-black text-slate-800">{title}</div>
+                  <div className="text-xs font-semibold text-slate-500">{copy}</div>
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Question */}

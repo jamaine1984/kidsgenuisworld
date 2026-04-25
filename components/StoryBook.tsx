@@ -644,6 +644,13 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
     let cancelled = false;
 
     const loadCovers = async () => {
+      const generatedCoversAllowed = typeof window !== 'undefined' &&
+        window.localStorage.getItem('kidGeniusAllowGeneratedStoryCovers') === 'true';
+
+      if (!generatedCoversAllowed) {
+        return;
+      }
+
       for (const story of availableStories.slice(0, 8)) {
         if (coverImages[story.id] !== undefined) continue;
         try {

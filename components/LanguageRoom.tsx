@@ -198,7 +198,7 @@ export const LanguageRoom: React.FC<LanguageRoomProps> = ({ level, onBack, onRew
   if (!currentWord) return null;
 
   return (
-    <div className="w-full h-full bg-gradient-to-b from-pink-400 via-purple-500 to-indigo-600 flex flex-col">
+    <div className="w-full h-full bg-[radial-gradient(circle_at_top_left,#f9a8d4_0,#a855f7_34%,#6366f1_68%,#312e81_100%)] flex flex-col overflow-auto relative">
       {/* Header */}
       <div className="flex items-center justify-between p-4 bg-white/20 backdrop-blur-sm">
         <button onClick={onBack} className="p-2 bg-white/30 rounded-full hover:bg-white/50 transition">
@@ -215,12 +215,12 @@ export const LanguageRoom: React.FC<LanguageRoomProps> = ({ level, onBack, onRew
       </div>
 
       {/* Language Selector */}
-      <div className="flex justify-center gap-2 p-4">
+      <div className="flex justify-center gap-2 p-4 flex-wrap">
         {(Object.keys(LANGUAGE_INFO) as Array<keyof typeof LANGUAGE_INFO>).map(lang => (
           <button
             key={lang}
             onClick={() => setSelectedLanguage(lang)}
-            className={`px-4 py-2 rounded-full font-bold text-lg transition-all transform ${
+            className={`px-4 py-2 rounded-full font-bold text-base sm:text-lg transition-all transform ${
               selectedLanguage === lang
                 ? 'bg-white text-purple-600 scale-110 shadow-lg'
                 : 'bg-white/30 text-white hover:bg-white/50'
@@ -233,9 +233,11 @@ export const LanguageRoom: React.FC<LanguageRoomProps> = ({ level, onBack, onRew
 
       {/* Main Content */}
       <div className="flex-1 flex items-center justify-center p-4">
-        <div className="bg-white rounded-3xl shadow-2xl p-6 max-w-lg w-full">
+        <div className="bg-white rounded-3xl shadow-2xl p-5 sm:p-6 max-w-2xl w-full relative overflow-hidden">
+          <div className="absolute -right-12 -top-12 h-36 w-36 rounded-full bg-pink-100/80" />
+          <div className="absolute -left-12 bottom-20 h-32 w-32 rounded-full bg-indigo-100/80" />
           {/* Mode Toggle */}
-          <div className="flex justify-center mb-6">
+          <div className="flex justify-center mb-6 relative">
             <div className="bg-gray-100 rounded-full p-1 flex">
               <button
                 onClick={() => setMode('learn')}
@@ -265,6 +267,30 @@ export const LanguageRoom: React.FC<LanguageRoomProps> = ({ level, onBack, onRew
           <div className="bg-purple-50 border-2 border-purple-100 rounded-2xl px-4 py-3 mb-5">
             <div className="text-xs font-black uppercase tracking-[0.2em] text-purple-500 mb-1">Language Coach</div>
             <div className="text-purple-900 font-semibold">{coachTip}</div>
+          </div>
+
+          <div className="relative mb-5 overflow-hidden rounded-2xl border-2 border-fuchsia-100 bg-gradient-to-br from-pink-50 via-white to-indigo-50 p-4 shadow-inner">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <div className="text-xs font-black uppercase tracking-[0.22em] text-fuchsia-600">Word Passport</div>
+                <div className="text-lg font-black text-slate-800">Listen, Say, Match</div>
+              </div>
+              <div className="rounded-full bg-white px-3 py-1 text-xs font-black uppercase text-fuchsia-700 shadow-sm">
+                {wordsLearned.size} words saved
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                ['Listen', 'Hear the word'],
+                ['Say', 'Practice out loud'],
+                ['Match', 'Choose meaning'],
+              ].map(([title, copy]) => (
+                <div key={title} className="rounded-xl bg-white/95 p-3 text-center shadow-sm ring-1 ring-fuchsia-100">
+                  <div className="text-sm font-black text-slate-800">{title}</div>
+                  <div className="text-xs font-semibold text-slate-500">{copy}</div>
+                </div>
+              ))}
+            </div>
           </div>
 
           {mode === 'learn' ? (

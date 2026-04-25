@@ -274,6 +274,47 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, level }) =
     }
   };
 
+  const renderMathManipulatives = () => {
+    if (!problem) return null;
+    const numbers = problem.question.match(/\d+/g)?.map(Number) || [];
+    const operation =
+      problem.question.includes('+') ? 'add'
+        : problem.question.includes('-') ? 'subtract'
+          : problem.question.includes('Ã—') ? 'groups'
+            : problem.question.includes('Ã·') ? 'share'
+              : 'solve';
+    const firstCount = Math.min(numbers[0] || 0, 12);
+    const secondCount = Math.min(numbers[1] || 0, 12);
+    const firstLabel = numbers[0] && numbers[0] > 12 ? `${numbers[0]} total` : `${numbers[0] || 0}`;
+    const secondLabel = numbers[1] && numbers[1] > 12 ? `${numbers[1]} total` : `${numbers[1] || 0}`;
+
+    return (
+      <div className="mb-8 grid grid-cols-1 gap-3 rounded-[28px] bg-gradient-to-r from-sky-50 to-indigo-50 p-4 text-left sm:grid-cols-[1fr_auto_1fr]">
+        <div className="rounded-2xl bg-white p-3 shadow-sm">
+          <p className="mb-2 text-xs font-black uppercase tracking-[0.18em] text-sky-600">First number</p>
+          <div className="flex flex-wrap gap-1.5">
+            {[...Array(Math.max(firstCount, 1))].map((_, index) => (
+              <span key={index} className="h-6 w-6 rounded-lg bg-sky-400 shadow-sm" />
+            ))}
+          </div>
+          <p className="mt-2 text-sm font-black text-sky-900">{firstLabel}</p>
+        </div>
+        <div className="flex items-center justify-center">
+          <span className="rounded-full bg-indigo-600 px-4 py-2 text-sm font-black uppercase tracking-[0.14em] text-white shadow-lg">{operation}</span>
+        </div>
+        <div className="rounded-2xl bg-white p-3 shadow-sm">
+          <p className="mb-2 text-xs font-black uppercase tracking-[0.18em] text-violet-600">Second number</p>
+          <div className="flex flex-wrap gap-1.5">
+            {[...Array(Math.max(secondCount, 1))].map((_, index) => (
+              <span key={index} className="h-6 w-6 rounded-lg bg-violet-400 shadow-sm" />
+            ))}
+          </div>
+          <p className="mt-2 text-sm font-black text-violet-900">{secondLabel}</p>
+        </div>
+      </div>
+    );
+  };
+
   const getGradeName = () => {
     switch (level) {
       case 1: return 'Pre-K';
@@ -289,9 +330,12 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, level }) =
 
   return (
     <div className="h-full w-full bg-indigo-50 p-6 flex flex-col relative overflow-hidden">
-       <div className="absolute top-0 left-0 w-full h-64 bg-indigo-200 rounded-b-full -z-10"></div>
+       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,#fef3c7_0%,#dbeafe_28%,#c7d2fe_62%,#eef2ff_100%)]"></div>
+       <div className="absolute top-0 left-0 w-full h-64 bg-indigo-200/70 rounded-b-full"></div>
        <div className="absolute top-10 left-10 text-indigo-300 text-9xl font-bold opacity-20 rotate-12 pointer-events-none">123</div>
        <div className="absolute bottom-10 right-10 text-blue-300 text-9xl font-bold opacity-20 -rotate-12 pointer-events-none">+</div>
+       <div className="absolute bottom-16 left-12 h-24 w-24 rounded-[28px] bg-yellow-300/50 rotate-12 shadow-xl"></div>
+       <div className="absolute right-24 top-28 h-20 w-20 rounded-full bg-pink-300/40 shadow-xl"></div>
 
       <header className="flex justify-between items-center mb-8 z-10">
         <button onClick={onBack} className="bg-white p-3 rounded-full shadow-lg hover:bg-gray-50 border-2 border-indigo-100">
@@ -314,7 +358,7 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, level }) =
 
       <div className="flex-1 flex flex-col items-center justify-center z-10">
         {problem ? (
-          <div className="bg-white p-8 rounded-[40px] shadow-2xl w-full max-w-2xl text-center border-b-8 border-indigo-300 relative animate-pop-in">
+          <div className="bg-white/95 p-8 rounded-[40px] shadow-2xl w-full max-w-3xl text-center border-b-8 border-indigo-300 relative animate-pop-in">
             <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-indigo-500 text-white px-6 py-2 rounded-full font-bold shadow-md text-sm uppercase tracking-widest">
                 Flash Card
             </div>
@@ -330,6 +374,7 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, level }) =
               <div className="text-indigo-900 font-semibold">{coachTip}</div>
             </div>
             <h2 className="text-7xl font-bold text-indigo-900 mb-12 mt-8 font-mono tracking-wider">{problem.question}</h2>
+            {renderMathManipulatives()}
             <div className="grid grid-cols-2 gap-6">
               {problem.options.map((opt, idx) => (
                 <button

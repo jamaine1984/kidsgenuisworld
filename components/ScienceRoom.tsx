@@ -384,7 +384,7 @@ export const ScienceRoom: React.FC<ScienceRoomProps> = ({ level, onBack, onRewar
   if (!experiment) return null;
 
   return (
-    <div className="w-full h-full bg-gradient-to-b from-emerald-400 via-teal-500 to-cyan-600 flex flex-col overflow-auto">
+    <div className="w-full h-full bg-[radial-gradient(circle_at_top_left,#bef264_0,#14b8a6_32%,#0891b2_68%,#0f766e_100%)] flex flex-col overflow-auto relative">
       {/* Header */}
       <div className="flex items-center justify-between p-4 bg-white/20 backdrop-blur-sm">
         <button onClick={onBack} className="p-2 bg-white/30 rounded-full hover:bg-white/50 transition">
@@ -400,11 +400,17 @@ export const ScienceRoom: React.FC<ScienceRoomProps> = ({ level, onBack, onRewar
         </div>
       </div>
 
+      <div className="pointer-events-none absolute left-4 top-24 h-24 w-24 rounded-full bg-lime-200/30 blur-sm" />
+      <div className="pointer-events-none absolute right-10 top-36 h-16 w-16 rounded-full bg-cyan-100/40 blur-sm" />
+      <div className="pointer-events-none absolute bottom-20 left-16 h-20 w-20 rounded-full bg-white/20 blur-sm" />
+
       {/* Main Content */}
       <div className="flex-1 flex items-center justify-center p-4">
-        <div className="bg-white rounded-3xl shadow-2xl p-6 max-w-lg w-full">
+        <div className="bg-white rounded-3xl shadow-2xl p-5 sm:p-6 max-w-2xl w-full relative overflow-hidden">
+          <div className="absolute -right-16 -top-16 h-44 w-44 rounded-full bg-teal-100/70" />
+          <div className="absolute -left-10 bottom-20 h-28 w-28 rounded-full bg-lime-100/80" />
           {/* Experiment Icon & Category */}
-          <div className="text-center mb-4">
+          <div className="text-center mb-4 relative">
             <div className={`inline-block text-6xl p-4 rounded-2xl bg-gradient-to-br ${getCategoryColor(experiment.category)} shadow-lg animate-bounce`}>
               {experiment.icon}
             </div>
@@ -426,8 +432,35 @@ export const ScienceRoom: React.FC<ScienceRoomProps> = ({ level, onBack, onRewar
             {experiment.title}
           </h2>
 
+          <div className="relative mb-4 overflow-hidden rounded-2xl border-2 border-teal-100 bg-gradient-to-br from-emerald-50 via-cyan-50 to-white p-4 shadow-inner">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <div className="text-xs font-black uppercase tracking-[0.22em] text-teal-600">Junior Lab Bench</div>
+                <div className="text-lg font-black text-slate-800">Try the scientist steps</div>
+              </div>
+              <div className="rounded-full bg-white px-3 py-1 text-xs font-black uppercase text-teal-700 shadow-sm">
+                Grade {level}
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                ['Observe', 'Notice the clue'],
+                ['Predict', 'Pick what fits'],
+                ['Explain', 'Learn why'],
+              ].map(([title, copy], index) => (
+                <div key={title} className="rounded-xl bg-white/90 p-3 text-center shadow-sm ring-1 ring-teal-100">
+                  <div className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-full bg-teal-500 text-sm font-black text-white">
+                    {index + 1}
+                  </div>
+                  <div className="text-sm font-black text-slate-800">{title}</div>
+                  <div className="text-xs font-semibold text-slate-500">{copy}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
           {/* Question */}
-          <div className="bg-gradient-to-r from-teal-100 to-cyan-100 rounded-xl p-4 mb-4">
+          <div className="bg-gradient-to-r from-teal-100 to-cyan-100 rounded-xl p-4 mb-4 relative">
             <div className="text-xs font-black uppercase tracking-[0.2em] text-teal-500 mb-2">Science Coach</div>
             <p className="text-sm font-semibold text-teal-900 mb-3">{coachTip}</p>
             <div className="flex items-start gap-2">

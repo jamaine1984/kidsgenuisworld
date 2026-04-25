@@ -40,7 +40,7 @@ interface Challenge {
   category: 'basic' | 'turns' | 'loops' | 'maze' | 'advanced';
 }
 
-// 20 challenges organized by difficulty/grade level
+// Sequencing, turn, loop, maze, and debugging challenges organized by grade level
 export const CHALLENGES: Challenge[] = [
   // PRE-K (Level 1) - Super simple, 1-2 moves
   {
@@ -365,6 +365,242 @@ export const CHALLENGES: Challenge[] = [
     gradeLevel: 7,
     category: 'advanced'
   },
+  {
+    id: 'c21',
+    name: 'Tiny Tunnel',
+    story: 'Robot crawls through a tiny tunnel to find the star.',
+    grid: [
+      [{ type: 'start' }, { type: 'empty' }],
+      [{ type: 'empty' }, { type: 'goal' }],
+    ],
+    startPos: { x: 0, y: 0, direction: 'right' },
+    goalPos: { x: 1, y: 1 },
+    maxBlocks: 4,
+    hint: 'Move, turn right, then move again.',
+    gradeLevel: 1,
+    category: 'basic'
+  },
+  {
+    id: 'c22',
+    name: 'Snack Path',
+    story: 'Robot wants to take two careful steps to a snack.',
+    grid: [
+      [{ type: 'start' }],
+      [{ type: 'empty' }],
+      [{ type: 'goal' }],
+    ],
+    startPos: { x: 0, y: 0, direction: 'down' },
+    goalPos: { x: 0, y: 2 },
+    maxBlocks: 3,
+    hint: 'Move forward twice.',
+    gradeLevel: 1,
+    category: 'basic'
+  },
+  {
+    id: 'c23',
+    name: 'Garden Corner',
+    story: 'Robot turns around the garden fence.',
+    grid: [
+      [{ type: 'start' }, { type: 'empty' }],
+      [{ type: 'obstacle' }, { type: 'goal' }],
+    ],
+    startPos: { x: 0, y: 0, direction: 'right' },
+    goalPos: { x: 1, y: 1 },
+    maxBlocks: 4,
+    hint: 'Move right, turn right, move down.',
+    gradeLevel: 2,
+    category: 'turns'
+  },
+  {
+    id: 'c24',
+    name: 'Up Then Over',
+    story: 'Robot needs to climb up, then move over.',
+    grid: [
+      [{ type: 'empty' }, { type: 'goal' }],
+      [{ type: 'start' }, { type: 'empty' }],
+    ],
+    startPos: { x: 0, y: 1, direction: 'up' },
+    goalPos: { x: 1, y: 0 },
+    maxBlocks: 4,
+    hint: 'Move up, turn right, then move.',
+    gradeLevel: 2,
+    category: 'turns'
+  },
+  {
+    id: 'c25',
+    name: 'Rock Detour',
+    story: 'Robot must go around one rock and stay on the path.',
+    grid: [
+      [{ type: 'start' }, { type: 'obstacle' }, { type: 'goal' }],
+      [{ type: 'empty' }, { type: 'empty' }, { type: 'empty' }],
+    ],
+    startPos: { x: 0, y: 0, direction: 'down' },
+    goalPos: { x: 2, y: 0 },
+    maxBlocks: 7,
+    hint: 'Go down, across, then back up.',
+    gradeLevel: 3,
+    category: 'maze'
+  },
+  {
+    id: 'c26',
+    name: 'Bridge Builder',
+    story: 'Robot follows the bridge path without stepping into water.',
+    grid: [
+      [{ type: 'start' }, { type: 'empty' }, { type: 'empty' }],
+      [{ type: 'obstacle' }, { type: 'obstacle' }, { type: 'empty' }],
+      [{ type: 'empty' }, { type: 'empty' }, { type: 'goal' }],
+    ],
+    startPos: { x: 0, y: 0, direction: 'right' },
+    goalPos: { x: 2, y: 2 },
+    maxBlocks: 7,
+    hint: 'Move across, then turn down.',
+    gradeLevel: 3,
+    category: 'maze'
+  },
+  {
+    id: 'c27',
+    name: 'Loop Ladder',
+    story: 'Robot climbs a ladder where repeat blocks save time.',
+    grid: [
+      [{ type: 'goal' }],
+      [{ type: 'empty' }],
+      [{ type: 'empty' }],
+      [{ type: 'empty' }],
+      [{ type: 'start' }],
+    ],
+    startPos: { x: 0, y: 4, direction: 'up' },
+    goalPos: { x: 0, y: 0 },
+    maxBlocks: 3,
+    hint: 'Use move and repeat to climb.',
+    gradeLevel: 4,
+    category: 'loops'
+  },
+  {
+    id: 'c28',
+    name: 'Loop Bridge',
+    story: 'Robot crosses a long bridge with a short program.',
+    grid: [
+      [{ type: 'start' }, { type: 'empty' }, { type: 'empty' }, { type: 'empty' }, { type: 'empty' }, { type: 'goal' }],
+    ],
+    startPos: { x: 0, y: 0, direction: 'right' },
+    goalPos: { x: 5, y: 0 },
+    maxBlocks: 3,
+    hint: 'One move plus repeat can go far.',
+    gradeLevel: 4,
+    category: 'loops'
+  },
+  {
+    id: 'c29',
+    name: 'Debug Garden',
+    story: 'Robot checks each turn before moving through the garden.',
+    grid: [
+      [{ type: 'start' }, { type: 'empty' }, { type: 'empty' }],
+      [{ type: 'obstacle' }, { type: 'obstacle' }, { type: 'empty' }],
+      [{ type: 'goal' }, { type: 'empty' }, { type: 'empty' }],
+    ],
+    startPos: { x: 0, y: 0, direction: 'right' },
+    goalPos: { x: 0, y: 2 },
+    maxBlocks: 9,
+    hint: 'Go around the wall, then come back left.',
+    gradeLevel: 5,
+    category: 'maze'
+  },
+  {
+    id: 'c30',
+    name: 'Gem Route',
+    story: 'Robot plans a careful route through the gem cave.',
+    grid: [
+      [{ type: 'start' }, { type: 'empty' }, { type: 'obstacle' }, { type: 'empty' }],
+      [{ type: 'empty' }, { type: 'empty' }, { type: 'empty' }, { type: 'empty' }],
+      [{ type: 'obstacle' }, { type: 'empty' }, { type: 'obstacle' }, { type: 'goal' }],
+    ],
+    startPos: { x: 0, y: 0, direction: 'down' },
+    goalPos: { x: 3, y: 2 },
+    maxBlocks: 10,
+    hint: 'Move down, turn left or right carefully, and avoid the blocked spaces.',
+    gradeLevel: 5,
+    category: 'maze'
+  },
+  {
+    id: 'c31',
+    name: 'Algorithm Alley',
+    story: 'Robot needs a clean algorithm with no wasted blocks.',
+    grid: [
+      [{ type: 'start' }, { type: 'empty' }, { type: 'empty' }, { type: 'empty' }],
+      [{ type: 'empty' }, { type: 'obstacle' }, { type: 'obstacle' }, { type: 'empty' }],
+      [{ type: 'empty' }, { type: 'empty' }, { type: 'empty' }, { type: 'goal' }],
+    ],
+    startPos: { x: 0, y: 0, direction: 'right' },
+    goalPos: { x: 3, y: 2 },
+    maxBlocks: 8,
+    hint: 'Plan the route before dragging blocks.',
+    gradeLevel: 6,
+    category: 'advanced'
+  },
+  {
+    id: 'c32',
+    name: 'Loop Shortcut',
+    story: 'Robot can solve this faster by reusing a repeated move.',
+    grid: [
+      [{ type: 'start' }, { type: 'empty' }, { type: 'empty' }],
+      [{ type: 'empty' }, { type: 'obstacle' }, { type: 'empty' }],
+      [{ type: 'empty' }, { type: 'empty' }, { type: 'goal' }],
+    ],
+    startPos: { x: 0, y: 0, direction: 'right' },
+    goalPos: { x: 2, y: 2 },
+    maxBlocks: 6,
+    hint: 'Move across, turn, then move down.',
+    gradeLevel: 6,
+    category: 'advanced'
+  },
+  {
+    id: 'c35',
+    name: 'Pattern Patrol',
+    story: 'Robot patrols a pattern route and checks each corner.',
+    grid: [
+      [{ type: 'start' }, { type: 'empty' }, { type: 'empty' }, { type: 'goal' }],
+      [{ type: 'empty' }, { type: 'obstacle' }, { type: 'empty' }, { type: 'empty' }],
+      [{ type: 'empty' }, { type: 'empty' }, { type: 'empty' }, { type: 'obstacle' }],
+    ],
+    startPos: { x: 0, y: 0, direction: 'right' },
+    goalPos: { x: 3, y: 0 },
+    maxBlocks: 10,
+    hint: 'A direct path works, but check the route before you run it.',
+    gradeLevel: 6,
+    category: 'advanced'
+  },
+  {
+    id: 'c33',
+    name: 'Final Debug',
+    story: 'Robot must debug a winding path to reach the finish.',
+    grid: [
+      [{ type: 'start' }, { type: 'empty' }, { type: 'obstacle' }, { type: 'empty' }, { type: 'goal' }],
+      [{ type: 'obstacle' }, { type: 'empty' }, { type: 'obstacle' }, { type: 'empty' }, { type: 'obstacle' }],
+      [{ type: 'empty' }, { type: 'empty' }, { type: 'empty' }, { type: 'empty' }, { type: 'empty' }],
+    ],
+    startPos: { x: 0, y: 0, direction: 'right' },
+    goalPos: { x: 4, y: 0 },
+    maxBlocks: 13,
+    hint: 'Trace the path with your finger before running code.',
+    gradeLevel: 7,
+    category: 'advanced'
+  },
+  {
+    id: 'c34',
+    name: 'Efficiency Expert',
+    story: 'Robot earns a badge by solving the route with fewer blocks.',
+    grid: [
+      [{ type: 'start' }, { type: 'empty' }, { type: 'empty' }, { type: 'empty' }],
+      [{ type: 'obstacle' }, { type: 'obstacle' }, { type: 'empty' }, { type: 'empty' }],
+      [{ type: 'goal' }, { type: 'empty' }, { type: 'empty' }, { type: 'obstacle' }],
+    ],
+    startPos: { x: 0, y: 0, direction: 'right' },
+    goalPos: { x: 0, y: 2 },
+    maxBlocks: 10,
+    hint: 'Go across, down, then turn back toward the goal.',
+    gradeLevel: 7,
+    category: 'advanced'
+  },
 ];
 
 const AVAILABLE_BLOCKS: CodeBlock[] = [
@@ -565,7 +801,7 @@ export const CodingRoom: React.FC<CodingRoomProps> = ({ level, onBack, onReward 
   };
 
   return (
-    <div className="w-full h-full bg-gradient-to-b from-indigo-500 via-purple-500 to-pink-500 flex flex-col">
+    <div className="w-full h-full bg-[radial-gradient(circle_at_top_left,#22d3ee_0,#6366f1_34%,#a855f7_68%,#db2777_100%)] flex flex-col relative">
       {/* Header */}
       <div className="flex items-center justify-between p-4 bg-white/20 backdrop-blur-sm">
         <button onClick={onBack} className="p-2 bg-white/30 rounded-full hover:bg-white/50 transition">
@@ -586,7 +822,7 @@ export const CodingRoom: React.FC<CodingRoomProps> = ({ level, onBack, onReward 
         {/* Left: Challenge Info & Grid */}
         <div className="flex-1 flex flex-col gap-4">
           {/* Challenge Info */}
-          <div className="bg-white/90 rounded-xl p-4 shadow-lg">
+          <div className="bg-white/95 rounded-2xl p-4 shadow-lg ring-1 ring-white/60">
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
                 {getCategoryEmoji(challenge.category)}
@@ -602,10 +838,23 @@ export const CodingRoom: React.FC<CodingRoomProps> = ({ level, onBack, onReward 
             <p className="text-gray-600">{challenge.story}</p>
             <p className="text-sm text-indigo-900 font-semibold mt-2">Coach Tip: {coachTip}</p>
             <p className="text-indigo-600 mt-2 font-medium">💡 {challenge.hint}</p>
+            <div className="mt-4 grid grid-cols-3 gap-2 rounded-2xl bg-gradient-to-r from-indigo-50 via-white to-pink-50 p-3 ring-1 ring-indigo-100">
+              <div className="col-span-3 text-xs font-black uppercase tracking-[0.22em] text-indigo-600 sm:col-span-1">Robot Command Center</div>
+              {[
+                ['Plan', 'Find the path'],
+                ['Build', 'Tap blocks'],
+                ['Run', 'Test robot'],
+              ].map(([title, copy]) => (
+                <div key={title} className="rounded-xl bg-white p-2 text-center shadow-sm">
+                  <div className="text-sm font-black text-slate-800">{title}</div>
+                  <div className="text-xs font-semibold text-slate-500">{copy}</div>
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Game Grid */}
-          <div className="bg-white/90 rounded-xl p-4 shadow-lg flex-1 flex items-center justify-center">
+          <div className="bg-white/95 rounded-2xl p-4 shadow-lg flex-1 flex items-center justify-center ring-1 ring-white/60">
             <div className="inline-grid gap-1" style={{
               gridTemplateColumns: `repeat(${challenge.grid[0].length}, minmax(0, 1fr))`
             }}>
@@ -641,7 +890,7 @@ export const CodingRoom: React.FC<CodingRoomProps> = ({ level, onBack, onReward 
         {/* Right: Code Panel */}
         <div className="w-full lg:w-80 flex flex-col gap-4">
           {/* Available Blocks */}
-          <div className="bg-white/90 rounded-xl p-4 shadow-lg">
+          <div className="bg-white/95 rounded-2xl p-4 shadow-lg ring-1 ring-white/60">
             <h3 className="font-bold text-gray-700 mb-3">Toolbox</h3>
             <div className="grid grid-cols-2 gap-2">
               {AVAILABLE_BLOCKS.map(block => (
@@ -659,13 +908,13 @@ export const CodingRoom: React.FC<CodingRoomProps> = ({ level, onBack, onReward 
           </div>
 
           {/* Code Workspace */}
-          <div className="bg-white/90 rounded-xl p-4 shadow-lg flex-1">
+          <div className="bg-white/95 rounded-2xl p-4 shadow-lg flex-1 ring-1 ring-white/60">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-bold text-gray-700">Your Code</h3>
               <span className="text-sm text-gray-500">{code.length}/{challenge.maxBlocks} blocks</span>
             </div>
 
-            <div className="space-y-2 min-h-32 bg-gray-100 rounded-lg p-2">
+            <div className="space-y-2 min-h-32 bg-slate-100 rounded-2xl p-2 ring-1 ring-slate-200">
               {code.length === 0 ? (
                 <p className="text-gray-400 text-center py-4 text-sm">Tap blocks from the toolbox!</p>
               ) : (
@@ -706,7 +955,7 @@ export const CodingRoom: React.FC<CodingRoomProps> = ({ level, onBack, onReward 
           </div>
 
           {/* Challenge Progress */}
-          <div className="bg-white/90 rounded-xl p-3 shadow-lg">
+          <div className="bg-white/95 rounded-2xl p-3 shadow-lg ring-1 ring-white/60">
             <p className="text-sm text-gray-600 text-center">
               Challenge {currentChallengeIndex + 1} of {availableChallenges.length}
             </p>

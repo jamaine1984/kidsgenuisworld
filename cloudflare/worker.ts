@@ -1,0 +1,196 @@
+interface Env {
+  ASSETS: { fetch: (request: Request) => Promise<Response> };
+  MEDIA_CACHE: {
+    get: (key: string) => Promise<{ body: ReadableStream; writeHttpMetadata?: (headers: Headers) => void } | null>;
+    put: (key: string, value: ArrayBuffer | string, options?: { httpMetadata?: Record<string, string> }) => Promise<unknown>;
+  };
+  ELEVENLABS_API_KEY?: string;
+  ELEVENLABS_VOICE_ID?: string;
+  ELEVENLABS_MODEL_ID?: string;
+  OPENROUTER_API_KEY?: string;
+  OPENROUTER_IMAGE_MODEL?: string;
+}
+
+type VoiceStyle = 'gentle' | 'energetic' | 'phonics' | 'story';
+
+const normalizeSpeechText = (text: unknown) =>
+  String(text || '').replace(/\s+/g, ' ').replace(/[“”]/g, '"').replace(/[‘’]/g, "'").trim();
+
+const sendJson = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': 'application/json; charset=utf-8' },
+  });
+
+const hashJson = async (value: unknown) => {
+  const bytes = new TextEncoder().encode(JSON.stringify(value));
+  const digest = await crypto.subtle.digest('SHA-256', bytes);
+  return Array.from(new Uint8Array(digest)).map(byte => byte.toString(16).padStart(2, '0')).join('');
+};
+
+const resolveVoiceSettings = (input: Record<string, unknown> = {}) => {
+  if (
+    typeof input.stability === 'number' &&
+    typeof input.similarity_boost === 'number' &&
+    typeof input.style === 'number'
+  ) {
+    return input;
+  }
+
+  const styleMap: Record<VoiceStyle, { stability: number; similarity_boost: number; style: number; speed: number }> = {
+    gentle: { stability: 0.72, similarity_boost: 0.82, style: 0.2, speed: 0.94 },
+    energetic: { stability: 0.45, similarity_boost: 0.88, style: 0.65, speed: 1.02 },
+    phonics: { stability: 0.86, similarity_boost: 0.8, style: 0.05, speed: 0.82 },
+    story: { stability: 0.58, similarity_boost: 0.9, style: 0.78, speed: 0.96 },
+  };
+  const ageRateMap: Record<string, number> = { early: 0.88, elementary: 0.96, older: 1.0 };
+  const selected = styleMap[(input.narrationStyle as VoiceStyle) || 'gentle'] || styleMap.gentle;
+  const speechRate = typeof input.speechRate === 'number' ? input.speechRate : 1;
+  const effectiveSpeed = Math.max(0.7, Math.min(1.15, selected.speed * speechRate * (ageRateMap[String(input.ageGroup || 'elementary')] || 0.96)));
+
+  return {
+    stability: selected.stability,
+    similarity_boost: selected.similarity_boost,
+    style: selected.style,
+    use_speaker_boost: true,
+    speed: effectiveSpeed,
+  };
+};
+
+const getTtsKey = async (text: string, env: Env, voiceSettings: Record<string, unknown>) => {
+  const voiceId = env.ELEVENLABS_VOICE_ID || 'JBFqnCBsd6RMkjVDRZzb';
+  const modelId = env.ELEVENLABS_MODEL_ID || 'eleven_flash_v2_5';
+  return `tts/${await hashJson({ text: normalizeSpeechText(text), voiceId, modelId, voiceSettings })}.mp3`;
+};
+
+const handleTts = async (request: Request, env: Env) => {
+  if (request.method !== 'POST') return sendJson({ error: 'Method Not Allowed' }, 405);
+
+  const body = await request.json().catch(() => ({})) as Record<string, unknown>;
+  const text = normalizeSpeechText(body.text);
+  if (!text) return sendJson({ error: 'Text is required.' }, 400);
+
+  const voiceSettings = resolveVoiceSettings((body.voice_settings || {}) as Record<string, unknown>);
+  const cacheKey = await getTtsKey(text, env, voiceSettings);
+  const cached = await env.MEDIA_CACHE.get(cacheKey);
+  if (cached) {
+    return new Response(cached.body, {
+      headers: {
+        'Content-Type': 'audio/mpeg',
+        'Cache-Control': 'public, max-age=31536000, immutable',
+        'X-TTS-Cache': 'HIT',
+      },
+    });
+  }
+
+  if (!env.ELEVENLABS_API_KEY) {
+    return sendJson({ error: 'ELEVENLABS_API_KEY is not configured.' }, 503);
+  }
+
+  const voiceId = env.ELEVENLABS_VOICE_ID || 'JBFqnCBsd6RMkjVDRZzb';
+  const modelId = env.ELEVENLABS_MODEL_ID || 'eleven_flash_v2_5';
+  const elevenRes = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=mp3_44100_128`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'xi-api-key': env.ELEVENLABS_API_KEY },
+    body: JSON.stringify({ text, model_id: modelId, voice_settings: voiceSettings }),
+  });
+
+  if (!elevenRes.ok) {
+    return sendJson({ error: await elevenRes.text() }, elevenRes.status);
+  }
+
+  const audio = await elevenRes.arrayBuffer();
+  await env.MEDIA_CACHE.put(cacheKey, audio, { httpMetadata: { contentType: 'audio/mpeg' } });
+  return new Response(audio, {
+    headers: {
+      'Content-Type': 'audio/mpeg',
+      'Cache-Control': 'public, max-age=31536000, immutable',
+      'X-TTS-Cache': 'MISS',
+    },
+  });
+};
+
+const handleTtsPrecache = async (request: Request, env: Env) => {
+  if (request.method !== 'POST') return sendJson({ error: 'Method Not Allowed' }, 405);
+
+  const body = await request.json().catch(() => ({})) as Record<string, unknown>;
+  const texts = Array.isArray(body.texts)
+    ? body.texts.map(normalizeSpeechText).filter(Boolean).slice(0, 500)
+    : [];
+  const migrateOnly = body.migrate_only === true;
+  const voiceSettings = resolveVoiceSettings((body.voice_settings || {}) as Record<string, unknown>);
+  let hits = 0;
+  let misses = 0;
+  let errors = 0;
+  let skipped = 0;
+
+  for (const text of texts) {
+    const cacheKey = await getTtsKey(text, env, voiceSettings);
+    if (await env.MEDIA_CACHE.get(cacheKey)) {
+      hits += 1;
+      continue;
+    }
+    if (migrateOnly || !env.ELEVENLABS_API_KEY) {
+      skipped += 1;
+      continue;
+    }
+
+    const response = await handleTts(new Request(request.url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, voice_settings: voiceSettings }),
+    }), env);
+    if (response.ok) misses += 1;
+    else errors += 1;
+  }
+
+  return sendJson({ requested: texts.length, hits, misses, errors, skipped });
+};
+
+const handleStoryCover = async (request: Request, env: Env) => {
+  if (request.method !== 'POST') return sendJson({ error: 'Method Not Allowed' }, 405);
+
+  const body = await request.json().catch(() => ({})) as Record<string, unknown>;
+  const payload = {
+    title: typeof body.title === 'string' ? body.title : 'Storybook Adventure',
+    category: typeof body.category === 'string' ? body.category : 'adventure',
+    gradeLevel: typeof body.gradeLevel === 'number' ? body.gradeLevel : 1,
+    promptSeed: typeof body.promptSeed === 'string' ? body.promptSeed : '',
+  };
+  const cacheKey = `story-covers/${await hashJson(payload)}.json`;
+  const cached = await env.MEDIA_CACHE.get(cacheKey);
+  if (cached) return new Response(cached.body, { headers: { 'Content-Type': 'application/json; charset=utf-8', 'X-Cover-Cache': 'HIT' } });
+
+  if (!env.OPENROUTER_API_KEY) {
+    return sendJson({ imageUrl: null, cache: 'FALLBACK' });
+  }
+
+  const model = env.OPENROUTER_IMAGE_MODEL || 'google/gemini-3.1-flash-image-preview';
+  const prompt = `Create a bright, child-friendly illustrated book cover for a kids educational app. Title: "${payload.title}". Category: ${payload.category}. Reading level: grade ${payload.gradeLevel}. Style: warm, playful, safe, clean composition, single clear focal subject, no readable text inside the artwork, no scary details. ${payload.promptSeed}`;
+  const openRouterRes = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${env.OPENROUTER_API_KEY}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model,
+      messages: [{ role: 'user', content: prompt }],
+      modalities: ['image', 'text'],
+      image_config: { aspect_ratio: '3:4', image_size: '1024x1024' },
+    }),
+  });
+
+  if (!openRouterRes.ok) return sendJson({ imageUrl: null, cache: 'ERROR' });
+  const result = await openRouterRes.json() as { choices?: Array<{ message?: { images?: Array<{ image_url?: { url?: string } }> } }> };
+  const responseBody = { imageUrl: result?.choices?.[0]?.message?.images?.[0]?.image_url?.url || null, cache: 'MISS' };
+  await env.MEDIA_CACHE.put(cacheKey, JSON.stringify(responseBody), { httpMetadata: { contentType: 'application/json; charset=utf-8' } });
+  return sendJson(responseBody);
+};
+
+export default {
+  async fetch(request: Request, env: Env): Promise<Response> {
+    const url = new URL(request.url);
+    if (url.pathname === '/api/tts') return handleTts(request, env);
+    if (url.pathname === '/api/tts-precache') return handleTtsPrecache(request, env);
+    if (url.pathname === '/api/story-cover') return handleStoryCover(request, env);
+    return env.ASSETS.fetch(request);
+  },
+};

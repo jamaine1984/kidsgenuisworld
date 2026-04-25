@@ -8,7 +8,6 @@ export enum RoomType {
   PUZZLE = 'PUZZLE',
   MUSIC = 'MUSIC',
   ART = 'ART',
-  PLAYGROUND = 'PLAYGROUND',
   // NEW ROOMS
   SCIENCE = 'SCIENCE',
   GEOGRAPHY = 'GEOGRAPHY',
@@ -187,6 +186,11 @@ export interface AccessibilitySettings {
   narrationStyle: 'gentle' | 'energetic' | 'phonics' | 'story';
 }
 
+export interface PrivacySettings {
+  allowExternalVoice: boolean;
+  allowGeneratedStoryCovers: boolean;
+}
+
 // ============================================
 // PARENT DASHBOARD / ANALYTICS
 // ============================================
@@ -292,6 +296,7 @@ export interface FamilyChallenge {
 // ENHANCED USER PROGRESS
 // ============================================
 export interface UserProgress {
+  childName?: string;
   // Basic info
   currentLevel: number; // 1 to 7
   currentGrade: GradeLevel;
@@ -311,6 +316,7 @@ export interface UserProgress {
   // Collections
   stickers: string[];
   achievements: string[]; // unlocked achievement IDs
+  completedUnitIds: string[];
 
   // Adaptive learning
   learningProfile: LearningProfile;
@@ -326,13 +332,28 @@ export interface UserProgress {
   sessionsCompleted: number;
   currentStreak: number;
   lastPlayedDate: string;
+  dailyStats: DailyStats[];
+  gradeRoomVisits: { [level: string]: RoomType[] };
+  weeklyGoalMinutes: number;
+  dailySessionLimitMinutes: number;
 
   // Accessibility
   accessibility: AccessibilitySettings;
 
+  // Privacy controls
+  privacy: PrivacySettings;
+
   // Family
   familyId?: string;
   memberId?: string;
+}
+
+export interface ChildProfile {
+  id: string;
+  name: string;
+  grade: GradeLevel;
+  createdAt: number;
+  lastActiveAt: number;
 }
 
 // ============================================
@@ -477,6 +498,11 @@ export const DEFAULT_ACCESSIBILITY: AccessibilitySettings = {
   narrationStyle: 'gentle'
 };
 
+export const DEFAULT_PRIVACY_SETTINGS: PrivacySettings = {
+  allowExternalVoice: false,
+  allowGeneratedStoryCovers: false,
+};
+
 export const DEFAULT_AVATAR: AvatarCustomization = {
   skinTone: '#FFD5B4',
   hairStyle: 'short',
@@ -486,7 +512,8 @@ export const DEFAULT_AVATAR: AvatarCustomization = {
   background: 'blue'
 };
 
-export const createDefaultProgress = (): UserProgress => ({
+export const createDefaultProgress = (childName = 'Learner'): UserProgress => ({
+  childName,
   currentLevel: 1,
   currentGrade: GradeLevel.KINDERGARTEN,
   xp: 0,
@@ -501,11 +528,17 @@ export const createDefaultProgress = (): UserProgress => ({
   storybookScore: 0,
   stickers: [],
   achievements: [],
+  completedUnitIds: [],
   learningProfile: { ...DEFAULT_LEARNING_PROFILE },
   avatar: { ...DEFAULT_AVATAR },
   totalPlayTimeMinutes: 0,
   sessionsCompleted: 0,
   currentStreak: 0,
   lastPlayedDate: '',
-  accessibility: { ...DEFAULT_ACCESSIBILITY }
+  dailyStats: [],
+  gradeRoomVisits: {},
+  weeklyGoalMinutes: 60,
+  dailySessionLimitMinutes: 20,
+  accessibility: { ...DEFAULT_ACCESSIBILITY },
+  privacy: { ...DEFAULT_PRIVACY_SETTINGS }
 });

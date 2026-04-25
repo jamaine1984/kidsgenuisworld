@@ -95,12 +95,41 @@ export const VOCABULARY = [
   { word: 'Civilization', emoji: '🏛️', level: 7, rhyme: 'Nation', segments: ['Civ','i','li','za','tion'], sentence: 'Ancient civilizations built pyramids.' },
 ];
 
-type Activity = 'MATCH' | 'SPELL' | 'RHYME' | 'PHONICS';
+type Activity = 'MATCH' | 'SPELL' | 'RHYME' | 'PHONICS' | 'COMPREHENSION';
+
+interface ReadingPassage {
+  id: string;
+  level: number;
+  title: string;
+  passage: string;
+  question: string;
+  answer: string;
+  options: string[];
+  skill: string;
+}
+
+export const READING_PASSAGES: ReadingPassage[] = [
+  { id: 'pk-picture-walk', level: 1, title: 'The Red Hat', passage: 'Sam has a red hat. The hat is big. Sam puts it on and smiles.', question: 'What does Sam put on?', answer: 'A red hat', options: ['A red hat', 'A blue coat', 'A green shoe', 'A yellow cup'], skill: 'Remember one detail' },
+  { id: 'pk-pet-nap', level: 1, title: 'Nap Time', passage: 'The dog runs. The dog gets tired. The dog naps on the rug.', question: 'Where does the dog nap?', answer: 'On the rug', options: ['On the rug', 'In a tree', 'At the store', 'Under water'], skill: 'Find the setting' },
+  { id: 'k-garden-seed', level: 2, title: 'Mia Plants a Seed', passage: 'Mia digs a small hole. She drops in a seed and covers it with soil. Then she gives the seed water.', question: 'What does Mia do after she covers the seed?', answer: 'She gives it water', options: ['She gives it water', 'She eats lunch', 'She rides a bike', 'She paints a wall'], skill: 'Sequence events' },
+  { id: 'k-library-card', level: 2, title: 'Library Day', passage: 'Ben chooses a book about rockets. He sits by the window and reads. Ben wants to learn about space.', question: 'Why does Ben choose the rocket book?', answer: 'He wants to learn about space', options: ['He wants to learn about space', 'He lost his shoes', 'He is cooking soup', 'He wants to take a nap'], skill: 'Connect reason and action' },
+  { id: 'g1-rain-plan', level: 3, title: 'The Rainy Walk', passage: 'Ava wanted to walk to the park, but dark clouds covered the sky. She grabbed her raincoat before she opened the door. A few minutes later, rain began to fall.', question: 'What clue showed Ava that rain might come?', answer: 'Dark clouds covered the sky', options: ['Dark clouds covered the sky', 'The park was closed', 'Her shoes were new', 'A bird sang loudly'], skill: 'Use text evidence' },
+  { id: 'g1-team-cleanup', level: 3, title: 'Team Cleanup', passage: 'The art table was messy after class. Leo picked up paper scraps while Nia washed the brushes. Soon the table was ready for the next group.', question: 'What is the main idea of this passage?', answer: 'The children worked together to clean up', options: ['The children worked together to clean up', 'The class went outside', 'Leo lost his backpack', 'Nia painted a mountain'], skill: 'Find the main idea' },
+  { id: 'g2-solar-oven', level: 4, title: 'The Solar Oven', passage: 'Kai lined a box with shiny foil and placed a snack inside. He set the box in sunlight. After a while, the snack was warm because the foil helped reflect heat.', question: 'Why did Kai use shiny foil?', answer: 'To reflect heat from the sunlight', options: ['To reflect heat from the sunlight', 'To make the snack colder', 'To hide the box', 'To water a plant'], skill: 'Explain cause and effect' },
+  { id: 'g2-map-route', level: 4, title: 'A Map for Grandma', passage: 'Rosa drew a map from the bus stop to her house. She added the library, the bakery, and the big oak tree. Grandma used the landmarks to find the house.', question: 'How did the landmarks help Grandma?', answer: 'They helped her follow the route', options: ['They helped her follow the route', 'They made the bus faster', 'They changed the weather', 'They cooked dinner'], skill: 'Use supporting details' },
+  { id: 'g3-habitat-change', level: 5, title: 'A New Pond', passage: 'The old pond dried during a hot summer, so the frogs moved to a deeper pond nearby. The deeper pond had shade, insects, and cool water. By fall, many frogs were living there.', question: 'What made the deeper pond a good habitat?', answer: 'It had shade, insects, and cool water', options: ['It had shade, insects, and cool water', 'It was made of glass', 'It had no plants', 'It was far from everything'], skill: 'Summarize important details' },
+  { id: 'g3-class-vote', level: 5, title: 'The Class Vote', passage: 'The class had enough money for one field trip. Some students wanted the science museum, while others wanted the theater. After each group gave reasons, the class voted for the science museum because it matched their unit on simple machines.', question: 'Why did the class choose the science museum?', answer: 'It matched their unit on simple machines', options: ['It matched their unit on simple machines', 'It was the closest building', 'The theater was closed forever', 'No one gave reasons'], skill: 'Evaluate reasons' },
+  { id: 'g4-robot-test', level: 6, title: 'The Robot Test', passage: 'Maya programmed a robot to carry blocks across a table. On the first try, the robot stopped too early. Maya measured the distance again, changed the code, and tested the robot until it reached the basket.', question: 'What does Maya do when the first test fails?', answer: 'She measures again and changes the code', options: ['She measures again and changes the code', 'She gives up right away', 'She hides the blocks', 'She turns off the lights'], skill: 'Infer problem-solving behavior' },
+  { id: 'g4-news-article', level: 6, title: 'The School Garden Article', passage: 'The school newspaper reported that the garden club harvested twenty pounds of vegetables. The article quoted students who said the garden helped them learn responsibility. It also listed plans to add herbs next spring.', question: 'Which detail supports the idea that the garden teaches responsibility?', answer: 'Students said the garden helped them learn responsibility', options: ['Students said the garden helped them learn responsibility', 'The article was in a newspaper', 'Herbs may be planted next spring', 'The vegetables weighed twenty pounds'], skill: 'Identify supporting evidence' },
+  { id: 'g5-energy-claim', level: 7, title: 'Saving Energy at School', passage: 'The student council argued that classrooms should turn off lights when sunlight is enough. They explained that the change would save electricity and lower costs. They also suggested reminders near each light switch.', question: 'What claim is the student council making?', answer: 'Classrooms should turn off lights when sunlight is enough', options: ['Classrooms should turn off lights when sunlight is enough', 'All windows should stay closed', 'Students should stop using notebooks', 'The school should remove every switch'], skill: 'Identify an argument claim' },
+  { id: 'g5-primary-source', level: 7, title: 'A Diary from Camp', passage: 'In her diary, Elena wrote that the first night at camp felt noisy and strange. By the third day, she knew the trail names and had two new friends. She wrote that trying something new was easier after the first step.', question: 'How does Elena change during the diary passage?', answer: 'She becomes more comfortable at camp', options: ['She becomes more comfortable at camp', 'She decides camp has no trails', 'She forgets how to write', 'She stops meeting people'], skill: 'Analyze character change' },
+];
 
 export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, level }) => {
   const [mode, setMode] = useState<Activity>('MATCH');
   const [score, setScore] = useState(0);
   const [currentWord, setCurrentWord] = useState(VOCABULARY[0]);
+  const [currentPassage, setCurrentPassage] = useState(READING_PASSAGES[0]);
   const [options, setOptions] = useState<string[]>([]);
   const [scrambledLetters, setScrambledLetters] = useState<{id: number, char: string}[]>([]);
   const [spelledWord, setSpelledWord] = useState<string>('');
@@ -121,6 +150,7 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
       case 'SPELL': return 'Say each letter as you build the word.';
       case 'RHYME': return 'Listen for the ending sound.';
       case 'PHONICS': return 'Tap each sound block slowly, then blend them.';
+      case 'COMPREHENSION': return 'Read the short passage, then answer using evidence.';
     }
   }, [mode]);
 
@@ -134,6 +164,8 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
         return `Teacher says: Listen for the ending sound in ${word.word}. We want a word that sounds the same at the end.`;
       case 'PHONICS':
         return `Teacher says: We are going to tap each sound in ${word.word}, then blend the sounds together.`;
+      case 'COMPREHENSION':
+        return 'Teacher says: Read the passage first. Then use a detail from the text to answer the question.';
     }
   }, [mode]);
 
@@ -152,6 +184,8 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
       case 'PHONICS':
         await speakAsync(`Let us sound out the word ${word.word}. Tap each sound block, then read the whole word.`, 0.84, 1.02);
         break;
+      case 'COMPREHENSION':
+        break;
     }
   }, [buildTeacherPrompt, mode]);
 
@@ -161,11 +195,31 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
     return list.length > 0 ? list : VOCABULARY;
   };
 
+  const getPassagesForLevel = () => {
+    const maxLvl = Math.min(Math.max(level, 1), 7);
+    const list = READING_PASSAGES.filter(p => p.level <= maxLvl);
+    return list.length > 0 ? list : READING_PASSAGES;
+  };
+
+  const narratePassageRound = useCallback(async (passage: ReadingPassage) => {
+    await speakAsync('Teacher says: Read the passage first. Listen for the important details.', 0.88, 1.04);
+    await speakAsync(`${passage.title}. ${passage.passage}`, 0.86, 1.02);
+    await speakAsync(passage.question, 0.86, 1.02);
+  }, []);
+
   const nextRound = () => {
     setShowSuccess(false);
     setShowWrong(false);
     setSpelledWord('');
     setCoachTip(modeTip);
+    if (mode === 'COMPREHENSION') {
+      const passagePool = getPassagesForLevel();
+      const nextPassage = passagePool[Math.floor(Math.random() * passagePool.length)];
+      setCurrentPassage(nextPassage);
+      setOptions(shuffle(nextPassage.options));
+      void narratePassageRound(nextPassage);
+      return;
+    }
     const pool = getWordsForLevel();
     const next = pool[Math.floor(Math.random() * pool.length)];
     setCurrentWord(next);
@@ -210,12 +264,17 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
     let correct = false;
     if (mode === 'MATCH' && val === currentWord.emoji) correct = true;
     if (mode === 'RHYME' && val === currentWord.rhyme) correct = true;
+    if (mode === 'COMPREHENSION' && val === currentPassage.answer) correct = true;
 
     if (correct) {
       playSuccess();
       setShowSuccess(true);
       setScore(s => s + 1);
-      void speakCorrect(`Great reading. ${currentWord.word}. ${currentWord.sentence}`);
+      if (mode === 'COMPREHENSION') {
+        void speakCorrect(`Great reading. The text evidence is: ${currentPassage.answer}.`);
+      } else {
+        void speakCorrect(`Great reading. ${currentWord.word}. ${currentWord.sentence}`);
+      }
       if (score > 0 && score % 3 === 0) onReward();
       setTimeout(nextRound, 2500);
     } else {
@@ -225,6 +284,8 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
         void speakWrong(`That is not ${currentWord.word}. Look again and find the matching picture.`);
       } else if (mode === 'RHYME') {
         void speakWrong(`${val} does not rhyme with ${currentWord.word}. The rhyming answer is ${currentWord.rhyme}.`);
+      } else if (mode === 'COMPREHENSION') {
+        void speakWrong(`Look back at the passage. The best answer is ${currentPassage.answer}.`);
       }
       setTimeout(() => setShowWrong(false), 2000);
     }
@@ -276,6 +337,10 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
   };
 
   const speakCurrentWord = () => {
+    if (mode === 'COMPREHENSION') {
+      void speakAsync(`${currentPassage.title}. ${currentPassage.passage} ${currentPassage.question}`, 0.86, 1.02);
+      return;
+    }
     void speakAsync(`Teacher says the word is ${currentWord.word}. ${currentWord.sentence}`, 0.86, 1.02);
   };
 
@@ -284,6 +349,7 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
     { id: 'SPELL', label: 'Spell', hint: 'Build letters' },
     { id: 'RHYME', label: 'Rhyme', hint: 'Hear endings' },
     { id: 'PHONICS', label: 'Sound', hint: 'Tap sounds' },
+    { id: 'COMPREHENSION', label: 'Read', hint: 'Use evidence' },
   ];
 
   return (
@@ -299,7 +365,7 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
         </button>
 
         <div className="flex bg-white/80 p-1 rounded-2xl backdrop-blur-sm overflow-x-auto max-w-[60vw] shadow-sm">
-          {(['MATCH', 'SPELL', 'RHYME', 'PHONICS'] as const).map(m => (
+          {(['MATCH', 'SPELL', 'RHYME', 'PHONICS', 'COMPREHENSION'] as const).map(m => (
             <button
               key={m}
               onClick={() => setMode(m)}
@@ -309,6 +375,7 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
               {m === 'SPELL' && <Type size={16} />}
               {m === 'RHYME' && <Sparkles size={16} />}
               {m === 'PHONICS' && <Mic2 size={16} />}
+              {m === 'COMPREHENSION' && <Book size={16} />}
               {m}
             </button>
           ))}
@@ -321,7 +388,7 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
       </header>
 
       <div className="z-10 flex flex-col items-center mt-8 w-full max-w-5xl px-4">
-        <div className="mb-5 grid w-full max-w-4xl grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="mb-5 grid w-full max-w-5xl grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           {modeSteps.map(step => (
             <button
               key={step.id}
@@ -367,11 +434,21 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
           )}
 
           {/* Mode Specific Headers */}
-          <div className="mb-5 rounded-[28px] bg-gradient-to-br from-orange-100 to-yellow-50 p-5 shadow-inner">
-            <div className="text-7xl mb-3">{currentWord.emoji}</div>
-            <p className="text-5xl font-black text-orange-700">{currentWord.word}</p>
-            <p className="mt-3 rounded-2xl bg-white/80 px-4 py-2 text-sm font-bold text-orange-900">{currentWord.sentence}</p>
-          </div>
+          {mode === 'COMPREHENSION' ? (
+            <div className="mb-5 rounded-[28px] bg-gradient-to-br from-orange-100 to-yellow-50 p-5 text-left shadow-inner">
+              <div className="mb-2 text-xs font-black uppercase tracking-[0.2em] text-orange-500">Comprehension Quest</div>
+              <p className="text-3xl font-black text-orange-700">{currentPassage.title}</p>
+              <p className="mt-2 rounded-2xl bg-white/85 px-4 py-3 text-base font-semibold leading-relaxed text-slate-800">{currentPassage.passage}</p>
+              <p className="mt-3 rounded-2xl bg-orange-500 px-4 py-3 text-base font-black text-white">{currentPassage.question}</p>
+              <p className="mt-3 text-xs font-black uppercase tracking-[0.18em] text-orange-500">Skill: {currentPassage.skill}</p>
+            </div>
+          ) : (
+            <div className="mb-5 rounded-[28px] bg-gradient-to-br from-orange-100 to-yellow-50 p-5 shadow-inner">
+              <div className="text-7xl mb-3">{currentWord.emoji}</div>
+              <p className="text-5xl font-black text-orange-700">{currentWord.word}</p>
+              <p className="mt-3 rounded-2xl bg-white/80 px-4 py-2 text-sm font-bold text-orange-900">{currentWord.sentence}</p>
+            </div>
+          )}
 
           {mode === 'MATCH' && <h1 className="sr-only">{currentWord.word}</h1>}
           {mode === 'SPELL' && <div className="mb-6 text-sm font-black uppercase tracking-[0.18em] text-orange-500">Build the word</div>}
@@ -442,13 +519,13 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
         </div>
 
         {/* Interaction Area (Options/Spelling) */}
-        {(mode === 'MATCH' || mode === 'RHYME') && (
+        {(mode === 'MATCH' || mode === 'RHYME' || mode === 'COMPREHENSION') && (
           <div className="grid grid-cols-2 gap-4 w-full max-w-md">
             {options.map((opt, i) => (
               <button
                 key={i}
                 onClick={() => handleOptionClick(opt)}
-                className="h-28 bg-white rounded-3xl text-4xl font-bold flex items-center justify-center shadow-lg hover:bg-orange-50 border-b-8 border-orange-100 active:border-b-0 active:translate-y-2 transition-all"
+                className={`${mode === 'COMPREHENSION' ? 'min-h-24 px-4 text-base leading-snug' : 'h-28 text-4xl'} bg-white rounded-3xl font-bold flex items-center justify-center text-center shadow-lg hover:bg-orange-50 border-b-8 border-orange-100 active:border-b-0 active:translate-y-2 transition-all`}
               >
                 {opt}
               </button>

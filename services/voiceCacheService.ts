@@ -1,5 +1,5 @@
 import { STORIES } from '../components/StoryBook';
-import { VOCABULARY as READING_VOCABULARY } from '../components/ReadingRoom';
+import { READING_PASSAGES, VOCABULARY as READING_VOCABULARY } from '../components/ReadingRoom';
 import { VOCABULARY as LANGUAGE_VOCABULARY, LANGUAGE_INFO } from '../components/LanguageRoom';
 import { SCIENCE_EXPERIMENTS } from '../components/ScienceRoom';
 import { GEOGRAPHY_QUESTIONS } from '../components/GeographyRoom';
@@ -108,6 +108,17 @@ export const getVoiceCacheTexts = (level: number): string[] => {
       ...word.segments.map(segment => `The sound is... ${segment}`),
     ]);
 
+  const readingPassageTexts = READING_PASSAGES
+    .filter(passage => passage.level <= clampedLevel)
+    .flatMap(passage => [
+      passage.title,
+      passage.passage,
+      passage.question,
+      `Teacher says: Read the passage first. Listen for the important details.`,
+      `Great reading. The text evidence is: ${passage.answer}.`,
+      `Look back at the passage. The best answer is ${passage.answer}.`,
+    ]);
+
   const scienceTexts = SCIENCE_EXPERIMENTS
     .filter(experiment => experiment.gradeLevel <= clampedLevel)
     .flatMap(experiment => [
@@ -152,6 +163,7 @@ export const getVoiceCacheTexts = (level: number): string[] => {
     ...ROOM_INTROS,
     ...GENERAL_FEEDBACK,
     ...readingTexts,
+    ...readingPassageTexts,
     ...scienceTexts,
     ...geographyTexts,
     ...languageTexts,

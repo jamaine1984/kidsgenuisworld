@@ -51,6 +51,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
   const [activeTab, setActiveTab] = useState<'overview' | 'skills' | 'curriculum' | 'settings'>('overview');
   const [isWarmingVoiceCache, setIsWarmingVoiceCache] = useState(false);
   const [voiceCacheSummary, setVoiceCacheSummary] = useState<string>('');
+  const [voiceCacheTone, setVoiceCacheTone] = useState<'info' | 'success' | 'warning' | 'error'>('info');
   const [gateAnswer, setGateAnswer] = useState('');
   const [gateError, setGateError] = useState('');
   const [isParentVerified, setIsParentVerified] = useState(!requireParentGate);
@@ -97,6 +98,12 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
   const hasParentPin = parentPin.trim().length > 0;
   const privacy = progress.privacy || DEFAULT_PRIVACY_SETTINGS;
   const canWarmVoiceCache = privacy.allowExternalVoice && !isWarmingVoiceCache;
+  const voiceCacheStatusClasses = {
+    info: 'bg-indigo-50 text-indigo-800 border-indigo-100',
+    success: 'bg-emerald-50 text-emerald-800 border-emerald-100',
+    warning: 'bg-amber-50 text-amber-800 border-amber-100',
+    error: 'bg-red-50 text-red-700 border-red-100',
+  };
   const recentDailyStats = [...(progress.dailyStats || [])]
     .sort((a, b) => b.date.localeCompare(a.date))
     .slice(0, 7);
@@ -1181,22 +1188,52 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 Voice Cache
               </h3>
               <p className="text-sm text-gray-600 mb-3">
-                Pre-render lesson and story narration for this grade after external voice narration is enabled.
+                Pre-render lesson and story narration for this grade. Saved MP3 files are reused from Cloudflare storage, so repeat lessons do not call ElevenLabs again.
               </p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3 text-xs">
+                <div className="rounded-lg bg-slate-50 border border-slate-100 p-2">
+                  <p className="font-bold text-slate-700">1. Generate once</p>
+                  <p className="text-slate-500">ElevenLabs creates missing human narration.</p>
+                </div>
+                <div className="rounded-lg bg-slate-50 border border-slate-100 p-2">
+                  <p className="font-bold text-slate-700">2. Save audio</p>
+                  <p className="text-slate-500">The app stores MP3 files in Cloudflare R2.</p>
+                </div>
+                <div className="rounded-lg bg-slate-50 border border-slate-100 p-2">
+                  <p className="font-bold text-slate-700">3. Reuse cache</p>
+                  <p className="text-slate-500">Future plays load saved audio first.</p>
+                </div>
+              </div>
               <button
                 onClick={async () => {
                   if (!privacy.allowExternalVoice) {
+                    setVoiceCacheTone('warning');
                     setVoiceCacheSummary('External voice narration is off. Enable it in Privacy Controls before warming the voice cache.');
                     return;
                   }
                   setIsWarmingVoiceCache(true);
+                  setVoiceCacheTone('info');
                   setVoiceCacheSummary('');
                   try {
                     const { warmVoiceCache } = await import('../services/voiceCacheService');
                     const result = await warmVoiceCache(progress.currentLevel, progress.accessibility);
-                    setVoiceCacheSummary(`Cached ${result.requested} phrases. Hits: ${result.hits}, new files: ${result.misses}, errors: ${result.errors}.`);
+                    if (result.errors > 0) {
+                      setVoiceCacheTone('error');
+                      setVoiceCacheSummary(`Voice cache had ${result.errors} provider errors. Saved files still work, but missing narration needs a valid ElevenLabs balance before generation can continue.`);
+                    } else if (result.misses > 0) {
+                      setVoiceCacheTone('success');
+                      setVoiceCacheSummary(`Voice cache updated. Checked ${result.requested} phrases, reused ${result.hits}, and saved ${result.misses} new human voice files.`);
+                    } else {
+                      setVoiceCacheTone('success');
+                      setVoiceCacheSummary(`Voice cache ready. Checked ${result.requested} phrases and reused ${result.hits} saved human voice files.`);
+                    }
                   } catch (error) {
-                    setVoiceCacheSummary(error instanceof Error ? error.message : 'Voice cache warmup failed.');
+                    setVoiceCacheTone('error');
+                    const message = error instanceof Error ? error.message : 'Voice cache warmup failed.';
+                    const friendlyMessage = message.includes('quota_exceeded') || message.includes('remaining')
+                      ? 'ElevenLabs says this API key has no remaining characters. Existing saved voices still play from cache, but new narration cannot be generated until credits are available.'
+                      : message;
+                    setVoiceCacheSummary(friendlyMessage);
                   } finally {
                     setIsWarmingVoiceCache(false);
                   }
@@ -1211,7 +1248,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 {isWarmingVoiceCache ? 'Warming Voice Cache...' : privacy.allowExternalVoice ? 'Warm Voice Cache' : 'Enable External Voice First'}
               </button>
               {voiceCacheSummary && (
-                <p className="text-sm text-gray-600 mt-3">{voiceCacheSummary}</p>
+                <p className={`text-sm mt-3 rounded-lg border p-3 ${voiceCacheStatusClasses[voiceCacheTone]}`}>{voiceCacheSummary}</p>
               )}
             </div>
 

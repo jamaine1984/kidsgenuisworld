@@ -11,6 +11,11 @@ interface VoiceWarmupResult {
   hits: number;
   misses: number;
   errors: number;
+  skipped?: number;
+  errorSamples?: Array<{
+    status?: number;
+    message: string;
+  }>;
 }
 
 const ROOM_INTROS = [
@@ -205,5 +210,11 @@ export const warmVoiceCache = async (
     throw new Error(`Voice cache warmup failed with status ${response.status}`);
   }
 
-  return response.json();
+  const result = await response.json() as VoiceWarmupResult;
+  if (result.errors > 0 && result.errorSamples?.length) {
+    const sample = result.errorSamples[0];
+    throw new Error(`Voice cache blocked by provider status ${sample.status || 'unknown'}: ${sample.message}`);
+  }
+
+  return result;
 };

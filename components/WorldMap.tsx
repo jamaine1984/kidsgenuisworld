@@ -26,9 +26,19 @@ export const WorldMap: React.FC<WorldMapProps> = ({
 }) => {
   const [hoveredRoom, setHoveredRoom] = useState<RoomType | null>(null);
   const [showFocusCoach, setShowFocusCoach] = useState(false);
+  const [showBreakCoach, setShowBreakCoach] = useState(false);
   const [focusStep, setFocusStep] = useState(0);
   const mission = getDailyMission(progress);
   const weeklyPlan = getWeeklyLearningPlan(progress);
+  const todayKey = new Date().toISOString().slice(0, 10);
+  const todayStats = progress.dailyStats?.find(day => day.date === todayKey);
+  const todayMinutes = todayStats?.timeSpentMinutes || 0;
+  const dailyLimitMinutes = progress.dailySessionLimitMinutes || 20;
+  const dailyLimitPercent = Math.min(100, Math.round((todayMinutes / dailyLimitMinutes) * 100));
+  const isBreakDue = todayMinutes >= dailyLimitMinutes;
+  const breakPacingCopy = isBreakDue
+    ? `${todayMinutes} minutes today. Time for an offline reset.`
+    : `${todayMinutes}/${dailyLimitMinutes} minutes today before a movement break.`;
   const gradePacingThresholds: { [level: number]: number } = {
     1: 30,
     2: 75,
@@ -93,6 +103,11 @@ export const WorldMap: React.FC<WorldMapProps> = ({
       prompt: 'If it feels hard, I can pause, check my clue, and try one more strategy.',
       cue: 'Mistakes are information. Use them to choose the next step.',
     },
+  ];
+  const offlineBreakIdeas = [
+    'Move your body for two minutes: stretch, hop, or walk across the room.',
+    'Drink water and tell a grown-up one thing you learned today.',
+    `Try the at-home idea: ${mission.parentActivity}`,
   ];
 
   const rooms: Array<{ type: RoomType; name: string; emoji: string; color: string; featured?: boolean }> = [
@@ -369,6 +384,32 @@ export const WorldMap: React.FC<WorldMapProps> = ({
               </div>
             </div>
             <button
+              onClick={() => {
+                playPop();
+                setShowBreakCoach(true);
+              }}
+              className={`${isBreakDue ? 'bg-rose-50/95' : 'bg-white/90'} rounded-[24px] p-4 shadow-lg border-4 border-white/60 text-left hover:scale-[1.02] transition`}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className={`text-xs uppercase tracking-[0.18em] font-black ${isBreakDue ? 'text-rose-600' : 'text-sky-700'}`}>
+                    {isBreakDue ? 'Break due' : 'Healthy pacing'}
+                  </p>
+                  <p className={`mt-1 font-black ${isBreakDue ? 'text-rose-900' : 'text-slate-900'}`}>Offline Break</p>
+                  <p className={`text-sm ${isBreakDue ? 'text-rose-800/80' : 'text-slate-600'}`}>
+                    {breakPacingCopy}
+                  </p>
+                </div>
+                <Clock className={isBreakDue ? 'text-rose-600' : 'text-sky-600'} />
+              </div>
+              <div className="mt-3 h-2 overflow-hidden rounded-full bg-white">
+                <div
+                  className={`h-full rounded-full ${isBreakDue ? 'bg-rose-500' : 'bg-sky-500'}`}
+                  style={{ width: `${dailyLimitPercent}%` }}
+                />
+              </div>
+            </button>
+            <button
               onClick={() => { playPop(); onEnterRoom(RoomType.STORYBOOK); }}
               className="bg-amber-50/95 rounded-[24px] p-4 shadow-lg border-4 border-white/60 text-left hover:scale-[1.02] transition"
             >
@@ -524,6 +565,77 @@ export const WorldMap: React.FC<WorldMapProps> = ({
                 className="flex-1 rounded-2xl bg-slate-100 px-5 py-3 font-black text-slate-700 hover:bg-slate-200"
               >
                 Start Mission
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showBreakCoach && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-lg rounded-[28px] bg-white p-5 shadow-2xl border-4 border-sky-100">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${isBreakDue ? 'bg-rose-100 text-rose-700' : 'bg-sky-100 text-sky-700'}`}>
+                  <Clock size={26} />
+                </div>
+                <div>
+                  <p className={`text-xs font-black uppercase tracking-[0.18em] ${isBreakDue ? 'text-rose-600' : 'text-sky-600'}`}>Offline Break</p>
+                  <h2 className="text-xl font-black text-slate-900">
+                    {isBreakDue ? 'Time to pause' : 'Plan a healthy break'}
+                  </h2>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowBreakCoach(false)}
+                className="rounded-full bg-slate-100 p-2 text-slate-600 hover:bg-slate-200"
+                aria-label="Close Offline Break"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className={`my-5 rounded-[24px] p-4 ${isBreakDue ? 'bg-rose-50' : 'bg-sky-50'}`}>
+              <div className="flex items-center justify-between gap-3">
+                <p className="font-black text-slate-900">Today</p>
+                <p className={`font-black ${isBreakDue ? 'text-rose-700' : 'text-sky-700'}`}>{todayMinutes}/{dailyLimitMinutes} minutes</p>
+              </div>
+              <div className="mt-3 h-3 overflow-hidden rounded-full bg-white">
+                <div
+                  className={`h-full rounded-full ${isBreakDue ? 'bg-rose-500' : 'bg-sky-500'}`}
+                  style={{ width: `${dailyLimitPercent}%` }}
+                />
+              </div>
+              <p className="mt-3 text-sm font-semibold text-slate-700">
+                Short breaks help kids come back calmer, focused, and ready to explain what they learned.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              {offlineBreakIdeas.map((idea, index) => (
+                <div key={idea} className="rounded-2xl border border-slate-100 bg-slate-50 p-3">
+                  <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">Break step {index + 1}</p>
+                  <p className="mt-1 text-sm font-bold text-slate-800">{idea}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-5 flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={() => setShowBreakCoach(false)}
+                className="flex-1 rounded-2xl bg-sky-600 px-5 py-3 font-black text-white shadow-lg hover:bg-sky-700"
+              >
+                I Took a Break
+              </button>
+              <button
+                onClick={() => {
+                  playPop();
+                  onEnterRoom(mission.room, mission.id);
+                  setShowBreakCoach(false);
+                }}
+                className="flex-1 rounded-2xl bg-slate-100 px-5 py-3 font-black text-slate-700 hover:bg-slate-200"
+              >
+                Continue Mission
               </button>
             </div>
           </div>

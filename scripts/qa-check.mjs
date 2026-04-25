@@ -319,6 +319,9 @@ if (!worldMapSource.includes('At-home idea') || !worldMapSource.includes('Review
 if (!worldMapSource.includes('Focus Quest') || !worldMapSource.includes('Try Again Plan') || !worldMapSource.includes('Mistakes are information')) {
   fail('World map needs a kid-facing focus and social-emotional learning routine.');
 }
+if (!worldMapSource.includes('Offline Break') || !worldMapSource.includes('dailyLimitMinutes') || !worldMapSource.includes('I Took a Break')) {
+  fail('World map needs parent-configured healthy screen-time break guidance.');
+}
 if (!worldMapSource.includes('room-destination-tile') || !worldMapSource.includes('room-scene') || !worldMapSource.includes('Mission') || !worldMapSource.includes('Visited')) {
   fail('World map room tiles are too basic; destination scenes and progress badges are missing.');
 }

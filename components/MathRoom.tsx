@@ -189,8 +189,8 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, level }) =
   const buildTeacherIntro = useCallback((text: string) => {
     if (text.includes('+')) return 'Teacher says: Let us add the groups together.';
     if (text.includes('-')) return 'Teacher says: Start with the big number and count back carefully.';
-    if (text.includes('Ã—')) return 'Teacher says: Look for equal groups and use skip counting.';
-    if (text.includes('Ã·')) return 'Teacher says: Think about sharing into equal groups.';
+    if (text.includes('×')) return 'Teacher says: Look for equal groups and use skip counting.';
+    if (text.includes('÷')) return 'Teacher says: Think about sharing into equal groups.';
     return 'Teacher says: Read the problem carefully and solve one step at a time.';
   }, []);
 
@@ -217,8 +217,8 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, level }) =
     const spokenText = text
       .replace(/\+/g, 'plus')
       .replace(/-/g, 'minus')
-      .replace(/Ã—/g, 'times')
-      .replace(/Ã·/g, 'divided by')
+      .replace(/×/g, 'times')
+      .replace(/÷/g, 'divided by')
       .replace(/=/g, 'equals')
       .replace(/\?/g, '');
     await speakAsync(`Your turn. What is ${spokenText}?`, 0.86, 1.08);
@@ -280,8 +280,8 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, level }) =
     const operation =
       problem.question.includes('+') ? 'add'
         : problem.question.includes('-') ? 'subtract'
-          : problem.question.includes('Ã—') ? 'groups'
-            : problem.question.includes('Ã·') ? 'share'
+          : problem.question.includes('×') ? 'groups'
+            : problem.question.includes('÷') ? 'share'
               : 'solve';
     const firstCount = Math.min(numbers[0] || 0, 12);
     const secondCount = Math.min(numbers[1] || 0, 12);

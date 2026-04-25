@@ -57,6 +57,35 @@ const distIndex = fs.existsSync(path.join(root, 'dist/index.html'))
   ? fs.readFileSync(path.join(root, 'dist/index.html'), 'utf8')
   : '';
 
+const sourceFilesToScan = [
+  'App.tsx',
+  'components/ArtRoom.tsx',
+  'components/CodingRoom.tsx',
+  'components/GeographyRoom.tsx',
+  'components/Guide.tsx',
+  'components/LanguageRoom.tsx',
+  'components/MathRoom.tsx',
+  'components/MusicRoom.tsx',
+  'components/ParentDashboard.tsx',
+  'components/PuzzleRoom.tsx',
+  'components/ReadingRoom.tsx',
+  'components/ScienceRoom.tsx',
+  'components/StoryBook.tsx',
+  'components/WorldMap.tsx',
+  'services/audioService.ts',
+  'services/curriculum.ts',
+  'services/voiceCacheService.ts',
+  'types.ts',
+];
+
+const mojibakePattern = /Ã|Â|ðŸ|âœ|â˜|â­|âš|â/;
+for (const file of sourceFilesToScan) {
+  const source = fs.readFileSync(path.join(root, file), 'utf8');
+  if (mojibakePattern.test(source)) {
+    fail(`Possible text encoding/mojibake artifact found in ${file}.`);
+  }
+}
+
 if (!appSource.includes('Parent Setup')) fail('Parent setup screen is not wired in App.tsx.');
 if (appSource.includes("components/Playground") || appSource.includes('RoomType.PLAYGROUND') || worldMapSource.includes('Free Play')) {
   fail('Playground should stay removed from the launch app surface.');

@@ -6,6 +6,7 @@ import { VirtualPetPanel, PetSelection } from './components/VirtualPet';
 import { AchievementsPanel, AchievementUnlockToast } from './components/AchievementsPanel';
 import { ParentDashboard } from './components/ParentDashboard';
 import { LegalInfo } from './components/LegalInfo';
+import { getUnitsForGrade } from './services/curriculum';
 import {
   RoomType,
   UserProgress,
@@ -27,7 +28,7 @@ import {
 } from './types';
 import { resumeAudioContext, playSuccess, speak, stopSpeaking, setNarrationContext, setSpeechPreferences } from './services/audioService';
 import { updateSkillMetrics, updateLearningProfile, getEncouragingMessage } from './services/adaptiveLearning';
-import { BookOpen, CheckCircle2, LockKeyhole, Play, ShieldCheck, Sparkles } from 'lucide-react';
+import { BookOpen, CheckCircle2, Lightbulb, LockKeyhole, MessageCircle, Play, ShieldCheck, Sparkles, Target, X } from 'lucide-react';
 
 const MathRoom = lazy(() => import('./components/MathRoom').then(module => ({ default: module.MathRoom })));
 const ReadingRoom = lazy(() => import('./components/ReadingRoom').then(module => ({ default: module.ReadingRoom })));
@@ -42,6 +43,16 @@ const PuzzleRoom = lazy(() => import('./components/PuzzleRoom').then(module => (
 
 const PROFILES_KEY = 'kidGeniusProfiles';
 const ACTIVE_PROFILE_KEY = 'kidGeniusActiveProfileId';
+
+interface LearningReflection {
+  roomLabel: string;
+  title: string;
+  objective: string;
+  parentActivity?: string;
+  successCheck?: string;
+  practiceCount: number;
+  mastered: boolean;
+}
 
 const gradeToLevel: { [key in GradeLevel]: number } = {
   [GradeLevel.PRE_K]: 1,
@@ -83,6 +94,19 @@ const requiredGradeRooms = [
   RoomType.MUSIC,
   RoomType.PUZZLE,
 ];
+
+const roomReflectionLabels: Partial<Record<RoomType, string>> = {
+  [RoomType.MATH]: 'Math',
+  [RoomType.READING]: 'Reading',
+  [RoomType.STORYBOOK]: 'Story Time',
+  [RoomType.SCIENCE]: 'Science',
+  [RoomType.GEOGRAPHY]: 'Geography',
+  [RoomType.CODING]: 'Coding',
+  [RoomType.LANGUAGE]: 'Languages',
+  [RoomType.ART]: 'Art',
+  [RoomType.MUSIC]: 'Music',
+  [RoomType.PUZZLE]: 'Puzzle',
+};
 
 const hasBalancedGradeMastery = (progress: UserProgress, level: number): boolean => {
   const required = gradeMasteryMinimums[level] || Number.POSITIVE_INFINITY;
@@ -223,6 +247,7 @@ const App: React.FC = () => {
   const [guideTrigger, setGuideTrigger] = useState(0);
   const [newAchievement, setNewAchievement] = useState<Achievement | null>(null);
   const [activeUnitId, setActiveUnitId] = useState<string | null>(null);
+  const [learningReflection, setLearningReflection] = useState<LearningReflection | null>(null);
   const [parentOnboarded, setParentOnboarded] = useState(() => localStorage.getItem('kidGeniusParentOnboarded') === 'true');
   const [legalView, setLegalView] = useState<'privacy' | 'terms' | null>(null);
   const [parentPin, setParentPin] = useState(() => localStorage.getItem('kidGeniusParentPin') || '');
@@ -653,8 +678,28 @@ const App: React.FC = () => {
     return Holiday.NONE;
   };
 
+  const prepareLearningReflection = (subject?: string): LearningReflection => {
+    const activeUnit = activeUnitId
+      ? getUnitsForGrade(progress.currentGrade).find(unit => unit.id === activeUnitId)
+      : undefined;
+    const currentPracticeCount = activeUnitId ? (progress.unitPracticeCounts?.[activeUnitId] || 0) : 0;
+    const nextPracticeCount = activeUnitId ? Math.min(currentPracticeCount + 1, 3) : 1;
+    const roomLabel = roomReflectionLabels[currentRoom] || (subject ? subject.replace(/^\w/, letter => letter.toUpperCase()) : 'Learning');
+
+    return {
+      roomLabel,
+      title: activeUnit?.title || `${roomLabel} practice`,
+      objective: activeUnit?.objective || `You practiced ${roomLabel.toLowerCase()} and earned progress toward your next goal.`,
+      parentActivity: activeUnit?.parentActivity,
+      successCheck: activeUnit?.successCheck,
+      practiceCount: nextPracticeCount,
+      mastered: Boolean(activeUnitId && nextPracticeCount >= 3),
+    };
+  };
+
   const addSticker = (subject?: string) => {
     playSuccess();
+    const reflection = prepareLearningReflection(subject);
 
     const holiday = getCurrentHoliday();
     const seasonalStickers = SEASONAL_STICKERS[holiday];
@@ -744,6 +789,7 @@ const App: React.FC = () => {
       newProgress = checkAchievements(newProgress);
       return newProgress;
     });
+    setLearningReflection(reflection);
   };
 
   const handleMathReward = () => {
@@ -1242,6 +1288,91 @@ const App: React.FC = () => {
           onUpdatePet={handleUpdatePet}
           onClose={() => setShowPet(false)}
         />
+      )}
+
+      {learningReflection && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-xl rounded-[28px] border-4 border-emerald-100 bg-white p-5 shadow-2xl">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
+                  <MessageCircle size={26} />
+                </div>
+                <div>
+                  <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-600">Learning Reflection</p>
+                  <h2 className="text-xl font-black text-slate-900">Explain what you learned</h2>
+                </div>
+              </div>
+              <button
+                onClick={() => setLearningReflection(null)}
+                className="rounded-full bg-slate-100 p-2 text-slate-600 hover:bg-slate-200"
+                aria-label="Close Learning Reflection"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="my-5 rounded-[24px] bg-emerald-50 p-4">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                <div>
+                  <p className="text-xs font-black uppercase tracking-[0.14em] text-emerald-700">{learningReflection.roomLabel}</p>
+                  <h3 className="mt-1 text-lg font-black text-slate-900">{learningReflection.title}</h3>
+                  <p className="mt-2 text-sm font-semibold text-slate-700">{learningReflection.objective}</p>
+                </div>
+                <div className="rounded-2xl bg-white px-4 py-3 text-center">
+                  <p className="text-2xl font-black text-emerald-700">{learningReflection.practiceCount}/3</p>
+                  <p className="text-xs font-bold text-slate-500">practice rounds</p>
+                </div>
+              </div>
+              {learningReflection.mastered && (
+                <div className="mt-3 rounded-2xl bg-white p-3 text-sm font-black text-emerald-700">
+                  Mastery check reached. This lesson can move into review.
+                </div>
+              )}
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-3">
+              {[
+                { icon: <Lightbulb size={18} />, label: 'What strategy worked?', copy: 'Say the trick, clue, or step that helped you solve it.' },
+                { icon: <Target size={18} />, label: 'What was tricky?', copy: 'Name the part that made your brain work harder.' },
+                { icon: <BookOpen size={18} />, label: 'Teach it back', copy: learningReflection.successCheck || 'Explain one idea out loud like you are the teacher.' },
+              ].map(prompt => (
+                <div key={prompt.label} className="rounded-2xl border border-slate-100 bg-slate-50 p-3">
+                  <div className="flex items-center gap-2 text-slate-700">
+                    {prompt.icon}
+                    <p className="text-sm font-black">{prompt.label}</p>
+                  </div>
+                  <p className="mt-2 text-xs font-semibold text-slate-600">{prompt.copy}</p>
+                </div>
+              ))}
+            </div>
+
+            {learningReflection.parentActivity && (
+              <div className="mt-4 rounded-2xl border border-amber-100 bg-amber-50 p-3">
+                <p className="text-xs font-black uppercase tracking-[0.14em] text-amber-700">At-home follow-up</p>
+                <p className="mt-1 text-sm font-bold text-amber-900">{learningReflection.parentActivity}</p>
+              </div>
+            )}
+
+            <div className="mt-5 flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={() => setLearningReflection(null)}
+                className="flex-1 rounded-2xl bg-emerald-600 px-5 py-3 font-black text-white shadow-lg hover:bg-emerald-700"
+              >
+                Keep Practicing
+              </button>
+              <button
+                onClick={() => {
+                  setLearningReflection(null);
+                  handleBack();
+                }}
+                className="flex-1 rounded-2xl bg-slate-100 px-5 py-3 font-black text-slate-700 hover:bg-slate-200"
+              >
+                Back to World
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Achievement Unlock Toast */}

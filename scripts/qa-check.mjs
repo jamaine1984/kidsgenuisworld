@@ -316,6 +316,9 @@ if (!parentDashboardSource.includes('Parent Activity') || !parentDashboardSource
 if (!parentDashboardSource.includes('Parent Learning Report') || !parentDashboardSource.includes('Practice rhythm') || !parentDashboardSource.includes('Next parent actions') || !parentDashboardSource.includes('Print Weekly Report')) {
   fail('Parent dashboard needs plain-language weekly learning insights for paid-user readiness.');
 }
+if (!appSource.includes('Learning Reflection') || !appSource.includes('Explain what you learned') || !appSource.includes('Teach it back') || !appSource.includes('practice rounds')) {
+  fail('Reward flow needs a kid-facing learning reflection after practice.');
+}
 if (!worldMapSource.includes('At-home idea') || !worldMapSource.includes('Review in') || !worldMapSource.includes('Story Time')) {
   fail('World map daily path does not surface curriculum guidance clearly.');
 }

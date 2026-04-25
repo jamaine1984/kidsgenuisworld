@@ -422,7 +422,8 @@ export interface LanguageWord {
   translation: string;
   pronunciation: string;
   language: 'spanish' | 'french' | 'mandarin' | 'japanese';
-  category: 'greetings' | 'numbers' | 'colors' | 'animals' | 'food' | 'family';
+  category: 'greetings' | 'numbers' | 'colors' | 'animals' | 'food' | 'family' | 'school' | 'places' | 'phrases';
+  gradeLevel?: number;
   audio?: string;
 }
 

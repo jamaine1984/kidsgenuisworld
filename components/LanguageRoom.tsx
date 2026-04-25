@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, Languages, Star, Volume2, Flag, Heart } from 'lucide-react';
+import { ArrowLeft, Languages, Star, Volume2, Heart } from 'lucide-react';
 import { LanguageWord } from '../types';
-import { speak, speakAsync, speakCorrect, speakWrong, speakQuestion, playSuccess, playWrongBuzzer } from '../services/audioService';
+import { speakAsync, speakCorrect, speakWrong, playSuccess, playWrongBuzzer } from '../services/audioService';
 
 interface LanguageRoomProps {
   level: number;
@@ -9,104 +9,132 @@ interface LanguageRoomProps {
   onReward: () => void;
 }
 
-// Language vocabulary with translations
+// Grade-paced language vocabulary. Translations are romanized/ASCII so cached narration and UI labels stay stable.
 export const VOCABULARY: { [key: string]: LanguageWord[] } = {
   spanish: [
-    // Greetings
-    { english: 'Hello', translation: 'Hola', pronunciation: 'OH-lah', language: 'spanish', category: 'greetings' },
-    { english: 'Goodbye', translation: 'Adiós', pronunciation: 'ah-dee-OHS', language: 'spanish', category: 'greetings' },
-    { english: 'Please', translation: 'Por favor', pronunciation: 'por fah-VOR', language: 'spanish', category: 'greetings' },
-    { english: 'Thank you', translation: 'Gracias', pronunciation: 'GRAH-see-ahs', language: 'spanish', category: 'greetings' },
-    { english: 'Good morning', translation: 'Buenos días', pronunciation: 'BWEH-nohs DEE-ahs', language: 'spanish', category: 'greetings' },
-    // Numbers
-    { english: 'One', translation: 'Uno', pronunciation: 'OO-noh', language: 'spanish', category: 'numbers' },
-    { english: 'Two', translation: 'Dos', pronunciation: 'dohs', language: 'spanish', category: 'numbers' },
-    { english: 'Three', translation: 'Tres', pronunciation: 'trehs', language: 'spanish', category: 'numbers' },
-    { english: 'Four', translation: 'Cuatro', pronunciation: 'KWAH-troh', language: 'spanish', category: 'numbers' },
-    { english: 'Five', translation: 'Cinco', pronunciation: 'SEEN-koh', language: 'spanish', category: 'numbers' },
-    // Colors
-    { english: 'Red', translation: 'Rojo', pronunciation: 'ROH-hoh', language: 'spanish', category: 'colors' },
-    { english: 'Blue', translation: 'Azul', pronunciation: 'ah-SOOL', language: 'spanish', category: 'colors' },
-    { english: 'Green', translation: 'Verde', pronunciation: 'BEHR-deh', language: 'spanish', category: 'colors' },
-    { english: 'Yellow', translation: 'Amarillo', pronunciation: 'ah-mah-REE-yoh', language: 'spanish', category: 'colors' },
-    // Animals
-    { english: 'Dog', translation: 'Perro', pronunciation: 'PEH-rroh', language: 'spanish', category: 'animals' },
-    { english: 'Cat', translation: 'Gato', pronunciation: 'GAH-toh', language: 'spanish', category: 'animals' },
-    { english: 'Bird', translation: 'Pájaro', pronunciation: 'PAH-hah-roh', language: 'spanish', category: 'animals' },
-    // Food
-    { english: 'Apple', translation: 'Manzana', pronunciation: 'mahn-SAH-nah', language: 'spanish', category: 'food' },
-    { english: 'Water', translation: 'Agua', pronunciation: 'AH-gwah', language: 'spanish', category: 'food' },
-    { english: 'Bread', translation: 'Pan', pronunciation: 'pahn', language: 'spanish', category: 'food' },
-    // Family
-    { english: 'Mom', translation: 'Mamá', pronunciation: 'mah-MAH', language: 'spanish', category: 'family' },
-    { english: 'Dad', translation: 'Papá', pronunciation: 'pah-PAH', language: 'spanish', category: 'family' },
-    { english: 'Friend', translation: 'Amigo', pronunciation: 'ah-MEE-goh', language: 'spanish', category: 'family' },
+    { gradeLevel: 1, english: 'Hello', translation: 'Hola', pronunciation: 'OH-lah', language: 'spanish', category: 'greetings' },
+    { gradeLevel: 1, english: 'Goodbye', translation: 'Adios', pronunciation: 'ah-dee-OHS', language: 'spanish', category: 'greetings' },
+    { gradeLevel: 1, english: 'Please', translation: 'Por favor', pronunciation: 'por fah-VOR', language: 'spanish', category: 'greetings' },
+    { gradeLevel: 1, english: 'Thank you', translation: 'Gracias', pronunciation: 'GRAH-see-ahs', language: 'spanish', category: 'greetings' },
+    { gradeLevel: 2, english: 'One', translation: 'Uno', pronunciation: 'OO-noh', language: 'spanish', category: 'numbers' },
+    { gradeLevel: 2, english: 'Two', translation: 'Dos', pronunciation: 'dohs', language: 'spanish', category: 'numbers' },
+    { gradeLevel: 2, english: 'Three', translation: 'Tres', pronunciation: 'trehs', language: 'spanish', category: 'numbers' },
+    { gradeLevel: 2, english: 'Red', translation: 'Rojo', pronunciation: 'ROH-hoh', language: 'spanish', category: 'colors' },
+    { gradeLevel: 3, english: 'Blue', translation: 'Azul', pronunciation: 'ah-SOOL', language: 'spanish', category: 'colors' },
+    { gradeLevel: 3, english: 'Green', translation: 'Verde', pronunciation: 'BEHR-deh', language: 'spanish', category: 'colors' },
+    { gradeLevel: 3, english: 'Dog', translation: 'Perro', pronunciation: 'PEH-rroh', language: 'spanish', category: 'animals' },
+    { gradeLevel: 3, english: 'Cat', translation: 'Gato', pronunciation: 'GAH-toh', language: 'spanish', category: 'animals' },
+    { gradeLevel: 4, english: 'Apple', translation: 'Manzana', pronunciation: 'mahn-SAH-nah', language: 'spanish', category: 'food' },
+    { gradeLevel: 4, english: 'Water', translation: 'Agua', pronunciation: 'AH-gwah', language: 'spanish', category: 'food' },
+    { gradeLevel: 4, english: 'School', translation: 'Escuela', pronunciation: 'ehs-KWEH-lah', language: 'spanish', category: 'school' },
+    { gradeLevel: 4, english: 'Book', translation: 'Libro', pronunciation: 'LEE-broh', language: 'spanish', category: 'school' },
+    { gradeLevel: 5, english: 'Mom', translation: 'Mama', pronunciation: 'mah-MAH', language: 'spanish', category: 'family' },
+    { gradeLevel: 5, english: 'Dad', translation: 'Papa', pronunciation: 'pah-PAH', language: 'spanish', category: 'family' },
+    { gradeLevel: 5, english: 'Friend', translation: 'Amigo', pronunciation: 'ah-MEE-goh', language: 'spanish', category: 'family' },
+    { gradeLevel: 5, english: 'Park', translation: 'Parque', pronunciation: 'PAR-keh', language: 'spanish', category: 'places' },
+    { gradeLevel: 6, english: 'Where is it?', translation: 'Donde esta?', pronunciation: 'DOHN-deh ehs-TAH', language: 'spanish', category: 'phrases' },
+    { gradeLevel: 6, english: 'I like it', translation: 'Me gusta', pronunciation: 'meh GOOS-tah', language: 'spanish', category: 'phrases' },
+    { gradeLevel: 7, english: 'I need help', translation: 'Necesito ayuda', pronunciation: 'neh-seh-SEE-toh ah-YOO-dah', language: 'spanish', category: 'phrases' },
+    { gradeLevel: 7, english: 'See you tomorrow', translation: 'Hasta manana', pronunciation: 'AHS-tah mahn-YAH-nah', language: 'spanish', category: 'phrases' },
   ],
   french: [
-    // Greetings
-    { english: 'Hello', translation: 'Bonjour', pronunciation: 'bon-ZHOOR', language: 'french', category: 'greetings' },
-    { english: 'Goodbye', translation: 'Au revoir', pronunciation: 'oh reh-VWAHR', language: 'french', category: 'greetings' },
-    { english: 'Please', translation: "S'il vous plaît", pronunciation: 'seel voo PLEH', language: 'french', category: 'greetings' },
-    { english: 'Thank you', translation: 'Merci', pronunciation: 'mehr-SEE', language: 'french', category: 'greetings' },
-    // Numbers
-    { english: 'One', translation: 'Un', pronunciation: 'uhn', language: 'french', category: 'numbers' },
-    { english: 'Two', translation: 'Deux', pronunciation: 'duh', language: 'french', category: 'numbers' },
-    { english: 'Three', translation: 'Trois', pronunciation: 'trwah', language: 'french', category: 'numbers' },
-    // Colors
-    { english: 'Red', translation: 'Rouge', pronunciation: 'roozh', language: 'french', category: 'colors' },
-    { english: 'Blue', translation: 'Bleu', pronunciation: 'bluh', language: 'french', category: 'colors' },
-    { english: 'Green', translation: 'Vert', pronunciation: 'vehr', language: 'french', category: 'colors' },
-    // Animals
-    { english: 'Dog', translation: 'Chien', pronunciation: 'shee-EN', language: 'french', category: 'animals' },
-    { english: 'Cat', translation: 'Chat', pronunciation: 'shah', language: 'french', category: 'animals' },
-    // Food
-    { english: 'Apple', translation: 'Pomme', pronunciation: 'puhm', language: 'french', category: 'food' },
-    { english: 'Water', translation: 'Eau', pronunciation: 'oh', language: 'french', category: 'food' },
+    { gradeLevel: 1, english: 'Hello', translation: 'Bonjour', pronunciation: 'bon-ZHOOR', language: 'french', category: 'greetings' },
+    { gradeLevel: 1, english: 'Goodbye', translation: 'Au revoir', pronunciation: 'oh reh-VWAHR', language: 'french', category: 'greetings' },
+    { gradeLevel: 1, english: 'Please', translation: "S'il vous plait", pronunciation: 'seel voo PLEH', language: 'french', category: 'greetings' },
+    { gradeLevel: 1, english: 'Thank you', translation: 'Merci', pronunciation: 'mehr-SEE', language: 'french', category: 'greetings' },
+    { gradeLevel: 2, english: 'One', translation: 'Un', pronunciation: 'uhn', language: 'french', category: 'numbers' },
+    { gradeLevel: 2, english: 'Two', translation: 'Deux', pronunciation: 'duh', language: 'french', category: 'numbers' },
+    { gradeLevel: 2, english: 'Three', translation: 'Trois', pronunciation: 'trwah', language: 'french', category: 'numbers' },
+    { gradeLevel: 2, english: 'Red', translation: 'Rouge', pronunciation: 'roozh', language: 'french', category: 'colors' },
+    { gradeLevel: 3, english: 'Blue', translation: 'Bleu', pronunciation: 'bluh', language: 'french', category: 'colors' },
+    { gradeLevel: 3, english: 'Green', translation: 'Vert', pronunciation: 'vehr', language: 'french', category: 'colors' },
+    { gradeLevel: 3, english: 'Dog', translation: 'Chien', pronunciation: 'shee-EN', language: 'french', category: 'animals' },
+    { gradeLevel: 3, english: 'Cat', translation: 'Chat', pronunciation: 'shah', language: 'french', category: 'animals' },
+    { gradeLevel: 4, english: 'Apple', translation: 'Pomme', pronunciation: 'puhm', language: 'french', category: 'food' },
+    { gradeLevel: 4, english: 'Water', translation: 'Eau', pronunciation: 'oh', language: 'french', category: 'food' },
+    { gradeLevel: 4, english: 'School', translation: 'Ecole', pronunciation: 'ay-KOHL', language: 'french', category: 'school' },
+    { gradeLevel: 4, english: 'Book', translation: 'Livre', pronunciation: 'leev-ruh', language: 'french', category: 'school' },
+    { gradeLevel: 5, english: 'Mom', translation: 'Maman', pronunciation: 'mah-MAHN', language: 'french', category: 'family' },
+    { gradeLevel: 5, english: 'Dad', translation: 'Papa', pronunciation: 'pah-PAH', language: 'french', category: 'family' },
+    { gradeLevel: 5, english: 'Friend', translation: 'Ami', pronunciation: 'ah-MEE', language: 'french', category: 'family' },
+    { gradeLevel: 5, english: 'Park', translation: 'Parc', pronunciation: 'park', language: 'french', category: 'places' },
+    { gradeLevel: 6, english: 'Where is it?', translation: 'Ou est-ce?', pronunciation: 'oo ess', language: 'french', category: 'phrases' },
+    { gradeLevel: 6, english: 'I like it', translation: "J'aime ca", pronunciation: 'zhem sah', language: 'french', category: 'phrases' },
+    { gradeLevel: 7, english: 'I need help', translation: "J'ai besoin d'aide", pronunciation: 'zhay buh-ZWAN ded', language: 'french', category: 'phrases' },
+    { gradeLevel: 7, english: 'See you tomorrow', translation: 'A demain', pronunciation: 'ah duh-MAN', language: 'french', category: 'phrases' },
   ],
   mandarin: [
-    // Greetings
-    { english: 'Hello', translation: '你好', pronunciation: 'nee-HOW', language: 'mandarin', category: 'greetings' },
-    { english: 'Thank you', translation: '谢谢', pronunciation: 'syeh-syeh', language: 'mandarin', category: 'greetings' },
-    { english: 'Goodbye', translation: '再见', pronunciation: 'zai-jyen', language: 'mandarin', category: 'greetings' },
-    // Numbers
-    { english: 'One', translation: '一', pronunciation: 'ee', language: 'mandarin', category: 'numbers' },
-    { english: 'Two', translation: '二', pronunciation: 'er', language: 'mandarin', category: 'numbers' },
-    { english: 'Three', translation: '三', pronunciation: 'san', language: 'mandarin', category: 'numbers' },
-    // Animals
-    { english: 'Dog', translation: '狗', pronunciation: 'go', language: 'mandarin', category: 'animals' },
-    { english: 'Cat', translation: '猫', pronunciation: 'mao', language: 'mandarin', category: 'animals' },
+    { gradeLevel: 1, english: 'Hello', translation: 'Ni hao', pronunciation: 'nee-HOW', language: 'mandarin', category: 'greetings' },
+    { gradeLevel: 1, english: 'Goodbye', translation: 'Zai jian', pronunciation: 'zai-jyen', language: 'mandarin', category: 'greetings' },
+    { gradeLevel: 1, english: 'Please', translation: 'Qing', pronunciation: 'ching', language: 'mandarin', category: 'greetings' },
+    { gradeLevel: 1, english: 'Thank you', translation: 'Xie xie', pronunciation: 'syeh-syeh', language: 'mandarin', category: 'greetings' },
+    { gradeLevel: 2, english: 'One', translation: 'Yi', pronunciation: 'ee', language: 'mandarin', category: 'numbers' },
+    { gradeLevel: 2, english: 'Two', translation: 'Er', pronunciation: 'ar', language: 'mandarin', category: 'numbers' },
+    { gradeLevel: 2, english: 'Three', translation: 'San', pronunciation: 'sahn', language: 'mandarin', category: 'numbers' },
+    { gradeLevel: 2, english: 'Red', translation: 'Hong se', pronunciation: 'hong suh', language: 'mandarin', category: 'colors' },
+    { gradeLevel: 3, english: 'Blue', translation: 'Lan se', pronunciation: 'lahn suh', language: 'mandarin', category: 'colors' },
+    { gradeLevel: 3, english: 'Green', translation: 'Lu se', pronunciation: 'lyoo suh', language: 'mandarin', category: 'colors' },
+    { gradeLevel: 3, english: 'Dog', translation: 'Gou', pronunciation: 'go', language: 'mandarin', category: 'animals' },
+    { gradeLevel: 3, english: 'Cat', translation: 'Mao', pronunciation: 'mao', language: 'mandarin', category: 'animals' },
+    { gradeLevel: 4, english: 'Apple', translation: 'Ping guo', pronunciation: 'ping gwoh', language: 'mandarin', category: 'food' },
+    { gradeLevel: 4, english: 'Water', translation: 'Shui', pronunciation: 'shway', language: 'mandarin', category: 'food' },
+    { gradeLevel: 4, english: 'School', translation: 'Xue xiao', pronunciation: 'shweh shyow', language: 'mandarin', category: 'school' },
+    { gradeLevel: 4, english: 'Book', translation: 'Shu', pronunciation: 'shoo', language: 'mandarin', category: 'school' },
+    { gradeLevel: 5, english: 'Mom', translation: 'Mama', pronunciation: 'mah-mah', language: 'mandarin', category: 'family' },
+    { gradeLevel: 5, english: 'Dad', translation: 'Baba', pronunciation: 'bah-bah', language: 'mandarin', category: 'family' },
+    { gradeLevel: 5, english: 'Friend', translation: 'Peng you', pronunciation: 'pung yo', language: 'mandarin', category: 'family' },
+    { gradeLevel: 5, english: 'Park', translation: 'Gong yuan', pronunciation: 'gong ywen', language: 'mandarin', category: 'places' },
+    { gradeLevel: 6, english: 'Where is it?', translation: 'Zai na li?', pronunciation: 'zai nah lee', language: 'mandarin', category: 'phrases' },
+    { gradeLevel: 6, english: 'I like it', translation: 'Wo xihuan', pronunciation: 'woh shee-hwahn', language: 'mandarin', category: 'phrases' },
+    { gradeLevel: 7, english: 'I need help', translation: 'Wo xuyao bangzhu', pronunciation: 'woh shoo-yow bahng-joo', language: 'mandarin', category: 'phrases' },
+    { gradeLevel: 7, english: 'See you tomorrow', translation: 'Mingtian jian', pronunciation: 'ming-tyen jyen', language: 'mandarin', category: 'phrases' },
   ],
   japanese: [
-    // Greetings
-    { english: 'Hello', translation: 'こんにちは', pronunciation: 'kohn-nee-chee-wah', language: 'japanese', category: 'greetings' },
-    { english: 'Thank you', translation: 'ありがとう', pronunciation: 'ah-ree-GAH-toh', language: 'japanese', category: 'greetings' },
-    { english: 'Goodbye', translation: 'さようなら', pronunciation: 'sah-yoh-nah-rah', language: 'japanese', category: 'greetings' },
-    // Numbers
-    { english: 'One', translation: '一', pronunciation: 'ee-chee', language: 'japanese', category: 'numbers' },
-    { english: 'Two', translation: '二', pronunciation: 'nee', language: 'japanese', category: 'numbers' },
-    { english: 'Three', translation: '三', pronunciation: 'sahn', language: 'japanese', category: 'numbers' },
-    // Animals
-    { english: 'Dog', translation: '犬', pronunciation: 'ee-noo', language: 'japanese', category: 'animals' },
-    { english: 'Cat', translation: '猫', pronunciation: 'neh-koh', language: 'japanese', category: 'animals' },
+    { gradeLevel: 1, english: 'Hello', translation: 'Konnichiwa', pronunciation: 'kohn-nee-chee-wah', language: 'japanese', category: 'greetings' },
+    { gradeLevel: 1, english: 'Goodbye', translation: 'Sayonara', pronunciation: 'sah-yoh-nah-rah', language: 'japanese', category: 'greetings' },
+    { gradeLevel: 1, english: 'Please', translation: 'Onegai', pronunciation: 'oh-neh-gai', language: 'japanese', category: 'greetings' },
+    { gradeLevel: 1, english: 'Thank you', translation: 'Arigato', pronunciation: 'ah-ree-GAH-toh', language: 'japanese', category: 'greetings' },
+    { gradeLevel: 2, english: 'One', translation: 'Ichi', pronunciation: 'ee-chee', language: 'japanese', category: 'numbers' },
+    { gradeLevel: 2, english: 'Two', translation: 'Ni', pronunciation: 'nee', language: 'japanese', category: 'numbers' },
+    { gradeLevel: 2, english: 'Three', translation: 'San', pronunciation: 'sahn', language: 'japanese', category: 'numbers' },
+    { gradeLevel: 2, english: 'Red', translation: 'Aka', pronunciation: 'ah-kah', language: 'japanese', category: 'colors' },
+    { gradeLevel: 3, english: 'Blue', translation: 'Ao', pronunciation: 'ah-oh', language: 'japanese', category: 'colors' },
+    { gradeLevel: 3, english: 'Green', translation: 'Midori', pronunciation: 'mee-doh-ree', language: 'japanese', category: 'colors' },
+    { gradeLevel: 3, english: 'Dog', translation: 'Inu', pronunciation: 'ee-noo', language: 'japanese', category: 'animals' },
+    { gradeLevel: 3, english: 'Cat', translation: 'Neko', pronunciation: 'neh-koh', language: 'japanese', category: 'animals' },
+    { gradeLevel: 4, english: 'Apple', translation: 'Ringo', pronunciation: 'reen-goh', language: 'japanese', category: 'food' },
+    { gradeLevel: 4, english: 'Water', translation: 'Mizu', pronunciation: 'mee-zoo', language: 'japanese', category: 'food' },
+    { gradeLevel: 4, english: 'School', translation: 'Gakko', pronunciation: 'gahk-koh', language: 'japanese', category: 'school' },
+    { gradeLevel: 4, english: 'Book', translation: 'Hon', pronunciation: 'hohn', language: 'japanese', category: 'school' },
+    { gradeLevel: 5, english: 'Mom', translation: 'Okaasan', pronunciation: 'oh-kah-sahn', language: 'japanese', category: 'family' },
+    { gradeLevel: 5, english: 'Dad', translation: 'Otoosan', pronunciation: 'oh-toh-sahn', language: 'japanese', category: 'family' },
+    { gradeLevel: 5, english: 'Friend', translation: 'Tomodachi', pronunciation: 'toh-moh-dah-chee', language: 'japanese', category: 'family' },
+    { gradeLevel: 5, english: 'Park', translation: 'Koen', pronunciation: 'koh-en', language: 'japanese', category: 'places' },
+    { gradeLevel: 6, english: 'Where is it?', translation: 'Doko desu ka?', pronunciation: 'doh-koh dess kah', language: 'japanese', category: 'phrases' },
+    { gradeLevel: 6, english: 'I like it', translation: 'Suki desu', pronunciation: 'skee dess', language: 'japanese', category: 'phrases' },
+    { gradeLevel: 7, english: 'I need help', translation: 'Tasukete kudasai', pronunciation: 'tah-soo-keh-teh koo-dah-sai', language: 'japanese', category: 'phrases' },
+    { gradeLevel: 7, english: 'See you tomorrow', translation: 'Mata ashita', pronunciation: 'mah-tah ah-shee-tah', language: 'japanese', category: 'phrases' },
   ],
 };
 
 export const LANGUAGE_INFO = {
-  spanish: { flag: '🇪🇸', name: 'Spanish', color: 'from-red-500 to-yellow-500' },
-  french: { flag: '🇫🇷', name: 'French', color: 'from-blue-500 to-red-500' },
-  mandarin: { flag: '🇨🇳', name: 'Mandarin', color: 'from-red-500 to-yellow-400' },
-  japanese: { flag: '🇯🇵', name: 'Japanese', color: 'from-red-400 to-white' },
+  spanish: { flag: 'ES', name: 'Spanish', color: 'from-red-500 to-yellow-500' },
+  french: { flag: 'FR', name: 'French', color: 'from-blue-500 to-red-500' },
+  mandarin: { flag: 'CN', name: 'Mandarin', color: 'from-red-500 to-yellow-400' },
+  japanese: { flag: 'JP', name: 'Japanese', color: 'from-red-400 to-rose-500' },
 };
 
-const CATEGORY_EMOJIS: { [key: string]: string } = {
-  greetings: '👋',
-  numbers: '🔢',
-  colors: '🌈',
-  animals: '🐾',
-  food: '🍎',
-  family: '👨‍👩‍👧',
+const CATEGORY_LABELS: { [key: string]: string } = {
+  greetings: 'Greeting',
+  numbers: 'Number',
+  colors: 'Color',
+  animals: 'Animal',
+  food: 'Food',
+  family: 'Family',
+  school: 'School',
+  places: 'Place',
+  phrases: 'Phrase',
 };
-
 export const LanguageRoom: React.FC<LanguageRoomProps> = ({ level, onBack, onReward }) => {
   const [selectedLanguage, setSelectedLanguage] = useState<keyof typeof VOCABULARY>('spanish');
   const [currentWord, setCurrentWord] = useState<LanguageWord | null>(null);
@@ -119,6 +147,11 @@ export const LanguageRoom: React.FC<LanguageRoomProps> = ({ level, onBack, onRew
   const [mode, setMode] = useState<'learn' | 'quiz'>('learn');
   const [coachTip, setCoachTip] = useState('');
 
+  const availableWords = useMemo(() => {
+    const words = VOCABULARY[selectedLanguage].filter(word => (word.gradeLevel ?? 1) <= level);
+    return words.length >= 4 ? words : VOCABULARY[selectedLanguage].slice(0, 4);
+  }, [level, selectedLanguage]);
+
   const languageTip = useMemo(() => {
     if (mode === 'learn') return 'Listen, say it, then notice the pronunciation pattern.';
     return 'Think of the sound first, then choose the translation.';
@@ -130,7 +163,7 @@ export const LanguageRoom: React.FC<LanguageRoomProps> = ({ level, onBack, onRew
   }, [mode]);
 
   const getNewWord = () => {
-    const words = VOCABULARY[selectedLanguage];
+    const words = availableWords;
     const word = words[Math.floor(Math.random() * words.length)];
     setCurrentWord(word);
 
@@ -164,7 +197,7 @@ export const LanguageRoom: React.FC<LanguageRoomProps> = ({ level, onBack, onRew
       getNewWord();
     };
     void startLesson();
-  }, [selectedLanguage, mode, languageTip]);
+  }, [selectedLanguage, mode, languageTip, availableWords]);
 
   const speakWord = () => {
     if (currentWord) {
@@ -226,7 +259,7 @@ export const LanguageRoom: React.FC<LanguageRoomProps> = ({ level, onBack, onRew
                 : 'bg-white/30 text-white hover:bg-white/50'
             }`}
           >
-            {LANGUAGE_INFO[lang].flag} {LANGUAGE_INFO[lang].name}
+            {LANGUAGE_INFO[lang].name}
           </button>
         ))}
       </div>
@@ -245,7 +278,7 @@ export const LanguageRoom: React.FC<LanguageRoomProps> = ({ level, onBack, onRew
                   mode === 'learn' ? 'bg-purple-500 text-white' : 'text-gray-600'
                 }`}
               >
-                📚 Learn
+                Learn
               </button>
               <button
                 onClick={() => setMode('quiz')}
@@ -253,7 +286,7 @@ export const LanguageRoom: React.FC<LanguageRoomProps> = ({ level, onBack, onRew
                   mode === 'quiz' ? 'bg-purple-500 text-white' : 'text-gray-600'
                 }`}
               >
-                🎯 Quiz
+                Quiz
               </button>
             </div>
           </div>
@@ -261,7 +294,7 @@ export const LanguageRoom: React.FC<LanguageRoomProps> = ({ level, onBack, onRew
           {/* Category Badge */}
           <div className="text-center mb-4">
             <span className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-wider px-4 py-2 rounded-full bg-gradient-to-r from-pink-100 to-purple-100 text-purple-700">
-              {CATEGORY_EMOJIS[currentWord.category]} {currentWord.category}
+              {CATEGORY_LABELS[currentWord.category] || currentWord.category}
             </span>
           </div>
           <div className="bg-purple-50 border-2 border-purple-100 rounded-2xl px-4 py-3 mb-5">
@@ -323,7 +356,7 @@ export const LanguageRoom: React.FC<LanguageRoomProps> = ({ level, onBack, onRew
                 onClick={getNewWord}
                 className="w-full py-4 bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-bold rounded-xl shadow-lg hover:from-purple-600 hover:to-indigo-600 transition"
               >
-                Next Word →
+                Next Word
               </button>
             </div>
           ) : (
@@ -367,7 +400,9 @@ export const LanguageRoom: React.FC<LanguageRoomProps> = ({ level, onBack, onRew
               {showResult && (
                 <div className={`p-4 rounded-xl mb-4 ${isCorrect ? 'bg-green-100' : 'bg-orange-100'}`}>
                   <div className="flex items-center gap-3">
-                    <span className="text-2xl">{isCorrect ? '🎉' : '💪'}</span>
+                    <span className="rounded-full bg-white px-3 py-1 text-sm font-black uppercase tracking-wide text-slate-700">
+                      {isCorrect ? 'Nice' : 'Learn'}
+                    </span>
                     <div>
                       <p className={`font-bold ${isCorrect ? 'text-green-700' : 'text-orange-700'}`}>
                         {isCorrect ? 'Perfect!' : `It's ${currentWord.translation}`}
@@ -386,7 +421,7 @@ export const LanguageRoom: React.FC<LanguageRoomProps> = ({ level, onBack, onRew
                   onClick={getNewWord}
                   className="w-full py-4 bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-bold rounded-xl shadow-lg hover:from-purple-600 hover:to-indigo-600 transition-all transform hover:scale-105"
                 >
-                  {isCorrect ? 'Next Word! 🌟' : 'Try Another!'}
+                  {isCorrect ? 'Next Word!' : 'Try Another!'}
                 </button>
               )}
             </>

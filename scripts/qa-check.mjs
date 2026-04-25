@@ -268,6 +268,12 @@ for (const gradeLevel of [1, 2, 3, 4, 5, 6, 7]) {
     fail(`Geography room has too few questions for level ${gradeLevel}: found ${geographyCount}, expected at least 8.`);
   }
 }
+for (const language of ['spanish', 'french', 'mandarin', 'japanese']) {
+  const languageWordCount = (languageRoomSource.match(new RegExp(`language: '${language}'`, 'g')) || []).length;
+  if (languageWordCount < 24) {
+    fail(`Language room has too few ${language} words: found ${languageWordCount}, expected at least 24.`);
+  }
+}
 for (const [file, marker] of [
   ['components/ArtRoom.tsx', 'Complete artwork'],
   ['components/MusicRoom.tsx', 'Complete music mission'],
@@ -322,6 +328,9 @@ if (!geographyRoomSource.includes("type: 'map'") || !geographyRoomSource.include
 }
 if (!codingRoomSource.includes('Robot Command Center') || !codingRoomSource.includes('Plan') || !languageRoomSource.includes('Word Passport') || !languageRoomSource.includes('Listen, Say, Match')) {
   fail('Coding and Language rooms need destination-style visual learning props.');
+}
+if (!languageRoomSource.includes('availableWords') || !languageRoomSource.includes('gradeLevel: 7') || !languageRoomSource.includes('CATEGORY_LABELS') || !languageRoomSource.includes('I need help')) {
+  fail('Language room needs grade-paced vocabulary, phrase practice, and clean category labels.');
 }
 if (!artRoomSource.includes('Creative Studio Mission') || !artRoomSource.includes('Artist Checklist') || !puzzleRoomSource.includes('Puzzle Brain Gym') || !puzzleRoomSource.includes('Find what comes next')) {
   fail('Art and Puzzle rooms need clearer kid-facing mission panels.');

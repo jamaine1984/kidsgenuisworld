@@ -90,7 +90,8 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
     ].sort((a, b) => b.score - a.score);
   };
 
-  const maxScore = Math.max(...getSubjectData().map(s => s.score), 1);
+  const subjectData = getSubjectData();
+  const maxScore = Math.max(...subjectData.map(s => s.score), 1);
   const curriculumUnits = getUnitsForGrade(progress.currentGrade);
   const currentGradeUnits = getCurrentGradeUnits(progress.currentGrade);
   const weeklyPlan = getWeeklyLearningPlan(progress);
@@ -108,11 +109,15 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
     .sort((a, b) => b.date.localeCompare(a.date))
     .slice(0, 7);
   const weeklyMinutes = recentDailyStats.reduce((sum, day) => sum + day.timeSpentMinutes, 0);
+  const weeklyAttempted = recentDailyStats.reduce((sum, day) => sum + day.problemsAttempted, 0);
   const weeklyCorrect = recentDailyStats.reduce((sum, day) => sum + day.problemsCorrect, 0);
   const weeklyRooms = Array.from(new Set(recentDailyStats.flatMap(day => day.roomsVisited))).length;
   const weeklyGoalMinutes = progress.weeklyGoalMinutes || 60;
   const dailySessionLimitMinutes = progress.dailySessionLimitMinutes || 20;
   const weeklyGoalPercent = Math.min(100, Math.round((weeklyMinutes / weeklyGoalMinutes) * 100));
+  const activeLearningDays = recentDailyStats.filter(day => day.timeSpentMinutes > 0).length;
+  const healthyPacingDays = recentDailyStats.filter(day => day.timeSpentMinutes > 0 && day.timeSpentMinutes <= dailySessionLimitMinutes).length;
+  const weeklyAccuracy = weeklyAttempted > 0 ? Math.round((weeklyCorrect / weeklyAttempted) * 100) : 0;
   const gradePacingThresholds: { [level: number]: number } = {
     1: 30,
     2: 75,
@@ -225,6 +230,53 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
     'Local parent PIN protects settings and data controls',
     'Curriculum roadmap covers grades and rooms',
     'Progress and learning goals are visible to parents',
+  ];
+  const hasScoredActivities = subjectData.some(subject => subject.score > 0);
+  const strongestSubject = subjectData.find(subject => subject.score > 0);
+  const focusSubject = hasScoredActivities
+    ? [...subjectData].reverse().find(subject => subject.score < (masteryMinimum || 3)) || subjectData[subjectData.length - 1]
+    : undefined;
+  const nextPlanItem = weeklyPlan[0];
+  const learningReportCards = [
+    {
+      label: 'Practice rhythm',
+      value: `${activeLearningDays}/7 days`,
+      detail: activeLearningDays >= 4
+        ? 'Strong weekly rhythm. Keep sessions short and consistent.'
+        : 'Aim for four short practice days before adding longer sessions.',
+    },
+    {
+      label: 'Accuracy signal',
+      value: weeklyAttempted > 0 ? `${weeklyAccuracy}%` : 'Waiting',
+      detail: weeklyAttempted > 0
+        ? `${weeklyCorrect}/${weeklyAttempted} activities correct this week.`
+        : 'Accuracy appears after kids complete scored activities.',
+    },
+    {
+      label: 'Strongest room',
+      value: strongestSubject?.name || 'Not yet',
+      detail: strongestSubject
+        ? `${strongestSubject.score} correct activities recorded.`
+        : 'Complete a scored activity to identify strengths.',
+    },
+    {
+      label: 'Healthy pacing',
+      value: `${healthyPacingDays}/${Math.max(activeLearningDays, 1)} days`,
+      detail: `${dailySessionLimitMinutes} minute daily cap before an offline break.`,
+    },
+  ];
+  const parentNextActions = [
+    focusSubject
+      ? `Give ${focusSubject.name} one short practice block before free exploration.`
+      : nextPlanItem
+        ? `Start with today's guided mission: ${nextPlanItem.unit.title}.`
+        : 'Start with one guided mission before free exploration.',
+    nextPlanItem
+      ? `Use today's parent activity: ${nextPlanItem.unit.parentActivity}`
+      : 'Pick one at-home activity from the weekly plan.',
+    activeLearningDays >= 4
+      ? 'Ask the child to explain one solved problem out loud.'
+      : 'Build a four-day weekly habit with short sessions.',
   ];
 
   const unlockParentDashboard = () => {
@@ -465,7 +517,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 Subject Performance
               </h3>
               <div className="space-y-3">
-                {getSubjectData().map(subject => (
+                {subjectData.map(subject => (
                   <div key={subject.name} className="flex items-center gap-3">
                     <span className="text-2xl w-8">{subject.icon}</span>
                     <div className="flex-1">
@@ -502,6 +554,42 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 ) : (
                   <p className="text-gray-500 text-sm">Keep exploring all the learning rooms!</p>
                 )}
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl p-4 shadow-sm border border-indigo-100">
+              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 mb-4">
+                <div>
+                  <p className="text-xs font-black uppercase tracking-[0.16em] text-indigo-600">Parent Learning Report</p>
+                  <h3 className="text-xl font-black text-gray-900 mt-1">Weekly insight for grown-ups</h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    A plain-language report parents can use to understand practice quality, pacing, and what to do next.
+                  </p>
+                </div>
+                <div className="rounded-xl bg-indigo-50 border border-indigo-100 px-4 py-3 text-left md:text-right">
+                  <p className="text-2xl font-black text-indigo-700">{weeklyGoalPercent}%</p>
+                  <p className="text-xs font-semibold text-indigo-700">weekly goal progress</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                {learningReportCards.map(card => (
+                  <div key={card.label} className="rounded-xl bg-slate-50 border border-slate-100 p-3">
+                    <p className="text-xs font-black uppercase tracking-[0.12em] text-slate-500">{card.label}</p>
+                    <p className="text-xl font-black text-slate-900 mt-1">{card.value}</p>
+                    <p className="text-xs text-slate-600 mt-1">{card.detail}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 rounded-xl bg-emerald-50 border border-emerald-100 p-3">
+                <p className="text-sm font-black text-emerald-800 mb-2">Next parent actions</p>
+                <div className="space-y-2">
+                  {parentNextActions.map(action => (
+                    <div key={action} className="flex items-start gap-2 text-sm text-emerald-900">
+                      <ChevronRight size={16} className="text-emerald-600 mt-0.5 shrink-0" />
+                      <span>{action}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 

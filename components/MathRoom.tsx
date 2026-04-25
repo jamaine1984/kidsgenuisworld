@@ -11,145 +11,173 @@ interface MathRoomProps {
 
 // Generate math problems based on grade level
 const generateMathProblem = (level: number): MathProblem => {
-  let a: number, b: number, question: string, answer: number;
-  let explanation: string;
+  let a = 0;
+  let b = 0;
+  let question = '';
+  let answer = 0;
+  let explanation = '';
+  let operation: MathProblem['operation'] = 'addition';
+  let context: MathProblem['context'] = 'equation';
 
-  switch (level) {
-    case 1: // Pre-K: counting and simple addition 0-5
-      a = Math.floor(Math.random() * 3) + 1;
-      b = Math.floor(Math.random() * 3) + 1;
+  const setEquation = (
+    first: number,
+    second: number,
+    op: 'addition' | 'subtraction' | 'multiplication' | 'division'
+  ) => {
+    a = first;
+    b = second;
+    operation = op;
+    context = 'equation';
+    if (op === 'addition') {
       answer = a + b;
       question = `${a} + ${b} = ?`;
       explanation = `${a} plus ${b} equals ${answer}`;
-      break;
+    } else if (op === 'subtraction') {
+      answer = a - b;
+      question = `${a} - ${b} = ?`;
+      explanation = `${a} minus ${b} equals ${answer}`;
+    } else if (op === 'multiplication') {
+      answer = a * b;
+      question = `${a} times ${b} = ?`;
+      explanation = `${a} times ${b} equals ${answer}`;
+    } else {
+      answer = b;
+      const total = a * b;
+      question = `${total} divided by ${a} = ?`;
+      explanation = `${total} divided by ${a} equals ${answer}`;
+    }
+  };
 
-    case 2: // Kindergarten: addition and subtraction 0-10
-      if (Math.random() > 0.5) {
-        a = Math.floor(Math.random() * 6) + 1;
-        b = Math.floor(Math.random() * 5) + 1;
-        answer = a + b;
-        question = `${a} + ${b} = ?`;
-        explanation = `${a} plus ${b} equals ${answer}`;
-      } else {
-        a = Math.floor(Math.random() * 6) + 5;
-        b = Math.floor(Math.random() * a);
-        answer = a - b;
-        question = `${a} - ${b} = ?`;
-        explanation = `${a} minus ${b} equals ${answer}`;
-      }
-      break;
+  const setWordProblem = () => {
+    const template = Math.floor(Math.random() * 3);
+    context = 'word-problem';
+    if (template === 0) {
+      a = Math.floor(Math.random() * 8) + 4;
+      b = Math.floor(Math.random() * 6) + 2;
+      operation = 'addition';
+      answer = a + b;
+      question = `Mia has ${a} apples. Dad gives her ${b} more. How many apples does Mia have now?`;
+      explanation = `${a} apples plus ${b} more apples equals ${answer} apples.`;
+    } else if (template === 1) {
+      a = Math.floor(Math.random() * 12) + 8;
+      b = Math.floor(Math.random() * 6) + 2;
+      operation = 'subtraction';
+      answer = a - b;
+      question = `Noah has ${a} stickers. He uses ${b} stickers on a card. How many stickers are left?`;
+      explanation = `${a} stickers minus ${b} stickers equals ${answer} stickers left.`;
+    } else {
+      a = Math.floor(Math.random() * 4) + 2;
+      b = Math.floor(Math.random() * 4) + 2;
+      operation = 'multiplication';
+      answer = a * b;
+      question = `There are ${a} bags with ${b} marbles in each bag. How many marbles are there in all?`;
+      explanation = `${a} equal groups of ${b} makes ${answer} marbles.`;
+    }
+  };
 
-    case 3: // 1st Grade: addition and subtraction 0-20
-      if (Math.random() > 0.5) {
-        a = Math.floor(Math.random() * 10) + 1;
-        b = Math.floor(Math.random() * 10) + 1;
-        answer = a + b;
-        question = `${a} + ${b} = ?`;
-        explanation = `${a} plus ${b} equals ${answer}`;
-      } else {
-        a = Math.floor(Math.random() * 10) + 10;
-        b = Math.floor(Math.random() * 10);
-        answer = a - b;
-        question = `${a} - ${b} = ?`;
-        explanation = `${a} minus ${b} equals ${answer}`;
-      }
-      break;
+  const setMoneyProblem = () => {
+    const dimes = Math.floor(Math.random() * 4) + 1;
+    const nickels = Math.floor(Math.random() * 3) + 1;
+    a = dimes;
+    b = nickels;
+    operation = 'money';
+    context = 'money';
+    answer = dimes * 10 + nickels * 5;
+    question = `You have ${dimes} dimes and ${nickels} nickels. How many cents do you have?`;
+    explanation = `${dimes} dimes are ${dimes * 10} cents, and ${nickels} nickels are ${nickels * 5} cents. That makes ${answer} cents.`;
+  };
 
-    case 4: // 2nd Grade: larger addition/subtraction, intro multiplication
-      const rand4 = Math.random();
-      if (rand4 > 0.66) {
-        a = Math.floor(Math.random() * 50) + 10;
-        b = Math.floor(Math.random() * 50) + 10;
-        answer = a + b;
-        question = `${a} + ${b} = ?`;
-        explanation = `${a} plus ${b} equals ${answer}`;
-      } else if (rand4 > 0.33) {
-        a = Math.floor(Math.random() * 50) + 50;
-        b = Math.floor(Math.random() * 50);
-        answer = a - b;
-        question = `${a} - ${b} = ?`;
-        explanation = `${a} minus ${b} equals ${answer}`;
-      } else {
-        a = Math.floor(Math.random() * 5) + 1;
-        b = Math.floor(Math.random() * 5) + 1;
-        answer = a * b;
-        question = `${a} × ${b} = ?`;
-        explanation = `${a} times ${b} equals ${answer}`;
-      }
-      break;
+  const setTimeProblem = () => {
+    const startHour = Math.floor(Math.random() * 5) + 1;
+    const addHours = Math.floor(Math.random() * 3) + 1;
+    a = startHour;
+    b = addHours;
+    operation = 'time';
+    context = 'time';
+    answer = startHour + addHours;
+    question = `Practice starts at ${startHour}:00 and lasts ${addHours} hours. What hour does practice end?`;
+    explanation = `${startHour}:00 plus ${addHours} hours lands on ${answer}:00.`;
+  };
 
-    case 5: // 3rd Grade: multiplication facts, simple division
-      if (Math.random() > 0.5) {
-        a = Math.floor(Math.random() * 10) + 1;
-        b = Math.floor(Math.random() * 10) + 1;
-        answer = a * b;
-        question = `${a} × ${b} = ?`;
-        explanation = `${a} times ${b} equals ${answer}`;
-      } else {
-        b = Math.floor(Math.random() * 9) + 2;
-        answer = Math.floor(Math.random() * 10) + 1;
-        a = b * answer;
-        question = `${a} ÷ ${b} = ?`;
-        explanation = `${a} divided by ${b} equals ${answer}`;
-      }
-      break;
+  const setFractionProblem = () => {
+    const denominator = [2, 3, 4, 6][Math.floor(Math.random() * 4)];
+    const numerator = Math.floor(Math.random() * (denominator - 1)) + 1;
+    a = denominator;
+    b = numerator;
+    operation = 'fraction';
+    context = 'fraction';
+    answer = denominator - numerator;
+    question = `A snack is cut into ${denominator} equal pieces. You eat ${numerator} pieces. How many pieces are left?`;
+    explanation = `${denominator} total pieces minus ${numerator} eaten pieces leaves ${answer} pieces.`;
+  };
 
-    case 6: // 4th Grade: multi-digit multiplication
-      if (Math.random() > 0.5) {
-        a = Math.floor(Math.random() * 12) + 1;
-        b = Math.floor(Math.random() * 12) + 1;
-        answer = a * b;
-        question = `${a} × ${b} = ?`;
-        explanation = `${a} times ${b} equals ${answer}`;
-      } else {
-        b = Math.floor(Math.random() * 10) + 2;
-        answer = Math.floor(Math.random() * 12) + 1;
-        a = b * answer;
-        question = `${a} ÷ ${b} = ?`;
-        explanation = `${a} divided by ${b} equals ${answer}`;
-      }
-      break;
+  const setGeometryProblem = () => {
+    const sides = [3, 4, 5, 6][Math.floor(Math.random() * 4)];
+    const shapeName = sides === 3 ? 'triangle' : sides === 4 ? 'quadrilateral' : sides === 5 ? 'pentagon' : 'hexagon';
+    a = sides;
+    b = 0;
+    operation = 'geometry';
+    context = 'geometry';
+    answer = sides;
+    question = `How many sides does a ${shapeName} have?`;
+    explanation = `A ${shapeName} has ${answer} sides.`;
+  };
 
-    case 7: // 5th Grade: all operations with larger numbers
-    default:
-      const rand7 = Math.random();
-      if (rand7 > 0.75) {
-        a = Math.floor(Math.random() * 100) + 50;
-        b = Math.floor(Math.random() * 100) + 50;
-        answer = a + b;
-        question = `${a} + ${b} = ?`;
-        explanation = `${a} plus ${b} equals ${answer}`;
-      } else if (rand7 > 0.5) {
-        a = Math.floor(Math.random() * 100) + 100;
-        b = Math.floor(Math.random() * 100);
-        answer = a - b;
-        question = `${a} - ${b} = ?`;
-        explanation = `${a} minus ${b} equals ${answer}`;
-      } else if (rand7 > 0.25) {
-        a = Math.floor(Math.random() * 12) + 2;
-        b = Math.floor(Math.random() * 12) + 2;
-        answer = a * b;
-        question = `${a} × ${b} = ?`;
-        explanation = `${a} times ${b} equals ${answer}`;
-      } else {
-        b = Math.floor(Math.random() * 11) + 2;
-        answer = Math.floor(Math.random() * 12) + 2;
-        a = b * answer;
-        question = `${a} ÷ ${b} = ?`;
-        explanation = `${a} divided by ${b} equals ${answer}`;
-      }
-      break;
+  const pick = (actions: Array<() => void>) => actions[Math.floor(Math.random() * actions.length)]();
+
+  if (level <= 1) {
+    setEquation(Math.floor(Math.random() * 3) + 1, Math.floor(Math.random() * 3) + 1, 'addition');
+  } else if (level === 2) {
+    if (Math.random() > 0.5) {
+      setEquation(Math.floor(Math.random() * 6) + 1, Math.floor(Math.random() * 5) + 1, 'addition');
+    } else {
+      const startValue = Math.floor(Math.random() * 6) + 5;
+      setEquation(startValue, Math.floor(Math.random() * startValue), 'subtraction');
+    }
+  } else if (level === 3) {
+    pick([
+      () => setEquation(Math.floor(Math.random() * 10) + 1, Math.floor(Math.random() * 10) + 1, 'addition'),
+      () => setEquation(Math.floor(Math.random() * 10) + 10, Math.floor(Math.random() * 10), 'subtraction'),
+      setWordProblem,
+    ]);
+  } else if (level === 4) {
+    pick([
+      () => setEquation(Math.floor(Math.random() * 50) + 10, Math.floor(Math.random() * 50) + 10, 'addition'),
+      () => setEquation(Math.floor(Math.random() * 50) + 50, Math.floor(Math.random() * 50), 'subtraction'),
+      () => setEquation(Math.floor(Math.random() * 5) + 1, Math.floor(Math.random() * 5) + 1, 'multiplication'),
+      setWordProblem,
+      setMoneyProblem,
+      setTimeProblem,
+    ]);
+  } else if (level === 5) {
+    pick([
+      () => setEquation(Math.floor(Math.random() * 10) + 1, Math.floor(Math.random() * 10) + 1, 'multiplication'),
+      () => setEquation(Math.floor(Math.random() * 9) + 2, Math.floor(Math.random() * 10) + 1, 'division'),
+      setWordProblem,
+      setFractionProblem,
+      setGeometryProblem,
+    ]);
+  } else {
+    pick([
+      () => setEquation(Math.floor(Math.random() * 100) + 50, Math.floor(Math.random() * 100) + 50, 'addition'),
+      () => setEquation(Math.floor(Math.random() * 100) + 100, Math.floor(Math.random() * 100), 'subtraction'),
+      () => setEquation(Math.floor(Math.random() * 12) + 2, Math.floor(Math.random() * 12) + 2, 'multiplication'),
+      () => setEquation(Math.floor(Math.random() * 11) + 2, Math.floor(Math.random() * 12) + 2, 'division'),
+      setWordProblem,
+      setFractionProblem,
+      setGeometryProblem,
+    ]);
   }
 
-  // Generate options
   const options = new Set<number>([answer]);
   while (options.size < 4) {
     const offset = Math.floor(Math.random() * 10) - 5;
-    if (offset !== 0 && answer + offset > 0) {
-      options.add(answer + offset);
+    const candidate = answer + offset;
+    if (offset !== 0 && candidate >= 0) {
+      options.add(candidate);
     }
     if (options.size < 4) {
-      options.add(Math.max(1, answer + Math.floor(Math.random() * 20) - 10));
+      options.add(Math.max(0, answer + Math.floor(Math.random() * 20) - 10));
     }
   }
 
@@ -157,12 +185,13 @@ const generateMathProblem = (level: number): MathProblem => {
     question,
     answer,
     options: Array.from(options).sort(() => Math.random() - 0.5),
+    operation,
+    context,
     difficulty: Math.min(level, 5) as 1 | 2 | 3 | 4 | 5,
     explanation,
     subject: 'math'
   };
 };
-
 export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, level }) => {
   const [problem, setProblem] = useState<MathProblem | null>(null);
   const [streak, setStreak] = useState(0);
@@ -178,22 +207,31 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, level }) =
     return 'Estimate first, then solve carefully';
   }, [level]);
 
-  const buildCoachTip = useCallback((text: string) => {
-    if (text.includes('+')) return 'Touch each group and count all together.';
-    if (text.includes('-')) return 'Start with the big number, then count back.';
-    if (text.includes('×')) return 'Think of equal groups and skip count.';
-    if (text.includes('÷')) return 'Split the total into equal groups.';
+  const buildCoachTip = useCallback((currentProblem: MathProblem) => {
+    if (currentProblem.context === 'word-problem') return 'Underline the numbers, then decide what the story is asking.';
+    if (currentProblem.context === 'money') return 'Count coin values first, then add the cents.';
+    if (currentProblem.context === 'time') return 'Start at the clock time and count hours forward.';
+    if (currentProblem.context === 'fraction') return 'Think about equal pieces and subtract the pieces used.';
+    if (currentProblem.context === 'geometry') return 'Picture the shape and count each side once.';
+    if (currentProblem.operation === 'addition') return 'Touch each group and count all together.';
+    if (currentProblem.operation === 'subtraction') return 'Start with the big number, then count back.';
+    if (currentProblem.operation === 'multiplication') return 'Think of equal groups and skip count.';
+    if (currentProblem.operation === 'division') return 'Split the total into equal groups.';
     return 'Take your time and solve one step at a time.';
   }, []);
 
-  const buildTeacherIntro = useCallback((text: string) => {
-    if (text.includes('+')) return 'Teacher says: Let us add the groups together.';
-    if (text.includes('-')) return 'Teacher says: Start with the big number and count back carefully.';
-    if (text.includes('×')) return 'Teacher says: Look for equal groups and use skip counting.';
-    if (text.includes('÷')) return 'Teacher says: Think about sharing into equal groups.';
+  const buildTeacherIntro = useCallback((currentProblem: MathProblem) => {
+    if (currentProblem.context === 'word-problem') return 'Teacher says: Read the whole story problem before solving.';
+    if (currentProblem.context === 'money') return 'Teacher says: Money problems use coin values.';
+    if (currentProblem.context === 'time') return 'Teacher says: Time problems use the clock and elapsed hours.';
+    if (currentProblem.context === 'fraction') return 'Teacher says: Fractions are equal pieces of one whole.';
+    if (currentProblem.context === 'geometry') return 'Teacher says: Geometry problems use shape clues.';
+    if (currentProblem.operation === 'addition') return 'Teacher says: Let us add the groups together.';
+    if (currentProblem.operation === 'subtraction') return 'Teacher says: Start with the big number and count back carefully.';
+    if (currentProblem.operation === 'multiplication') return 'Teacher says: Look for equal groups and use skip counting.';
+    if (currentProblem.operation === 'division') return 'Teacher says: Think about sharing into equal groups.';
     return 'Teacher says: Read the problem carefully and solve one step at a time.';
   }, []);
-
   const speakMathQuestion = useCallback((text: string) => {
     if (isSpeaking) return;
     setIsSpeaking(true);
@@ -210,31 +248,28 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, level }) =
     setTimeout(() => setIsSpeaking(false), 2000);
   }, [isSpeaking]);
 
-  const teachProblem = useCallback(async (text: string) => {
+  const teachProblem = useCallback(async (currentProblem: MathProblem) => {
     setIsSpeaking(true);
-    await speakAsync(buildTeacherIntro(text), 0.88, 1.05);
-    await speakAsync(buildCoachTip(text), 0.86, 1.02);
-    const spokenText = text
+    await speakAsync(buildTeacherIntro(currentProblem), 0.88, 1.05);
+    await speakAsync(buildCoachTip(currentProblem), 0.86, 1.02);
+    const spokenText = currentProblem.question
       .replace(/\+/g, 'plus')
       .replace(/-/g, 'minus')
-      .replace(/×/g, 'times')
-      .replace(/÷/g, 'divided by')
       .replace(/=/g, 'equals')
       .replace(/\?/g, '');
     await speakAsync(`Your turn. What is ${spokenText}?`, 0.86, 1.08);
     setIsSpeaking(false);
   }, [buildCoachTip, buildTeacherIntro]);
-
   const loadProblem = useCallback(() => {
     setFeedback('idle');
     const p = generateMathProblem(level);
     setProblem(p);
-    setCoachTip(buildCoachTip(p.question));
+    setCoachTip(buildCoachTip(p));
   }, [level, buildCoachTip]);
 
   useEffect(() => {
     if (problem) {
-      void teachProblem(problem.question);
+      void teachProblem(problem);
     }
   }, [problem, teachProblem]);
 
@@ -278,11 +313,15 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, level }) =
     if (!problem) return null;
     const numbers = problem.question.match(/\d+/g)?.map(Number) || [];
     const operation =
-      problem.question.includes('+') ? 'add'
-        : problem.question.includes('-') ? 'subtract'
-          : problem.question.includes('×') ? 'groups'
-            : problem.question.includes('÷') ? 'share'
-              : 'solve';
+      problem.context === 'money' ? 'count coins'
+        : problem.context === 'time' ? 'count hours'
+          : problem.context === 'fraction' ? 'equal pieces'
+            : problem.context === 'geometry' ? 'count sides'
+              : problem.operation === 'addition' ? 'add'
+                : problem.operation === 'subtraction' ? 'subtract'
+                  : problem.operation === 'multiplication' ? 'groups'
+                    : problem.operation === 'division' ? 'share'
+                      : 'solve';
     const firstCount = Math.min(numbers[0] || 0, 12);
     const secondCount = Math.min(numbers[1] || 0, 12);
     const firstLabel = numbers[0] && numbers[0] > 12 ? `${numbers[0]} total` : `${numbers[0] || 0}`;
@@ -326,6 +365,15 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, level }) =
       case 7: return '5th Grade';
       default: return `Level ${level}`;
     }
+  };
+
+  const getMissionLabel = (currentProblem: MathProblem) => {
+    if (currentProblem.context === 'word-problem') return 'Word Problem';
+    if (currentProblem.context === 'money') return 'Money Math';
+    if (currentProblem.context === 'time') return 'Time Math';
+    if (currentProblem.context === 'fraction') return 'Fractions';
+    if (currentProblem.context === 'geometry') return 'Geometry';
+    return 'Number Facts';
   };
 
   return (
@@ -373,7 +421,14 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, level }) =
               <div className="text-xs font-black uppercase tracking-[0.2em] text-indigo-500 mb-1">Coach Tip</div>
               <div className="text-indigo-900 font-semibold">{coachTip}</div>
             </div>
-            <h2 className="text-7xl font-bold text-indigo-900 mb-12 mt-8 font-mono tracking-wider">{problem.question}</h2>
+            <div className="mb-5 flex justify-center">
+              <span className="rounded-full bg-amber-100 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-amber-700 ring-2 ring-amber-200">
+                Mission Type: {getMissionLabel(problem)}
+              </span>
+            </div>
+            <h2 className={`${problem.context === 'equation' ? 'text-6xl sm:text-7xl font-mono tracking-wider' : 'text-2xl sm:text-3xl leading-snug'} font-bold text-indigo-900 mb-12 mt-8`}>
+              {problem.question}
+            </h2>
             {renderMathManipulatives()}
             <div className="grid grid-cols-2 gap-6">
               {problem.options.map((opt, idx) => (

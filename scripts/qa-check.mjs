@@ -302,6 +302,9 @@ if (!worldMapSource.includes('room-destination-tile') || !worldMapSource.include
 if (!mathRoomSource.includes('renderMathManipulatives') || !mathRoomSource.includes('First number') || !readingRoomSource.includes('Word Stage') || !readingRoomSource.includes('modeSteps')) {
   fail('Core Math and Reading rooms need richer kid-facing visual learning props.');
 }
+if (!mathRoomSource.includes('Mission Type') || !mathRoomSource.includes('setMoneyProblem') || !mathRoomSource.includes('setTimeProblem') || !mathRoomSource.includes('setFractionProblem') || !mathRoomSource.includes('setGeometryProblem')) {
+  fail('Math room needs grade-paced word, money, time, fraction, and geometry missions.');
+}
 if (!readingRoomSource.includes('READING_PASSAGES') || !readingRoomSource.includes('COMPREHENSION') || !readingRoomSource.includes('Comprehension Quest') || !voiceCacheSource.includes('readingPassageTexts')) {
   fail('Reading room needs grade-paced comprehension passages included in the voice cache.');
 }

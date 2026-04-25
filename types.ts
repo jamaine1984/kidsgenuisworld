@@ -364,8 +364,11 @@ export interface MathProblem {
   question: string;
   answer: number;
   options: number[];
-  operation: 'addition' | 'subtraction' | 'multiplication' | 'division';
+  operation: 'addition' | 'subtraction' | 'multiplication' | 'division' | 'money' | 'time' | 'fraction' | 'geometry';
   difficulty: number;
+  explanation?: string;
+  subject?: string;
+  context?: 'equation' | 'word-problem' | 'money' | 'time' | 'fraction' | 'geometry';
 }
 
 export interface ReadingChallenge {

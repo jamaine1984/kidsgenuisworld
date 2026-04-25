@@ -103,18 +103,125 @@ export const WorldMap: React.FC<WorldMapProps> = ({
     [RoomType.PUZZLE]: visitedRooms.has(RoomType.PUZZLE) ? 1 : 0,
   };
 
-  const roomDetails: Record<RoomType, { land: string; action: string; detail: string; scene: string; glow: string }> = {
-    [RoomType.HUB]: { land: 'hub', action: 'Choose a path', detail: 'Start learning', scene: '🏠', glow: 'bg-white/20' },
-    [RoomType.MATH]: { land: 'mountain', action: 'Climb numbers', detail: 'Counting, facts, word problems', scene: '▲ ▲ ▲', glow: 'bg-sky-200/30' },
-    [RoomType.READING]: { land: 'river', action: 'Sail through words', detail: 'Phonics, sight words, fluency', scene: '~~~~', glow: 'bg-amber-200/30' },
-    [RoomType.SCIENCE]: { land: 'springs', action: 'Try experiments', detail: 'Observe, predict, explain', scene: '○ ○ ○', glow: 'bg-emerald-200/30' },
-    [RoomType.GEOGRAPHY]: { land: 'globe', action: 'Explore places', detail: 'Maps, flags, landmarks', scene: '◎', glow: 'bg-cyan-200/30' },
-    [RoomType.CODING]: { land: 'castle', action: 'Command robots', detail: 'Sequences, loops, debugging', scene: '▥ ▣ ▥', glow: 'bg-violet-200/30' },
-    [RoomType.ART]: { land: 'garden', action: 'Create a masterpiece', detail: 'Color, shape, design', scene: '✿ ✿ ✿', glow: 'bg-pink-200/30' },
-    [RoomType.MUSIC]: { land: 'music', action: 'Build rhythms', detail: 'Pitch, patterns, beats', scene: '♪ ♫ ♪', glow: 'bg-fuchsia-200/30' },
-    [RoomType.LANGUAGE]: { land: 'lanterns', action: 'Say new words', detail: 'Spanish, French, Mandarin', scene: '▢ ▢ ▢', glow: 'bg-rose-200/30' },
-    [RoomType.PUZZLE]: { land: 'pier', action: 'Solve challenges', detail: 'Memory, logic, strategy', scene: '▣ ▢ ▣', glow: 'bg-teal-200/30' },
-    [RoomType.STORYBOOK]: { land: 'treehouse', action: 'Read adventures', detail: 'Stories, morals, comprehension', scene: '♧ ▤ ♧', glow: 'bg-yellow-200/30' },
+  const roomDetails: Record<RoomType, { land: string; action: string; detail: string; glow: string }> = {
+    [RoomType.HUB]: { land: 'hub', action: 'Choose a path', detail: 'Start learning', glow: 'bg-white/20' },
+    [RoomType.MATH]: { land: 'mountain', action: 'Climb numbers', detail: 'Counting, facts, word problems', glow: 'bg-sky-200/30' },
+    [RoomType.READING]: { land: 'river', action: 'Sail through words', detail: 'Phonics, sight words, fluency', glow: 'bg-amber-200/30' },
+    [RoomType.SCIENCE]: { land: 'springs', action: 'Try experiments', detail: 'Observe, predict, explain', glow: 'bg-emerald-200/30' },
+    [RoomType.GEOGRAPHY]: { land: 'globe', action: 'Explore places', detail: 'Maps, flags, landmarks', glow: 'bg-cyan-200/30' },
+    [RoomType.CODING]: { land: 'castle', action: 'Command robots', detail: 'Sequences, loops, debugging', glow: 'bg-violet-200/30' },
+    [RoomType.ART]: { land: 'garden', action: 'Create a masterpiece', detail: 'Color, shape, design', glow: 'bg-pink-200/30' },
+    [RoomType.MUSIC]: { land: 'music', action: 'Build rhythms', detail: 'Pitch, patterns, beats', glow: 'bg-fuchsia-200/30' },
+    [RoomType.LANGUAGE]: { land: 'lanterns', action: 'Say new words', detail: 'Spanish, French, Mandarin', glow: 'bg-rose-200/30' },
+    [RoomType.PUZZLE]: { land: 'pier', action: 'Solve challenges', detail: 'Memory, logic, strategy', glow: 'bg-teal-200/30' },
+    [RoomType.STORYBOOK]: { land: 'treehouse', action: 'Read adventures', detail: 'Stories, morals, comprehension', glow: 'bg-yellow-200/30' },
+  };
+
+  const renderRoomScene = (room: RoomType) => {
+    switch (room) {
+      case RoomType.MATH:
+        return (
+          <div className="room-art room-art-math" aria-hidden="true">
+            <div className="mountain mountain-back" />
+            <div className="mountain mountain-front" />
+            <span className="number-orb left-4 top-4">2</span>
+            <span className="number-orb right-5 bottom-5">8</span>
+          </div>
+        );
+      case RoomType.READING:
+        return (
+          <div className="room-art room-art-reading" aria-hidden="true">
+            <div className="river-line" />
+            <div className="storybook-card -rotate-6">cat</div>
+            <div className="storybook-card rotate-6">sun</div>
+          </div>
+        );
+      case RoomType.SCIENCE:
+        return (
+          <div className="room-art room-art-science" aria-hidden="true">
+            <div className="beaker">
+              <div className="beaker-liquid" />
+            </div>
+            <span className="bubble left-5 top-4" />
+            <span className="bubble right-8 top-7" />
+            <span className="bubble right-4 bottom-7" />
+          </div>
+        );
+      case RoomType.GEOGRAPHY:
+        return (
+          <div className="room-art room-art-geo" aria-hidden="true">
+            <div className="globe">
+              <span className="land land-a" />
+              <span className="land land-b" />
+              <span className="globe-line" />
+            </div>
+            <div className="map-pin" />
+          </div>
+        );
+      case RoomType.CODING:
+        return (
+          <div className="room-art room-art-coding" aria-hidden="true">
+            <div className="castle">
+              <span />
+              <span />
+              <span />
+            </div>
+            <div className="robot-face">01</div>
+          </div>
+        );
+      case RoomType.ART:
+        return (
+          <div className="room-art room-art-art" aria-hidden="true">
+            <div className="palette">
+              <span className="paint-dot bg-red-400" />
+              <span className="paint-dot bg-yellow-300" />
+              <span className="paint-dot bg-blue-400" />
+            </div>
+            <div className="brush" />
+          </div>
+        );
+      case RoomType.MUSIC:
+        return (
+          <div className="room-art room-art-music" aria-hidden="true">
+            <span className="music-note note-a">♪</span>
+            <span className="music-note note-b">♫</span>
+            <span className="music-note note-c">♩</span>
+            <div className="sound-wave" />
+          </div>
+        );
+      case RoomType.LANGUAGE:
+        return (
+          <div className="room-art room-art-language" aria-hidden="true">
+            <div className="speech-card">Hola</div>
+            <div className="speech-card speech-card-small">Bonjour</div>
+            <div className="lantern" />
+          </div>
+        );
+      case RoomType.PUZZLE:
+        return (
+          <div className="room-art room-art-puzzle" aria-hidden="true">
+            <div className="puzzle-grid">
+              <span />
+              <span />
+              <span />
+              <span />
+            </div>
+          </div>
+        );
+      case RoomType.STORYBOOK:
+        return (
+          <div className="room-art room-art-story" aria-hidden="true">
+            <div className="treehouse">
+              <span className="tree-top" />
+              <span className="tree-room" />
+              <span className="tree-trunk" />
+            </div>
+            <div className="open-book" />
+          </div>
+        );
+      default:
+        return <div className="room-art" aria-hidden="true" />;
+    }
   };
 
   return (
@@ -301,7 +408,7 @@ export const WorldMap: React.FC<WorldMapProps> = ({
                     </div>
 
                     <div className="room-scene relative my-3 flex flex-1 items-center justify-center rounded-[24px] border border-white/25 bg-white/15 px-3 py-4 shadow-inner">
-                      <span className={`${room.featured ? 'text-5xl' : 'text-3xl'} font-black tracking-[0.25em] text-white/85 drop-shadow-sm`}>{details.scene}</span>
+                      {renderRoomScene(room.type)}
                     </div>
 
                     <div className="rounded-2xl bg-white/90 p-3 shadow-lg">

@@ -856,12 +856,12 @@ const App: React.FC = () => {
   // Start Screen
   if (!hasStarted) {
     return (
-      <div className="w-screen h-screen bg-gradient-to-b from-sky-400 via-sky-300 to-green-300 flex items-center justify-center flex-col gap-8 overflow-hidden relative">
+      <div className="w-screen h-screen bg-gradient-to-b from-sky-400 via-sky-300 to-green-300 flex items-center justify-center flex-col gap-5 overflow-hidden relative px-4">
 
         {/* ============ SKY LAYER ============ */}
 
         {/* Giant Sun with Rays */}
-        <div className="absolute top-[-20px] right-[-20px] w-48 h-48 z-0">
+        <div className="absolute top-[-36px] right-[-38px] w-36 h-36 sm:w-48 sm:h-48 z-0 opacity-90">
           {/* Sun rays - rotating */}
           <div className="absolute inset-0 sun-rays">
             {[...Array(12)].map((_, i) => (
@@ -884,14 +884,12 @@ const App: React.FC = () => {
         </div>
 
         {/* Clouds - Multiple layers drifting */}
-        <div className="absolute top-8 left-0 text-7xl animate-cloud-drift opacity-70" style={{ animationDelay: '0s' }}>☁️</div>
-        <div className="absolute top-20 left-0 text-8xl animate-cloud-drift-slow opacity-50" style={{ animationDelay: '5s' }}>☁️</div>
-        <div className="absolute top-32 left-0 text-6xl animate-cloud-drift-fast opacity-60" style={{ animationDelay: '10s' }}>☁️</div>
-        <div className="absolute top-16 left-0 text-5xl animate-cloud-drift opacity-40" style={{ animationDelay: '15s' }}>☁️</div>
-        <div className="absolute top-40 left-0 text-7xl animate-cloud-drift-slow opacity-55" style={{ animationDelay: '8s' }}>⛅</div>
+        <div className="absolute top-10 left-0 text-5xl sm:text-7xl animate-cloud-drift opacity-60" style={{ animationDelay: '0s' }}>☁️</div>
+        <div className="absolute top-24 left-0 text-6xl sm:text-8xl animate-cloud-drift-slow opacity-45" style={{ animationDelay: '5s' }}>☁️</div>
+        <div className="absolute top-36 left-0 hidden sm:block text-6xl animate-cloud-drift-fast opacity-50" style={{ animationDelay: '10s' }}>☁️</div>
 
         {/* Rainbow */}
-        <div className="absolute top-24 left-1/2 -translate-x-1/2 text-8xl animate-rainbow">🌈</div>
+        <div className="absolute top-24 left-1/2 -translate-x-1/2 text-6xl sm:text-8xl animate-rainbow opacity-80">🌈</div>
 
         {/* Flying birds */}
         <div className="absolute top-28 left-0 text-3xl animate-bird" style={{ animationDelay: '0s' }}>🕊️</div>
@@ -900,20 +898,20 @@ const App: React.FC = () => {
         {/* ============ INSECTS LAYER ============ */}
 
         {/* Bees flying in patterns */}
-        <div className="absolute top-[30%] left-[15%] text-4xl animate-bee z-10">🐝</div>
-        <div className="absolute top-[45%] right-[20%] text-3xl animate-bee-2 z-10">🐝</div>
-        <div className="absolute top-[25%] right-[35%] text-4xl animate-bee-3 z-10">🐝</div>
-        <div className="absolute bottom-[40%] left-[25%] text-3xl animate-bee z-10" style={{ animationDelay: '2s' }}>🐝</div>
+        <div className="absolute top-[30%] left-[15%] hidden sm:block text-4xl animate-bee z-10">🐝</div>
+        <div className="absolute top-[45%] right-[20%] hidden sm:block text-3xl animate-bee-2 z-10">🐝</div>
+        <div className="absolute top-[25%] right-[35%] hidden sm:block text-4xl animate-bee-3 z-10">🐝</div>
+        <div className="absolute bottom-[40%] left-[25%] hidden sm:block text-3xl animate-bee z-10" style={{ animationDelay: '2s' }}>🐝</div>
 
         {/* Butterflies fluttering */}
-        <div className="absolute top-[35%] left-[10%] text-5xl animate-butterfly z-10">🦋</div>
-        <div className="absolute top-[50%] right-[15%] text-4xl animate-butterfly-2 z-10">🦋</div>
-        <div className="absolute top-[20%] left-[40%] text-5xl animate-butterfly-3 z-10">🦋</div>
-        <div className="absolute bottom-[35%] right-[30%] text-4xl animate-butterfly z-10" style={{ animationDelay: '4s' }}>🦋</div>
+        <div className="absolute top-[35%] left-[10%] hidden sm:block text-5xl animate-butterfly z-10">🦋</div>
+        <div className="absolute top-[50%] right-[15%] hidden sm:block text-4xl animate-butterfly-2 z-10">🦋</div>
+        <div className="absolute top-[20%] left-[40%] hidden sm:block text-5xl animate-butterfly-3 z-10">🦋</div>
+        <div className="absolute bottom-[35%] right-[30%] hidden sm:block text-4xl animate-butterfly z-10" style={{ animationDelay: '4s' }}>🦋</div>
 
         {/* Ladybugs */}
-        <div className="absolute bottom-[25%] left-[8%] text-3xl animate-float z-10">🐞</div>
-        <div className="absolute bottom-[30%] right-[12%] text-2xl animate-float-delayed z-10">🐞</div>
+        <div className="absolute bottom-[25%] left-[8%] hidden sm:block text-3xl animate-float z-10">🐞</div>
+        <div className="absolute bottom-[30%] right-[12%] hidden sm:block text-2xl animate-float-delayed z-10">🐞</div>
 
         {/* Sparkles scattered around */}
         <div className="absolute top-[20%] left-[30%] text-2xl animate-sparkle">✨</div>
@@ -938,9 +936,8 @@ const App: React.FC = () => {
         <div className="absolute bottom-8 right-[5%] text-4xl animate-sway z-10" style={{ animationDelay: '1.1s' }}>🌻</div>
 
         {/* Little creatures in grass */}
-        <div className="absolute bottom-16 left-[10%] text-3xl animate-float z-10">🐌</div>
-        <div className="absolute bottom-20 right-[18%] text-2xl animate-float-delayed z-10">🐛</div>
-        <div className="absolute bottom-14 left-[45%] text-3xl animate-float z-10">🦗</div>
+        <div className="absolute bottom-16 left-[10%] hidden sm:block text-3xl animate-float z-10">🐌</div>
+        <div className="absolute bottom-20 right-[18%] hidden sm:block text-2xl animate-float-delayed z-10">🐛</div>
 
         {/* Trees on sides */}
         <div className="absolute bottom-0 left-2 text-8xl z-5">🌳</div>
@@ -949,11 +946,11 @@ const App: React.FC = () => {
         {/* ============ CONTENT LAYER ============ */}
 
         {/* Title */}
-        <div className="text-center z-20">
-          <h1 className="text-6xl md:text-8xl font-bold text-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.3)] animate-title-bounce">
+        <div className="text-center z-20 mt-2 max-w-[760px]">
+          <h1 className="text-5xl sm:text-6xl md:text-8xl leading-[0.92] font-bold text-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.3)] animate-title-bounce">
             Kid Genius World
           </h1>
-          <p className="text-2xl text-white/95 mt-4 font-semibold drop-shadow-lg flex items-center justify-center gap-2">
+          <p className="text-xl sm:text-2xl text-white/95 mt-4 font-semibold drop-shadow-lg flex items-center justify-center gap-2">
             <span className="animate-sparkle">✨</span>
             Learning is an Adventure!
             <span className="animate-sparkle" style={{ animationDelay: '0.7s' }}>✨</span>
@@ -963,7 +960,7 @@ const App: React.FC = () => {
         {/* Start Button */}
         <button
           onClick={handleStart}
-          className="z-20 bg-gradient-to-r from-yellow-400 via-orange-400 to-yellow-400 hover:from-yellow-300 hover:via-orange-300 hover:to-yellow-300 text-yellow-900 px-14 py-7 rounded-full text-3xl font-bold shadow-[0_10px_0_rgb(161,98,7),0_15px_30px_rgba(0,0,0,0.3)] active:translate-y-2 active:shadow-[0_5px_0_rgb(161,98,7)] transition-all flex items-center gap-4 hover:scale-105"
+          className="z-20 bg-gradient-to-r from-yellow-400 via-orange-400 to-yellow-400 hover:from-yellow-300 hover:via-orange-300 hover:to-yellow-300 text-yellow-900 w-full max-w-[360px] sm:max-w-none sm:w-auto px-8 sm:px-14 py-5 sm:py-7 rounded-[32px] sm:rounded-full text-2xl sm:text-3xl font-bold shadow-[0_10px_0_rgb(161,98,7),0_15px_30px_rgba(0,0,0,0.3)] active:translate-y-2 active:shadow-[0_5px_0_rgb(161,98,7)] transition-all flex items-center justify-center gap-4 hover:scale-105"
         >
           <Play size={44} fill="currentColor" />
           Start Adventure!
@@ -971,7 +968,7 @@ const App: React.FC = () => {
         </button>
 
         {/* Features */}
-        <div className="z-20 flex gap-3 mt-4 flex-wrap justify-center px-4">
+        <div className="z-20 grid grid-cols-2 sm:flex gap-3 mt-2 flex-wrap justify-center w-full max-w-[560px]">
           {[
             { emoji: '🔢', label: 'Math' },
             { emoji: '📚', label: 'Reading' },
@@ -983,7 +980,7 @@ const App: React.FC = () => {
           ].map((item, i) => (
             <span
               key={item.label}
-              className="bg-white/90 px-5 py-2 rounded-full text-gray-700 font-semibold shadow-lg hover:scale-110 hover:bg-white transition-all cursor-default"
+              className="bg-white/90 px-4 sm:px-5 py-2 rounded-full text-gray-700 font-semibold shadow-lg hover:scale-105 hover:bg-white transition-all cursor-default text-center text-sm sm:text-base"
               style={{ animationDelay: `${i * 0.1}s` }}
             >
               {item.emoji} {item.label}
@@ -992,7 +989,7 @@ const App: React.FC = () => {
         </div>
 
         {/* Cute mascot hint */}
-        <div className="absolute bottom-28 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 text-white/80 text-sm animate-float">
+        <div className="absolute bottom-10 sm:bottom-24 left-1/2 -translate-x-1/2 z-20 hidden sm:flex items-center gap-2 text-white/80 text-sm animate-float">
           <span className="text-2xl">🎓</span>
           Choose your learning buddy inside!
           <span className="text-2xl">🐾</span>

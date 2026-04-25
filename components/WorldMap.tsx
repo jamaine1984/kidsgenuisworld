@@ -27,9 +27,24 @@ export const WorldMap: React.FC<WorldMapProps> = ({
   const [hoveredRoom, setHoveredRoom] = useState<RoomType | null>(null);
   const [showFocusCoach, setShowFocusCoach] = useState(false);
   const [showBreakCoach, setShowBreakCoach] = useState(false);
+  const [showReviewQuest, setShowReviewQuest] = useState(false);
   const [focusStep, setFocusStep] = useState(0);
   const mission = getDailyMission(progress);
   const weeklyPlan = getWeeklyLearningPlan(progress);
+  const unitPracticeCounts = progress.unitPracticeCounts || {};
+  const completedUnitIds = new Set(progress.completedUnitIds || []);
+  const reviewQuestItems = [...weeklyPlan]
+    .sort((a, b) => {
+      const aCompleted = completedUnitIds.has(a.unit.id) ? 1 : 0;
+      const bCompleted = completedUnitIds.has(b.unit.id) ? 1 : 0;
+      if (aCompleted !== bCompleted) return bCompleted - aCompleted;
+      const aPracticed = unitPracticeCounts[a.unit.id] || 0;
+      const bPracticed = unitPracticeCounts[b.unit.id] || 0;
+      if ((aPracticed > 0) !== (bPracticed > 0)) return aPracticed > 0 ? -1 : 1;
+      return a.unit.reviewCycleDays - b.unit.reviewCycleDays;
+    })
+    .slice(0, 3);
+  const reviewReadyCount = reviewQuestItems.filter(item => completedUnitIds.has(item.unit.id) || (unitPracticeCounts[item.unit.id] || 0) > 0).length;
   const todayKey = new Date().toISOString().slice(0, 10);
   const todayStats = progress.dailyStats?.find(day => day.date === todayKey);
   const todayMinutes = todayStats?.timeSpentMinutes || 0;
@@ -386,6 +401,33 @@ export const WorldMap: React.FC<WorldMapProps> = ({
             <button
               onClick={() => {
                 playPop();
+                setShowReviewQuest(true);
+              }}
+              className="bg-violet-50/95 rounded-[24px] p-4 shadow-lg border-4 border-white/60 text-left hover:scale-[1.02] transition"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.18em] font-black text-violet-600">Spaced Review</p>
+                  <p className="mt-1 font-black text-violet-950">Review Quest</p>
+                  <p className="text-sm text-violet-800/80">
+                    {reviewReadyCount > 0
+                      ? `${reviewReadyCount} practiced lessons ready to explain again.`
+                      : 'Start with quick explain-again lessons from this week.'}
+                  </p>
+                </div>
+                <CheckCircle2 className="text-violet-600" />
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {reviewQuestItems.map(item => (
+                  <span key={item.unit.id} className="rounded-full bg-white px-3 py-1 text-[11px] font-black text-violet-700">
+                    {item.unit.reviewCycleDays}d review
+                  </span>
+                ))}
+              </div>
+            </button>
+            <button
+              onClick={() => {
+                playPop();
                 setShowBreakCoach(true);
               }}
               className={`${isBreakDue ? 'bg-rose-50/95' : 'bg-white/90'} rounded-[24px] p-4 shadow-lg border-4 border-white/60 text-left hover:scale-[1.02] transition`}
@@ -566,6 +608,74 @@ export const WorldMap: React.FC<WorldMapProps> = ({
               >
                 Start Mission
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showReviewQuest && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-2xl rounded-[28px] bg-white p-5 shadow-2xl border-4 border-violet-100">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-100 text-violet-700">
+                  <CheckCircle2 size={26} />
+                </div>
+                <div>
+                  <p className="text-xs font-black uppercase tracking-[0.18em] text-violet-600">Review Quest</p>
+                  <h2 className="text-xl font-black text-slate-900">Explain it again</h2>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowReviewQuest(false)}
+                className="rounded-full bg-slate-100 p-2 text-slate-600 hover:bg-slate-200"
+                aria-label="Close Review Quest"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <p className="my-4 rounded-[22px] bg-violet-50 p-4 text-sm font-semibold text-violet-900">
+              Quick review helps learning stick. Pick one lesson, explain the idea out loud, then try the room again.
+            </p>
+
+            <div className="space-y-3">
+              {reviewQuestItems.map(item => {
+                const practiceCount = unitPracticeCounts[item.unit.id] || 0;
+                const completed = completedUnitIds.has(item.unit.id);
+                return (
+                  <div key={item.unit.id} className="rounded-2xl border border-violet-100 bg-slate-50 p-3">
+                    <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
+                      <div>
+                        <p className="text-xs font-black uppercase tracking-[0.14em] text-violet-600">
+                          {completed ? 'Mastered review' : practiceCount > 0 ? 'Practice review' : `${item.unit.reviewCycleDays} day review`}
+                        </p>
+                        <h3 className="mt-1 font-black text-slate-900">{item.unit.title}</h3>
+                        <p className="mt-1 text-sm font-semibold text-slate-600">{item.unit.successCheck}</p>
+                      </div>
+                      <div className="rounded-2xl bg-white px-4 py-3 text-center">
+                        <p className="text-xl font-black text-violet-700">{Math.min(practiceCount, 3)}/3</p>
+                        <p className="text-xs font-bold text-slate-500">practice</p>
+                      </div>
+                    </div>
+                    <div className="mt-3 flex flex-col sm:flex-row gap-2">
+                      <div className="flex-1 rounded-xl bg-white p-3 text-xs font-bold text-slate-700">
+                        At-home check: {item.unit.parentActivity}
+                      </div>
+                      <button
+                        onClick={() => {
+                          playPop();
+                          onEnterRoom(item.unit.room, item.unit.id);
+                          setShowReviewQuest(false);
+                        }}
+                        className="rounded-xl bg-violet-600 px-4 py-3 text-sm font-black text-white hover:bg-violet-700"
+                      >
+                        Start Review
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>

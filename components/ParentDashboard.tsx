@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   ArrowLeft, BarChart3, Clock, Target, TrendingUp,
-  Star, Award, Brain, Calendar, ChevronRight, Lock,
+  Star, Award, Brain, Calendar, CheckCircle2, ChevronRight, Lock,
   Settings, Shield, Volume2, Eye, Type, BookOpen, Map, Printer, Download
 } from 'lucide-react';
 import {
@@ -195,6 +195,17 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
     'in-progress': 0,
     'needs-practice': 0,
   } as Record<'ready' | 'in-progress' | 'needs-practice', number>);
+  const spacedReviewQueue = [...currentGradeUnits]
+    .sort((a, b) => {
+      const aCompleted = progress.completedUnitIds?.includes(a.id) ? 1 : 0;
+      const bCompleted = progress.completedUnitIds?.includes(b.id) ? 1 : 0;
+      if (aCompleted !== bCompleted) return bCompleted - aCompleted;
+      const aPractice = unitPracticeCounts[a.id] || 0;
+      const bPractice = unitPracticeCounts[b.id] || 0;
+      if ((aPractice > 0) !== (bPractice > 0)) return aPractice > 0 ? -1 : 1;
+      return a.reviewCycleDays - b.reviewCycleDays;
+    })
+    .slice(0, 5);
   const getReadinessLabel = (readiness: 'ready' | 'in-progress' | 'needs-practice') => {
     if (readiness === 'ready') return 'Ready';
     if (readiness === 'in-progress') return 'In progress';
@@ -850,6 +861,33 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
               <p className="text-xs text-gray-500 mt-3">
                 The plan balances weak rooms first, then rotates across the grade so families see steady progress every week.
               </p>
+            </div>
+
+            <div className="bg-white rounded-xl p-4 shadow-sm border border-violet-100">
+              <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                <CheckCircle2 size={18} className="text-violet-500" />
+                Spaced Review Queue
+              </h4>
+              <p className="text-sm text-gray-600 mb-4">
+                These are the next lessons to revisit so skills move from short-term practice into durable mastery.
+              </p>
+              <div className="grid grid-cols-1 lg:grid-cols-5 gap-3">
+                {spacedReviewQueue.map(unit => {
+                  const practiceCount = unitPracticeCounts[unit.id] || 0;
+                  const completed = progress.completedUnitIds?.includes(unit.id);
+                  return (
+                    <div key={`review-${unit.id}`} className="rounded-xl bg-violet-50 border border-violet-100 p-3">
+                      <p className="text-xs uppercase tracking-[0.12em] text-violet-600 font-bold">
+                        {completed ? 'Mastered' : practiceCount > 0 ? 'Review soon' : `${unit.reviewCycleDays}d cycle`}
+                      </p>
+                      <p className="font-bold text-gray-900 mt-1">{unit.title}</p>
+                      <p className="text-xs text-gray-500 mt-1">{unit.room}</p>
+                      <p className="text-xs font-bold text-violet-700 mt-2">{Math.min(practiceCount, 3)}/3 practice rounds</p>
+                      <p className="text-xs text-gray-600 mt-2">{unit.successCheck}</p>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
 
             <div className="bg-white rounded-xl p-4 shadow-sm border border-emerald-100">

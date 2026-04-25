@@ -52,6 +52,7 @@ interface LearningReflection {
   successCheck?: string;
   practiceCount: number;
   mastered: boolean;
+  journalEntryId?: string;
 }
 
 const gradeToLevel: { [key in GradeLevel]: number } = {
@@ -700,7 +701,12 @@ const App: React.FC = () => {
 
   const addSticker = (subject?: string) => {
     playSuccess();
-    const reflection = prepareLearningReflection(subject);
+    const journalCreatedAt = Date.now();
+    const journalEntryId = `journal-${journalCreatedAt}-${Math.random().toString(36).slice(2, 8)}`;
+    const reflection = {
+      ...prepareLearningReflection(subject),
+      journalEntryId,
+    };
 
     const holiday = getCurrentHoliday();
     const seasonalStickers = SEASONAL_STICKERS[holiday];
@@ -738,8 +744,8 @@ const App: React.FC = () => {
         : undefined;
       const journalPracticeCount = activeUnitId ? Math.min(nextUnitPracticeCounts[activeUnitId] || 1, 3) : 1;
       const journalEntry = {
-        id: `journal-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        createdAt: Date.now(),
+        id: journalEntryId,
+        createdAt: journalCreatedAt,
         room: currentRoom,
         roomLabel: journalRoomLabel,
         unitId: journalUnit?.id,
@@ -813,6 +819,21 @@ const App: React.FC = () => {
       return newProgress;
     });
     setLearningReflection(reflection);
+  };
+
+  const recordLearningReflectionChoice = (choice: string) => {
+    if (!learningReflection?.journalEntryId) {
+      return;
+    }
+
+    setProgress(prev => ({
+      ...prev,
+      learningJournal: (prev.learningJournal || []).map(entry => (
+        entry.id === learningReflection.journalEntryId
+          ? { ...entry, childReflection: choice, childReflectionAt: Date.now() }
+          : entry
+      )),
+    }));
   };
 
   const handleMathReward = () => {
@@ -1283,6 +1304,10 @@ const App: React.FC = () => {
     }
   };
 
+  const selectedReflectionChoice = learningReflection?.journalEntryId
+    ? progress.learningJournal?.find(entry => entry.id === learningReflection.journalEntryId)?.childReflection
+    : undefined;
+
   return (
     <div className={`w-screen h-screen overflow-hidden bg-sky-100 relative ${getAccessibilityClasses()}`}>
       <Suspense fallback={
@@ -1359,15 +1384,30 @@ const App: React.FC = () => {
                 { icon: <Lightbulb size={18} />, label: 'What strategy worked?', copy: 'Say the trick, clue, or step that helped you solve it.' },
                 { icon: <Target size={18} />, label: 'What was tricky?', copy: 'Name the part that made your brain work harder.' },
                 { icon: <BookOpen size={18} />, label: 'Teach it back', copy: learningReflection.successCheck || 'Explain one idea out loud like you are the teacher.' },
-              ].map(prompt => (
-                <div key={prompt.label} className="rounded-2xl border border-slate-100 bg-slate-50 p-3">
-                  <div className="flex items-center gap-2 text-slate-700">
-                    {prompt.icon}
-                    <p className="text-sm font-black">{prompt.label}</p>
-                  </div>
-                  <p className="mt-2 text-xs font-semibold text-slate-600">{prompt.copy}</p>
-                </div>
-              ))}
+              ].map(prompt => {
+                const selected = selectedReflectionChoice === prompt.label;
+                return (
+                  <button
+                    key={prompt.label}
+                    onClick={() => recordLearningReflectionChoice(prompt.label)}
+                    className={`rounded-2xl border p-3 text-left transition ${
+                      selected
+                        ? 'border-emerald-300 bg-emerald-100 shadow-inner'
+                        : 'border-slate-100 bg-slate-50 hover:border-emerald-200 hover:bg-emerald-50'
+                    }`}
+                    aria-pressed={selected}
+                  >
+                    <div className="flex items-center gap-2 text-slate-700">
+                      {prompt.icon}
+                      <p className="text-sm font-black">{prompt.label}</p>
+                    </div>
+                    <p className="mt-2 text-xs font-semibold text-slate-600">{prompt.copy}</p>
+                    {selected && (
+                      <p className="mt-2 text-xs font-black text-emerald-700">Saved for parent review</p>
+                    )}
+                  </button>
+                );
+              })}
             </div>
 
             {learningReflection.parentActivity && (

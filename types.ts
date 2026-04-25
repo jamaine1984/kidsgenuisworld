@@ -362,6 +362,8 @@ export interface LearningJournalEntry {
   parentActivity?: string;
   practiceCount: number;
   mastered: boolean;
+  childReflection?: string;
+  childReflectionAt?: number;
 }
 
 export interface ChildProfile {

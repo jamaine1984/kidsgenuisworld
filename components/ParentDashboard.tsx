@@ -651,6 +651,14 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                         </span>
                       </div>
                       <p className="text-sm text-gray-600 mt-2">{entry.objective}</p>
+                      {entry.childReflection && (
+                        <div className="mt-3 rounded-lg bg-emerald-100 border border-emerald-200 p-2">
+                          <p className="text-xs font-black uppercase tracking-[0.12em] text-emerald-700">
+                            Child reflection
+                          </p>
+                          <p className="text-sm font-bold text-emerald-900 mt-1">{entry.childReflection}</p>
+                        </div>
+                      )}
                       <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                         <div className="rounded-lg bg-white border border-gray-100 p-2">
                           <p className="font-black text-gray-700 flex items-center gap-1">

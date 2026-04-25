@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { RoomType, UserProgress } from '../types';
 import {
   Trophy, PawPrint, Settings, LayoutDashboard, PlayCircle, BookOpen,
-  Clock, Target, CheckCircle2, MapPin,
+  Clock, Target, CheckCircle2, MapPin, HeartPulse, Sparkles, X,
 } from 'lucide-react';
 import { playPop } from '../services/audioService';
 import { getDailyMission, getWeeklyLearningPlan } from '../services/curriculum';
@@ -25,6 +25,8 @@ export const WorldMap: React.FC<WorldMapProps> = ({
   progress
 }) => {
   const [hoveredRoom, setHoveredRoom] = useState<RoomType | null>(null);
+  const [showFocusCoach, setShowFocusCoach] = useState(false);
+  const [focusStep, setFocusStep] = useState(0);
   const mission = getDailyMission(progress);
   const weeklyPlan = getWeeklyLearningPlan(progress);
   const gradePacingThresholds: { [level: number]: number } = {
@@ -74,6 +76,23 @@ export const WorldMap: React.FC<WorldMapProps> = ({
     { label: 'Stars', value: nextGradeTarget ? `${nextGradeProgress}/${nextGradeTarget}` : 'Complete', done: !nextGradeTarget || nextGradeProgress >= nextGradeTarget },
     { label: 'Core skills', value: masteryMinimum ? `${subjectsReady}/7` : 'Complete', done: !masteryMinimum || subjectsReady >= 7 },
     { label: 'Rooms', value: `${roomsReady}/10`, done: roomsReady >= 10 },
+  ];
+  const focusRoutine = [
+    {
+      title: 'Breathe',
+      prompt: 'Take three slow breaths before the next lesson.',
+      cue: 'In through your nose, out like you are cooling soup.',
+    },
+    {
+      title: 'Name the Goal',
+      prompt: `Today I will practice: ${mission.title}.`,
+      cue: 'Say the goal once so your brain knows where to aim.',
+    },
+    {
+      title: 'Try Again Plan',
+      prompt: 'If it feels hard, I can pause, check my clue, and try one more strategy.',
+      cue: 'Mistakes are information. Use them to choose the next step.',
+    },
   ];
 
   const rooms: Array<{ type: RoomType; name: string; emoji: string; color: string; featured?: boolean }> = [
@@ -357,6 +376,18 @@ export const WorldMap: React.FC<WorldMapProps> = ({
               <p className="font-black text-amber-900">Story Time</p>
               <p className="text-sm text-amber-800/80">Read, listen, and build comprehension.</p>
             </button>
+            <button
+              onClick={() => {
+                playPop();
+                setFocusStep(0);
+                setShowFocusCoach(true);
+              }}
+              className="bg-emerald-50/95 rounded-[24px] p-4 shadow-lg border-4 border-white/60 text-left hover:scale-[1.02] transition"
+            >
+              <HeartPulse className="text-emerald-600 mb-2" />
+              <p className="font-black text-emerald-900">Focus Quest</p>
+              <p className="text-sm text-emerald-800/80">Breathe, set a goal, and try again when learning feels hard.</p>
+            </button>
           </div>
         </div>
       </div>
@@ -434,6 +465,70 @@ export const WorldMap: React.FC<WorldMapProps> = ({
           })}
         </div>
       </div>
+
+      {showFocusCoach && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-lg rounded-[28px] bg-white p-5 shadow-2xl border-4 border-emerald-100">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
+                  <Sparkles size={26} />
+                </div>
+                <div>
+                  <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-600">Focus Quest</p>
+                  <h2 className="text-xl font-black text-slate-900">{focusRoutine[focusStep].title}</h2>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowFocusCoach(false)}
+                className="rounded-full bg-slate-100 p-2 text-slate-600 hover:bg-slate-200"
+                aria-label="Close Focus Quest"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="my-5 rounded-[24px] bg-gradient-to-br from-emerald-50 to-sky-50 p-5 text-center">
+              <p className="text-lg font-black text-emerald-950">{focusRoutine[focusStep].prompt}</p>
+              <p className="mt-3 text-sm font-semibold text-emerald-700">{focusRoutine[focusStep].cue}</p>
+            </div>
+
+            <div className="mb-5 grid grid-cols-3 gap-2">
+              {focusRoutine.map((step, index) => (
+                <div
+                  key={step.title}
+                  className={`h-2 rounded-full ${index <= focusStep ? 'bg-emerald-500' : 'bg-slate-200'}`}
+                />
+              ))}
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={() => {
+                  if (focusStep >= focusRoutine.length - 1) {
+                    setShowFocusCoach(false);
+                    return;
+                  }
+                  setFocusStep(step => step + 1);
+                }}
+                className="flex-1 rounded-2xl bg-emerald-600 px-5 py-3 font-black text-white shadow-lg hover:bg-emerald-700"
+              >
+                {focusStep >= focusRoutine.length - 1 ? 'I Am Ready' : 'Next Step'}
+              </button>
+              <button
+                onClick={() => {
+                  playPop();
+                  onEnterRoom(mission.room, mission.id);
+                  setShowFocusCoach(false);
+                }}
+                className="flex-1 rounded-2xl bg-slate-100 px-5 py-3 font-black text-slate-700 hover:bg-slate-200"
+              >
+                Start Mission
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-green-400/60 to-transparent pointer-events-none" />
     </div>

@@ -334,6 +334,7 @@ export default defineConfig(({ mode }) => {
                 let misses = 0;
                 let errors = 0;
                 let skipped = 0;
+                const errorSamples: Array<{ status?: number; message: string }> = [];
 
                 for (const text of texts) {
                   const { cachePath } = findCachedTtsPath({
@@ -373,14 +374,25 @@ export default defineConfig(({ mode }) => {
 
                     if (!elevenRes.ok) {
                       errors += 1;
+                      if (errorSamples.length < 3) {
+                        errorSamples.push({
+                          status: elevenRes.status,
+                          message: (await elevenRes.text()).slice(0, 220),
+                        });
+                      }
                       continue;
                     }
 
                     const audioBuffer = Buffer.from(await elevenRes.arrayBuffer());
                     fs.writeFileSync(cachePath, audioBuffer);
                     misses += 1;
-                  } catch {
+                  } catch (error) {
                     errors += 1;
+                    if (errorSamples.length < 3) {
+                      errorSamples.push({
+                        message: error instanceof Error ? error.message.slice(0, 220) : 'Unexpected ElevenLabs request error.',
+                      });
+                    }
                   }
                 }
 
@@ -392,6 +404,7 @@ export default defineConfig(({ mode }) => {
                   misses,
                   errors,
                   skipped,
+                  errorSamples,
                 }));
               } catch (error) {
                 res.statusCode = 500;

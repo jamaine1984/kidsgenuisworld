@@ -8,6 +8,8 @@ const root = path.resolve(import.meta.dirname, '..');
 const dryRun = process.argv.includes('--dry-run');
 const allAges = process.argv.includes('--all-ages');
 const migrateOnly = process.argv.includes('--migrate-only');
+const maxCharsArg = process.argv.find(arg => arg.startsWith('--max-chars='));
+const maxChars = maxCharsArg ? Number(maxCharsArg.split('=')[1]) : 0;
 const endpointArg = process.argv.slice(2).find(arg => !arg.startsWith('--'));
 const endpoint = endpointArg || process.env.KID_GENIUS_URL || 'http://127.0.0.1:5177';
 const tempDir = path.join(root, '.tmp-voice-cache');
@@ -99,6 +101,21 @@ const getCachePath = (text, profile) => path.join(
     .digest('hex')}.mp3`
 );
 
+const applyCharacterBudget = (texts, profile) => {
+  if (!maxChars || !Number.isFinite(maxChars) || maxChars <= 0) return texts;
+
+  let usedChars = 0;
+  const selected = [];
+  for (const text of texts) {
+    const isCached = fs.existsSync(getCachePath(text, profile));
+    const cost = isCached ? 0 : text.length;
+    if (cost > 0 && usedChars + cost > maxChars) continue;
+    selected.push(text);
+    usedChars += cost;
+  }
+  return selected;
+};
+
 const cacheDir = path.join(root, '.tts-cache');
 const beforeCount = fs.existsSync(cacheDir)
   ? fs.readdirSync(cacheDir).filter(file => file.endsWith('.mp3')).length
@@ -106,12 +123,15 @@ const beforeCount = fs.existsSync(cacheDir)
 
 if (dryRun) {
   const profileStatus = voiceProfiles.map(profile => {
-    const missing = uniqueTexts.filter(text => !fs.existsSync(getCachePath(text, profile))).length;
+    const budgetedTexts = applyCharacterBudget(uniqueTexts, profile);
+    const missingTexts = budgetedTexts.filter(text => !fs.existsSync(getCachePath(text, profile)));
     return {
       profile: profile.label,
-      requested: uniqueTexts.length,
-      estimatedHits: uniqueTexts.length - missing,
-      estimatedMissing: missing,
+      requested: budgetedTexts.length,
+      totalAvailable: uniqueTexts.length,
+      estimatedHits: budgetedTexts.length - missingTexts.length,
+      estimatedMissing: missingTexts.length,
+      estimatedMissingChars: missingTexts.reduce((sum, text) => sum + text.length, 0),
     };
   });
   console.log(JSON.stringify({
@@ -120,6 +140,7 @@ if (dryRun) {
     uniqueTexts: uniqueTexts.length,
     profiles: profileStatus,
     maxRequestsIfEmpty: uniqueTexts.length * voiceProfiles.length,
+    maxChars,
     cacheBefore: beforeCount,
   }, null, 2));
   process.exit(0);
@@ -137,8 +158,10 @@ for (const profile of voiceProfiles) {
     skipped: 0,
   };
 
-  for (let index = 0; index < uniqueTexts.length; index += chunkSize) {
-    const texts = uniqueTexts.slice(index, index + chunkSize);
+  const textsForProfile = applyCharacterBudget(uniqueTexts, profile);
+
+  for (let index = 0; index < textsForProfile.length; index += chunkSize) {
+    const texts = textsForProfile.slice(index, index + chunkSize);
     const response = await fetch(`${endpoint.replace(/\/$/, '')}/api/tts-precache`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -160,6 +183,10 @@ for (const profile of voiceProfiles) {
     profileResult.misses += chunkResult.misses || 0;
     profileResult.errors += chunkResult.errors || 0;
     profileResult.skipped += chunkResult.skipped || 0;
+    if (Array.isArray(chunkResult.errorSamples) && chunkResult.errorSamples.length) {
+      profileResult.errorSamples ||= [];
+      profileResult.errorSamples.push(...chunkResult.errorSamples.slice(0, 3 - profileResult.errorSamples.length));
+    }
   }
 
   results.push(profileResult);
@@ -173,8 +200,15 @@ console.log(JSON.stringify({
   endpoint,
   migrateOnly,
   uniqueTexts: uniqueTexts.length,
+  maxChars,
   profiles: results,
   cacheBefore: beforeCount,
   cacheAfter: afterCount,
   newFiles: Math.max(0, afterCount - beforeCount),
 }, null, 2));
+
+const totalErrors = results.reduce((sum, result) => sum + result.errors, 0);
+if (totalErrors > 0) {
+  console.error(`Voice cache warming failed for ${totalErrors} item(s). Check the errorSamples above before retrying.`);
+  process.exit(1);
+}

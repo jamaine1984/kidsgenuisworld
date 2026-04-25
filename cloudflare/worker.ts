@@ -22,6 +22,11 @@ const sendJson = (body: unknown, status = 200) =>
     headers: { 'Content-Type': 'application/json; charset=utf-8' },
   });
 
+const safeErrorSample = async (response: Response) => ({
+  status: response.status,
+  message: (await response.text()).slice(0, 220),
+});
+
 const hashJson = async (value: unknown) => {
   const bytes = new TextEncoder().encode(JSON.stringify(value));
   const digest = await crypto.subtle.digest('SHA-256', bytes);
@@ -123,6 +128,7 @@ const handleTtsPrecache = async (request: Request, env: Env) => {
   let misses = 0;
   let errors = 0;
   let skipped = 0;
+  const errorSamples: Array<{ status?: number; message: string }> = [];
 
   for (const text of texts) {
     const cacheKey = await getTtsKey(text, env, voiceSettings);
@@ -141,10 +147,13 @@ const handleTtsPrecache = async (request: Request, env: Env) => {
       body: JSON.stringify({ text, voice_settings: voiceSettings }),
     }), env);
     if (response.ok) misses += 1;
-    else errors += 1;
+    else {
+      errors += 1;
+      if (errorSamples.length < 3) errorSamples.push(await safeErrorSample(response));
+    }
   }
 
-  return sendJson({ requested: texts.length, hits, misses, errors, skipped });
+  return sendJson({ requested: texts.length, hits, misses, errors, skipped, errorSamples });
 };
 
 const handleStoryCover = async (request: Request, env: Env) => {

@@ -11,6 +11,7 @@
     "qa": "npm run build && node scripts/qa-check.mjs && node scripts/launch-readiness.mjs",
     "qa:source": "node scripts/qa-check.mjs",
     "qa:launch": "node scripts/launch-readiness.mjs",
+    "voice:check": "node scripts/check-elevenlabs-key.mjs",
     "voice:cache": "node scripts/warm-voice-cache.mjs",
     "r2:upload-tts": "node scripts/upload-tts-cache-r2.mjs",
     "cf:dev": "wrangler dev",

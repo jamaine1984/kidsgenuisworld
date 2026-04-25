@@ -383,37 +383,3 @@ export const speakQuestion = (question: string): void => {
     await speakAsync(sound, 0.7, 1.0);
   };
 
-  // Play raw PCM data from Gemini TTS
-  export const playPCM = async (base64: string): Promise<void> => {
-    try {
-        await resumeAudioContext();
-        const ctx = getAudioContext();
-
-        const binaryString = atob(base64);
-        const len = binaryString.length;
-        const bytes = new Uint8Array(len);
-        for (let i = 0; i < len; i++) {
-            bytes[i] = binaryString.charCodeAt(i);
-        }
-
-        // Convert int16 to float32
-        const dataInt16 = new Int16Array(bytes.buffer);
-        const buffer = ctx.createBuffer(1, dataInt16.length, 24000);
-        const channelData = buffer.getChannelData(0);
-
-        for (let i = 0; i < dataInt16.length; i++) {
-             channelData[i] = dataInt16[i] / 32768.0;
-        }
-
-        const source = ctx.createBufferSource();
-        source.buffer = buffer;
-        source.connect(ctx.destination);
-        source.start(0);
-
-        return new Promise((resolve) => {
-            source.onended = () => resolve();
-        });
-    } catch (e) {
-        console.error("Error playing PCM", e);
-    }
-};

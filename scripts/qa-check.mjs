@@ -12,6 +12,7 @@ const requiredFiles = [
   'services/audioService.ts',
   'services/voiceCacheService.ts',
   'server/production-server.mjs',
+  'scripts/check-elevenlabs-key.mjs',
   'scripts/warm-voice-cache.mjs',
   'cloudflare/worker.ts',
   'wrangler.jsonc',
@@ -161,13 +162,20 @@ if (!voiceCacheSource.includes('Welcome back to Kid Genius World!') || !fs.readF
   fail('Human voice cache must include app greetings and support larger pre-cache batches.');
 }
 const voiceWarmScript = fs.readFileSync(path.join(root, 'scripts/warm-voice-cache.mjs'), 'utf8');
+const voiceCheckScript = fs.readFileSync(path.join(root, 'scripts/check-elevenlabs-key.mjs'), 'utf8');
 if (!voiceWarmScript.includes('getVoiceCacheTexts') || !voiceWarmScript.includes('--migrate-only') || !packageJson.scripts?.['voice:cache']) {
   fail('Reusable whole-app human voice cache warmup script is missing.');
+}
+if (!voiceWarmScript.includes('--max-chars=') || !voiceWarmScript.includes('errorSamples') || !voiceWarmScript.includes('process.exit(1)')) {
+  fail('Voice cache warmup must support credit caps and fail loudly on provider errors.');
+}
+if (!voiceCheckScript.includes('/v1/user/subscription') || !voiceCheckScript.includes('remainingCharacters') || !packageJson.scripts?.['voice:check']) {
+  fail('ElevenLabs key validation script is missing.');
 }
 if (!wranglerSource.includes('"MEDIA_CACHE"') || !wranglerSource.includes('"kid-genius-world-media-cache"') || !wranglerSource.includes('"not_found_handling": "single-page-application"')) {
   fail('Cloudflare Worker config must bind R2 storage and serve the SPA build.');
 }
-if (!cloudflareWorkerSource.includes('env.MEDIA_CACHE.put') || !cloudflareWorkerSource.includes('/api/tts-precache') || !cloudflareWorkerSource.includes('/api/story-cover')) {
+if (!cloudflareWorkerSource.includes('env.MEDIA_CACHE.put') || !cloudflareWorkerSource.includes('/api/tts-precache') || !cloudflareWorkerSource.includes('/api/story-cover') || !cloudflareWorkerSource.includes('errorSamples')) {
   fail('Cloudflare Worker must proxy cached TTS and story-cover API routes through R2.');
 }
 if (!packageJson.scripts?.['cf:deploy'] || !packageJson.scripts?.['cf:secret:elevenlabs']) {

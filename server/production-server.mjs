@@ -164,6 +164,7 @@ const handleTtsPrecache = async (req, res) => {
   let misses = 0;
   let errors = 0;
   let skipped = 0;
+  const errorSamples = [];
   for (const text of texts) {
     const voiceId = process.env.ELEVENLABS_VOICE_ID || 'JBFqnCBsd6RMkjVDRZzb';
     const modelId = process.env.ELEVENLABS_MODEL_ID || 'eleven_flash_v2_5';
@@ -185,15 +186,26 @@ const handleTtsPrecache = async (req, res) => {
       });
       if (!elevenRes.ok) {
         errors += 1;
+        if (errorSamples.length < 3) {
+          errorSamples.push({
+            status: elevenRes.status,
+            message: (await elevenRes.text()).slice(0, 220),
+          });
+        }
         continue;
       }
       fs.writeFileSync(cachePath, Buffer.from(await elevenRes.arrayBuffer()));
       misses += 1;
-    } catch {
+    } catch (error) {
       errors += 1;
+      if (errorSamples.length < 3) {
+        errorSamples.push({
+          message: error instanceof Error ? error.message.slice(0, 220) : 'Unexpected ElevenLabs request error.',
+        });
+      }
     }
   }
-  sendJson(res, 200, { requested: texts.length, hits, misses, errors, skipped });
+  sendJson(res, 200, { requested: texts.length, hits, misses, errors, skipped, errorSamples });
 };
 
 const handleStoryCover = async (req, res) => {

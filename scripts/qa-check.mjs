@@ -325,6 +325,9 @@ if (!typesSource.includes('LearningJournalEntry') || !typesSource.includes('chil
 if (!worldMapSource.includes('Review Quest') || !worldMapSource.includes('Start Review') || !parentDashboardSource.includes('Spaced Review Queue')) {
   fail('Spaced review must be visible to kids and parents.');
 }
+if (!worldMapSource.includes('Learning Passport') || !worldMapSource.includes('Passport Stamp Collection') || !worldMapSource.includes('reflection stamps')) {
+  fail('Kid-facing learning passport evidence is missing from the world map.');
+}
 if (!worldMapSource.includes('At-home idea') || !worldMapSource.includes('Review in') || !worldMapSource.includes('Story Time')) {
   fail('World map daily path does not surface curriculum guidance clearly.');
 }

@@ -317,6 +317,7 @@ export interface UserProgress {
   stickers: string[];
   achievements: string[]; // unlocked achievement IDs
   completedUnitIds: string[];
+  unitPracticeCounts: { [unitId: string]: number };
 
   // Adaptive learning
   learningProfile: LearningProfile;
@@ -529,6 +530,7 @@ export const createDefaultProgress = (childName = 'Learner'): UserProgress => ({
   stickers: [],
   achievements: [],
   completedUnitIds: [],
+  unitPracticeCounts: {},
   learningProfile: { ...DEFAULT_LEARNING_PROFILE },
   avatar: { ...DEFAULT_AVATAR },
   totalPlayTimeMinutes: 0,

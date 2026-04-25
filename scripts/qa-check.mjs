@@ -238,6 +238,9 @@ if (!typesSource.includes('gradeRoomVisits') || !appSource.includes('hasVisitedE
 if (!typesSource.includes('completedUnitIds') || !appSource.includes('activeUnitId') || !curriculumSource.includes('completedUnitIds?.includes(unit.id)')) {
   fail('Exact curriculum unit completion is not tracked.');
 }
+if (!typesSource.includes('unitPracticeCounts') || !appSource.includes('nextUnitPracticeCounts') || !appSource.includes('>= 3') || !parentDashboardSource.includes('Mission practice')) {
+  fail('Curriculum unit completion must require repeated mission practice and show progress to parents.');
+}
 if (!curriculumSource.includes('getCurrentGradeUnits') || !curriculumSource.includes('RoomType.ART') || !curriculumSource.includes('RoomType.PUZZLE')) {
   fail('Daily mission and roadmap do not account for every current-grade room.');
 }

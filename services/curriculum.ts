@@ -706,6 +706,9 @@ export const getUnitReadiness = (
   requiredPractice = 3
 ): UnitReadiness => {
   if (progress.completedUnitIds?.includes(unit.id)) return 'ready';
+  const exactPracticeCount = progress.unitPracticeCounts?.[unit.id] || 0;
+  if (exactPracticeCount >= requiredPractice) return 'ready';
+  if (exactPracticeCount > 0) return 'in-progress';
   const score = getRoomPracticeScore(progress, unit.room);
   if (score >= requiredPractice) return 'ready';
   if (score > 0) return 'in-progress';

@@ -195,6 +195,7 @@ const loadProgressForProfile = (profile: ChildProfile): UserProgress => {
         dailyStats: Array.isArray(savedProgress.dailyStats) ? savedProgress.dailyStats : [],
         gradeRoomVisits: savedProgress.gradeRoomVisits || {},
         completedUnitIds: Array.isArray(savedProgress.completedUnitIds) ? savedProgress.completedUnitIds : [],
+        unitPracticeCounts: savedProgress.unitPracticeCounts || {},
         weeklyGoalMinutes: savedProgress.weeklyGoalMinutes || 60,
         dailySessionLimitMinutes: savedProgress.dailySessionLimitMinutes || 20,
       };
@@ -675,7 +676,12 @@ const App: React.FC = () => {
       let newGrade = prev.currentGrade;
       const newStickers = [...prev.stickers];
       const earnedNewSticker = !newStickers.includes(nextSticker);
-      const nextCompletedUnitIds = activeUnitId
+      const nextUnitPracticeCounts = { ...(prev.unitPracticeCounts || {}) };
+      if (activeUnitId) {
+        nextUnitPracticeCounts[activeUnitId] = (nextUnitPracticeCounts[activeUnitId] || 0) + 1;
+      }
+      const practicedActiveUnitToMastery = activeUnitId && nextUnitPracticeCounts[activeUnitId] >= 3;
+      const nextCompletedUnitIds = practicedActiveUnitToMastery
         ? Array.from(new Set([...(prev.completedUnitIds || []), activeUnitId]))
         : (prev.completedUnitIds || []);
 
@@ -722,6 +728,7 @@ const App: React.FC = () => {
         ...prev,
         stickers: newStickers,
         completedUnitIds: nextCompletedUnitIds,
+        unitPracticeCounts: nextUnitPracticeCounts,
         currentLevel: newLevel,
         currentGrade: newGrade,
         xp: prev.xp + 10,

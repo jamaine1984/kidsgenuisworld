@@ -170,6 +170,8 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
   const currentGradeRoomCount = new Set(currentGradeUnits.map(unit => unit.room)).size;
   const currentGradeUnitCount = currentGradeUnits.length;
   const completedCurrentGradeUnits = currentGradeUnits.filter(unit => progress.completedUnitIds?.includes(unit.id)).length;
+  const unitPracticeCounts = progress.unitPracticeCounts || {};
+  const activeGradePracticeEvents = currentGradeUnits.reduce((sum, unit) => sum + (unitPracticeCounts[unit.id] || 0), 0);
   const unitReadinessSummary = currentGradeUnits.reduce((summary, unit) => {
     const readiness = getUnitReadiness(progress, unit, masteryMinimum || 3);
     return {
@@ -695,13 +697,13 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
               </div>
               <div className="bg-white rounded-xl p-4 shadow-sm border border-emerald-100">
                 <p className="text-xs uppercase tracking-[0.16em] text-emerald-500 font-bold mb-1">Room coverage</p>
-                <p className="text-3xl font-black text-emerald-700">{currentGradeRoomCount}/11</p>
+                <p className="text-3xl font-black text-emerald-700">{currentGradeRoomCount}/10</p>
                 <p className="text-sm text-gray-600">rooms represented in this grade</p>
               </div>
               <div className="bg-white rounded-xl p-4 shadow-sm border border-amber-100">
                 <p className="text-xs uppercase tracking-[0.16em] text-amber-500 font-bold mb-1">Unlock rules</p>
-                <p className="text-sm font-bold text-gray-800">Stars + mastery + every room</p>
-                <p className="text-sm text-gray-600">prevents fast grade skipping</p>
+                <p className="text-3xl font-black text-amber-700">{activeGradePracticeEvents}</p>
+                <p className="text-sm text-gray-600">mission practice wins before completion</p>
               </div>
             </div>
 
@@ -780,6 +782,8 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {curriculumUnits.map(unit => {
                 const readiness = getUnitReadiness(progress, unit, masteryMinimum || 3);
+                const unitPractice = unitPracticeCounts[unit.id] || 0;
+                const unitPracticeTarget = Math.max(3, masteryMinimum || 3);
                 return (
                   <div key={unit.id} className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
                     <div className="flex items-start justify-between gap-3 mb-3">
@@ -795,6 +799,21 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                           {getReadinessLabel(readiness)}
                         </span>
                       </div>
+                    </div>
+                    <div className="mb-3 rounded-xl bg-indigo-50 p-3">
+                      <div className="mb-2 flex items-center justify-between gap-3 text-xs font-bold text-indigo-800">
+                        <span>Mission practice</span>
+                        <span>{Math.min(unitPractice, unitPracticeTarget)}/{unitPracticeTarget}</span>
+                      </div>
+                      <div className="h-2 overflow-hidden rounded-full bg-white">
+                        <div
+                          className="h-full rounded-full bg-indigo-500"
+                          style={{ width: `${Math.min(100, Math.round((unitPractice / unitPracticeTarget) * 100))}%` }}
+                        />
+                      </div>
+                      <p className="mt-2 text-xs font-semibold text-indigo-700">
+                        A unit counts as completed after repeated successful practice, not one quick answer.
+                      </p>
                     </div>
                     <p className="text-sm text-gray-700 mb-2">{unit.objective}</p>
                     {unit.prerequisite && (

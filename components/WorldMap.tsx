@@ -573,7 +573,7 @@ export const WorldMap: React.FC<WorldMapProps> = ({
             return (
               <button
                 key={room.type}
-                onClick={() => { playPop(); onEnterRoom(room.type); }}
+                onClick={() => { playPop(); onEnterRoom(room.type, nextUnit?.id); }}
                 onMouseEnter={() => setHoveredRoom(room.type)}
                 onMouseLeave={() => setHoveredRoom(null)}
                 className={`${room.featured ? 'sm:col-span-2 sm:row-span-2' : ''} relative group text-left`}

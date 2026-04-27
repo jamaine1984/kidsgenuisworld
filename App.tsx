@@ -249,6 +249,7 @@ const App: React.FC = () => {
   const [guideTrigger, setGuideTrigger] = useState(0);
   const [newAchievement, setNewAchievement] = useState<Achievement | null>(null);
   const [activeUnitId, setActiveUnitId] = useState<string | null>(null);
+  const [showMissionFocus, setShowMissionFocus] = useState(false);
   const [learningReflection, setLearningReflection] = useState<LearningReflection | null>(null);
   const [parentOnboarded, setParentOnboarded] = useState(() => localStorage.getItem('kidGeniusParentOnboarded') === 'true');
   const [legalView, setLegalView] = useState<'privacy' | 'terms' | null>(null);
@@ -640,6 +641,7 @@ const App: React.FC = () => {
   const handleEnterRoom = (room: RoomType, unitId?: string) => {
     stopSpeaking();
     setActiveUnitId(unitId || null);
+    setShowMissionFocus(Boolean(unitId));
     setProgress(prev => ({
       ...prev,
       dailyStats: updateDailyStats(prev.dailyStats, { roomsVisited: [room] }),
@@ -659,6 +661,7 @@ const App: React.FC = () => {
     stopSpeaking();
     setCurrentRoom(RoomType.HUB);
     setActiveUnitId(null);
+    setShowMissionFocus(false);
     setShowDashboard(false);
     setShowParentDashboard(false);
     setGuideTrigger(p => p + 1);
@@ -1307,6 +1310,11 @@ const App: React.FC = () => {
   const selectedReflectionChoice = learningReflection?.journalEntryId
     ? progress.learningJournal?.find(entry => entry.id === learningReflection.journalEntryId)?.childReflection
     : undefined;
+  const activeUnit = activeUnitId
+    ? getUnitsForGrade(progress.currentGrade).find(unit => unit.id === activeUnitId)
+    : undefined;
+  const activeUnitPracticeCount = activeUnitId ? Math.min(progress.unitPracticeCounts?.[activeUnitId] || 0, 3) : 0;
+  const showActiveMissionFocus = Boolean(activeUnit && currentRoom !== RoomType.HUB && !showDashboard && !showParentDashboard);
 
   return (
     <div className={`w-screen h-screen overflow-hidden bg-sky-100 relative ${getAccessibilityClasses()}`}>
@@ -1321,6 +1329,48 @@ const App: React.FC = () => {
         {renderView()}
       </Suspense>
       <Guide room={currentRoom} trigger={guideTrigger} />
+
+      {showActiveMissionFocus && activeUnit && (
+        <div className="fixed bottom-4 left-4 right-4 z-30 mx-auto max-w-2xl">
+          {showMissionFocus ? (
+            <div className="rounded-[24px] border-4 border-white bg-white/95 p-4 shadow-2xl backdrop-blur">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-black uppercase tracking-[0.16em] text-indigo-600">Mission Focus</p>
+                  <h3 className="mt-1 text-lg font-black text-slate-900">{activeUnit.title}</h3>
+                  <p className="mt-1 text-sm font-semibold text-slate-700">{activeUnit.objective}</p>
+                </div>
+                <button
+                  onClick={() => setShowMissionFocus(false)}
+                  className="rounded-full bg-slate-100 p-2 text-slate-600 hover:bg-slate-200"
+                  aria-label="Hide Mission Focus"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+              <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-[0.8fr_1.2fr]">
+                <div className="rounded-2xl bg-indigo-50 px-3 py-2">
+                  <p className="text-xs font-black text-indigo-700">Practice progress</p>
+                  <p className="text-xl font-black text-indigo-900">{activeUnitPracticeCount}/3</p>
+                </div>
+                <div className="rounded-2xl bg-emerald-50 px-3 py-2">
+                  <p className="text-xs font-black text-emerald-700">Success check</p>
+                  <p className="text-sm font-bold text-emerald-900">{activeUnit.successCheck}</p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowMissionFocus(true)}
+              className="inline-flex max-w-full items-center gap-2 rounded-full border-4 border-white bg-indigo-600 px-4 py-3 text-left font-black text-white shadow-xl hover:bg-indigo-700"
+            >
+              <Target size={20} className="shrink-0" />
+              <span className="truncate">Mission Focus: {activeUnit.title}</span>
+              <span className="shrink-0 rounded-full bg-white/20 px-2 py-1 text-xs">{activeUnitPracticeCount}/3</span>
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Modals */}
       {showAchievements && (

@@ -319,6 +319,9 @@ if (!parentDashboardSource.includes('Parent Learning Report') || !parentDashboar
 if (!appSource.includes('Learning Reflection') || !appSource.includes('Explain what you learned') || !appSource.includes('Teach it back') || !appSource.includes('practice rounds')) {
   fail('Reward flow needs a kid-facing learning reflection after practice.');
 }
+if (!appSource.includes('Mission Focus') || !appSource.includes('showMissionFocus') || !appSource.includes('Practice progress') || !appSource.includes('Success check')) {
+  fail('Active lesson mission focus is missing inside room practice.');
+}
 if (!typesSource.includes('LearningJournalEntry') || !typesSource.includes('childReflection') || !appSource.includes('learningJournal') || !appSource.includes('recordLearningReflectionChoice') || !parentDashboardSource.includes('Learning Journal') || !parentDashboardSource.includes('Recent proof of practice') || !parentDashboardSource.includes('Child reflection')) {
   fail('Parent evidence trail learning journal is missing.');
 }

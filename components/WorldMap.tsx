@@ -39,8 +39,47 @@ export const WorldMap: React.FC<WorldMapProps> = ({
   const passportRoomCount = new Set((progress.learningJournal || []).map(entry => entry.room)).size;
   const passportReflectionCount = (progress.learningJournal || []).filter(entry => entry.childReflection).length;
   const passportMasteryCount = (progress.learningJournal || []).filter(entry => entry.mastered).length;
+  const dayMs = 24 * 60 * 60 * 1000;
+  const now = Date.now();
+  const lastPracticedAtByUnit = (progress.learningJournal || []).reduce((latest, entry) => {
+    if (entry.unitId) {
+      latest[entry.unitId] = Math.max(latest[entry.unitId] || 0, entry.createdAt);
+    }
+    return latest;
+  }, {} as Record<string, number>);
+  const getReviewTiming = (unit: CurriculumUnit) => {
+    const lastPracticedAt = lastPracticedAtByUnit[unit.id];
+    if (!lastPracticedAt) {
+      return {
+        label: `${unit.reviewCycleDays}d cycle`,
+        detail: 'First practice is ready when you are.',
+        lastLabel: 'Not practiced yet',
+        isDue: false,
+      };
+    }
+
+    const daysSincePractice = Math.max(0, Math.floor((now - lastPracticedAt) / dayMs));
+    const daysUntilReview = Math.max(0, unit.reviewCycleDays - daysSincePractice);
+    const lastLabel = daysSincePractice === 0
+      ? 'Practiced today'
+      : daysSincePractice === 1
+        ? 'Practiced yesterday'
+        : `Practiced ${daysSincePractice} days ago`;
+
+    return {
+      label: daysUntilReview === 0 ? 'Review due' : `Review in ${daysUntilReview}d`,
+      detail: daysUntilReview === 0
+        ? 'Ready to explain again today.'
+        : `Explain again after ${daysUntilReview} more day${daysUntilReview === 1 ? '' : 's'}.`,
+      lastLabel,
+      isDue: daysUntilReview === 0,
+    };
+  };
   const reviewQuestItems = [...weeklyPlan]
     .sort((a, b) => {
+      const aTiming = getReviewTiming(a.unit);
+      const bTiming = getReviewTiming(b.unit);
+      if (aTiming.isDue !== bTiming.isDue) return aTiming.isDue ? -1 : 1;
       const aCompleted = completedUnitIds.has(a.unit.id) ? 1 : 0;
       const bCompleted = completedUnitIds.has(b.unit.id) ? 1 : 0;
       if (aCompleted !== bCompleted) return bCompleted - aCompleted;
@@ -51,6 +90,7 @@ export const WorldMap: React.FC<WorldMapProps> = ({
     })
     .slice(0, 3);
   const reviewReadyCount = reviewQuestItems.filter(item => completedUnitIds.has(item.unit.id) || (unitPracticeCounts[item.unit.id] || 0) > 0).length;
+  const reviewDueCount = reviewQuestItems.filter(item => getReviewTiming(item.unit).isDue).length;
   const todayKey = new Date().toISOString().slice(0, 10);
   const todayStats = progress.dailyStats?.find(day => day.date === todayKey);
   const todayMinutes = todayStats?.timeSpentMinutes || 0;
@@ -492,7 +532,9 @@ export const WorldMap: React.FC<WorldMapProps> = ({
                   <p className="text-xs uppercase tracking-[0.18em] font-black text-violet-600">Spaced Review</p>
                   <p className="mt-1 font-black text-violet-950">Review Quest</p>
                   <p className="text-sm text-violet-800/80">
-                    {reviewReadyCount > 0
+                    {reviewDueCount > 0
+                      ? `${reviewDueCount} lesson${reviewDueCount === 1 ? '' : 's'} due for explain-again practice.`
+                      : reviewReadyCount > 0
                       ? `${reviewReadyCount} practiced lessons ready to explain again.`
                       : 'Start with quick explain-again lessons from this week.'}
                   </p>
@@ -736,12 +778,13 @@ export const WorldMap: React.FC<WorldMapProps> = ({
               {reviewQuestItems.map(item => {
                 const practiceCount = unitPracticeCounts[item.unit.id] || 0;
                 const completed = completedUnitIds.has(item.unit.id);
+                const reviewTiming = getReviewTiming(item.unit);
                 return (
                   <div key={item.unit.id} className="rounded-2xl border border-violet-100 bg-slate-50 p-3">
                     <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
                       <div>
                         <p className="text-xs font-black uppercase tracking-[0.14em] text-violet-600">
-                          {completed ? 'Mastered review' : practiceCount > 0 ? 'Practice review' : `${item.unit.reviewCycleDays} day review`}
+                          {completed ? `Mastered • ${reviewTiming.label}` : practiceCount > 0 ? reviewTiming.label : `${item.unit.reviewCycleDays} day review`}
                         </p>
                         <h3 className="mt-1 font-black text-slate-900">{item.unit.title}</h3>
                         <p className="mt-1 text-sm font-semibold text-slate-600">{item.unit.successCheck}</p>
@@ -753,7 +796,8 @@ export const WorldMap: React.FC<WorldMapProps> = ({
                     </div>
                     <div className="mt-3 flex flex-col sm:flex-row gap-2">
                       <div className="flex-1 rounded-xl bg-white p-3 text-xs font-bold text-slate-700">
-                        At-home check: {item.unit.parentActivity}
+                        <p>{reviewTiming.lastLabel} • {reviewTiming.detail}</p>
+                        <p className="mt-1">At-home check: {item.unit.parentActivity}</p>
                       </div>
                       <button
                         onClick={() => {

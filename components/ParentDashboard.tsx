@@ -195,8 +195,47 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
     'in-progress': 0,
     'needs-practice': 0,
   } as Record<'ready' | 'in-progress' | 'needs-practice', number>);
+  const dayMs = 24 * 60 * 60 * 1000;
+  const now = Date.now();
+  const lastPracticedAtByUnit = (progress.learningJournal || []).reduce((latest, entry) => {
+    if (entry.unitId) {
+      latest[entry.unitId] = Math.max(latest[entry.unitId] || 0, entry.createdAt);
+    }
+    return latest;
+  }, {} as Record<string, number>);
+  const getReviewTiming = (unit: (typeof currentGradeUnits)[number]) => {
+    const lastPracticedAt = lastPracticedAtByUnit[unit.id];
+    if (!lastPracticedAt) {
+      return {
+        label: `${unit.reviewCycleDays}d cycle`,
+        detail: 'No logged practice yet.',
+        lastLabel: 'Not practiced yet',
+        isDue: false,
+      };
+    }
+
+    const daysSincePractice = Math.max(0, Math.floor((now - lastPracticedAt) / dayMs));
+    const daysUntilReview = Math.max(0, unit.reviewCycleDays - daysSincePractice);
+    const lastLabel = daysSincePractice === 0
+      ? 'Practiced today'
+      : daysSincePractice === 1
+        ? 'Practiced yesterday'
+        : `Practiced ${daysSincePractice} days ago`;
+
+    return {
+      label: daysUntilReview === 0 ? 'Review due' : `Review in ${daysUntilReview}d`,
+      detail: daysUntilReview === 0
+        ? 'Ask for an explain-again check today.'
+        : `Next explain-again check in ${daysUntilReview} day${daysUntilReview === 1 ? '' : 's'}.`,
+      lastLabel,
+      isDue: daysUntilReview === 0,
+    };
+  };
   const spacedReviewQueue = [...currentGradeUnits]
     .sort((a, b) => {
+      const aTiming = getReviewTiming(a);
+      const bTiming = getReviewTiming(b);
+      if (aTiming.isDue !== bTiming.isDue) return aTiming.isDue ? -1 : 1;
       const aCompleted = progress.completedUnitIds?.includes(a.id) ? 1 : 0;
       const bCompleted = progress.completedUnitIds?.includes(b.id) ? 1 : 0;
       if (aCompleted !== bCompleted) return bCompleted - aCompleted;
@@ -206,6 +245,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
       return a.reviewCycleDays - b.reviewCycleDays;
     })
     .slice(0, 5);
+  const spacedReviewDueCount = spacedReviewQueue.filter(unit => getReviewTiming(unit).isDue).length;
   const getReadinessLabel = (readiness: 'ready' | 'in-progress' | 'needs-practice') => {
     if (readiness === 'ready') return 'Ready';
     if (readiness === 'in-progress') return 'In progress';
@@ -944,20 +984,23 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 Spaced Review Queue
               </h4>
               <p className="text-sm text-gray-600 mb-4">
-                These are the next lessons to revisit so skills move from short-term practice into durable mastery.
+                These are the next lessons to revisit so skills move from short-term practice into durable mastery. {spacedReviewDueCount} due now.
               </p>
               <div className="grid grid-cols-1 lg:grid-cols-5 gap-3">
                 {spacedReviewQueue.map(unit => {
                   const practiceCount = unitPracticeCounts[unit.id] || 0;
                   const completed = progress.completedUnitIds?.includes(unit.id);
+                  const reviewTiming = getReviewTiming(unit);
                   return (
                     <div key={`review-${unit.id}`} className="rounded-xl bg-violet-50 border border-violet-100 p-3">
                       <p className="text-xs uppercase tracking-[0.12em] text-violet-600 font-bold">
-                        {completed ? 'Mastered' : practiceCount > 0 ? 'Review soon' : `${unit.reviewCycleDays}d cycle`}
+                        {completed ? `Mastered • ${reviewTiming.label}` : practiceCount > 0 ? reviewTiming.label : `${unit.reviewCycleDays}d cycle`}
                       </p>
                       <p className="font-bold text-gray-900 mt-1">{unit.title}</p>
                       <p className="text-xs text-gray-500 mt-1">{unit.room}</p>
                       <p className="text-xs font-bold text-violet-700 mt-2">{Math.min(practiceCount, 3)}/3 practice rounds</p>
+                      <p className="text-xs font-bold text-violet-700 mt-2">{reviewTiming.lastLabel}</p>
+                      <p className="text-xs text-violet-700 mt-1">{reviewTiming.detail}</p>
                       <p className="text-xs text-gray-600 mt-2">{unit.successCheck}</p>
                     </div>
                   );

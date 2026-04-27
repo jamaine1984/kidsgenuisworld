@@ -328,6 +328,9 @@ if (!typesSource.includes('LearningJournalEntry') || !typesSource.includes('chil
 if (!worldMapSource.includes('Review Quest') || !worldMapSource.includes('Start Review') || !parentDashboardSource.includes('Spaced Review Queue')) {
   fail('Spaced review must be visible to kids and parents.');
 }
+if (!worldMapSource.includes('Review due') || !worldMapSource.includes('lastPracticedAtByUnit') || !parentDashboardSource.includes('due now') || !parentDashboardSource.includes('Practiced today')) {
+  fail('Spaced review timing must use journal history for due and last-practiced signals.');
+}
 if (!worldMapSource.includes('Learning Passport') || !worldMapSource.includes('Passport Stamp Collection') || !worldMapSource.includes('reflection stamps')) {
   fail('Kid-facing learning passport evidence is missing from the world map.');
 }

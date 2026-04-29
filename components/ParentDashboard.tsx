@@ -13,7 +13,7 @@ import {
   GradeLevel,
   DEFAULT_PRIVACY_SETTINGS
 } from '../types';
-import { getCurrentGradeUnits, getRoadmapRecommendations, getUnitReadiness, getUnitsForGrade, getWeeklyLearningPlan } from '../services/curriculum';
+import { getCurrentGradeUnits, getRoadmapRecommendations, getUnitReadiness, getUnitsForGrade, getWeeklyLearningPlan, type CurriculumUnit } from '../services/curriculum';
 
 interface ParentDashboardProps {
   progress: UserProgress;
@@ -231,6 +231,16 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
       isDue: daysUntilReview === 0,
     };
   };
+  const getPracticeActivities = (unit: CurriculumUnit) => unit.practiceActivities?.slice(0, 3) || [
+    unit.objective,
+    `Practice one example connected to ${unit.standardsFocus[0].toLowerCase()}.`,
+    'Say the strategy out loud before finishing.',
+  ];
+  const getEndChecks = (unit: CurriculumUnit) => unit.endOfLessonChecks?.slice(0, 3) || [
+    unit.successCheck,
+    'Child explains the idea in their own words.',
+    'Child tries one more example without guessing.',
+  ];
   const spacedReviewQueue = [...currentGradeUnits]
     .sort((a, b) => {
       const aTiming = getReviewTiming(a);
@@ -970,6 +980,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                     <p className="font-bold text-gray-900 mt-1">{item.unit.title}</p>
                     <p className="text-xs text-gray-500 mt-1">{item.unit.room}</p>
                     <p className="text-xs text-sky-700 font-semibold mt-2">{item.focus}</p>
+                    <p className="text-xs text-gray-600 mt-2">{getPracticeActivities(item.unit)[0]}</p>
                   </div>
                 ))}
               </div>
@@ -1002,6 +1013,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                       <p className="text-xs font-bold text-violet-700 mt-2">{reviewTiming.lastLabel}</p>
                       <p className="text-xs text-violet-700 mt-1">{reviewTiming.detail}</p>
                       <p className="text-xs text-gray-600 mt-2">{unit.successCheck}</p>
+                      <p className="text-xs text-violet-800 mt-2">Exit check: {getEndChecks(unit)[0]}</p>
                     </div>
                   );
                 })}
@@ -1034,6 +1046,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                     <p className="font-bold text-gray-900 mt-1">{item.unit.title}</p>
                     <p className="text-sm text-gray-700 mt-2">{item.unit.parentActivity}</p>
                     <p className="text-xs text-emerald-800 mt-2">Success check: {item.unit.successCheck}</p>
+                    <p className="text-xs text-gray-600 mt-2">{item.unit.parentExplanation}</p>
                   </div>
                 ))}
               </div>
@@ -1076,10 +1089,33 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                       </p>
                     </div>
                     <p className="text-sm text-gray-700 mb-2">{unit.objective}</p>
+                    <div className="mb-3 rounded-xl bg-slate-50 border border-slate-100 p-3">
+                      <p className="text-xs uppercase tracking-[0.14em] text-slate-500 font-bold mb-1">Parent explanation</p>
+                      <p className="text-sm text-slate-700">{unit.parentExplanation}</p>
+                    </div>
                     {unit.prerequisite && (
                       <p className="text-xs text-gray-500 mb-2">Prerequisite: {unit.prerequisite}</p>
                     )}
                     <p className="text-sm text-emerald-700 font-semibold mb-3">Mastery: {unit.masteryTarget}</p>
+                    <div className="mb-3 grid grid-cols-1 md:grid-cols-3 gap-2">
+                      {getPracticeActivities(unit).map((activity, index) => (
+                        <div key={`${unit.id}-activity-${index}`} className="rounded-lg bg-white border border-indigo-100 p-3">
+                          <p className="text-[10px] uppercase tracking-[0.14em] text-indigo-500 font-bold">Activity {index + 1}</p>
+                          <p className="mt-1 text-xs text-gray-700 font-semibold">{activity}</p>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mb-3 rounded-lg bg-emerald-50 border border-emerald-100 p-3">
+                      <p className="text-xs uppercase tracking-[0.14em] text-emerald-700 font-bold mb-2">End-of-lesson checks</p>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                        {getEndChecks(unit).map((check, index) => (
+                          <p key={`${unit.id}-check-${index}`} className="rounded-lg bg-white/80 p-2 text-xs font-semibold text-emerald-900">
+                            {check}
+                          </p>
+                        ))}
+                      </div>
+                      <p className="mt-2 text-xs font-bold text-emerald-800">Mastery gate: {unit.masteryGate}</p>
+                    </div>
                     <div className="rounded-lg bg-amber-50 border border-amber-100 p-3 mb-3">
                       <p className="text-xs uppercase tracking-[0.14em] text-amber-700 font-bold mb-1">Parent Activity</p>
                       <p className="text-sm text-amber-900">{unit.parentActivity}</p>

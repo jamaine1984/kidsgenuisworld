@@ -1314,6 +1314,8 @@ const App: React.FC = () => {
     ? getUnitsForGrade(progress.currentGrade).find(unit => unit.id === activeUnitId)
     : undefined;
   const activeUnitPracticeCount = activeUnitId ? Math.min(progress.unitPracticeCounts?.[activeUnitId] || 0, 3) : 0;
+  const activeUnitPracticeActivities = activeUnit?.practiceActivities?.slice(0, 2) || [];
+  const activeUnitEndChecks = activeUnit?.endOfLessonChecks?.slice(0, 2) || [];
   const showActiveMissionFocus = Boolean(activeUnit && currentRoom !== RoomType.HUB && !showDashboard && !showParentDashboard);
 
   return (
@@ -1339,6 +1341,15 @@ const App: React.FC = () => {
                   <p className="text-xs font-black uppercase tracking-[0.16em] text-indigo-600">Mission Focus</p>
                   <h3 className="mt-1 text-lg font-black text-slate-900">{activeUnit.title}</h3>
                   <p className="mt-1 text-sm font-semibold text-slate-700">{activeUnit.objective}</p>
+                  {activeUnitPracticeActivities.length > 0 && (
+                    <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                      {activeUnitPracticeActivities.map((activity, index) => (
+                        <p key={`${activeUnit.id}-focus-activity-${index}`} className="rounded-2xl bg-indigo-50 px-3 py-2 text-xs font-bold text-indigo-900">
+                          Activity {index + 1}: {activity}
+                        </p>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <button
                   onClick={() => setShowMissionFocus(false)}
@@ -1356,6 +1367,9 @@ const App: React.FC = () => {
                 <div className="rounded-2xl bg-emerald-50 px-3 py-2">
                   <p className="text-xs font-black text-emerald-700">Success check</p>
                   <p className="text-sm font-bold text-emerald-900">{activeUnit.successCheck}</p>
+                  {activeUnitEndChecks.length > 0 && (
+                    <p className="mt-2 text-xs font-bold text-emerald-800">Exit check: {activeUnitEndChecks[0]}</p>
+                  )}
                 </div>
               </div>
             </div>

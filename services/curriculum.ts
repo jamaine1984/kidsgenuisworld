@@ -12,6 +12,10 @@ export interface CurriculumUnit {
   reviewCycleDays: number;
   parentActivity: string;
   successCheck: string;
+  practiceActivities?: string[];
+  endOfLessonChecks?: string[];
+  masteryGate?: string;
+  parentExplanation?: string;
 }
 
 export type UnitReadiness = 'needs-practice' | 'in-progress' | 'ready';
@@ -622,26 +626,93 @@ const roomExpansionPlans = [
   },
 ];
 
+const lessonArcPlans = [
+  {
+    id: 'foundation',
+    title: 'Foundation',
+    focus: 'Build the idea',
+    activityPrompt: 'Start with a short guided example, name the key idea, and try one supported answer.',
+    checkPrompt: 'Child can name the idea and complete one supported example.',
+    parentCue: 'Ask your child to explain the new idea in one sentence before moving on.',
+    masteryCue: 'Needs at least one accurate guided response before the next practice step.',
+    reviewOffset: 0,
+  },
+  {
+    id: 'guided-practice',
+    title: 'Guided Practice',
+    focus: 'Practice with support',
+    activityPrompt: 'Try two varied examples, compare answers, and explain which strategy helped.',
+    checkPrompt: 'Child completes two examples and explains the strategy used.',
+    parentCue: 'Use a real-world example and ask what strategy made the answer easier.',
+    masteryCue: 'Needs repeated accurate practice with a spoken strategy explanation.',
+    reviewOffset: 1,
+  },
+  {
+    id: 'mastery-check',
+    title: 'Mastery Check',
+    focus: 'Explain and apply',
+    activityPrompt: 'Solve a fresh challenge, teach the idea back, and choose one mistake to avoid next time.',
+    checkPrompt: 'Child applies the skill without guessing and teaches the idea back clearly.',
+    parentCue: 'Ask your child to teach the skill back, then give one new example.',
+    masteryCue: 'Counts toward mastery after three successful practice rounds and a clear teach-back.',
+    reviewOffset: 2,
+  },
+];
+
 const EVERY_ROOM_CURRICULUM_UNITS: CurriculumUnit[] = gradeExpansionPlans.flatMap((gradePlan, gradeIndex) =>
-  roomExpansionPlans.map((roomPlan, roomIndex) => ({
-    id: `${gradePlan.label.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${roomPlan.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
-    grade: gradePlan.grade,
-    room: roomPlan.room,
-    title: `${gradePlan.label} ${roomPlan.title}`,
-    objective: `${roomPlan.objective} Students ${gradePlan.stage} through ${gradePlan.complexity}.`,
-    prerequisite: gradeIndex === 0 ? undefined : `${gradeExpansionPlans[gradeIndex - 1].label} readiness in this room`,
-    masteryTarget: roomPlan.masteryTarget,
-    standardsFocus: roomPlan.standardsFocus,
-    reviewCycleDays: roomPlan.reviewCycleDays + (roomIndex % 2),
-    parentActivity: roomPlan.parentActivity,
-    successCheck: roomPlan.successCheck,
-  }))
+  roomExpansionPlans.flatMap((roomPlan, roomIndex) =>
+    lessonArcPlans.map((arcPlan, arcIndex) => ({
+      id: `${gradePlan.label.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${roomPlan.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${arcPlan.id}`,
+      grade: gradePlan.grade,
+      room: roomPlan.room,
+      title: `${gradePlan.label} ${roomPlan.title}: ${arcPlan.title}`,
+      objective: `${roomPlan.objective} Students ${gradePlan.stage} through ${gradePlan.complexity}. ${arcPlan.focus}: ${arcPlan.activityPrompt}`,
+      prerequisite: gradeIndex === 0 && arcIndex === 0
+        ? undefined
+        : arcIndex === 0
+          ? `${gradeExpansionPlans[gradeIndex - 1].label} readiness in this room`
+          : `${gradePlan.label} ${roomPlan.title}: ${lessonArcPlans[arcIndex - 1].title}`,
+      masteryTarget: `${roomPlan.masteryTarget} ${arcPlan.masteryCue}`,
+      standardsFocus: [...roomPlan.standardsFocus, arcPlan.focus],
+      reviewCycleDays: roomPlan.reviewCycleDays + (roomIndex % 2) + arcPlan.reviewOffset,
+      parentActivity: `${roomPlan.parentActivity} ${arcPlan.parentCue}`,
+      successCheck: `${roomPlan.successCheck} ${arcPlan.checkPrompt}`,
+      practiceActivities: [
+        arcPlan.activityPrompt,
+        `Use ${gradePlan.complexity} to practice ${roomPlan.standardsFocus[0].toLowerCase()}.`,
+        'Finish by saying the strategy out loud before earning the mission stamp.',
+      ],
+      endOfLessonChecks: [
+        arcPlan.checkPrompt,
+        'Child can explain what felt easy and what still needs practice.',
+        'Child can try one new example without rushing to the next grade.',
+      ],
+      masteryGate: arcPlan.masteryCue,
+      parentExplanation: `${gradePlan.label} ${roomPlan.title} uses a three-step arc. This lesson is the ${arcPlan.title.toLowerCase()} step, so it should feel like ${arcPlan.focus.toLowerCase()} before the next unit opens.`,
+    }))
+  )
 );
+
+const enrichCurriculumUnit = (unit: CurriculumUnit): CurriculumUnit => ({
+  ...unit,
+  practiceActivities: unit.practiceActivities || [
+    unit.objective,
+    `Practice with a short example connected to ${unit.standardsFocus[0].toLowerCase()}.`,
+    'Say the strategy out loud before finishing the lesson.',
+  ],
+  endOfLessonChecks: unit.endOfLessonChecks || [
+    unit.successCheck,
+    'Child can explain the idea in their own words.',
+    'Child is ready for one more example without guessing.',
+  ],
+  masteryGate: unit.masteryGate || 'Complete three successful practice rounds and explain the idea clearly.',
+  parentExplanation: unit.parentExplanation || `${unit.title} builds ${unit.standardsFocus.slice(0, 2).join(' and ').toLowerCase()} through repeated practice, a teach-back check, and a short at-home connection.`,
+});
 
 export const CURRICULUM_UNITS: CurriculumUnit[] = [
   ...CORE_CURRICULUM_UNITS,
   ...EVERY_ROOM_CURRICULUM_UNITS,
-];
+].map(enrichCurriculumUnit);
 
 const gradeOrder = [
   GradeLevel.PRE_K,

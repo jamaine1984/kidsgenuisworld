@@ -196,15 +196,19 @@ if (!distIndex.includes('/assets/')) fail('Production build output is missing bu
 const coreCurriculumUnitCount = (curriculumSource.match(/id: '/g) || []).length;
 const hasEveryRoomExpansion = curriculumSource.includes('EVERY_ROOM_CURRICULUM_UNITS') &&
   curriculumSource.includes('gradeExpansionPlans') &&
-  curriculumSource.includes('roomExpansionPlans');
+  curriculumSource.includes('roomExpansionPlans') &&
+  curriculumSource.includes('lessonArcPlans');
 const expandedCurriculumUnitCount = hasEveryRoomExpansion
-  ? coreCurriculumUnitCount + (7 * 10)
+  ? coreCurriculumUnitCount + (7 * 11 * 3)
   : coreCurriculumUnitCount;
-if (expandedCurriculumUnitCount < 95) {
-  fail(`Curriculum map is too small: found ${expandedCurriculumUnitCount} planned units, expected at least 95.`);
+if (expandedCurriculumUnitCount < 240) {
+  fail(`Curriculum map is too small: found ${expandedCurriculumUnitCount} planned units, expected at least 240.`);
 }
-for (const field of ['standardsFocus', 'reviewCycleDays', 'masteryTarget', 'objective', 'parentActivity', 'successCheck']) {
+for (const field of ['standardsFocus', 'reviewCycleDays', 'masteryTarget', 'objective', 'parentActivity', 'successCheck', 'practiceActivities', 'endOfLessonChecks', 'masteryGate', 'parentExplanation']) {
   if (!curriculumSource.includes(field)) fail(`Curriculum field is missing: ${field}`);
+}
+if (!curriculumSource.includes('Foundation') || !curriculumSource.includes('Guided Practice') || !curriculumSource.includes('Mastery Check')) {
+  fail('Curriculum needs a foundation, guided practice, and mastery-check lesson arc.');
 }
 const requiredGradeCoverage = [
   'GradeLevel.PRE_K',
@@ -313,6 +317,9 @@ for (const strand of ['Social-emotional learning', 'Engineering', 'Fluency', 'De
 if (!parentDashboardSource.includes('Parent Activity') || !parentDashboardSource.includes('Success check')) {
   fail('Parent-guided curriculum activities are not visible in the roadmap.');
 }
+if (!parentDashboardSource.includes('Parent explanation') || !parentDashboardSource.includes('End-of-lesson checks') || !parentDashboardSource.includes('Mastery gate')) {
+  fail('Parent roadmap must show explanations, end-of-lesson checks, and mastery gates.');
+}
 if (!parentDashboardSource.includes('Parent Learning Report') || !parentDashboardSource.includes('Practice rhythm') || !parentDashboardSource.includes('Next parent actions') || !parentDashboardSource.includes('Print Weekly Report')) {
   fail('Parent dashboard needs plain-language weekly learning insights for paid-user readiness.');
 }
@@ -336,6 +343,9 @@ if (!worldMapSource.includes('Learning Passport') || !worldMapSource.includes('P
 }
 if (!worldMapSource.includes('At-home idea') || !worldMapSource.includes('Review in') || !worldMapSource.includes('Story Time')) {
   fail('World map daily path does not surface curriculum guidance clearly.');
+}
+if (!worldMapSource.includes('Step {index + 1}') || !worldMapSource.includes('Exit check') || !worldMapSource.includes('getPracticeActivities')) {
+  fail('Kid world map must surface lesson activities and exit checks.');
 }
 if (!worldMapSource.includes('Focus Quest') || !worldMapSource.includes('Try Again Plan') || !worldMapSource.includes('Mistakes are information')) {
   fail('World map needs a kid-facing focus and social-emotional learning routine.');

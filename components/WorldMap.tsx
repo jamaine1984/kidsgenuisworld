@@ -75,6 +75,16 @@ export const WorldMap: React.FC<WorldMapProps> = ({
       isDue: daysUntilReview === 0,
     };
   };
+  const getPracticeActivities = (unit: CurriculumUnit) => unit.practiceActivities?.slice(0, 3) || [
+    unit.objective,
+    `Practice one example connected to ${unit.standardsFocus[0].toLowerCase()}.`,
+    'Say the strategy out loud before finishing.',
+  ];
+  const getEndChecks = (unit: CurriculumUnit) => unit.endOfLessonChecks?.slice(0, 3) || [
+    unit.successCheck,
+    'Explain the idea in your own words.',
+    'Try one more example without guessing.',
+  ];
   const reviewQuestItems = [...weeklyPlan]
     .sort((a, b) => {
       const aTiming = getReviewTiming(a.unit);
@@ -499,6 +509,14 @@ export const WorldMap: React.FC<WorldMapProps> = ({
                   <p className="text-xs text-indigo-900 font-bold">At-home idea: {mission.parentActivity}</p>
                   <p className="text-xs text-indigo-700 mt-1">Success check: {mission.successCheck}</p>
                 </div>
+                <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                  {getPracticeActivities(mission).map((activity, index) => (
+                    <div key={`${mission.id}-activity-${index}`} className="rounded-2xl bg-white border border-indigo-100 p-3 shadow-sm">
+                      <p className="text-[10px] font-black uppercase tracking-[0.14em] text-indigo-500">Step {index + 1}</p>
+                      <p className="mt-1 text-xs font-bold text-slate-700">{activity}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
               <span className="bg-indigo-600 text-white rounded-full px-5 py-3 font-black shadow-lg">Start</span>
             </div>
@@ -660,6 +678,9 @@ export const WorldMap: React.FC<WorldMapProps> = ({
                             <p className="text-[10px] font-black text-emerald-700">{nextUnitPractice}/3</p>
                           </div>
                           <p className="mt-1 text-xs font-black text-slate-800">{nextUnit.title}</p>
+                          <p className="mt-1 line-clamp-2 text-[11px] font-semibold text-slate-500">
+                            {getPracticeActivities(nextUnit)[0]}
+                          </p>
                         </div>
                       )}
                       <div className="mt-2 flex items-center justify-between gap-2">
@@ -798,6 +819,7 @@ export const WorldMap: React.FC<WorldMapProps> = ({
                       <div className="flex-1 rounded-xl bg-white p-3 text-xs font-bold text-slate-700">
                         <p>{reviewTiming.lastLabel} • {reviewTiming.detail}</p>
                         <p className="mt-1">At-home check: {item.unit.parentActivity}</p>
+                        <p className="mt-2 text-violet-800">Exit check: {getEndChecks(item.unit)[0]}</p>
                       </div>
                       <button
                         onClick={() => {

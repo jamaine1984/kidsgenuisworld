@@ -374,6 +374,9 @@ if (!gameArcadeSource.includes('Daily Game Challenge') || !gameArcadeSource.incl
 if (!typesSource.includes('ArcadeProgress') || !appSource.includes('buildNextArcadeProgress') || !gameArcadeSource.includes('mastery badge') || !parentDashboardSource.includes('Game Arcade Proof')) {
   fail('Game Arcade progress must persist into the child arcade and parent dashboard.');
 }
+for (const arcadeParentMarker of ['Arcade Skill Coach', 'Daily Quest Plan', 'Next game to assign', 'Strongest arcade skill', 'Use Game Arcade next']) {
+  if (!parentDashboardSource.includes(arcadeParentMarker)) fail(`Parent dashboard needs stronger arcade coaching marker: ${arcadeParentMarker}.`);
+}
 for (const playSurfaceMarker of ['Interactive Playboard', 'First number', 'Scene card', 'Start', 'Answer Pads']) {
   if (!gameArcadeSource.includes(playSurfaceMarker)) fail(`Game Arcade is missing richer mini-game surface: ${playSurfaceMarker}.`);
 }

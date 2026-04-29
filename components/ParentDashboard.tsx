@@ -339,19 +339,75 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
   const todayKey = new Date().toISOString().slice(0, 10);
   const todayArcadeWins = arcadeProgress.dailyChallengeDate === todayKey ? arcadeProgress.dailyChallengeWins : 0;
   const arcadeGameRows = [
-    ['Number Dash', 'number-dash'],
-    ['Word Builder', 'word-builder'],
-    ['Pattern Quest', 'pattern-quest'],
-    ['Story Detective', 'story-detective'],
-    ['Robot Maze', 'robot-maze'],
-    ['Rhythm Tap', 'rhythm-tap'],
-  ].map(([label, id]) => ({
-    label,
-    id,
-    wins: arcadeProgress.gameWins[id] || 0,
-    mastered: arcadeProgress.masteredGameIds.includes(id) || (arcadeProgress.gameWins[id] || 0) >= 3,
+    {
+      label: 'Number Dash',
+      id: 'number-dash',
+      skill: 'Number fluency',
+      parentAction: 'Ask the child to explain the strategy before picking an answer.',
+    },
+    {
+      label: 'Word Builder',
+      id: 'word-builder',
+      skill: 'Phonics and vocabulary',
+      parentAction: 'Have the child say the full word slowly, then name the missing sound.',
+    },
+    {
+      label: 'Pattern Quest',
+      id: 'pattern-quest',
+      skill: 'Logic and working memory',
+      parentAction: 'Ask what repeats or changes before the next choice appears.',
+    },
+    {
+      label: 'Story Detective',
+      id: 'story-detective',
+      skill: 'Reading comprehension',
+      parentAction: 'Ask the child to point to the clue that proves the answer.',
+    },
+    {
+      label: 'Robot Maze',
+      id: 'robot-maze',
+      skill: 'Sequencing and debugging',
+      parentAction: 'Have the child trace each command in order and fix one wrong turn.',
+    },
+    {
+      label: 'Rhythm Tap',
+      id: 'rhythm-tap',
+      skill: 'Rhythm and auditory memory',
+      parentAction: 'Clap the pattern together, then let the child predict the next beat.',
+    },
+  ].map(game => ({
+    ...game,
+    wins: arcadeProgress.gameWins[game.id] || 0,
+    mastered: arcadeProgress.masteredGameIds.includes(game.id) || (arcadeProgress.gameWins[game.id] || 0) >= 3,
   }));
   const arcadeMasteredCount = arcadeGameRows.filter(game => game.mastered).length;
+  const arcadeRecommendedGame = [...arcadeGameRows]
+    .filter(game => !game.mastered)
+    .sort((first, second) => first.wins - second.wins)[0] || arcadeGameRows[0];
+  const arcadeStrongestGame = [...arcadeGameRows].sort((first, second) => second.wins - first.wins)[0];
+  const arcadeQuestCards = [
+    {
+      label: 'Daily Quest Plan',
+      value: todayArcadeWins > 0 ? 'Done today' : 'Needs one win',
+      detail: todayArcadeWins > 0
+        ? `${todayArcadeWins} arcade win${todayArcadeWins === 1 ? '' : 's'} recorded today.`
+        : 'Have the child finish one arcade mission before free exploration.',
+    },
+    {
+      label: 'Next game to assign',
+      value: arcadeRecommendedGame?.label || 'Start arcade',
+      detail: arcadeRecommendedGame
+        ? `${arcadeRecommendedGame.skill}: ${arcadeRecommendedGame.parentAction}`
+        : 'Start with any short arcade game and watch for strategy talk.',
+    },
+    {
+      label: 'Strongest arcade skill',
+      value: arcadeStrongestGame?.wins ? arcadeStrongestGame.label : 'Not yet',
+      detail: arcadeStrongestGame?.wins
+        ? `${arcadeStrongestGame.skill} has the most saved wins so far.`
+        : 'Strongest skill appears after the first completed arcade mission.',
+    },
+  ];
   const lastArcadePlayed = arcadeProgress.lastPlayedAt
     ? new Date(arcadeProgress.lastPlayedAt).toLocaleDateString([], { month: 'short', day: 'numeric' })
     : 'Not played yet';
@@ -364,6 +420,9 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
     nextPlanItem
       ? `Use today's parent activity: ${nextPlanItem.unit.parentActivity}`
       : 'Pick one at-home activity from the weekly plan.',
+    arcadeRecommendedGame
+      ? `Use Game Arcade next: ${arcadeRecommendedGame.label} for ${arcadeRecommendedGame.skill.toLowerCase()}.`
+      : 'Use Game Arcade for one short skill check.',
     activeLearningDays >= 4
       ? 'Ask the child to explain one solved problem out loud.'
       : 'Build a four-day weekly habit with short sessions.',
@@ -716,6 +775,28 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                     <p className="text-xl font-black text-amber-700">{todayArcadeWins}</p>
                     <p className="text-[11px] font-black uppercase tracking-[0.12em] text-amber-700">today</p>
                   </div>
+                </div>
+              </div>
+              <div className="mb-3 rounded-xl bg-gradient-to-r from-cyan-50 via-white to-emerald-50 border border-cyan-100 p-3">
+                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-black text-cyan-900">Arcade Skill Coach</p>
+                    <p className="mt-1 text-sm text-cyan-900/80">
+                      Parent view of the same Daily Quest Plan, mastery step, and next game recommendation kids see in the arcade.
+                    </p>
+                  </div>
+                  <span className="rounded-full bg-white px-3 py-1 text-[11px] font-black uppercase tracking-[0.12em] text-cyan-700 shadow-sm">
+                    Paid-user proof
+                  </span>
+                </div>
+                <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-2">
+                  {arcadeQuestCards.map(card => (
+                    <div key={card.label} className="rounded-lg bg-white border border-cyan-100 p-3 shadow-sm">
+                      <p className="text-[11px] font-black uppercase tracking-[0.14em] text-cyan-600">{card.label}</p>
+                      <p className="mt-1 text-base font-black text-gray-900">{card.value}</p>
+                      <p className="mt-1 text-xs font-semibold text-gray-600">{card.detail}</p>
+                    </div>
+                  ))}
                 </div>
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-[1.15fr_0.85fr] gap-3">

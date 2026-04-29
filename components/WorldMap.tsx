@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { RoomType, UserProgress } from '../types';
 import {
   Trophy, PawPrint, Settings, LayoutDashboard, PlayCircle, BookOpen,
-  Clock, Target, CheckCircle2, MapPin, HeartPulse, Sparkles, X,
+  Clock, Target, CheckCircle2, MapPin, HeartPulse, Sparkles, X, Gamepad2,
 } from 'lucide-react';
 import { playPop } from '../services/audioService';
 import { getDailyMission, getUnitsForGrade, getWeeklyLearningPlan, type CurriculumUnit } from '../services/curriculum';
@@ -12,6 +12,7 @@ interface WorldMapProps {
   onOpenDashboard: () => void;
   onOpenAchievements: () => void;
   onOpenPet: () => void;
+  onOpenGameArcade: () => void;
   onOpenSettings: () => void;
   progress: UserProgress;
 }
@@ -21,6 +22,7 @@ export const WorldMap: React.FC<WorldMapProps> = ({
   onOpenDashboard,
   onOpenAchievements,
   onOpenPet,
+  onOpenGameArcade,
   onOpenSettings,
   progress
 }) => {
@@ -600,6 +602,27 @@ export const WorldMap: React.FC<WorldMapProps> = ({
               <BookOpen className="text-amber-600 mb-2" />
               <p className="font-black text-amber-900">Story Time</p>
               <p className="text-sm text-amber-800/80">Read, listen, and build comprehension.</p>
+            </button>
+            <button
+              onClick={() => {
+                playPop();
+                onOpenGameArcade();
+              }}
+              className="bg-slate-950 rounded-[24px] p-4 shadow-lg border-4 border-cyan-200/70 text-left hover:scale-[1.02] transition text-white"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.18em] font-black text-cyan-200">Play Zone</p>
+                  <p className="mt-1 font-black">Game Arcade</p>
+                  <p className="text-sm text-slate-200">Short modern games for math, words, logic, stories, code, and rhythm.</p>
+                </div>
+                <Gamepad2 className="text-cyan-200" />
+              </div>
+              <div className="mt-3 grid grid-cols-3 gap-2 text-center text-[11px] font-black text-slate-900">
+                {['Daily', '3-win', 'Proof'].map(label => (
+                  <span key={label} className="rounded-full bg-cyan-100 px-2 py-1">{label}</span>
+                ))}
+              </div>
             </button>
             <button
               onClick={() => {

@@ -40,6 +40,7 @@ const StoryBook = lazy(() => import('./components/StoryBook').then(module => ({ 
 const ArtRoom = lazy(() => import('./components/ArtRoom').then(module => ({ default: module.ArtRoom })));
 const MusicRoom = lazy(() => import('./components/MusicRoom').then(module => ({ default: module.MusicRoom })));
 const PuzzleRoom = lazy(() => import('./components/PuzzleRoom').then(module => ({ default: module.PuzzleRoom })));
+const GameArcade = lazy(() => import('./components/GameArcade').then(module => ({ default: module.GameArcade })));
 
 const PROFILES_KEY = 'kidGeniusProfiles';
 const ACTIVE_PROFILE_KEY = 'kidGeniusActiveProfileId';
@@ -243,6 +244,7 @@ const App: React.FC = () => {
   const [currentRoom, setCurrentRoom] = useState<RoomType>(RoomType.HUB);
   const [showDashboard, setShowDashboard] = useState(false);
   const [showParentDashboard, setShowParentDashboard] = useState(false);
+  const [showGameArcade, setShowGameArcade] = useState(false);
   const [showAchievements, setShowAchievements] = useState(false);
   const [showPet, setShowPet] = useState(false);
   const [showPetSelection, setShowPetSelection] = useState(false);
@@ -664,6 +666,7 @@ const App: React.FC = () => {
     setShowMissionFocus(false);
     setShowDashboard(false);
     setShowParentDashboard(false);
+    setShowGameArcade(false);
     setGuideTrigger(p => p + 1);
   };
 
@@ -683,13 +686,14 @@ const App: React.FC = () => {
     return Holiday.NONE;
   };
 
-  const prepareLearningReflection = (subject?: string): LearningReflection => {
+  const prepareLearningReflection = (subject?: string, roomOverride?: RoomType): LearningReflection => {
     const activeUnit = activeUnitId
       ? getUnitsForGrade(progress.currentGrade).find(unit => unit.id === activeUnitId)
       : undefined;
     const currentPracticeCount = activeUnitId ? (progress.unitPracticeCounts?.[activeUnitId] || 0) : 0;
     const nextPracticeCount = activeUnitId ? Math.min(currentPracticeCount + 1, 3) : 1;
-    const roomLabel = roomReflectionLabels[currentRoom] || (subject ? subject.replace(/^\w/, letter => letter.toUpperCase()) : 'Learning');
+    const reflectionRoom = roomOverride || currentRoom;
+    const roomLabel = roomReflectionLabels[reflectionRoom] || (subject ? subject.replace(/^\w/, letter => letter.toUpperCase()) : 'Learning');
 
     return {
       roomLabel,
@@ -702,12 +706,12 @@ const App: React.FC = () => {
     };
   };
 
-  const addSticker = (subject?: string) => {
+  const addSticker = (subject?: string, roomOverride?: RoomType) => {
     playSuccess();
     const journalCreatedAt = Date.now();
     const journalEntryId = `journal-${journalCreatedAt}-${Math.random().toString(36).slice(2, 8)}`;
     const reflection = {
-      ...prepareLearningReflection(subject),
+      ...prepareLearningReflection(subject, roomOverride),
       journalEntryId,
     };
 
@@ -739,7 +743,8 @@ const App: React.FC = () => {
       const nextCompletedUnitIds = practicedActiveUnitToMastery
         ? Array.from(new Set([...(prev.completedUnitIds || []), activeUnitId]))
         : (prev.completedUnitIds || []);
-      const journalRoomLabel = roomReflectionLabels[currentRoom] || (
+      const journalRoom = roomOverride || currentRoom;
+      const journalRoomLabel = roomReflectionLabels[journalRoom] || (
         subject ? subject.replace(/^\w/, letter => letter.toUpperCase()) : 'Learning'
       );
       const journalUnit = activeUnitId
@@ -749,7 +754,7 @@ const App: React.FC = () => {
       const journalEntry = {
         id: journalEntryId,
         createdAt: journalCreatedAt,
-        room: currentRoom,
+        room: journalRoom,
         roomLabel: journalRoomLabel,
         unitId: journalUnit?.id,
         unitTitle: journalUnit?.title || `${journalRoomLabel} practice`,
@@ -814,6 +819,7 @@ const App: React.FC = () => {
         dailyStats: updateDailyStats(prev.dailyStats, {
           problemsAttempted: subject ? 1 : 0,
           problemsCorrect: subject ? 1 : 0,
+          roomsVisited: roomOverride ? [roomOverride] : [],
           stickersEarned: earnedNewSticker ? 1 : 0,
         }),
       };
@@ -912,6 +918,46 @@ const App: React.FC = () => {
 
   const handleCreativeReward = (subject: string) => {
     addSticker(subject);
+  };
+
+  const handleGameArcadeReward = (room: RoomType, gameTitle: string) => {
+    const subject = `${gameTitle} arcade`;
+
+    if (room === RoomType.MATH) {
+      setProgress(p => checkAchievements({ ...p, mathScore: p.mathScore + 1 }));
+      recordMathSkill();
+      addSticker('math arcade', room);
+      return;
+    }
+
+    if (room === RoomType.READING) {
+      setProgress(p => checkAchievements({ ...p, readingScore: p.readingScore + 1 }));
+      recordReadingSkill('phonics');
+      addSticker('reading arcade', room);
+      return;
+    }
+
+    if (room === RoomType.STORYBOOK) {
+      setProgress(p => checkAchievements({ ...p, storybookScore: (p.storybookScore || 0) + 1 }));
+      recordReadingSkill('comprehension');
+      addSticker('story arcade', room);
+      return;
+    }
+
+    if (room === RoomType.CODING) {
+      setProgress(p => checkAchievements({ ...p, codingScore: (p.codingScore || 0) + 1 }));
+      recordSubjectSkill('codingSkills', 5000);
+      addSticker('coding arcade', room);
+      return;
+    }
+
+    if (room === RoomType.MUSIC) {
+      setProgress(p => checkAchievements({ ...p, musicScore: (p.musicScore || 0) + 1 }));
+      addSticker('music arcade', room);
+      return;
+    }
+
+    addSticker(subject, room);
   };
 
   const handleUpdatePet = (pet: VirtualPet) => {
@@ -1156,6 +1202,28 @@ const App: React.FC = () => {
     return <Dashboard progress={progress} onBack={handleBack} />;
   }
 
+  if (showGameArcade) {
+    return (
+      <Suspense fallback={
+        <div className="w-screen h-screen flex items-center justify-center bg-slate-950 text-white">
+          <div className="rounded-3xl bg-white/10 px-6 py-5 text-center">
+            <p className="font-black">Loading Game Arcade...</p>
+          </div>
+        </div>
+      }>
+        <GameArcade
+          progress={progress}
+          onBack={handleBack}
+          onOpenRoom={(room) => {
+            setShowGameArcade(false);
+            handleEnterRoom(room);
+          }}
+          onReward={handleGameArcadeReward}
+        />
+      </Suspense>
+    );
+  }
+
   if (!parentOnboarded) {
     return (
       <div className="w-screen h-screen overflow-y-auto bg-slate-950 text-white">
@@ -1297,6 +1365,10 @@ const App: React.FC = () => {
             }}
             onOpenAchievements={() => setShowAchievements(true)}
             onOpenPet={() => setShowPet(true)}
+            onOpenGameArcade={() => {
+              stopSpeaking();
+              setShowGameArcade(true);
+            }}
             onOpenSettings={() => {
               stopSpeaking();
               setShowParentDashboard(true);

@@ -7,6 +7,7 @@ const requiredFiles = [
   'components/LegalInfo.tsx',
   'components/ParentDashboard.tsx',
   'components/WorldMap.tsx',
+  'components/GameArcade.tsx',
   'components/StoryBook.tsx',
   'services/curriculum.ts',
   'services/audioService.ts',
@@ -49,6 +50,7 @@ const mathRoomSource = fs.readFileSync(path.join(root, 'components/MathRoom.tsx'
 const readingRoomSource = fs.readFileSync(path.join(root, 'components/ReadingRoom.tsx'), 'utf8');
 const scienceRoomSource = fs.readFileSync(path.join(root, 'components/ScienceRoom.tsx'), 'utf8');
 const geographyRoomSource = fs.readFileSync(path.join(root, 'components/GeographyRoom.tsx'), 'utf8');
+const gameArcadeSource = fs.readFileSync(path.join(root, 'components/GameArcade.tsx'), 'utf8');
 const languageRoomSource = fs.readFileSync(path.join(root, 'components/LanguageRoom.tsx'), 'utf8');
 const artRoomSource = fs.readFileSync(path.join(root, 'components/ArtRoom.tsx'), 'utf8');
 const puzzleRoomSource = fs.readFileSync(path.join(root, 'components/PuzzleRoom.tsx'), 'utf8');
@@ -63,6 +65,7 @@ const sourceFilesToScan = [
   'components/ArtRoom.tsx',
   'components/CodingRoom.tsx',
   'components/GeographyRoom.tsx',
+  'components/GameArcade.tsx',
   'components/Guide.tsx',
   'components/LanguageRoom.tsx',
   'components/MathRoom.tsx',
@@ -358,6 +361,15 @@ if (!worldMapSource.includes('room-destination-tile') || !worldMapSource.include
 }
 if (!worldMapSource.includes('Next lesson') || !worldMapSource.includes('nextUnitByRoom') || !worldMapSource.includes('getUnitsForGrade') || !worldMapSource.includes('onEnterRoom(room.type, nextUnit?.id)')) {
   fail('World map room tiles must show the next structured lesson for each room.');
+}
+if (!appSource.includes('GameArcade') || !worldMapSource.includes('Game Arcade') || !worldMapSource.includes('onOpenGameArcade')) {
+  fail('Modern Game Arcade is not wired from the world map.');
+}
+for (const gameMarker of ['Number Dash', 'Word Builder', 'Pattern Quest', 'Story Detective', 'Robot Maze', 'Rhythm Tap']) {
+  if (!gameArcadeSource.includes(gameMarker)) fail(`Game Arcade is missing required game: ${gameMarker}.`);
+}
+if (!gameArcadeSource.includes('Daily Game Challenge') || !gameArcadeSource.includes('roundWins') || !gameArcadeSource.includes('onReward(activeGame.room, activeGame.title)') || !gameArcadeSource.includes('Full Room')) {
+  fail('Game Arcade must include daily challenge, replayable rounds, rewards, and full-room handoff.');
 }
 if (!mathRoomSource.includes('renderMathManipulatives') || !mathRoomSource.includes('First number') || !readingRoomSource.includes('Word Stage') || !readingRoomSource.includes('modeSteps')) {
   fail('Core Math and Reading rooms need richer kid-facing visual learning props.');

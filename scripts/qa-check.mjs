@@ -365,6 +365,9 @@ if (!worldMapSource.includes('Next lesson') || !worldMapSource.includes('nextUni
 if (!appSource.includes('GameArcade') || !worldMapSource.includes('Game Arcade') || !worldMapSource.includes('onOpenGameArcade')) {
   fail('Modern Game Arcade is not wired from the world map.');
 }
+for (const worldMapArcadeMarker of ['Arcade Passport Preview', 'Next arcade game', 'Badge trail', 'Long-term mastery']) {
+  if (!worldMapSource.includes(worldMapArcadeMarker)) fail(`World map needs arcade progression preview marker: ${worldMapArcadeMarker}.`);
+}
 for (const gameMarker of ['Number Dash', 'Word Builder', 'Pattern Quest', 'Story Detective', 'Robot Maze', 'Rhythm Tap']) {
   if (!gameArcadeSource.includes(gameMarker)) fail(`Game Arcade is missing required game: ${gameMarker}.`);
 }

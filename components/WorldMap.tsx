@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { RoomType, UserProgress } from '../types';
+import { DEFAULT_ARCADE_PROGRESS, RoomType, UserProgress } from '../types';
 import {
   Trophy, PawPrint, Settings, LayoutDashboard, PlayCircle, BookOpen,
   Clock, Target, CheckCircle2, MapPin, HeartPulse, Sparkles, X, Gamepad2,
@@ -105,6 +105,31 @@ export const WorldMap: React.FC<WorldMapProps> = ({
   const reviewDueCount = reviewQuestItems.filter(item => getReviewTiming(item.unit).isDue).length;
   const todayKey = new Date().toISOString().slice(0, 10);
   const todayStats = progress.dailyStats?.find(day => day.date === todayKey);
+  const arcadeProgress = {
+    ...DEFAULT_ARCADE_PROGRESS,
+    ...(progress.arcadeProgress || {}),
+    gameWins: progress.arcadeProgress?.gameWins || {},
+    masteredGameIds: progress.arcadeProgress?.masteredGameIds || [],
+  };
+  const arcadeGameRows = [
+    { id: 'number-dash', label: 'Number Dash' },
+    { id: 'word-builder', label: 'Word Builder' },
+    { id: 'pattern-quest', label: 'Pattern Quest' },
+    { id: 'story-detective', label: 'Story Detective' },
+    { id: 'robot-maze', label: 'Robot Maze' },
+    { id: 'rhythm-tap', label: 'Rhythm Tap' },
+  ].map(game => ({
+    ...game,
+    wins: arcadeProgress.gameWins[game.id] || 0,
+    mastered: arcadeProgress.masteredGameIds.includes(game.id) || (arcadeProgress.gameWins[game.id] || 0) >= 3,
+  }));
+  const todayArcadeWins = arcadeProgress.dailyChallengeDate === todayKey ? arcadeProgress.dailyChallengeWins || 0 : 0;
+  const arcadeMasteredCount = arcadeGameRows.filter(game => game.mastered).length;
+  const arcadeStartedCount = arcadeGameRows.filter(game => game.wins > 0).length;
+  const arcadeLongTermMasteryPercent = Math.round((arcadeMasteredCount / Math.max(arcadeGameRows.length, 1)) * 100);
+  const arcadeRecommendedGame = [...arcadeGameRows]
+    .filter(game => !game.mastered)
+    .sort((first, second) => first.wins - second.wins)[0] || arcadeGameRows[0];
   const todayMinutes = todayStats?.timeSpentMinutes || 0;
   const dailyLimitMinutes = progress.dailySessionLimitMinutes || 20;
   const dailyLimitPercent = Math.min(100, Math.round((todayMinutes / dailyLimitMinutes) * 100));
@@ -618,10 +643,33 @@ export const WorldMap: React.FC<WorldMapProps> = ({
                 </div>
                 <Gamepad2 className="text-cyan-200" />
               </div>
-              <div className="mt-3 grid grid-cols-3 gap-2 text-center text-[11px] font-black text-slate-900">
-                {['Daily', '3-win', 'Proof'].map(label => (
-                  <span key={label} className="rounded-full bg-cyan-100 px-2 py-1">{label}</span>
-                ))}
+              <div className="mt-3 rounded-2xl bg-white/10 p-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-[11px] font-black uppercase tracking-[0.16em] text-cyan-200">Arcade Passport Preview</p>
+                    <p className="mt-1 text-xs font-semibold text-slate-200">Badge trail progress before you play.</p>
+                  </div>
+                  <div className="rounded-xl bg-cyan-100 px-3 py-2 text-center text-slate-950">
+                    <p className="text-lg font-black">{arcadeLongTermMasteryPercent}%</p>
+                    <p className="text-[9px] font-black uppercase tracking-[0.12em]">Long-term mastery</p>
+                  </div>
+                </div>
+                <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/15">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-cyan-300 via-emerald-300 to-yellow-300"
+                    style={{ width: `${arcadeLongTermMasteryPercent}%` }}
+                  />
+                </div>
+              </div>
+              <div className="mt-3 grid grid-cols-3 gap-2 text-center text-[11px] font-black">
+                <span className="rounded-full bg-cyan-100 px-2 py-1 text-slate-900">{todayArcadeWins} today</span>
+                <span className="rounded-full bg-emerald-100 px-2 py-1 text-emerald-900">{arcadeMasteredCount}/6 badges</span>
+                <span className="rounded-full bg-amber-100 px-2 py-1 text-amber-900">{arcadeStartedCount}/6 tried</span>
+              </div>
+              <div className="mt-3 rounded-2xl bg-white/10 p-3">
+                <p className="text-[11px] font-black uppercase tracking-[0.16em] text-cyan-200">Next arcade game</p>
+                <p className="mt-1 text-sm font-black text-white">{arcadeRecommendedGame.label}</p>
+                <p className="mt-1 text-xs font-semibold text-slate-300">Badge trail: win 3 rounds to master this game.</p>
               </div>
             </button>
             <button

@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import {
-  ArrowLeft, BrainCircuit, Calculator, CheckCircle2, Gamepad2, Map,
+  ArrowLeft, Award, BrainCircuit, Calculator, CheckCircle2, Gamepad2, Map,
   Music, Play, RefreshCw, Shapes, Sparkles, Type
 } from 'lucide-react';
 import { RoomType, UserProgress } from '../types';
@@ -10,7 +10,7 @@ interface GameArcadeProps {
   progress: UserProgress;
   onBack: () => void;
   onOpenRoom: (room: RoomType) => void;
-  onReward: (room: RoomType, gameTitle: string) => void;
+  onReward: (room: RoomType, gameTitle: string, gameId: string, combo: number) => void;
 }
 
 type ArcadeGameId = 'number-dash' | 'word-builder' | 'pattern-quest' | 'story-detective' | 'robot-maze' | 'rhythm-tap';
@@ -207,9 +207,26 @@ export const GameArcade: React.FC<GameArcadeProps> = ({ progress, onBack, onOpen
 
   const activeGame = ARCADE_GAMES.find(game => game.id === activeGameId) || recommendedGame;
   const prompt = useMemo(() => buildPrompt(activeGame.id, progress.currentLevel), [activeGame.id, progress.currentLevel, roundKey]);
-  const arcadeWins = completedGames.length;
+  const todayKey = new Date().toISOString().slice(0, 10);
+  const arcadeProgress = progress.arcadeProgress || {
+    totalWins: 0,
+    bestCombo: 0,
+    lastPlayedAt: 0,
+    dailyChallengeDate: '',
+    dailyChallengeWins: 0,
+    gameWins: {},
+    masteredGameIds: [],
+  };
+  const gameWins = arcadeProgress.gameWins || {};
+  const masteredGameIds = new Set(arcadeProgress.masteredGameIds || []);
+  const arcadeWins = arcadeProgress.totalWins || 0;
+  const todayWins = arcadeProgress.dailyChallengeDate === todayKey ? arcadeProgress.dailyChallengeWins || 0 : 0;
+  const masteredCount = ARCADE_GAMES.filter(game => masteredGameIds.has(game.id) || (gameWins[game.id] || 0) >= 3).length;
 
   const nextRound = () => {
+    if (feedback === 'complete') {
+      setRoundWins(0);
+    }
     setFeedback('idle');
     setRoundKey(key => key + 1);
   };
@@ -242,7 +259,7 @@ export const GameArcade: React.FC<GameArcadeProps> = ({ progress, onBack, onOpen
 
     if (nextWins >= 3) {
       setCompletedGames(previous => Array.from(new Set([...previous, activeGame.id])));
-      onReward(activeGame.room, activeGame.title);
+      onReward(activeGame.room, activeGame.title, activeGame.id, nextCombo);
       return;
     }
 
@@ -287,13 +304,28 @@ export const GameArcade: React.FC<GameArcadeProps> = ({ progress, onBack, onOpen
                   <p className="text-xs font-bold text-white/76">grade level</p>
                 </div>
                 <div className="rounded-2xl bg-white/18 p-3">
-                  <p className="text-xl font-black">{combo}</p>
-                  <p className="text-xs font-bold text-white/76">combo</p>
+                  <p className="text-xl font-black">{Math.max(combo, arcadeProgress.bestCombo || 0)}</p>
+                  <p className="text-xs font-bold text-white/76">best combo</p>
                 </div>
                 <div className="rounded-2xl bg-white/18 p-3">
-                  <p className="text-xl font-black">{roundWins}/3</p>
-                  <p className="text-xs font-bold text-white/76">mission</p>
+                  <p className="text-xl font-black">{todayWins}</p>
+                  <p className="text-xs font-bold text-white/76">today</p>
                 </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2 rounded-[26px] border border-white bg-white/82 p-3 shadow-lg">
+              <div className="rounded-2xl bg-cyan-50 p-3 text-center">
+                <p className="text-2xl font-black text-cyan-700">{arcadeWins}</p>
+                <p className="text-[11px] font-black uppercase tracking-[0.12em] text-cyan-700">wins</p>
+              </div>
+              <div className="rounded-2xl bg-emerald-50 p-3 text-center">
+                <p className="text-2xl font-black text-emerald-700">{masteredCount}/6</p>
+                <p className="text-[11px] font-black uppercase tracking-[0.12em] text-emerald-700">mastered</p>
+              </div>
+              <div className="rounded-2xl bg-amber-50 p-3 text-center">
+                <p className="text-2xl font-black text-amber-700">{roundWins}/3</p>
+                <p className="text-[11px] font-black uppercase tracking-[0.12em] text-amber-700">mission</p>
               </div>
             </div>
 
@@ -301,7 +333,10 @@ export const GameArcade: React.FC<GameArcadeProps> = ({ progress, onBack, onOpen
               {ARCADE_GAMES.map(game => {
                 const Icon = game.icon;
                 const isActive = game.id === activeGame.id;
+                const winsForGame = gameWins[game.id] || 0;
+                const isMastered = masteredGameIds.has(game.id) || winsForGame >= 3;
                 const isComplete = completedGames.includes(game.id);
+                const progressPercent = Math.min(100, Math.round((Math.min(winsForGame, 3) / 3) * 100));
                 return (
                   <button
                     key={game.id}
@@ -314,16 +349,24 @@ export const GameArcade: React.FC<GameArcadeProps> = ({ progress, onBack, onOpen
                         <div className={`rounded-2xl p-3 ${isActive ? 'bg-white/20 text-white' : game.iconTone}`}>
                           <Icon size={24} />
                         </div>
-                        {isComplete && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-400 px-2 py-1 text-[11px] font-black text-emerald-950">
-                            <CheckCircle2 size={12} />
-                            won
+                        {(isMastered || isComplete) && (
+                          <span className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-[11px] font-black ${
+                            isMastered ? 'bg-yellow-300 text-yellow-950' : 'bg-emerald-400 text-emerald-950'
+                          }`}>
+                            {isMastered ? <Award size={12} /> : <CheckCircle2 size={12} />}
+                            {isMastered ? 'mastered' : 'won'}
                           </span>
                         )}
                       </div>
                       <p className={`mt-3 text-[11px] font-black uppercase tracking-[0.16em] ${isActive ? 'text-white/75' : 'text-slate-500'}`}>{game.label}</p>
                       <h3 className="mt-1 text-lg font-black">{game.title}</h3>
                       <p className={`mt-2 text-sm font-semibold ${isActive ? 'text-white/84' : 'text-slate-600'}`}>{game.description}</p>
+                      <div className={`mt-4 rounded-full ${isActive ? 'bg-white/20' : 'bg-white'} p-1`}>
+                        <div className={`h-2 rounded-full bg-gradient-to-r ${game.gradient}`} style={{ width: `${progressPercent}%` }} />
+                      </div>
+                      <p className={`mt-2 text-[11px] font-black uppercase tracking-[0.12em] ${isActive ? 'text-white/72' : 'text-slate-500'}`}>
+                        {Math.min(winsForGame, 3)}/3 wins to mastery badge
+                      </p>
                     </div>
                   </button>
                 );
@@ -388,16 +431,16 @@ export const GameArcade: React.FC<GameArcadeProps> = ({ progress, onBack, onOpen
                   <div className={`mt-5 rounded-[24px] p-4 text-sm font-black ${feedback === 'wrong' ? 'bg-rose-100 text-rose-800' : feedback === 'complete' ? 'bg-emerald-100 text-emerald-800' : 'bg-cyan-100 text-cyan-800'}`}>
                     {feedback === 'wrong' && 'Try again. Check the clue before you tap.'}
                     {feedback === 'correct' && 'Correct. New round loading.'}
-                    {feedback === 'complete' && `${activeGame.title} complete. You earned arcade progress and a learning reward.`}
+                    {feedback === 'complete' && `${activeGame.title} complete. You earned saved arcade progress, parent proof, and a learning reward.`}
                   </div>
                 )}
               </div>
 
               <div className="mt-5 grid gap-3 md:grid-cols-3">
                 {[
-                  ['Short rounds', 'Each game is built for quick wins and replay.'],
+                  ['Skill ladder', `${Math.min(gameWins[activeGame.id] || 0, 3)}/3 saved wins toward this game badge.`],
                   ['Learning proof', activeGame.proof],
-                  ['Reward link', 'Wins feed stars, streaks, parent reports, and the learning journal.'],
+                  ['Parent report', 'Wins save into progress, streaks, parent reports, and the learning journal.'],
                 ].map(([title, copy]) => (
                   <div key={title} className="rounded-[24px] border border-slate-100 bg-white p-4 shadow-sm">
                     <p className="text-sm font-black text-slate-900">{title}</p>

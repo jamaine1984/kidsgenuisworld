@@ -368,8 +368,11 @@ if (!appSource.includes('GameArcade') || !worldMapSource.includes('Game Arcade')
 for (const gameMarker of ['Number Dash', 'Word Builder', 'Pattern Quest', 'Story Detective', 'Robot Maze', 'Rhythm Tap']) {
   if (!gameArcadeSource.includes(gameMarker)) fail(`Game Arcade is missing required game: ${gameMarker}.`);
 }
-if (!gameArcadeSource.includes('Daily Game Challenge') || !gameArcadeSource.includes('roundWins') || !gameArcadeSource.includes('onReward(activeGame.room, activeGame.title)') || !gameArcadeSource.includes('Full Room')) {
+if (!gameArcadeSource.includes('Daily Game Challenge') || !gameArcadeSource.includes('roundWins') || !gameArcadeSource.includes('onReward(activeGame.room, activeGame.title, activeGame.id, nextCombo)') || !gameArcadeSource.includes('Full Room')) {
   fail('Game Arcade must include daily challenge, replayable rounds, rewards, and full-room handoff.');
+}
+if (!typesSource.includes('ArcadeProgress') || !appSource.includes('buildNextArcadeProgress') || !gameArcadeSource.includes('mastery badge') || !parentDashboardSource.includes('Game Arcade Proof')) {
+  fail('Game Arcade progress must persist into the child arcade and parent dashboard.');
 }
 if (!mathRoomSource.includes('renderMathManipulatives') || !mathRoomSource.includes('First number') || !readingRoomSource.includes('Word Stage') || !readingRoomSource.includes('modeSteps')) {
   fail('Core Math and Reading rooms need richer kid-facing visual learning props.');

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
   ArrowLeft, BarChart3, Clock, Target, TrendingUp,
   Star, Award, Brain, Calendar, CheckCircle2, ChevronRight, Lock,
-  Settings, Shield, Volume2, Eye, Type, BookOpen, Map, Printer, Download
+  Settings, Shield, Volume2, Eye, Type, BookOpen, Map, Printer, Download, Gamepad2
 } from 'lucide-react';
 import {
   UserProgress,
@@ -11,7 +11,8 @@ import {
   PrivacySettings,
   ChildProfile,
   GradeLevel,
-  DEFAULT_PRIVACY_SETTINGS
+  DEFAULT_PRIVACY_SETTINGS,
+  DEFAULT_ARCADE_PROGRESS
 } from '../types';
 import { getCurrentGradeUnits, getRoadmapRecommendations, getUnitReadiness, getUnitsForGrade, getWeeklyLearningPlan, type CurriculumUnit } from '../services/curriculum';
 
@@ -329,6 +330,31 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
       detail: `${dailySessionLimitMinutes} minute daily cap before an offline break.`,
     },
   ];
+  const arcadeProgress = {
+    ...DEFAULT_ARCADE_PROGRESS,
+    ...(progress.arcadeProgress || {}),
+    gameWins: progress.arcadeProgress?.gameWins || {},
+    masteredGameIds: progress.arcadeProgress?.masteredGameIds || [],
+  };
+  const todayKey = new Date().toISOString().slice(0, 10);
+  const todayArcadeWins = arcadeProgress.dailyChallengeDate === todayKey ? arcadeProgress.dailyChallengeWins : 0;
+  const arcadeGameRows = [
+    ['Number Dash', 'number-dash'],
+    ['Word Builder', 'word-builder'],
+    ['Pattern Quest', 'pattern-quest'],
+    ['Story Detective', 'story-detective'],
+    ['Robot Maze', 'robot-maze'],
+    ['Rhythm Tap', 'rhythm-tap'],
+  ].map(([label, id]) => ({
+    label,
+    id,
+    wins: arcadeProgress.gameWins[id] || 0,
+    mastered: arcadeProgress.masteredGameIds.includes(id) || (arcadeProgress.gameWins[id] || 0) >= 3,
+  }));
+  const arcadeMasteredCount = arcadeGameRows.filter(game => game.mastered).length;
+  const lastArcadePlayed = arcadeProgress.lastPlayedAt
+    ? new Date(arcadeProgress.lastPlayedAt).toLocaleDateString([], { month: 'short', day: 'numeric' })
+    : 'Not played yet';
   const parentNextActions = [
     focusSubject
       ? `Give ${focusSubject.name} one short practice block before free exploration.`
@@ -662,6 +688,65 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                       <span>{action}</span>
                     </div>
                   ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl p-4 shadow-sm border border-cyan-100">
+              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 mb-4">
+                <div>
+                  <h3 className="font-semibold text-gray-800 flex items-center gap-2">
+                    <Gamepad2 size={20} className="text-cyan-600" />
+                    Game Arcade Proof
+                  </h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Arcade play is now saved as parent-visible progress, not just free play.
+                  </p>
+                </div>
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  <div className="rounded-xl bg-cyan-50 border border-cyan-100 px-3 py-2">
+                    <p className="text-xl font-black text-cyan-700">{arcadeProgress.totalWins}</p>
+                    <p className="text-[11px] font-black uppercase tracking-[0.12em] text-cyan-700">wins</p>
+                  </div>
+                  <div className="rounded-xl bg-emerald-50 border border-emerald-100 px-3 py-2">
+                    <p className="text-xl font-black text-emerald-700">{arcadeMasteredCount}/6</p>
+                    <p className="text-[11px] font-black uppercase tracking-[0.12em] text-emerald-700">mastered</p>
+                  </div>
+                  <div className="rounded-xl bg-amber-50 border border-amber-100 px-3 py-2">
+                    <p className="text-xl font-black text-amber-700">{todayArcadeWins}</p>
+                    <p className="text-[11px] font-black uppercase tracking-[0.12em] text-amber-700">today</p>
+                  </div>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-[1.15fr_0.85fr] gap-3">
+                <div className="rounded-xl bg-slate-50 border border-slate-100 p-3">
+                  <p className="text-sm font-black text-gray-800 mb-3">Arcade mastery ladder</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {arcadeGameRows.map(game => {
+                      const percent = Math.min(100, Math.round((Math.min(game.wins, 3) / 3) * 100));
+                      return (
+                        <div key={game.id} className="rounded-lg bg-white border border-gray-100 p-2">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-sm font-bold text-gray-800">{game.label}</span>
+                            <span className={`text-xs font-black ${game.mastered ? 'text-emerald-600' : 'text-amber-600'}`}>
+                              {game.mastered ? 'Mastered' : `${Math.min(game.wins, 3)}/3`}
+                            </span>
+                          </div>
+                          <div className="mt-2 h-2 rounded-full bg-slate-100 overflow-hidden">
+                            <div className="h-full rounded-full bg-cyan-500" style={{ width: `${percent}%` }} />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div className="rounded-xl bg-cyan-50 border border-cyan-100 p-3">
+                  <p className="text-sm font-black text-cyan-900">What this tells parents</p>
+                  <div className="mt-3 space-y-2 text-sm text-cyan-900">
+                    <p><span className="font-black">Best combo:</span> {arcadeProgress.bestCombo}</p>
+                    <p><span className="font-black">Last arcade day:</span> {lastArcadePlayed}</p>
+                    <p><span className="font-black">Learning value:</span> games connect back to math, reading, logic, stories, coding, and music rooms.</p>
+                  </div>
                 </div>
               </div>
             </div>

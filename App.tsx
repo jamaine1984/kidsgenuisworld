@@ -24,7 +24,8 @@ import {
   createDefaultProgress,
   DEFAULT_LEARNING_PROFILE,
   DEFAULT_ACCESSIBILITY,
-  DEFAULT_PRIVACY_SETTINGS
+  DEFAULT_PRIVACY_SETTINGS,
+  DEFAULT_ARCADE_PROGRESS
 } from './types';
 import { resumeAudioContext, playSuccess, speak, stopSpeaking, setNarrationContext, setSpeechPreferences } from './services/audioService';
 import { updateSkillMetrics, updateLearningProfile, getEncouragingMessage } from './services/adaptiveLearning';
@@ -133,6 +134,43 @@ const createProfileId = () => `profile-${Date.now()}-${Math.random().toString(36
 
 const getTodayKey = () => new Date().toISOString().slice(0, 10);
 
+const buildNextArcadeProgress = (
+  progress: UserProgress,
+  gameId: string,
+  combo: number
+): UserProgress['arcadeProgress'] => {
+  const current = {
+    ...DEFAULT_ARCADE_PROGRESS,
+    ...(progress.arcadeProgress || {}),
+    gameWins: {
+      ...(progress.arcadeProgress?.gameWins || {}),
+    },
+    masteredGameIds: [...(progress.arcadeProgress?.masteredGameIds || [])],
+  };
+  const today = getTodayKey();
+  const nextGameWins = {
+    ...current.gameWins,
+    [gameId]: (current.gameWins[gameId] || 0) + 1,
+  };
+  const masteredGameIds = Array.from(new Set([
+    ...current.masteredGameIds,
+    ...Object.entries(nextGameWins)
+      .filter(([, wins]) => wins >= 3)
+      .map(([id]) => id),
+  ]));
+
+  return {
+    ...current,
+    totalWins: (current.totalWins || 0) + 1,
+    bestCombo: Math.max(current.bestCombo || 0, combo),
+    lastPlayedAt: Date.now(),
+    dailyChallengeDate: today,
+    dailyChallengeWins: current.dailyChallengeDate === today ? (current.dailyChallengeWins || 0) + 1 : 1,
+    gameWins: nextGameWins,
+    masteredGameIds,
+  };
+};
+
 const updateDailyStats = (
   stats: DailyStats[] = [],
   patch: Partial<Omit<DailyStats, 'date'>>
@@ -223,6 +261,14 @@ const loadProgressForProfile = (profile: ChildProfile): UserProgress => {
         completedUnitIds: Array.isArray(savedProgress.completedUnitIds) ? savedProgress.completedUnitIds : [],
         unitPracticeCounts: savedProgress.unitPracticeCounts || {},
         learningJournal: Array.isArray(savedProgress.learningJournal) ? savedProgress.learningJournal : [],
+        arcadeProgress: {
+          ...DEFAULT_ARCADE_PROGRESS,
+          ...(savedProgress.arcadeProgress || {}),
+          gameWins: savedProgress.arcadeProgress?.gameWins || {},
+          masteredGameIds: Array.isArray(savedProgress.arcadeProgress?.masteredGameIds)
+            ? savedProgress.arcadeProgress.masteredGameIds
+            : [],
+        },
         weeklyGoalMinutes: savedProgress.weeklyGoalMinutes || 60,
         dailySessionLimitMinutes: savedProgress.dailySessionLimitMinutes || 20,
       };
@@ -920,43 +966,67 @@ const App: React.FC = () => {
     addSticker(subject);
   };
 
-  const handleGameArcadeReward = (room: RoomType, gameTitle: string) => {
+  const handleGameArcadeReward = (room: RoomType, gameTitle: string, gameId: string, combo: number) => {
     const subject = `${gameTitle} arcade`;
 
     if (room === RoomType.MATH) {
-      setProgress(p => checkAchievements({ ...p, mathScore: p.mathScore + 1 }));
+      setProgress(p => checkAchievements({
+        ...p,
+        mathScore: p.mathScore + 1,
+        arcadeProgress: buildNextArcadeProgress(p, gameId, combo),
+      }));
       recordMathSkill();
       addSticker('math arcade', room);
       return;
     }
 
     if (room === RoomType.READING) {
-      setProgress(p => checkAchievements({ ...p, readingScore: p.readingScore + 1 }));
+      setProgress(p => checkAchievements({
+        ...p,
+        readingScore: p.readingScore + 1,
+        arcadeProgress: buildNextArcadeProgress(p, gameId, combo),
+      }));
       recordReadingSkill('phonics');
       addSticker('reading arcade', room);
       return;
     }
 
     if (room === RoomType.STORYBOOK) {
-      setProgress(p => checkAchievements({ ...p, storybookScore: (p.storybookScore || 0) + 1 }));
+      setProgress(p => checkAchievements({
+        ...p,
+        storybookScore: (p.storybookScore || 0) + 1,
+        arcadeProgress: buildNextArcadeProgress(p, gameId, combo),
+      }));
       recordReadingSkill('comprehension');
       addSticker('story arcade', room);
       return;
     }
 
     if (room === RoomType.CODING) {
-      setProgress(p => checkAchievements({ ...p, codingScore: (p.codingScore || 0) + 1 }));
+      setProgress(p => checkAchievements({
+        ...p,
+        codingScore: (p.codingScore || 0) + 1,
+        arcadeProgress: buildNextArcadeProgress(p, gameId, combo),
+      }));
       recordSubjectSkill('codingSkills', 5000);
       addSticker('coding arcade', room);
       return;
     }
 
     if (room === RoomType.MUSIC) {
-      setProgress(p => checkAchievements({ ...p, musicScore: (p.musicScore || 0) + 1 }));
+      setProgress(p => checkAchievements({
+        ...p,
+        musicScore: (p.musicScore || 0) + 1,
+        arcadeProgress: buildNextArcadeProgress(p, gameId, combo),
+      }));
       addSticker('music arcade', room);
       return;
     }
 
+    setProgress(p => ({
+      ...p,
+      arcadeProgress: buildNextArcadeProgress(p, gameId, combo),
+    }));
     addSticker(subject, room);
   };
 

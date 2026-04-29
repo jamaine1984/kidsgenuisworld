@@ -222,6 +222,16 @@ export interface ParentAnalytics {
   recentAchievements: Achievement[];
 }
 
+export interface ArcadeProgress {
+  totalWins: number;
+  bestCombo: number;
+  lastPlayedAt: number;
+  dailyChallengeDate: string;
+  dailyChallengeWins: number;
+  gameWins: { [gameId: string]: number };
+  masteredGameIds: string[];
+}
+
 // ============================================
 // SEASONAL CONTENT
 // ============================================
@@ -319,6 +329,7 @@ export interface UserProgress {
   completedUnitIds: string[];
   unitPracticeCounts: { [unitId: string]: number };
   learningJournal: LearningJournalEntry[];
+  arcadeProgress: ArcadeProgress;
 
   // Adaptive learning
   learningProfile: LearningProfile;
@@ -525,6 +536,16 @@ export const DEFAULT_PRIVACY_SETTINGS: PrivacySettings = {
   allowGeneratedStoryCovers: false,
 };
 
+export const DEFAULT_ARCADE_PROGRESS: ArcadeProgress = {
+  totalWins: 0,
+  bestCombo: 0,
+  lastPlayedAt: 0,
+  dailyChallengeDate: '',
+  dailyChallengeWins: 0,
+  gameWins: {},
+  masteredGameIds: [],
+};
+
 export const DEFAULT_AVATAR: AvatarCustomization = {
   skinTone: '#FFD5B4',
   hairStyle: 'short',
@@ -553,6 +574,11 @@ export const createDefaultProgress = (childName = 'Learner'): UserProgress => ({
   completedUnitIds: [],
   unitPracticeCounts: {},
   learningJournal: [],
+  arcadeProgress: {
+    ...DEFAULT_ARCADE_PROGRESS,
+    gameWins: {},
+    masteredGameIds: [],
+  },
   learningProfile: { ...DEFAULT_LEARNING_PROFILE },
   avatar: { ...DEFAULT_AVATAR },
   totalPlayTimeMinutes: 0,

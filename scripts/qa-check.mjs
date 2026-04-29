@@ -335,6 +335,9 @@ if (!appSource.includes('Mission Focus') || !appSource.includes('showMissionFocu
 if (!typesSource.includes('LearningJournalEntry') || !typesSource.includes('childReflection') || !appSource.includes('learningJournal') || !appSource.includes('recordLearningReflectionChoice') || !parentDashboardSource.includes('Learning Journal') || !parentDashboardSource.includes('Recent proof of practice') || !parentDashboardSource.includes('Child reflection')) {
   fail('Parent evidence trail learning journal is missing.');
 }
+if (!appSource.includes('arcadeJournalOverride') || !appSource.includes('arcade mastery run') || !appSource.includes('Completed a 3-round') || !appSource.includes('combo') || !appSource.includes('Replay one')) {
+  fail('Arcade completions must write explicit parent-visible learning journal proof.');
+}
 if (!worldMapSource.includes('Review Quest') || !worldMapSource.includes('Start Review') || !parentDashboardSource.includes('Spaced Review Queue')) {
   fail('Spaced review must be visible to kids and parents.');
 }

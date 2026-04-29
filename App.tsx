@@ -57,6 +57,13 @@ interface LearningReflection {
   journalEntryId?: string;
 }
 
+interface LearningReflectionOverride {
+  title?: string;
+  objective?: string;
+  parentActivity?: string;
+  successCheck?: string;
+}
+
 const gradeToLevel: { [key in GradeLevel]: number } = {
   [GradeLevel.PRE_K]: 1,
   [GradeLevel.KINDERGARTEN]: 2,
@@ -732,7 +739,11 @@ const App: React.FC = () => {
     return Holiday.NONE;
   };
 
-  const prepareLearningReflection = (subject?: string, roomOverride?: RoomType): LearningReflection => {
+  const prepareLearningReflection = (
+    subject?: string,
+    roomOverride?: RoomType,
+    reflectionOverride: LearningReflectionOverride = {}
+  ): LearningReflection => {
     const activeUnit = activeUnitId
       ? getUnitsForGrade(progress.currentGrade).find(unit => unit.id === activeUnitId)
       : undefined;
@@ -743,21 +754,25 @@ const App: React.FC = () => {
 
     return {
       roomLabel,
-      title: activeUnit?.title || `${roomLabel} practice`,
-      objective: activeUnit?.objective || `You practiced ${roomLabel.toLowerCase()} and earned progress toward your next goal.`,
-      parentActivity: activeUnit?.parentActivity,
-      successCheck: activeUnit?.successCheck,
+      title: reflectionOverride.title || activeUnit?.title || `${roomLabel} practice`,
+      objective: reflectionOverride.objective || activeUnit?.objective || `You practiced ${roomLabel.toLowerCase()} and earned progress toward your next goal.`,
+      parentActivity: reflectionOverride.parentActivity || activeUnit?.parentActivity,
+      successCheck: reflectionOverride.successCheck || activeUnit?.successCheck,
       practiceCount: nextPracticeCount,
       mastered: Boolean(activeUnitId && nextPracticeCount >= 3),
     };
   };
 
-  const addSticker = (subject?: string, roomOverride?: RoomType) => {
+  const addSticker = (
+    subject?: string,
+    roomOverride?: RoomType,
+    reflectionOverride: LearningReflectionOverride = {}
+  ) => {
     playSuccess();
     const journalCreatedAt = Date.now();
     const journalEntryId = `journal-${journalCreatedAt}-${Math.random().toString(36).slice(2, 8)}`;
     const reflection = {
-      ...prepareLearningReflection(subject, roomOverride),
+      ...prepareLearningReflection(subject, roomOverride, reflectionOverride),
       journalEntryId,
     };
 
@@ -803,10 +818,10 @@ const App: React.FC = () => {
         room: journalRoom,
         roomLabel: journalRoomLabel,
         unitId: journalUnit?.id,
-        unitTitle: journalUnit?.title || `${journalRoomLabel} practice`,
-        objective: journalUnit?.objective || `Practiced ${journalRoomLabel.toLowerCase()} and explained one idea.`,
-        successCheck: journalUnit?.successCheck,
-        parentActivity: journalUnit?.parentActivity,
+        unitTitle: reflectionOverride.title || journalUnit?.title || `${journalRoomLabel} practice`,
+        objective: reflectionOverride.objective || journalUnit?.objective || `Practiced ${journalRoomLabel.toLowerCase()} and explained one idea.`,
+        successCheck: reflectionOverride.successCheck || journalUnit?.successCheck,
+        parentActivity: reflectionOverride.parentActivity || journalUnit?.parentActivity,
         practiceCount: journalPracticeCount,
         mastered: Boolean(activeUnitId && journalPracticeCount >= 3),
       };
@@ -968,6 +983,12 @@ const App: React.FC = () => {
 
   const handleGameArcadeReward = (room: RoomType, gameTitle: string, gameId: string, combo: number) => {
     const subject = `${gameTitle} arcade`;
+    const arcadeJournalOverride: LearningReflectionOverride = {
+      title: `${gameTitle} arcade mastery run`,
+      objective: `Completed a 3-round ${gameTitle} arcade mission with a ${combo} combo.`,
+      successCheck: `Ask the child to explain one ${gameTitle} strategy from the game.`,
+      parentActivity: `Replay one ${gameTitle} problem together and ask what changed after each choice.`,
+    };
 
     if (room === RoomType.MATH) {
       setProgress(p => checkAchievements({
@@ -976,7 +997,7 @@ const App: React.FC = () => {
         arcadeProgress: buildNextArcadeProgress(p, gameId, combo),
       }));
       recordMathSkill();
-      addSticker('math arcade', room);
+      addSticker('math arcade', room, arcadeJournalOverride);
       return;
     }
 
@@ -987,7 +1008,7 @@ const App: React.FC = () => {
         arcadeProgress: buildNextArcadeProgress(p, gameId, combo),
       }));
       recordReadingSkill('phonics');
-      addSticker('reading arcade', room);
+      addSticker('reading arcade', room, arcadeJournalOverride);
       return;
     }
 
@@ -998,7 +1019,7 @@ const App: React.FC = () => {
         arcadeProgress: buildNextArcadeProgress(p, gameId, combo),
       }));
       recordReadingSkill('comprehension');
-      addSticker('story arcade', room);
+      addSticker('story arcade', room, arcadeJournalOverride);
       return;
     }
 
@@ -1009,7 +1030,7 @@ const App: React.FC = () => {
         arcadeProgress: buildNextArcadeProgress(p, gameId, combo),
       }));
       recordSubjectSkill('codingSkills', 5000);
-      addSticker('coding arcade', room);
+      addSticker('coding arcade', room, arcadeJournalOverride);
       return;
     }
 
@@ -1019,7 +1040,7 @@ const App: React.FC = () => {
         musicScore: (p.musicScore || 0) + 1,
         arcadeProgress: buildNextArcadeProgress(p, gameId, combo),
       }));
-      addSticker('music arcade', room);
+      addSticker('music arcade', room, arcadeJournalOverride);
       return;
     }
 
@@ -1027,7 +1048,7 @@ const App: React.FC = () => {
       ...p,
       arcadeProgress: buildNextArcadeProgress(p, gameId, combo),
     }));
-    addSticker(subject, room);
+    addSticker(subject, room, arcadeJournalOverride);
   };
 
   const handleUpdatePet = (pet: VirtualPet) => {

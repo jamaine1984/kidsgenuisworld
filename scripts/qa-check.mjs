@@ -377,6 +377,9 @@ if (!typesSource.includes('ArcadeProgress') || !appSource.includes('buildNextArc
 for (const playSurfaceMarker of ['Interactive Playboard', 'First number', 'Scene card', 'Start', 'Answer Pads']) {
   if (!gameArcadeSource.includes(playSurfaceMarker)) fail(`Game Arcade is missing richer mini-game surface: ${playSurfaceMarker}.`);
 }
+for (const arcadeDepthMarker of ['Skill Focus', 'Strategy Coach', 'Bridge to Ten', 'Character Feelings', 'Conditionals', 'Rhythm Reading']) {
+  if (!gameArcadeSource.includes(arcadeDepthMarker)) fail(`Game Arcade needs deeper grade-paced content marker: ${arcadeDepthMarker}.`);
+}
 if (!mathRoomSource.includes('renderMathManipulatives') || !mathRoomSource.includes('First number') || !readingRoomSource.includes('Word Stage') || !readingRoomSource.includes('modeSteps')) {
   fail('Core Math and Reading rooms need richer kid-facing visual learning props.');
 }

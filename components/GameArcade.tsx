@@ -31,6 +31,10 @@ interface ArcadeGame {
 interface ArcadePrompt {
   prompt: string;
   helper: string;
+  skill: string;
+  levelTag: string;
+  coach: string;
+  success: string;
   answer: string;
   options: string[];
 }
@@ -132,12 +136,37 @@ const commandParts = (value: string) => value.split(',').map(part => part.trim()
 
 const buildPrompt = (gameId: ArcadeGameId, level: number): ArcadePrompt => {
   if (gameId === 'number-dash') {
-    const first = level <= 2 ? Math.floor(Math.random() * 6) + 2 : Math.floor(Math.random() * 20) + 8;
-    const second = level <= 3 ? Math.floor(Math.random() * 5) + 1 : Math.floor(Math.random() * 12) + 4;
+    const mathMissions = level <= 2
+      ? [
+        { first: 4, second: 3, skill: 'Count On', coach: 'Start at the bigger number and count forward.', success: 'You counted on instead of guessing.' },
+        { first: 6, second: 2, skill: 'Part-Part-Whole', coach: 'Touch each group, then combine the parts.', success: 'You joined two parts into one whole.' },
+        { first: 5, second: 5, skill: 'Doubles', coach: 'Doubles are two equal groups.', success: 'You spotted a doubles fact.' },
+        { first: 8, second: 1, skill: 'One More', coach: 'One more means the next number.', success: 'You used the next-number strategy.' },
+      ]
+      : level <= 4
+        ? [
+          { first: 9, second: 6, skill: 'Bridge to Ten', coach: 'Make ten first, then add what is left.', success: 'You used a bridge-to-ten strategy.' },
+          { first: 18, second: 7, skill: 'Place Value', coach: 'Add ones, then check the tens.', success: 'You kept tens and ones organized.' },
+          { first: 24, second: 12, skill: 'Two-Digit Addition', coach: 'Add tens with tens and ones with ones.', success: 'You solved a two-digit addition mission.' },
+          { first: 35, second: 9, skill: 'Friendly Tens', coach: 'Move toward the next friendly ten.', success: 'You used a friendly-ten shortcut.' },
+        ]
+        : [
+          { first: 125, second: 40, skill: 'Mental Math', coach: 'Add the tens first, then the ones.', success: 'You used mental math for a larger number.' },
+          { first: 248, second: 35, skill: 'Regrouping Readiness', coach: 'Track ones, tens, and hundreds carefully.', success: 'You handled a larger addition path.' },
+          { first: 360, second: 120, skill: 'Place-Value Addition', coach: 'Hundreds, tens, and ones each have a job.', success: 'You used place-value structure.' },
+          { first: 475, second: 25, skill: 'Compensation', coach: 'Look for a number that makes a clean hundred.', success: 'You completed a compensation strategy.' },
+        ];
+    const mission = mathMissions[Math.floor(Math.random() * mathMissions.length)];
+    const first = mission.first;
+    const second = mission.second;
     const answer = String(first + second);
     return {
       prompt: `${first} + ${second}`,
       helper: 'Solve the sprint problem, then say the strategy you used.',
+      skill: mission.skill,
+      levelTag: level <= 2 ? 'Foundation' : level <= 4 ? 'Guided Practice' : 'Challenge',
+      coach: mission.coach,
+      success: mission.success,
       answer,
       options: makeOptions(answer, [String(first + second + 1), String(first + second - 1), String(first + second + 3), String(Math.max(0, first + second - 3))]),
     };
@@ -145,12 +174,30 @@ const buildPrompt = (gameId: ArcadeGameId, level: number): ArcadePrompt => {
 
   if (gameId === 'word-builder') {
     const words = level <= 2
-      ? [{ clue: 'c_t', answer: 'a', word: 'cat' }, { clue: 's_n', answer: 'u', word: 'sun' }, { clue: 'h_t', answer: 'a', word: 'hat' }]
-      : [{ clue: 'pl_net', answer: 'a', word: 'planet' }, { clue: 'br_dge', answer: 'i', word: 'bridge' }, { clue: 'st_ry', answer: 'o', word: 'story' }];
+      ? [
+        { clue: 'c_t', answer: 'a', word: 'cat', skill: 'Short A' },
+        { clue: 's_n', answer: 'u', word: 'sun', skill: 'Short U' },
+        { clue: 'h_t', answer: 'a', word: 'hat', skill: 'CVC Words' },
+        { clue: 'p_g', answer: 'i', word: 'pig', skill: 'Short I' },
+        { clue: 'b_d', answer: 'e', word: 'bed', skill: 'Short E' },
+        { clue: 'd_g', answer: 'o', word: 'dog', skill: 'Short O' },
+      ]
+      : [
+        { clue: 'pl_net', answer: 'a', word: 'planet', skill: 'Vowel Teams' },
+        { clue: 'br_dge', answer: 'i', word: 'bridge', skill: 'Consonant Blends' },
+        { clue: 'st_ry', answer: 'o', word: 'story', skill: 'Story Vocabulary' },
+        { clue: 'fr_end', answer: 'i', word: 'friend', skill: 'Irregular Vowels' },
+        { clue: 'm_sic', answer: 'u', word: 'music', skill: 'Long U' },
+        { clue: 'r_bbit', answer: 'a', word: 'rabbit', skill: 'Syllable Check' },
+      ];
     const item = words[Math.floor(Math.random() * words.length)];
     return {
       prompt: `Complete ${item.clue}`,
       helper: `Build the word ${item.word} by choosing the missing sound.`,
+      skill: item.skill,
+      levelTag: level <= 2 ? 'Sound Builder' : 'Word Builder',
+      coach: 'Say the word slowly and listen for the missing sound.',
+      success: `You completed ${item.word} with the right sound.`,
       answer: item.answer,
       options: makeOptions(item.answer, ['a', 'e', 'i', 'o', 'u']),
     };
@@ -158,14 +205,21 @@ const buildPrompt = (gameId: ArcadeGameId, level: number): ArcadePrompt => {
 
   if (gameId === 'pattern-quest') {
     const patterns = [
-      { prompt: 'red, blue, red, blue, ?', answer: 'red', options: ['red', 'blue', 'green', 'yellow'] },
-      { prompt: 'circle, square, circle, square, ?', answer: 'circle', options: ['circle', 'square', 'triangle', 'star'] },
-      { prompt: 'small, medium, large, small, medium, ?', answer: 'large', options: ['small', 'medium', 'large', 'tiny'] },
+      { prompt: 'red, blue, red, blue, ?', answer: 'red', options: ['red', 'blue', 'green', 'yellow'], skill: 'AB Pattern' },
+      { prompt: 'circle, square, circle, square, ?', answer: 'circle', options: ['circle', 'square', 'triangle', 'star'], skill: 'Shape Pattern' },
+      { prompt: 'small, medium, large, small, medium, ?', answer: 'large', options: ['small', 'medium', 'large', 'tiny'], skill: 'Size Pattern' },
+      { prompt: 'clap, stomp, clap, stomp, ?', answer: 'clap', options: ['clap', 'stomp', 'jump', 'spin'], skill: 'Movement Pattern' },
+      { prompt: '2, 4, 6, 8, ?', answer: '10', options: ['9', '10', '11', '12'], skill: 'Skip Counting' },
+      { prompt: '5, 10, 15, 20, ?', answer: '25', options: ['22', '24', '25', '30'], skill: 'Count by Fives' },
     ];
-    const item = patterns[Math.floor(Math.random() * patterns.length)];
+    const item = patterns[Math.floor(Math.random() * (level <= 2 ? 4 : patterns.length))];
     return {
       prompt: item.prompt,
       helper: 'Find the rule before you choose.',
+      skill: item.skill,
+      levelTag: level <= 2 ? 'Pattern Finder' : 'Logic Ladder',
+      coach: 'Read the pattern from the beginning, then name what repeats or changes.',
+      success: 'You found the rule and predicted the next step.',
       answer: item.answer,
       options: shuffle(item.options),
     };
@@ -176,36 +230,86 @@ const buildPrompt = (gameId: ArcadeGameId, level: number): ArcadePrompt => {
       {
         prompt: 'Maya packed an umbrella because dark clouds covered the sky.',
         helper: 'Why did Maya pack an umbrella?',
+        skill: 'Cause and Effect',
+        coach: 'Look for the clue that explains why the character acted.',
+        success: 'You used a text clue to explain cause and effect.',
         answer: 'It might rain',
         options: ['It might rain', 'It was bedtime', 'She lost a shoe', 'She wanted a snack'],
       },
       {
         prompt: 'Leo fixed the tower by making the bottom wider.',
         helper: 'What helped the tower stand?',
+        skill: 'Problem and Solution',
+        coach: 'Find the action that solved the problem.',
+        success: 'You matched the problem with the solution.',
         answer: 'A wider base',
         options: ['A wider base', 'A louder song', 'A smaller table', 'A red crayon'],
       },
+      {
+        prompt: 'Nia smiled after her friend saved her a seat at lunch.',
+        helper: 'How did Nia probably feel?',
+        skill: 'Character Feelings',
+        coach: 'Use what happened to infer the feeling.',
+        success: 'You inferred a character feeling from the scene.',
+        answer: 'Thankful',
+        options: ['Thankful', 'Sleepy', 'Confused', 'Angry at rain'],
+      },
+      {
+        prompt: 'The class planted seeds, watered them, and waited for sprouts.',
+        helper: 'What probably happened next?',
+        skill: 'Sequence',
+        coach: 'Think about what comes after the steps in order.',
+        success: 'You predicted the next event from the sequence.',
+        answer: 'Plants began to grow',
+        options: ['Plants began to grow', 'The moon disappeared', 'The desks flew away', 'The pencils melted'],
+      },
+      {
+        prompt: 'Sam whispered because the baby was sleeping nearby.',
+        helper: 'Why did Sam whisper?',
+        skill: 'Text Evidence',
+        coach: 'The reason is in the sentence.',
+        success: 'You found evidence directly in the text.',
+        answer: 'To keep the baby asleep',
+        options: ['To keep the baby asleep', 'To win a race', 'To paint a wall', 'To find a map'],
+      },
     ];
-    return scenes[Math.floor(Math.random() * scenes.length)];
+    const scene = scenes[Math.floor(Math.random() * scenes.length)];
+    return {
+      ...scene,
+      levelTag: level <= 2 ? 'Story Clues' : 'Comprehension Quest',
+    };
   }
 
   if (gameId === 'robot-maze') {
     const paths = [
-      { prompt: 'Robot starts before two open tiles and a turn.', helper: 'Which command path reaches the goal?', answer: 'Forward, forward, turn right', options: ['Forward, forward, turn right', 'Turn left, forward', 'Jump, jump, stop', 'Backward, backward'] },
-      { prompt: 'Robot sees a wall after one step.', helper: 'Which plan avoids the wall?', answer: 'Forward, turn left, forward', options: ['Forward, turn left, forward', 'Forward, forward, forward', 'Stop only', 'Turn right forever'] },
+      { prompt: 'Robot starts before two open tiles and a turn.', helper: 'Which command path reaches the goal?', skill: 'Sequence', coach: 'Follow each command in order before choosing.', success: 'You planned the commands in the right order.', answer: 'Forward, forward, turn right', options: ['Forward, forward, turn right', 'Turn left, forward', 'Jump, jump, stop', 'Backward, backward'] },
+      { prompt: 'Robot sees a wall after one step.', helper: 'Which plan avoids the wall?', skill: 'Debugging', coach: 'A wall means the robot needs a turn before moving again.', success: 'You debugged the path around the wall.', answer: 'Forward, turn left, forward', options: ['Forward, turn left, forward', 'Forward, forward, forward', 'Stop only', 'Turn right forever'] },
+      { prompt: 'Robot can repeat a short move to reach two tiles.', helper: 'Which plan uses a repeat idea?', skill: 'Loops', coach: 'A loop repeats the same useful step.', success: 'You used loop thinking to make a shorter plan.', answer: 'Repeat forward 2x', options: ['Repeat forward 2x', 'Turn left, stop', 'Backward, turn right', 'Jump over goal'] },
+      { prompt: 'Robot must check the path before moving.', helper: 'Which command sounds safest?', skill: 'Conditionals', coach: 'If there is a clear path, then move.', success: 'You used if-then thinking like a coder.', answer: 'If clear, move forward', options: ['If clear, move forward', 'Move without looking', 'Spin forever', 'Erase the goal'] },
     ];
-    return paths[Math.floor(Math.random() * paths.length)];
+    const path = paths[Math.floor(Math.random() * (level <= 2 ? 2 : paths.length))];
+    return {
+      ...path,
+      levelTag: level <= 2 ? 'Robot Steps' : 'Code Planner',
+    };
   }
 
   const rhythms = [
-    { prompt: 'tap, tap, clap, tap, tap, ?', answer: 'clap', options: ['clap', 'rest', 'snap', 'tap'] },
-    { prompt: 'low, high, low, high, ?', answer: 'low', options: ['low', 'high', 'quiet', 'fast'] },
-    { prompt: 'slow, slow, quick, slow, slow, ?', answer: 'quick', options: ['quick', 'slow', 'pause', 'loud'] },
+    { prompt: 'tap, tap, clap, tap, tap, ?', answer: 'clap', options: ['clap', 'rest', 'snap', 'tap'], skill: 'Beat Pattern' },
+    { prompt: 'low, high, low, high, ?', answer: 'low', options: ['low', 'high', 'quiet', 'fast'], skill: 'Pitch Pattern' },
+    { prompt: 'slow, slow, quick, slow, slow, ?', answer: 'quick', options: ['quick', 'slow', 'pause', 'loud'], skill: 'Tempo Pattern' },
+    { prompt: 'loud, soft, soft, loud, soft, soft, ?', answer: 'loud', options: ['loud', 'soft', 'rest', 'high'], skill: 'Dynamics' },
+    { prompt: 'snap, rest, snap, rest, ?', answer: 'snap', options: ['snap', 'rest', 'tap', 'clap'], skill: 'Rest Pattern' },
+    { prompt: 'ta, ti-ti, ta, ti-ti, ?', answer: 'ta', options: ['ta', 'ti-ti', 'rest', 'boom'], skill: 'Rhythm Reading' },
   ];
   const rhythm = rhythms[Math.floor(Math.random() * rhythms.length)];
   return {
     prompt: rhythm.prompt,
     helper: 'Copy the rhythm rule and choose the next beat.',
+    skill: rhythm.skill,
+    levelTag: level <= 2 ? 'Beat Builder' : 'Rhythm Reader',
+    coach: 'Say the beats out loud, then listen for what repeats.',
+    success: 'You followed the rhythm pattern.',
     answer: rhythm.answer,
     options: shuffle(rhythm.options),
   };
@@ -628,6 +732,14 @@ export const GameArcade: React.FC<GameArcadeProps> = ({ progress, onBack, onOpen
                     </p>
                     <h3 className="mt-2 text-3xl font-black leading-tight">{prompt.prompt}</h3>
                     <p className="mt-3 text-base font-bold text-slate-600">{prompt.helper}</p>
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <span className="rounded-full bg-cyan-100 px-3 py-1 text-xs font-black uppercase tracking-[0.12em] text-cyan-800">
+                        Skill Focus: {prompt.skill}
+                      </span>
+                      <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-black uppercase tracking-[0.12em] text-amber-800">
+                        {prompt.levelTag}
+                      </span>
+                    </div>
                   </div>
                   <div className="rounded-3xl bg-white px-5 py-4 text-center shadow-sm">
                     <p className="text-3xl font-black text-slate-950">{roundWins}/3</p>
@@ -636,6 +748,11 @@ export const GameArcade: React.FC<GameArcadeProps> = ({ progress, onBack, onOpen
                 </div>
 
                 {renderArcadePlayboard()}
+
+                <div className="mt-5 rounded-[24px] border border-slate-100 bg-white p-4">
+                  <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">Strategy Coach</p>
+                  <p className="mt-1 text-sm font-bold text-slate-700">{prompt.coach}</p>
+                </div>
 
                 <p className="mt-6 text-xs font-black uppercase tracking-[0.18em] text-slate-500">Answer Pads</p>
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -653,9 +770,9 @@ export const GameArcade: React.FC<GameArcadeProps> = ({ progress, onBack, onOpen
 
                 {feedback !== 'idle' && (
                   <div className={`mt-5 rounded-[24px] p-4 text-sm font-black ${feedback === 'wrong' ? 'bg-rose-100 text-rose-800' : feedback === 'complete' ? 'bg-emerald-100 text-emerald-800' : 'bg-cyan-100 text-cyan-800'}`}>
-                    {feedback === 'wrong' && 'Try again. Check the clue before you tap.'}
-                    {feedback === 'correct' && 'Correct. New round loading.'}
-                    {feedback === 'complete' && `${activeGame.title} complete. You earned saved arcade progress, parent proof, and a learning reward.`}
+                    {feedback === 'wrong' && `Try again. ${prompt.coach}`}
+                    {feedback === 'correct' && `${prompt.success} New round loading.`}
+                    {feedback === 'complete' && `${activeGame.title} complete. ${prompt.success} You earned saved arcade progress, parent proof, and a learning reward.`}
                   </div>
                 )}
               </div>
@@ -663,7 +780,7 @@ export const GameArcade: React.FC<GameArcadeProps> = ({ progress, onBack, onOpen
               <div className="mt-5 grid gap-3 md:grid-cols-3">
                 {[
                   ['Skill ladder', `${Math.min(gameWins[activeGame.id] || 0, 3)}/3 saved wins toward this game badge.`],
-                  ['Learning proof', activeGame.proof],
+                  ['Learning proof', `${activeGame.proof}. Current skill: ${prompt.skill}.`],
                   ['Parent report', 'Wins save into progress, streaks, parent reports, and the learning journal.'],
                 ].map(([title, copy]) => (
                   <div key={title} className="rounded-[24px] border border-slate-100 bg-white p-4 shadow-sm">

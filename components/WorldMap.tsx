@@ -563,7 +563,7 @@ export const WorldMap: React.FC<WorldMapProps> = ({
               </div>
               <div className="mt-3 flex flex-wrap gap-2">
                 {reviewQuestItems.map(item => (
-                  <span key={item.unit.id} className="rounded-full bg-white px-3 py-1 text-[11px] font-black text-violet-700">
+                  <span key={`${item.day}-${item.unit.id}`} className="rounded-full bg-white px-3 py-1 text-[11px] font-black text-violet-700">
                     {item.unit.reviewCycleDays}d review
                   </span>
                 ))}
@@ -824,7 +824,7 @@ export const WorldMap: React.FC<WorldMapProps> = ({
                 const completed = completedUnitIds.has(item.unit.id);
                 const reviewTiming = getReviewTiming(item.unit);
                 return (
-                  <div key={item.unit.id} className="rounded-2xl border border-violet-100 bg-slate-50 p-3">
+                  <div key={`${item.day}-${item.unit.id}`} className="rounded-2xl border border-violet-100 bg-slate-50 p-3">
                     <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
                       <div>
                         <p className="text-xs font-black uppercase tracking-[0.14em] text-violet-600">

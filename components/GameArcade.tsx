@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import {
   ArrowLeft, Award, BrainCircuit, Calculator, CheckCircle2, Flag, Gamepad2, Map,
-  Music, Play, RefreshCw, Route, Shapes, Sparkles, Type
+  ListChecks, Music, Play, RefreshCw, Route, Shapes, Sparkles, Type
 } from 'lucide-react';
 import { RoomType, UserProgress } from '../types';
 import { playError, playPop, playSuccess } from '../services/audioService';
@@ -341,6 +341,27 @@ export const GameArcade: React.FC<GameArcadeProps> = ({ progress, onBack, onOpen
   const arcadeWins = arcadeProgress.totalWins || 0;
   const todayWins = arcadeProgress.dailyChallengeDate === todayKey ? arcadeProgress.dailyChallengeWins || 0 : 0;
   const masteredCount = ARCADE_GAMES.filter(game => masteredGameIds.has(game.id) || (gameWins[game.id] || 0) >= 3).length;
+  const recommendedNextGame = ARCADE_GAMES
+    .filter(game => !masteredGameIds.has(game.id) && (gameWins[game.id] || 0) < 3)
+    .sort((first, second) => (gameWins[first.id] || 0) - (gameWins[second.id] || 0))[0] || recommendedGame;
+  const activeGameWins = gameWins[activeGame.id] || 0;
+  const dailyQuestItems = [
+    {
+      title: 'Daily warm-up',
+      detail: `Win one ${recommendedGame.title} mission for today's streak.`,
+      done: todayWins > 0,
+    },
+    {
+      title: 'Mastery step',
+      detail: `Earn ${Math.min(activeGameWins, 3)}/3 ${activeGame.title} wins before moving on.`,
+      done: activeGameWins >= 3,
+    },
+    {
+      title: 'Try next skill',
+      detail: `Recommended next: ${recommendedNextGame.title}.`,
+      done: activeGame.id === recommendedNextGame.id && roundWins > 0,
+    },
+  ];
 
   const nextRound = () => {
     if (feedback === 'complete') {
@@ -647,6 +668,46 @@ export const GameArcade: React.FC<GameArcadeProps> = ({ progress, onBack, onOpen
               <div className="rounded-2xl bg-amber-50 p-3 text-center">
                 <p className="text-2xl font-black text-amber-700">{roundWins}/3</p>
                 <p className="text-[11px] font-black uppercase tracking-[0.12em] text-amber-700">mission</p>
+              </div>
+            </div>
+
+            <div className="rounded-[28px] border border-white bg-white/88 p-4 shadow-lg">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <p className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.18em] text-cyan-700">
+                    <ListChecks size={16} />
+                    Daily Quest Board
+                  </p>
+                  <h3 className="mt-2 text-xl font-black text-slate-950">Today&apos;s arcade path</h3>
+                  <p className="mt-1 text-sm font-semibold text-slate-600">
+                    Finish a warm-up, take one mastery step, then try the next skill.
+                  </p>
+                </div>
+                <button
+                  onClick={() => selectGame(recommendedNextGame.id)}
+                  className={`inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r ${recommendedNextGame.gradient} px-4 py-3 text-sm font-black text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg`}
+                >
+                  <Play size={16} />
+                  Recommended next
+                </button>
+              </div>
+              <div className="mt-4 grid gap-2">
+                {dailyQuestItems.map(item => (
+                  <div key={item.title} className={`flex items-start gap-3 rounded-2xl border p-3 ${item.done ? 'border-emerald-100 bg-emerald-50' : 'border-slate-100 bg-slate-50'}`}>
+                    <span className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${item.done ? 'bg-emerald-500 text-white' : 'bg-white text-slate-400'}`}>
+                      <CheckCircle2 size={16} />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="text-sm font-black text-slate-950">{item.title}</p>
+                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.12em] ${item.done ? 'bg-emerald-200 text-emerald-900' : 'bg-white text-slate-500'}`}>
+                          {item.done ? 'Done' : 'Ready'}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-xs font-semibold text-slate-600">{item.detail}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 

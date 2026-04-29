@@ -341,10 +341,12 @@ export const GameArcade: React.FC<GameArcadeProps> = ({ progress, onBack, onOpen
   const arcadeWins = arcadeProgress.totalWins || 0;
   const todayWins = arcadeProgress.dailyChallengeDate === todayKey ? arcadeProgress.dailyChallengeWins || 0 : 0;
   const masteredCount = ARCADE_GAMES.filter(game => masteredGameIds.has(game.id) || (gameWins[game.id] || 0) >= 3).length;
+  const gamesStartedCount = ARCADE_GAMES.filter(game => (gameWins[game.id] || 0) > 0).length;
   const recommendedNextGame = ARCADE_GAMES
     .filter(game => !masteredGameIds.has(game.id) && (gameWins[game.id] || 0) < 3)
     .sort((first, second) => (gameWins[first.id] || 0) - (gameWins[second.id] || 0))[0] || recommendedGame;
   const activeGameWins = gameWins[activeGame.id] || 0;
+  const longTermMasteryPercent = Math.round((masteredCount / ARCADE_GAMES.length) * 100);
   const dailyQuestItems = [
     {
       title: 'Daily warm-up',
@@ -360,6 +362,32 @@ export const GameArcade: React.FC<GameArcadeProps> = ({ progress, onBack, onOpen
       title: 'Try next skill',
       detail: `Recommended next: ${recommendedNextGame.title}.`,
       done: activeGame.id === recommendedNextGame.id && roundWins > 0,
+    },
+  ];
+  const arcadePassportItems = [
+    {
+      title: 'Starter Badge',
+      value: `${Math.min(arcadeWins, 1)}/1`,
+      detail: 'Finish one arcade mission.',
+      done: arcadeWins >= 1,
+    },
+    {
+      title: 'Balanced Explorer',
+      value: `${Math.min(gamesStartedCount, 3)}/3`,
+      detail: 'Try three different game skills.',
+      done: gamesStartedCount >= 3,
+    },
+    {
+      title: 'Mastery Collector',
+      value: `${Math.min(masteredCount, 3)}/3`,
+      detail: 'Master three arcade badges.',
+      done: masteredCount >= 3,
+    },
+    {
+      title: 'All-Room Arcade Champion',
+      value: `${masteredCount}/6`,
+      detail: 'Master every arcade skill path.',
+      done: masteredCount >= ARCADE_GAMES.length,
     },
   ];
 
@@ -705,6 +733,46 @@ export const GameArcade: React.FC<GameArcadeProps> = ({ progress, onBack, onOpen
                         </span>
                       </div>
                       <p className="mt-1 text-xs font-semibold text-slate-600">{item.detail}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-[28px] border border-white bg-slate-950 p-4 text-white shadow-xl">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <p className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.18em] text-cyan-200">
+                    <Award size={16} />
+                    Arcade Passport
+                  </p>
+                  <h3 className="mt-2 text-xl font-black">Badge Trail</h3>
+                  <p className="mt-1 text-sm font-semibold text-slate-300">
+                    Long-term mastery shows kids they are building skills across every room.
+                  </p>
+                </div>
+                <div className="rounded-2xl bg-white/10 px-4 py-3 text-center">
+                  <p className="text-2xl font-black text-white">{longTermMasteryPercent}%</p>
+                  <p className="text-[11px] font-black uppercase tracking-[0.12em] text-cyan-200">Long-term mastery</p>
+                </div>
+              </div>
+              <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/12">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-cyan-300 via-emerald-300 to-yellow-300"
+                  style={{ width: `${longTermMasteryPercent}%` }}
+                />
+              </div>
+              <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                {arcadePassportItems.map(item => (
+                  <div key={item.title} className={`rounded-2xl border p-3 ${item.done ? 'border-emerald-300/50 bg-emerald-400/15' : 'border-white/10 bg-white/[0.06]'}`}>
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-black text-white">{item.title}</p>
+                        <p className="mt-1 text-xs font-semibold text-slate-300">{item.detail}</p>
+                      </div>
+                      <span className={`rounded-full px-2 py-1 text-[11px] font-black ${item.done ? 'bg-emerald-300 text-emerald-950' : 'bg-white/10 text-slate-200'}`}>
+                        {item.done ? 'Earned' : item.value}
+                      </span>
                     </div>
                   </div>
                 ))}

@@ -386,6 +386,9 @@ for (const arcadeDepthMarker of ['Skill Focus', 'Strategy Coach', 'Bridge to Ten
 for (const arcadeRetentionMarker of ['Daily Quest Board', 'Recommended next', 'Mastery step', 'Try next skill']) {
   if (!gameArcadeSource.includes(arcadeRetentionMarker)) fail(`Game Arcade needs clearer daily retention guidance: ${arcadeRetentionMarker}.`);
 }
+for (const arcadePassportMarker of ['Arcade Passport', 'Badge Trail', 'Balanced Explorer', 'All-Room Arcade Champion', 'Long-term mastery']) {
+  if (!gameArcadeSource.includes(arcadePassportMarker)) fail(`Game Arcade needs long-term badge progression marker: ${arcadePassportMarker}.`);
+}
 if (!mathRoomSource.includes('renderMathManipulatives') || !mathRoomSource.includes('First number') || !readingRoomSource.includes('Word Stage') || !readingRoomSource.includes('modeSteps')) {
   fail('Core Math and Reading rooms need richer kid-facing visual learning props.');
 }

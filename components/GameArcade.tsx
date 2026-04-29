@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import {
-  ArrowLeft, Award, BrainCircuit, Calculator, CheckCircle2, Gamepad2, Map,
-  Music, Play, RefreshCw, Shapes, Sparkles, Type
+  ArrowLeft, Award, BrainCircuit, Calculator, CheckCircle2, Flag, Gamepad2, Map,
+  Music, Play, RefreshCw, Route, Shapes, Sparkles, Type
 } from 'lucide-react';
 import { RoomType, UserProgress } from '../types';
 import { playError, playPop, playSuccess } from '../services/audioService';
@@ -114,6 +114,21 @@ const shuffle = <T,>(items: T[]) => [...items].sort(() => Math.random() - 0.5);
 
 const makeOptions = (answer: string, distractors: string[]) =>
   shuffle([answer, ...shuffle(Array.from(new Set(distractors.filter(item => item !== answer)))).slice(0, 3)]);
+
+const tileTone = (value: string) => {
+  const key = value.toLowerCase();
+  if (key.includes('red')) return 'bg-rose-400 text-white border-rose-500';
+  if (key.includes('blue')) return 'bg-sky-400 text-white border-sky-500';
+  if (key.includes('green')) return 'bg-emerald-400 text-white border-emerald-500';
+  if (key.includes('yellow')) return 'bg-yellow-300 text-yellow-950 border-yellow-400';
+  if (key.includes('circle')) return 'bg-indigo-100 text-indigo-800 border-indigo-200';
+  if (key.includes('square')) return 'bg-amber-100 text-amber-800 border-amber-200';
+  if (key.includes('triangle')) return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+  if (key.includes('star')) return 'bg-fuchsia-100 text-fuchsia-800 border-fuchsia-200';
+  return 'bg-white text-slate-800 border-slate-200';
+};
+
+const commandParts = (value: string) => value.split(',').map(part => part.trim()).filter(Boolean);
 
 const buildPrompt = (gameId: ArcadeGameId, level: number): ArcadePrompt => {
   if (gameId === 'number-dash') {
@@ -241,7 +256,7 @@ export const GameArcade: React.FC<GameArcadeProps> = ({ progress, onBack, onOpen
   };
 
   const handleAnswer = (option: string) => {
-    if (feedback === 'complete') return;
+    if (feedback === 'complete' || feedback === 'correct') return;
 
     if (option !== prompt.answer) {
       playError();
@@ -264,6 +279,208 @@ export const GameArcade: React.FC<GameArcadeProps> = ({ progress, onBack, onOpen
     }
 
     window.setTimeout(nextRound, 650);
+  };
+
+  const answerDisabled = feedback === 'complete' || feedback === 'correct';
+
+  const renderAnswerPad = (option: string, className = '') => (
+    <button
+      key={`${activeGame.id}-${roundKey}-stage-${option}`}
+      onClick={() => handleAnswer(option)}
+      disabled={answerDisabled}
+      className={`rounded-2xl border-2 px-4 py-3 text-left font-black shadow-sm transition hover:-translate-y-1 disabled:cursor-not-allowed disabled:opacity-70 ${className || 'border-white bg-white text-slate-900 hover:border-cyan-300'}`}
+    >
+      {option}
+    </button>
+  );
+
+  const renderArcadePlayboard = () => {
+    if (activeGame.id === 'number-dash') {
+      const addends = prompt.prompt.match(/^(\d+) \+ (\d+)$/);
+      const first = addends ? Number(addends[1]) : 0;
+      const second = addends ? Number(addends[2]) : 0;
+      const renderCounters = (count: number, tone: string) => (
+        <div className="flex flex-wrap gap-1">
+          {Array.from({ length: Math.min(count, 14) }).map((_, index) => (
+            <span key={index} className={`h-4 w-4 rounded-full ${tone}`} />
+          ))}
+          {count > 14 && <span className="rounded-full bg-slate-200 px-2 text-xs font-black text-slate-600">+{count - 14}</span>}
+        </div>
+      );
+
+      return (
+        <div className="mt-5 rounded-[28px] border border-indigo-100 bg-indigo-50 p-4">
+          <div className="flex items-center gap-2 text-indigo-800">
+            <Calculator size={18} />
+            <p className="text-sm font-black uppercase tracking-[0.14em]">Interactive Playboard</p>
+          </div>
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
+            <div className="rounded-2xl bg-white p-4 shadow-sm">
+              <p className="text-xs font-black uppercase tracking-[0.12em] text-indigo-500">First number</p>
+              <p className="my-2 text-3xl font-black text-indigo-700">{first}</p>
+              {renderCounters(first, 'bg-indigo-400')}
+            </div>
+            <div className="rounded-2xl bg-white p-4 shadow-sm">
+              <p className="text-xs font-black uppercase tracking-[0.12em] text-sky-500">Second number</p>
+              <p className="my-2 text-3xl font-black text-sky-700">{second}</p>
+              {renderCounters(second, 'bg-sky-400')}
+            </div>
+          </div>
+          <div className="mt-4 grid gap-2 sm:grid-cols-4">
+            {prompt.options.map(option => renderAnswerPad(option, 'border-indigo-100 bg-white text-indigo-900 hover:border-indigo-400'))}
+          </div>
+        </div>
+      );
+    }
+
+    if (activeGame.id === 'word-builder') {
+      const clue = prompt.prompt.replace('Complete ', '');
+      return (
+        <div className="mt-5 rounded-[28px] border border-amber-100 bg-amber-50 p-4">
+          <div className="flex items-center gap-2 text-amber-800">
+            <Type size={18} />
+            <p className="text-sm font-black uppercase tracking-[0.14em]">Interactive Playboard</p>
+          </div>
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-2 rounded-3xl bg-white p-5 shadow-sm">
+            {clue.split('').map((letter, index) => (
+              <div
+                key={`${letter}-${index}`}
+                className={`flex h-16 w-14 items-center justify-center rounded-2xl border-2 text-3xl font-black ${
+                  letter === '_' ? 'border-amber-400 bg-amber-100 text-amber-700' : 'border-slate-100 bg-slate-50 text-slate-900'
+                }`}
+              >
+                {letter === '_' ? '?' : letter}
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 grid grid-cols-5 gap-2">
+            {prompt.options.map(option => renderAnswerPad(option, 'border-amber-100 bg-white text-center text-2xl text-amber-900 hover:border-amber-400'))}
+          </div>
+        </div>
+      );
+    }
+
+    if (activeGame.id === 'pattern-quest') {
+      const patternTiles = prompt.prompt.split(',').map(part => part.trim());
+      return (
+        <div className="mt-5 rounded-[28px] border border-emerald-100 bg-emerald-50 p-4">
+          <div className="flex items-center gap-2 text-emerald-800">
+            <Shapes size={18} />
+            <p className="text-sm font-black uppercase tracking-[0.14em]">Interactive Playboard</p>
+          </div>
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-2 rounded-3xl bg-white p-5 shadow-sm">
+            {patternTiles.map((tile, index) => (
+              <div
+                key={`${tile}-${index}`}
+                className={`min-h-16 min-w-20 rounded-2xl border-2 px-4 py-3 text-center text-lg font-black ${tile === '?' ? 'border-dashed border-emerald-400 bg-emerald-50 text-emerald-700' : tileTone(tile)}`}
+              >
+                {tile}
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 grid gap-2 sm:grid-cols-4">
+            {prompt.options.map(option => renderAnswerPad(option, `text-center ${tileTone(option)} hover:border-emerald-500`))}
+          </div>
+        </div>
+      );
+    }
+
+    if (activeGame.id === 'story-detective') {
+      return (
+        <div className="mt-5 rounded-[28px] border border-rose-100 bg-rose-50 p-4">
+          <div className="flex items-center gap-2 text-rose-800">
+            <BrainCircuit size={18} />
+            <p className="text-sm font-black uppercase tracking-[0.14em]">Interactive Playboard</p>
+          </div>
+          <div className="mt-4 rounded-3xl bg-white p-5 shadow-sm">
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-rose-500">Scene card</p>
+            <p className="mt-2 text-2xl font-black leading-snug text-slate-900">{prompt.prompt}</p>
+          </div>
+          <div className="mt-4 grid gap-2 sm:grid-cols-2">
+            {prompt.options.map(option => renderAnswerPad(option, 'border-rose-100 bg-white text-rose-950 hover:border-rose-400'))}
+          </div>
+        </div>
+      );
+    }
+
+    if (activeGame.id === 'robot-maze') {
+      return (
+        <div className="mt-5 rounded-[28px] border border-violet-100 bg-violet-50 p-4">
+          <div className="flex items-center gap-2 text-violet-800">
+            <Route size={18} />
+            <p className="text-sm font-black uppercase tracking-[0.14em]">Interactive Playboard</p>
+          </div>
+          <div className="mt-4 grid gap-3 lg:grid-cols-[0.9fr_1.1fr]">
+            <div className="grid grid-cols-3 gap-2 rounded-3xl bg-white p-4 shadow-sm">
+              {['Start', 'Open', 'Wall', 'Open', 'Open', 'Goal', 'Open', 'Turn', 'Open'].map((tile, index) => (
+                <div
+                  key={`${tile}-${index}`}
+                  className={`flex aspect-square flex-col items-center justify-center gap-1 rounded-2xl border-2 text-xs font-black ${
+                    tile === 'Wall'
+                      ? 'border-slate-300 bg-slate-700 text-white'
+                      : tile === 'Goal'
+                        ? 'border-emerald-200 bg-emerald-100 text-emerald-800'
+                        : tile === 'Start'
+                          ? 'border-violet-200 bg-violet-100 text-violet-800'
+                      : 'border-slate-100 bg-slate-50 text-slate-500'
+                  }`}
+                >
+                  {tile === 'Goal' ? (
+                    <>
+                      <Flag size={18} />
+                      <span>Goal</span>
+                    </>
+                  ) : tile}
+                </div>
+              ))}
+            </div>
+            <div className="grid gap-2">
+              {prompt.options.map(option => (
+                <button
+                  key={`${activeGame.id}-${roundKey}-route-${option}`}
+                  onClick={() => handleAnswer(option)}
+                  disabled={answerDisabled}
+                  className="rounded-2xl border-2 border-violet-100 bg-white p-3 text-left shadow-sm transition hover:-translate-y-1 hover:border-violet-400 disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  <div className="flex flex-wrap gap-1">
+                    {commandParts(option).map((command, commandIndex) => (
+                      <span key={`${option}-${command}-${commandIndex}`} className="rounded-full bg-violet-100 px-2 py-1 text-xs font-black text-violet-800">
+                        {command}
+                      </span>
+                    ))}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    const rhythmTiles = prompt.prompt.split(',').map(part => part.trim());
+    return (
+      <div className="mt-5 rounded-[28px] border border-pink-100 bg-pink-50 p-4">
+        <div className="flex items-center gap-2 text-pink-800">
+          <Music size={18} />
+          <p className="text-sm font-black uppercase tracking-[0.14em]">Interactive Playboard</p>
+        </div>
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-2 rounded-3xl bg-white p-5 shadow-sm">
+          {rhythmTiles.map((beat, index) => (
+            <div
+              key={`${beat}-${index}`}
+              className={`flex h-16 min-w-20 items-center justify-center rounded-2xl border-2 px-4 text-lg font-black ${
+                beat === '?' ? 'border-dashed border-pink-400 bg-pink-50 text-pink-700' : 'border-pink-100 bg-pink-100 text-pink-800'
+              }`}
+            >
+              {beat}
+            </div>
+          ))}
+        </div>
+        <div className="mt-4 grid gap-2 sm:grid-cols-4">
+          {prompt.options.map(option => renderAnswerPad(option, 'border-pink-100 bg-white text-center text-pink-950 hover:border-pink-400'))}
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -405,7 +622,10 @@ export const GameArcade: React.FC<GameArcadeProps> = ({ progress, onBack, onOpen
               <div className="rounded-[30px] bg-gradient-to-br from-white via-sky-50 to-emerald-50 p-5">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                   <div className="max-w-2xl">
-                    <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Quick Round</p>
+                    <p className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.18em] text-slate-500">
+                      <Play size={14} />
+                      Quick Round
+                    </p>
                     <h3 className="mt-2 text-3xl font-black leading-tight">{prompt.prompt}</h3>
                     <p className="mt-3 text-base font-bold text-slate-600">{prompt.helper}</p>
                   </div>
@@ -415,12 +635,16 @@ export const GameArcade: React.FC<GameArcadeProps> = ({ progress, onBack, onOpen
                   </div>
                 </div>
 
-                <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                {renderArcadePlayboard()}
+
+                <p className="mt-6 text-xs font-black uppercase tracking-[0.18em] text-slate-500">Answer Pads</p>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
                   {prompt.options.map(option => (
                     <button
                       key={`${activeGame.id}-${roundKey}-${option}`}
                       onClick={() => handleAnswer(option)}
-                      className="min-h-[82px] rounded-[24px] border-2 border-slate-200 bg-white px-4 py-4 text-left text-xl font-black text-slate-900 shadow-sm transition hover:-translate-y-1 hover:border-cyan-400 hover:bg-cyan-50 hover:shadow-lg active:translate-y-0"
+                      disabled={answerDisabled}
+                      className="min-h-[82px] rounded-[24px] border-2 border-slate-200 bg-white px-4 py-4 text-left text-xl font-black text-slate-900 shadow-sm transition hover:-translate-y-1 hover:border-cyan-400 hover:bg-cyan-50 hover:shadow-lg active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-70"
                     >
                       {option}
                     </button>

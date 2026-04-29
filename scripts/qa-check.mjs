@@ -374,6 +374,9 @@ if (!gameArcadeSource.includes('Daily Game Challenge') || !gameArcadeSource.incl
 if (!typesSource.includes('ArcadeProgress') || !appSource.includes('buildNextArcadeProgress') || !gameArcadeSource.includes('mastery badge') || !parentDashboardSource.includes('Game Arcade Proof')) {
   fail('Game Arcade progress must persist into the child arcade and parent dashboard.');
 }
+for (const playSurfaceMarker of ['Interactive Playboard', 'First number', 'Scene card', 'Start', 'Answer Pads']) {
+  if (!gameArcadeSource.includes(playSurfaceMarker)) fail(`Game Arcade is missing richer mini-game surface: ${playSurfaceMarker}.`);
+}
 if (!mathRoomSource.includes('renderMathManipulatives') || !mathRoomSource.includes('First number') || !readingRoomSource.includes('Word Stage') || !readingRoomSource.includes('modeSteps')) {
   fail('Core Math and Reading rooms need richer kid-facing visual learning props.');
 }

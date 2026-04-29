@@ -201,17 +201,22 @@ const hasEveryRoomExpansion = curriculumSource.includes('EVERY_ROOM_CURRICULUM_U
   curriculumSource.includes('gradeExpansionPlans') &&
   curriculumSource.includes('roomExpansionPlans') &&
   curriculumSource.includes('lessonArcPlans');
+const lessonArcPlansSource = curriculumSource.match(/const lessonArcPlans = \[([\s\S]*?)\];/)?.[1] || '';
+const lessonArcPlanCount = (lessonArcPlansSource.match(/id: '/g) || []).length;
 const expandedCurriculumUnitCount = hasEveryRoomExpansion
-  ? coreCurriculumUnitCount + (7 * 11 * 3)
+  ? coreCurriculumUnitCount + (7 * 11 * lessonArcPlanCount)
   : coreCurriculumUnitCount;
-if (expandedCurriculumUnitCount < 240) {
-  fail(`Curriculum map is too small: found ${expandedCurriculumUnitCount} planned units, expected at least 240.`);
+if (expandedCurriculumUnitCount < 400) {
+  fail(`Curriculum map is too small: found ${expandedCurriculumUnitCount} planned units, expected at least 400.`);
 }
 for (const field of ['standardsFocus', 'reviewCycleDays', 'masteryTarget', 'objective', 'parentActivity', 'successCheck', 'practiceActivities', 'endOfLessonChecks', 'masteryGate', 'parentExplanation']) {
   if (!curriculumSource.includes(field)) fail(`Curriculum field is missing: ${field}`);
 }
-if (!curriculumSource.includes('Foundation') || !curriculumSource.includes('Guided Practice') || !curriculumSource.includes('Mastery Check')) {
-  fail('Curriculum needs a foundation, guided practice, and mastery-check lesson arc.');
+if (!curriculumSource.includes('Foundation') || !curriculumSource.includes('Guided Practice') || !curriculumSource.includes('Independent Practice') || !curriculumSource.includes('Mastery Check') || !curriculumSource.includes('Spiral Review')) {
+  fail('Curriculum needs a five-step foundation, guided, independent, mastery, and spiral-review lesson arc.');
+}
+if (!curriculumSource.includes('five-step arc') || !curriculumSource.includes('without rushing to the next grade') || !worldMapSource.includes('slice(0, 5)') || !parentDashboardSource.includes('slice(0, 5)') || !worldMapSource.includes('xl:grid-cols-5') || !parentDashboardSource.includes('xl:grid-cols-5')) {
+  fail('Deep lesson practice steps must be visible to kids and parents.');
 }
 const requiredGradeCoverage = [
   'GradeLevel.PRE_K',

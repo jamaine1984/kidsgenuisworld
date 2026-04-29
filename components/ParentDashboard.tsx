@@ -232,13 +232,17 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
       isDue: daysUntilReview === 0,
     };
   };
-  const getPracticeActivities = (unit: CurriculumUnit) => unit.practiceActivities?.slice(0, 3) || [
+  const getPracticeActivities = (unit: CurriculumUnit) => unit.practiceActivities?.slice(0, 5) || [
     unit.objective,
     `Practice one example connected to ${unit.standardsFocus[0].toLowerCase()}.`,
+    `Try a second example using ${unit.standardsFocus[Math.min(1, unit.standardsFocus.length - 1)].toLowerCase()}.`,
+    'Pause and name the clue or strategy that helped.',
     'Say the strategy out loud before finishing.',
   ];
-  const getEndChecks = (unit: CurriculumUnit) => unit.endOfLessonChecks?.slice(0, 3) || [
+  const getEndChecks = (unit: CurriculumUnit) => unit.endOfLessonChecks?.slice(0, 5) || [
     unit.successCheck,
+    'Child completes one mixed example with less help.',
+    'Child names one mistake to watch for next time.',
     'Child explains the idea in their own words.',
     'Child tries one more example without guessing.',
   ];
@@ -1326,7 +1330,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                       <p className="text-xs text-gray-500 mb-2">Prerequisite: {unit.prerequisite}</p>
                     )}
                     <p className="text-sm text-emerald-700 font-semibold mb-3">Mastery: {unit.masteryTarget}</p>
-                    <div className="mb-3 grid grid-cols-1 md:grid-cols-3 gap-2">
+                    <div className="mb-3 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-2">
                       {getPracticeActivities(unit).map((activity, index) => (
                         <div key={`${unit.id}-activity-${index}`} className="rounded-lg bg-white border border-indigo-100 p-3">
                           <p className="text-[10px] uppercase tracking-[0.14em] text-indigo-500 font-bold">Activity {index + 1}</p>
@@ -1336,7 +1340,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                     </div>
                     <div className="mb-3 rounded-lg bg-emerald-50 border border-emerald-100 p-3">
                       <p className="text-xs uppercase tracking-[0.14em] text-emerald-700 font-bold mb-2">End-of-lesson checks</p>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-2">
                         {getEndChecks(unit).map((check, index) => (
                           <p key={`${unit.id}-check-${index}`} className="rounded-lg bg-white/80 p-2 text-xs font-semibold text-emerald-900">
                             {check}

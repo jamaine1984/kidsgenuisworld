@@ -77,13 +77,17 @@ export const WorldMap: React.FC<WorldMapProps> = ({
       isDue: daysUntilReview === 0,
     };
   };
-  const getPracticeActivities = (unit: CurriculumUnit) => unit.practiceActivities?.slice(0, 3) || [
+  const getPracticeActivities = (unit: CurriculumUnit) => unit.practiceActivities?.slice(0, 5) || [
     unit.objective,
     `Practice one example connected to ${unit.standardsFocus[0].toLowerCase()}.`,
+    `Try a second example using ${unit.standardsFocus[Math.min(1, unit.standardsFocus.length - 1)].toLowerCase()}.`,
+    'Pause and name the clue or strategy that helped.',
     'Say the strategy out loud before finishing.',
   ];
-  const getEndChecks = (unit: CurriculumUnit) => unit.endOfLessonChecks?.slice(0, 3) || [
+  const getEndChecks = (unit: CurriculumUnit) => unit.endOfLessonChecks?.slice(0, 5) || [
     unit.successCheck,
+    'Complete one mixed example with less help.',
+    'Name one mistake to watch for next time.',
     'Explain the idea in your own words.',
     'Try one more example without guessing.',
   ];
@@ -536,7 +540,7 @@ export const WorldMap: React.FC<WorldMapProps> = ({
                   <p className="text-xs text-indigo-900 font-bold">At-home idea: {mission.parentActivity}</p>
                   <p className="text-xs text-indigo-700 mt-1">Success check: {mission.successCheck}</p>
                 </div>
-                <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-5">
                   {getPracticeActivities(mission).map((activity, index) => (
                     <div key={`${mission.id}-activity-${index}`} className="rounded-2xl bg-white border border-indigo-100 p-3 shadow-sm">
                       <p className="text-[10px] font-black uppercase tracking-[0.14em] text-indigo-500">Step {index + 1}</p>

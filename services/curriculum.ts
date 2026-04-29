@@ -648,6 +648,16 @@ const lessonArcPlans = [
     reviewOffset: 1,
   },
   {
+    id: 'independent-practice',
+    title: 'Independent Practice',
+    focus: 'Build stamina',
+    activityPrompt: 'Complete three mixed examples with less help, pause after each one, and name the clue that guided the answer.',
+    checkPrompt: 'Child completes three mixed examples with fewer prompts and can name the clue or rule used.',
+    parentCue: 'Let your child try first, then ask which clue helped before giving support.',
+    masteryCue: 'Needs independent attempts across mixed examples before the mastery check opens.',
+    reviewOffset: 2,
+  },
+  {
     id: 'mastery-check',
     title: 'Mastery Check',
     focus: 'Explain and apply',
@@ -656,6 +666,16 @@ const lessonArcPlans = [
     parentCue: 'Ask your child to teach the skill back, then give one new example.',
     masteryCue: 'Counts toward mastery after three successful practice rounds and a clear teach-back.',
     reviewOffset: 2,
+  },
+  {
+    id: 'spiral-review',
+    title: 'Spiral Review',
+    focus: 'Review and connect',
+    activityPrompt: 'Revisit the skill with an older idea, compare what is the same or different, and finish with one explain-again answer.',
+    checkPrompt: 'Child connects the new skill to an earlier skill and explains the connection without rushing.',
+    parentCue: 'Bring back a past example and ask what stayed the same and what changed.',
+    masteryCue: 'Keeps the lesson in review until the child can connect it to a past skill.',
+    reviewOffset: 4,
   },
 ];
 
@@ -680,15 +700,19 @@ const EVERY_ROOM_CURRICULUM_UNITS: CurriculumUnit[] = gradeExpansionPlans.flatMa
       practiceActivities: [
         arcPlan.activityPrompt,
         `Use ${gradePlan.complexity} to practice ${roomPlan.standardsFocus[0].toLowerCase()}.`,
+        `Try a second example that mixes ${roomPlan.standardsFocus[1].toLowerCase()} with ${arcPlan.focus.toLowerCase()}.`,
+        'Pause for a mistake check: name one clue, rule, or strategy before choosing the answer.',
         'Finish by saying the strategy out loud before earning the mission stamp.',
       ],
       endOfLessonChecks: [
         arcPlan.checkPrompt,
+        `Child can use ${roomPlan.standardsFocus[0].toLowerCase()} language while explaining the answer.`,
+        'Child can handle a mixed example without trying to jump to the next grade.',
         'Child can explain what felt easy and what still needs practice.',
         'Child can try one new example without rushing to the next grade.',
       ],
       masteryGate: arcPlan.masteryCue,
-      parentExplanation: `${gradePlan.label} ${roomPlan.title} uses a three-step arc. This lesson is the ${arcPlan.title.toLowerCase()} step, so it should feel like ${arcPlan.focus.toLowerCase()} before the next unit opens.`,
+      parentExplanation: `${gradePlan.label} ${roomPlan.title} uses a five-step arc: foundation, guided practice, independent practice, mastery check, and spiral review. This lesson is the ${arcPlan.title.toLowerCase()} step, so it should feel like ${arcPlan.focus.toLowerCase()} before the next unit opens.`,
     }))
   )
 );
@@ -698,10 +722,14 @@ const enrichCurriculumUnit = (unit: CurriculumUnit): CurriculumUnit => ({
   practiceActivities: unit.practiceActivities || [
     unit.objective,
     `Practice with a short example connected to ${unit.standardsFocus[0].toLowerCase()}.`,
+    `Try a second example that uses ${unit.standardsFocus[Math.min(1, unit.standardsFocus.length - 1)].toLowerCase()}.`,
+    'Pause for a mistake check and say which clue helped.',
     'Say the strategy out loud before finishing the lesson.',
   ],
   endOfLessonChecks: unit.endOfLessonChecks || [
     unit.successCheck,
+    'Child can complete a second example with less help.',
+    'Child can name one mistake to watch for next time.',
     'Child can explain the idea in their own words.',
     'Child is ready for one more example without guessing.',
   ],

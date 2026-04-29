@@ -381,6 +381,8 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
     mastered: arcadeProgress.masteredGameIds.includes(game.id) || (arcadeProgress.gameWins[game.id] || 0) >= 3,
   }));
   const arcadeMasteredCount = arcadeGameRows.filter(game => game.mastered).length;
+  const arcadeGamesStartedCount = arcadeGameRows.filter(game => game.wins > 0).length;
+  const arcadeLongTermMasteryPercent = Math.round((arcadeMasteredCount / Math.max(arcadeGameRows.length, 1)) * 100);
   const arcadeRecommendedGame = [...arcadeGameRows]
     .filter(game => !game.mastered)
     .sort((first, second) => first.wins - second.wins)[0] || arcadeGameRows[0];
@@ -406,6 +408,32 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
       detail: arcadeStrongestGame?.wins
         ? `${arcadeStrongestGame.skill} has the most saved wins so far.`
         : 'Strongest skill appears after the first completed arcade mission.',
+    },
+  ];
+  const arcadePassportCards = [
+    {
+      label: 'Starter Badge',
+      value: `${Math.min(arcadeProgress.totalWins, 1)}/1`,
+      detail: 'First completed arcade mission.',
+      done: arcadeProgress.totalWins >= 1,
+    },
+    {
+      label: 'Balanced Explorer',
+      value: `${Math.min(arcadeGamesStartedCount, 3)}/3`,
+      detail: 'Three different arcade skill paths tried.',
+      done: arcadeGamesStartedCount >= 3,
+    },
+    {
+      label: 'Mastery Collector',
+      value: `${Math.min(arcadeMasteredCount, 3)}/3`,
+      detail: 'Three arcade badges mastered.',
+      done: arcadeMasteredCount >= 3,
+    },
+    {
+      label: 'All-Room Arcade Champion',
+      value: `${arcadeMasteredCount}/6`,
+      detail: 'Every arcade skill path mastered.',
+      done: arcadeMasteredCount >= arcadeGameRows.length,
     },
   ];
   const lastArcadePlayed = arcadeProgress.lastPlayedAt
@@ -795,6 +823,41 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                       <p className="text-[11px] font-black uppercase tracking-[0.14em] text-cyan-600">{card.label}</p>
                       <p className="mt-1 text-base font-black text-gray-900">{card.value}</p>
                       <p className="mt-1 text-xs font-semibold text-gray-600">{card.detail}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="mb-3 rounded-xl bg-slate-950 p-3 text-white shadow-sm">
+                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-black text-cyan-200">Arcade Passport Summary</p>
+                    <p className="mt-1 text-sm text-slate-300">
+                      Parent view of the Badge Trail, long-term mastery, and all-room arcade badges.
+                    </p>
+                  </div>
+                  <div className="rounded-xl bg-white/10 px-4 py-2 text-center">
+                    <p className="text-2xl font-black">{arcadeLongTermMasteryPercent}%</p>
+                    <p className="text-[11px] font-black uppercase tracking-[0.12em] text-cyan-200">Long-term mastery</p>
+                  </div>
+                </div>
+                <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/10">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-cyan-300 via-emerald-300 to-yellow-300"
+                    style={{ width: `${arcadeLongTermMasteryPercent}%` }}
+                  />
+                </div>
+                <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {arcadePassportCards.map(card => (
+                    <div key={card.label} className={`rounded-lg border p-3 ${card.done ? 'border-emerald-300/50 bg-emerald-400/15' : 'border-white/10 bg-white/[0.06]'}`}>
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-black text-white">{card.label}</p>
+                          <p className="mt-1 text-xs font-semibold text-slate-300">{card.detail}</p>
+                        </div>
+                        <span className={`rounded-full px-2 py-1 text-[11px] font-black ${card.done ? 'bg-emerald-300 text-emerald-950' : 'bg-white/10 text-slate-200'}`}>
+                          {card.done ? 'Earned' : card.value}
+                        </span>
+                      </div>
                     </div>
                   ))}
                 </div>

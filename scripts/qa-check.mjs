@@ -337,6 +337,9 @@ if (!appSource.includes('Learning Reflection') || !appSource.includes('Explain w
 if (!appSource.includes('Mission Focus') || !appSource.includes('showMissionFocus') || !appSource.includes('Practice progress') || !appSource.includes('Success check')) {
   fail('Active lesson mission focus is missing inside room practice.');
 }
+if (!appSource.includes('5-step lesson path') || !appSource.includes('Exit checks') || !appSource.includes('activeUnit?.practiceActivities?.slice(0, 5)') || !appSource.includes('activeUnit?.endOfLessonChecks?.slice(0, 5)') || !appSource.includes('max-w-5xl')) {
+  fail('Active room mission focus must expose the full five-step lesson path.');
+}
 if (!typesSource.includes('LearningJournalEntry') || !typesSource.includes('childReflection') || !appSource.includes('learningJournal') || !appSource.includes('recordLearningReflectionChoice') || !parentDashboardSource.includes('Learning Journal') || !parentDashboardSource.includes('Recent proof of practice') || !parentDashboardSource.includes('Child reflection')) {
   fail('Parent evidence trail learning journal is missing.');
 }

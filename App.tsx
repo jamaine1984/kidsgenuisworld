@@ -1477,8 +1477,8 @@ const App: React.FC = () => {
     ? getUnitsForGrade(progress.currentGrade).find(unit => unit.id === activeUnitId)
     : undefined;
   const activeUnitPracticeCount = activeUnitId ? Math.min(progress.unitPracticeCounts?.[activeUnitId] || 0, 3) : 0;
-  const activeUnitPracticeActivities = activeUnit?.practiceActivities?.slice(0, 2) || [];
-  const activeUnitEndChecks = activeUnit?.endOfLessonChecks?.slice(0, 2) || [];
+  const activeUnitPracticeActivities = activeUnit?.practiceActivities?.slice(0, 5) || [];
+  const activeUnitEndChecks = activeUnit?.endOfLessonChecks?.slice(0, 5) || [];
   const showActiveMissionFocus = Boolean(activeUnit && currentRoom !== RoomType.HUB && !showDashboard && !showParentDashboard);
 
   return (
@@ -1496,22 +1496,26 @@ const App: React.FC = () => {
       <Guide room={currentRoom} trigger={guideTrigger} />
 
       {showActiveMissionFocus && activeUnit && (
-        <div className="fixed bottom-4 left-4 right-4 z-30 mx-auto max-w-2xl">
+        <div className="fixed bottom-4 left-4 right-4 z-30 mx-auto max-w-5xl">
           {showMissionFocus ? (
-            <div className="rounded-[24px] border-4 border-white bg-white/95 p-4 shadow-2xl backdrop-blur">
+            <div className="max-h-[78vh] overflow-y-auto rounded-[24px] border-4 border-white bg-white/95 p-4 shadow-2xl backdrop-blur">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="text-xs font-black uppercase tracking-[0.16em] text-indigo-600">Mission Focus</p>
                   <h3 className="mt-1 text-lg font-black text-slate-900">{activeUnit.title}</h3>
                   <p className="mt-1 text-sm font-semibold text-slate-700">{activeUnit.objective}</p>
                   {activeUnitPracticeActivities.length > 0 && (
-                    <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                      {activeUnitPracticeActivities.map((activity, index) => (
-                        <p key={`${activeUnit.id}-focus-activity-${index}`} className="rounded-2xl bg-indigo-50 px-3 py-2 text-xs font-bold text-indigo-900">
-                          Activity {index + 1}: {activity}
-                        </p>
-                      ))}
-                    </div>
+                    <>
+                      <p className="mt-3 text-xs font-black uppercase tracking-[0.14em] text-indigo-600">5-step lesson path</p>
+                      <div className="mt-2 grid gap-2 sm:grid-cols-2 xl:grid-cols-5">
+                        {activeUnitPracticeActivities.map((activity, index) => (
+                          <div key={`${activeUnit.id}-focus-activity-${index}`} className="rounded-2xl bg-indigo-50 px-3 py-2 text-xs font-bold text-indigo-900">
+                            <p className="text-[10px] font-black uppercase tracking-[0.12em] text-indigo-500">Step {index + 1}</p>
+                            <p className="mt-1">{activity}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </>
                   )}
                 </div>
                 <button
@@ -1531,7 +1535,16 @@ const App: React.FC = () => {
                   <p className="text-xs font-black text-emerald-700">Success check</p>
                   <p className="text-sm font-bold text-emerald-900">{activeUnit.successCheck}</p>
                   {activeUnitEndChecks.length > 0 && (
-                    <p className="mt-2 text-xs font-bold text-emerald-800">Exit check: {activeUnitEndChecks[0]}</p>
+                    <div className="mt-2">
+                      <p className="text-[10px] font-black uppercase tracking-[0.12em] text-emerald-700">Exit checks</p>
+                      <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                        {activeUnitEndChecks.map((check, index) => (
+                          <p key={`${activeUnit.id}-focus-check-${index}`} className="rounded-xl bg-white/80 px-3 py-2 text-xs font-bold text-emerald-900">
+                            Check {index + 1}: {check}
+                          </p>
+                        ))}
+                      </div>
+                    </div>
                   )}
                 </div>
               </div>

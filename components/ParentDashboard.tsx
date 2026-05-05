@@ -508,7 +508,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
     return (
       <div className="w-full h-full bg-gradient-to-br from-indigo-700 via-purple-700 to-slate-900 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
-          <button onClick={onBack} className="mb-4 p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition">
+          <button onClick={onBack} aria-label="Back to world map" className="mb-4 p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition">
             <ArrowLeft size={22} />
           </button>
           <div className="flex items-center gap-3 mb-3">
@@ -562,7 +562,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
       {/* Header */}
       <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-4 text-white sticky top-0 z-20">
         <div className="flex items-center justify-between gap-3 mb-4">
-          <button onClick={onBack} className="p-2 bg-white/20 rounded-full hover:bg-white/30 transition shrink-0">
+          <button onClick={onBack} aria-label="Back to world map" className="p-2 bg-white/20 rounded-full hover:bg-white/30 transition shrink-0">
             <ArrowLeft size={24} />
           </button>
           <h1 className="text-base sm:text-xl font-bold flex items-center gap-2 min-w-0 text-center">

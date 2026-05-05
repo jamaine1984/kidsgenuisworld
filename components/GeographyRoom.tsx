@@ -189,7 +189,7 @@ export const GeographyRoom: React.FC<GeographyRoomProps> = ({ level, onBack, onR
     <div className="w-full h-full bg-[radial-gradient(circle_at_top_left,#fef08a_0,#38bdf8_28%,#14b8a6_62%,#2563eb_100%)] flex flex-col overflow-auto relative">
       {/* Header */}
       <div className="flex items-center justify-between p-4 bg-white/20 backdrop-blur-sm">
-        <button onClick={onBack} className="p-2 bg-white/30 rounded-full hover:bg-white/50 transition">
+        <button onClick={onBack} aria-label="Back to world map" className="p-2 bg-white/30 rounded-full hover:bg-white/50 transition">
           <ArrowLeft className="text-white" size={24} />
         </button>
         <div className="flex items-center gap-2">

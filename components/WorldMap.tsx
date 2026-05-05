@@ -516,6 +516,8 @@ export const WorldMap: React.FC<WorldMapProps> = ({
         <div className="grid lg:grid-cols-[1.35fr_0.85fr] gap-4">
           <button
             onClick={() => { playPop(); onEnterRoom(mission.room, mission.id); }}
+            aria-label={`Start today's mission: ${mission.title}`}
+            data-testid="daily-mission-card"
             className="text-left bg-white/92 backdrop-blur-sm rounded-[28px] p-5 shadow-xl border-4 border-white/60 hover:scale-[1.01] transition"
           >
             <div className="flex flex-col sm:flex-row sm:items-center gap-4">
@@ -711,6 +713,8 @@ export const WorldMap: React.FC<WorldMapProps> = ({
                 onClick={() => { playPop(); onEnterRoom(room.type, nextUnit?.id); }}
                 onMouseEnter={() => setHoveredRoom(room.type)}
                 onMouseLeave={() => setHoveredRoom(null)}
+                aria-label={`Enter ${room.name}`}
+                data-testid={`room-card-${room.type}`}
                 className={`${room.featured ? 'sm:col-span-2 sm:row-span-2' : ''} relative group text-left`}
               >
                 <div className={`room-destination-tile relative overflow-hidden bg-gradient-to-br ${room.color} rounded-[30px] shadow-xl border-4 border-white/50 transform transition-all duration-200 group-hover:scale-[1.03] group-hover:-translate-y-2 ${room.featured ? 'min-h-[260px]' : 'min-h-[214px]'}`}>

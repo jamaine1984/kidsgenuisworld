@@ -117,7 +117,7 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => 
   return (
     <div className="h-full w-full bg-[radial-gradient(circle_at_top_left,#fde68a_0,#f9a8d4_34%,#c084fc_68%,#60a5fa_100%)] flex flex-col">
       <header className="p-4 flex justify-between items-center bg-white/35 backdrop-blur-md shadow-md z-20 shrink-0">
-        <button onClick={onBack} className="bg-white p-2 rounded-full hover:bg-pink-50 shadow-sm">
+        <button onClick={onBack} aria-label="Back to world map" className="bg-white p-2 rounded-full hover:bg-pink-50 shadow-sm">
           <ArrowLeft className="text-pink-600" />
         </button>
         <div className="text-center">

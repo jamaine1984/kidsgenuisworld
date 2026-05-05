@@ -360,7 +360,7 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
       <div className="absolute right-10 bottom-16 h-24 w-32 rotate-6 rounded-[28px] bg-yellow-200/50 shadow-xl"></div>
 
       <header className="w-full p-4 flex justify-between items-center z-10 flex-wrap gap-2">
-        <button onClick={onBack} className="bg-white p-3 rounded-full shadow-lg hover:bg-orange-100">
+        <button onClick={onBack} aria-label="Back to world map" className="bg-white p-3 rounded-full shadow-lg hover:bg-orange-100">
           <ArrowLeft className="text-orange-600" />
         </button>
 

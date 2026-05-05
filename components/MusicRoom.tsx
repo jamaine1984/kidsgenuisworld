@@ -112,7 +112,7 @@ export const MusicRoom: React.FC<MusicRoomProps> = ({ onBack, onReward, level })
       <div className="absolute bottom-0 right-0 w-32 h-96 bg-blue-400 opacity-20 blur-2xl transform -rotate-12 origin-bottom"></div>
 
       <header className="w-full p-4 flex justify-between items-center z-20 absolute top-0">
-        <button onClick={onBack} className="bg-white p-3 rounded-full">
+        <button onClick={onBack} aria-label="Back to world map" className="bg-white p-3 rounded-full">
             <ArrowLeft className="text-purple-900" />
         </button>
         

@@ -772,7 +772,7 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
       <div className="w-full h-full bg-gradient-to-b from-amber-100 via-orange-100 to-yellow-100 flex flex-col overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between p-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white">
-          <button onClick={onBack} className="p-2 bg-white/20 rounded-full hover:bg-white/30 transition">
+          <button onClick={onBack} aria-label="Back to world map" className="p-2 bg-white/20 rounded-full hover:bg-white/30 transition">
             <ArrowLeft size={24} />
           </button>
           <div className="flex items-center gap-2">
@@ -825,7 +825,7 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
     <div className="w-full h-full bg-gradient-to-b from-amber-50 to-orange-50 flex flex-col overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between p-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white">
-        <button onClick={goToLibrary} className="p-2 bg-white/20 rounded-full hover:bg-white/30 transition">
+        <button onClick={goToLibrary} aria-label="Back to story library" className="p-2 bg-white/20 rounded-full hover:bg-white/30 transition">
           <ArrowLeft size={24} />
         </button>
         <div className="text-center">

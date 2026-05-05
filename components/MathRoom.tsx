@@ -386,7 +386,7 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, level }) =
        <div className="absolute right-24 top-28 h-20 w-20 rounded-full bg-pink-300/40 shadow-xl"></div>
 
       <header className="flex justify-between items-center mb-8 z-10">
-        <button onClick={onBack} className="bg-white p-3 rounded-full shadow-lg hover:bg-gray-50 border-2 border-indigo-100">
+        <button onClick={onBack} aria-label="Back to world map" className="bg-white p-3 rounded-full shadow-lg hover:bg-gray-50 border-2 border-indigo-100">
           <ArrowLeft className="text-indigo-600" />
         </button>
         <div className="bg-white/80 backdrop-blur-sm px-6 py-2 rounded-full flex items-center gap-2 shadow-sm border border-indigo-100">

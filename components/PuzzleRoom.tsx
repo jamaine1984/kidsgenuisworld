@@ -132,7 +132,7 @@ export const PuzzleRoom: React.FC<PuzzleRoomProps> = ({ onBack, onReward, level 
   return (
     <div className="h-full w-full bg-[radial-gradient(circle_at_top_left,#bef264_0,#14b8a6_34%,#0f766e_70%,#134e4a_100%)] flex flex-col p-4 relative overflow-auto">
       <header className="flex justify-between items-center mb-4 z-10">
-        <button onClick={onBack} className="bg-white p-2 rounded-full shadow-lg">
+        <button onClick={onBack} aria-label="Back to world map" className="bg-white p-2 rounded-full shadow-lg">
           <ArrowLeft className="text-teal-600" />
         </button>
         

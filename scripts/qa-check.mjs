@@ -59,6 +59,18 @@ const packageJson = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 
 const distIndex = fs.existsSync(path.join(root, 'dist/index.html'))
   ? fs.readFileSync(path.join(root, 'dist/index.html'), 'utf8')
   : '';
+const roomBackButtonSources = [
+  ['MathRoom', mathRoomSource],
+  ['ReadingRoom', readingRoomSource],
+  ['ScienceRoom', scienceRoomSource],
+  ['GeographyRoom', geographyRoomSource],
+  ['CodingRoom', codingRoomSource],
+  ['LanguageRoom', languageRoomSource],
+  ['ArtRoom', artRoomSource],
+  ['MusicRoom', musicRoomSource],
+  ['PuzzleRoom', puzzleRoomSource],
+  ['StoryBook', storyBookSource],
+];
 
 const sourceFilesToScan = [
   'App.tsx',
@@ -360,6 +372,14 @@ if (!worldMapSource.includes('At-home idea') || !worldMapSource.includes('Review
 }
 if (!worldMapSource.includes('Step {index + 1}') || !worldMapSource.includes('Exit check') || !worldMapSource.includes('getPracticeActivities')) {
   fail('Kid world map must surface lesson activities and exit checks.');
+}
+if (!worldMapSource.includes('data-testid="daily-mission-card"') || !worldMapSource.includes('data-testid={`room-card-${room.type}`}') || !worldMapSource.includes('aria-label={`Enter ${room.name}`}')) {
+  fail('Tablet room QA needs stable accessible room selectors.');
+}
+for (const [roomName, source] of roomBackButtonSources) {
+  if (!source.includes('aria-label="Back to world map"')) {
+    fail(`${roomName} needs an accessible Back to world map button for tablet QA.`);
+  }
 }
 if (!worldMapSource.includes('Focus Quest') || !worldMapSource.includes('Try Again Plan') || !worldMapSource.includes('Mistakes are information')) {
   fail('World map needs a kid-facing focus and social-emotional learning routine.');

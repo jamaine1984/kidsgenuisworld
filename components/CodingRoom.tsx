@@ -804,7 +804,7 @@ export const CodingRoom: React.FC<CodingRoomProps> = ({ level, onBack, onReward 
     <div className="w-full h-full bg-[radial-gradient(circle_at_top_left,#22d3ee_0,#6366f1_34%,#a855f7_68%,#db2777_100%)] flex flex-col relative">
       {/* Header */}
       <div className="flex items-center justify-between p-4 bg-white/20 backdrop-blur-sm">
-        <button onClick={onBack} className="p-2 bg-white/30 rounded-full hover:bg-white/50 transition">
+        <button onClick={onBack} aria-label="Back to world map" className="p-2 bg-white/30 rounded-full hover:bg-white/50 transition">
           <ArrowLeft className="text-white" size={24} />
         </button>
         <div className="flex items-center gap-2">

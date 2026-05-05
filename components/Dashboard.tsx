@@ -22,7 +22,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ progress, onBack }) => {
   return (
     <div className="w-full h-full bg-[linear-gradient(180deg,#bce7ff_0%,#fef3c7_45%,#fde68a_100%)] flex flex-col overflow-y-auto overflow-x-hidden kid-scroll" style={{ maxHeight: '100vh' }}>
       <header className="bg-white/85 backdrop-blur-sm p-4 shadow-sm flex items-center gap-4 sticky top-0 z-30">
-        <button onClick={onBack} className="p-3 bg-white rounded-full hover:bg-gray-100 border-4 border-sky-100 shadow">
+        <button onClick={onBack} aria-label="Back to world map" className="p-3 bg-white rounded-full hover:bg-gray-100 border-4 border-sky-100 shadow">
           <ArrowLeft className="text-gray-600" />
         </button>
         <h1 className="text-2xl font-black text-slate-800">Adventure Journal</h1>

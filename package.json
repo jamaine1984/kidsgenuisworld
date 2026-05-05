@@ -5,10 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "typecheck": "tsc --noEmit",
     "build": "vite build",
     "preview": "vite preview",
     "serve": "node server/production-server.mjs",
-    "qa": "npm run build && node scripts/qa-check.mjs && node scripts/launch-readiness.mjs",
+    "qa": "npm run typecheck && npm run build && node scripts/qa-check.mjs && node scripts/launch-readiness.mjs",
     "qa:browser": "playwright test",
     "qa:all": "npm run qa && npm run qa:browser",
     "qa:source": "node scripts/qa-check.mjs",
@@ -16,12 +17,17 @@
     "voice:check": "node scripts/check-elevenlabs-key.mjs",
     "voice:cache": "node scripts/warm-voice-cache.mjs",
     "r2:upload-tts": "node scripts/upload-tts-cache-r2.mjs",
+    "firebase:emulators": "firebase emulators:start",
+    "firebase:deploy": "npm run qa:all && firebase deploy --project kid-genius-world",
+    "firebase:deploy:hosting": "npm run qa:all && firebase deploy --only hosting --project kid-genius-world",
+    "firebase:deploy:rules": "firebase deploy --only firestore:rules --project kid-genius-world",
     "cf:dev": "wrangler dev",
     "cf:deploy": "npm run qa && wrangler deploy",
     "cf:secret:elevenlabs": "wrangler secret put ELEVENLABS_API_KEY",
     "cf:secret:openrouter": "wrangler secret put OPENROUTER_API_KEY"
   },
   "dependencies": {
+    "firebase": "^12.6.0",
     "lucide-react": "^0.554.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
@@ -31,6 +37,7 @@
     "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^5.0.0",
     "autoprefixer": "^10.5.0",
+    "firebase-tools": "^15.0.0",
     "postcss": "^8.5.10",
     "tailwindcss": "^3.4.19",
     "typescript": "~5.8.2",

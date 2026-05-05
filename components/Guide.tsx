@@ -37,9 +37,6 @@ export const Guide: React.FC<GuideProps> = ({ room, trigger }) => {
       [RoomType.ART]: [
         "Be creative. There is more than one good idea here.",
       ],
-      [RoomType.PLAYGROUND]: [
-        "Take a fun break, then jump back into learning.",
-      ],
       [RoomType.SCIENCE]: [
         "Think like a scientist and test your best idea.",
       ],

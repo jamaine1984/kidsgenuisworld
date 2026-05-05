@@ -1,0 +1,56 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isFamilyParent(familyId) {
+      return signedIn()
+        && exists(/databases/$(database)/documents/families/$(familyId))
+        && request.auth.uid in get(/databases/$(database)/documents/families/$(familyId)).data.parentUids;
+    }
+
+    function childPayloadIsSafe() {
+      return !request.resource.data.keys().hasAny([
+        'email',
+        'phone',
+        'preciseLocation',
+        'address',
+        'openChatTranscript'
+      ]);
+    }
+
+    match /families/{familyId} {
+      allow create: if signedIn()
+        && request.auth.uid in request.resource.data.parentUids
+        && request.resource.data.parentUids is list
+        && request.resource.data.parentUids.size() <= 2;
+
+      allow read, update, delete: if isFamilyParent(familyId);
+
+      match /children/{childId} {
+        allow read: if isFamilyParent(familyId);
+        allow create, update: if isFamilyParent(familyId) && childPayloadIsSafe();
+        allow delete: if isFamilyParent(familyId);
+
+        match /progress/{document=**} {
+          allow read, write: if isFamilyParent(familyId);
+        }
+
+        match /learningJournal/{journalId} {
+          allow read, write: if isFamilyParent(familyId);
+        }
+      }
+
+      match /parentExports/{exportId} {
+        allow read, write: if isFamilyParent(familyId);
+      }
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

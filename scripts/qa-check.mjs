@@ -13,6 +13,12 @@ const requiredFiles = [
   'services/audioService.ts',
   'services/voiceCacheService.ts',
   'server/production-server.mjs',
+  '.firebaserc',
+  'firebase.json',
+  'firestore.rules',
+  'firestore.indexes.json',
+  'services/firebaseClient.ts',
+  'services/firebaseProgressStore.ts',
   'scripts/check-elevenlabs-key.mjs',
   'scripts/warm-voice-cache.mjs',
   'cloudflare/worker.ts',
@@ -42,6 +48,10 @@ const curriculumSource = fs.readFileSync(path.join(root, 'services/curriculum.ts
 const typesSource = fs.readFileSync(path.join(root, 'types.ts'), 'utf8');
 const audioServiceSource = fs.readFileSync(path.join(root, 'services/audioService.ts'), 'utf8');
 const voiceCacheSource = fs.readFileSync(path.join(root, 'services/voiceCacheService.ts'), 'utf8');
+const firebaseClientSource = fs.readFileSync(path.join(root, 'services/firebaseClient.ts'), 'utf8');
+const firebaseProgressStoreSource = fs.readFileSync(path.join(root, 'services/firebaseProgressStore.ts'), 'utf8');
+const firebaseJsonSource = fs.readFileSync(path.join(root, 'firebase.json'), 'utf8');
+const firestoreRulesSource = fs.readFileSync(path.join(root, 'firestore.rules'), 'utf8');
 const storyBookSource = fs.readFileSync(path.join(root, 'components/StoryBook.tsx'), 'utf8');
 const cloudflareWorkerSource = fs.readFileSync(path.join(root, 'cloudflare/worker.ts'), 'utf8');
 const wranglerSource = fs.readFileSync(path.join(root, 'wrangler.jsonc'), 'utf8');
@@ -175,6 +185,21 @@ if (!parentDashboardSource.includes('Parent Consent Receipt') || !parentDashboar
 }
 if (!audioServiceSource.includes('kidGeniusAllowExternalVoice') || !voiceCacheSource.includes('kidGeniusAllowExternalVoice')) {
   fail('Voice API calls are not gated by parent privacy controls.');
+}
+if (!packageJson.dependencies?.firebase || !packageJson.devDependencies?.['firebase-tools']) {
+  fail('Firebase Web SDK and Firebase CLI dependencies must be present for web-only Firebase deployment.');
+}
+if (!firebaseJsonSource.includes('"public": "dist"') || !firebaseJsonSource.includes('"firestore"')) {
+  fail('Firebase Hosting must serve the Vite dist folder and include Firestore config.');
+}
+if (!firebaseClientSource.includes('VITE_FIREBASE_PROJECT_ID') || !firebaseClientSource.includes('kid-genius-world')) {
+  fail('Firebase Web SDK must be initialized from VITE_FIREBASE_* config with the expected project fallback.');
+}
+if (!firebaseProgressStoreSource.includes('families') || !firebaseProgressStoreSource.includes('children') || !firebaseProgressStoreSource.includes('progress')) {
+  fail('Firebase progress sync boundary must use parent-owned family/child/progress paths.');
+}
+if (!firestoreRulesSource.includes('isFamilyParent') || !firestoreRulesSource.includes('allow read, write: if false')) {
+  fail('Firestore rules must enforce parent-owned access and deny unknown collections.');
 }
 if (audioServiceSource.includes('new SpeechSynthesisUtterance') || audioServiceSource.includes('window.speechSynthesis.speak(')) {
   fail('Kid-facing narration should use cached human voice audio, not browser speech synthesis.');

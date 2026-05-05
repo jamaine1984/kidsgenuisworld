@@ -104,6 +104,9 @@ const storySource = read('components/StoryBook.tsx');
 const serverSource = read('server/production-server.mjs');
 const cloudflareWorkerSource = read('cloudflare/worker.ts');
 const wranglerSource = read('wrangler.jsonc');
+const firebaseJsonSource = read('firebase.json');
+const firestoreRulesSource = read('firestore.rules');
+const firebaseClientSource = read('services/firebaseClient.ts');
 
 if (!appSource.includes("setLegalView('privacy')") || !appSource.includes("setLegalView('terms')")) {
   fail('Privacy and terms links are not reachable from the app.');
@@ -123,6 +126,15 @@ if (!serverSource.includes('/api/tts') || !serverSource.includes('/api/story-cov
 }
 if (!cloudflareWorkerSource.includes('MEDIA_CACHE') || !cloudflareWorkerSource.includes('ELEVENLABS_API_KEY') || !wranglerSource.includes('r2_buckets')) {
   fail('Cloudflare deployment must use R2 storage and Worker secrets for media APIs.');
+}
+if (!firebaseJsonSource.includes('"public": "dist"') || !firebaseJsonSource.includes('"destination": "/index.html"')) {
+  fail('Firebase Hosting must serve the Vite dist build with SPA rewrites.');
+}
+if (!firestoreRulesSource.includes('isFamilyParent') || !firestoreRulesSource.includes('allow read, write: if false')) {
+  fail('Firestore rules must enforce parent-owned access and deny by default.');
+}
+if (!firebaseClientSource.includes('VITE_FIREBASE_API_KEY') || !firebaseClientSource.includes('getFirebaseServices')) {
+  fail('Firebase Web SDK config must be env-driven and initialized behind a helper.');
 }
 if (!exists('tailwind.config.js') || !exists('postcss.config.js') || !exists('index.css')) {
   fail('Tailwind must stay in the local build pipeline for production.');

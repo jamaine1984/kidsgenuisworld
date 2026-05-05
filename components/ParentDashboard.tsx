@@ -11,6 +11,7 @@ import {
   PrivacySettings,
   ChildProfile,
   GradeLevel,
+  SkillMetrics,
   DEFAULT_PRIVACY_SETTINGS,
   DEFAULT_ARCADE_PROGRESS
 } from '../types';
@@ -1099,7 +1100,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
             <div className="bg-white rounded-xl p-4 shadow-sm">
               <h3 className="font-semibold text-gray-700 mb-3">🔢 Math Skills</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {Object.entries(progress.learningProfile.mathSkills).map(([skill, metrics]) => (
+                {(Object.entries(progress.learningProfile.mathSkills) as Array<[string, SkillMetrics]>).map(([skill, metrics]) => (
                   <div key={skill} className="bg-gray-50 rounded-lg p-3">
                     <p className="font-medium capitalize text-sm">{skill}</p>
                     <div className="flex items-end justify-between mt-2">
@@ -1129,7 +1130,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
             <div className="bg-white rounded-xl p-4 shadow-sm">
               <h3 className="font-semibold text-gray-700 mb-3">📚 Reading Skills</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {Object.entries(progress.learningProfile.readingSkills).map(([skill, metrics]) => (
+                {(Object.entries(progress.learningProfile.readingSkills) as Array<[string, SkillMetrics]>).map(([skill, metrics]) => (
                   <div key={skill} className="bg-gray-50 rounded-lg p-3">
                     <p className="font-medium capitalize text-sm">{skill.replace(/([A-Z])/g, ' $1')}</p>
                     <div className="flex items-end justify-between mt-2">

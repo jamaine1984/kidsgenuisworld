@@ -99,6 +99,19 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
   const roadmapRecommendations = getRoadmapRecommendations(progress);
   const hasParentPin = parentPin.trim().length > 0;
   const privacy = progress.privacy || DEFAULT_PRIVACY_SETTINGS;
+  const parentConsentReceipt = (() => {
+    if (typeof window === 'undefined') return '';
+    try {
+      const receipt = window.localStorage.getItem('kidGeniusParentConsentReceipt');
+      if (!receipt) return '';
+      const parsed = JSON.parse(receipt) as { acceptedAt?: string };
+      return parsed.acceptedAt
+        ? new Date(parsed.acceptedAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })
+        : '';
+    } catch {
+      return '';
+    }
+  })();
   const canWarmVoiceCache = privacy.allowExternalVoice && !isWarmingVoiceCache;
   const voiceCacheStatusClasses = {
     info: 'bg-indigo-50 text-indigo-800 border-indigo-100',
@@ -1880,6 +1893,14 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
               <p className="text-xs text-gray-500 mb-3">
                 Before public launch, publish a COPPA-ready privacy policy, terms, and parental consent flow if accounts, analytics, payments, or personal data are added.
               </p>
+              <div className="mb-3 rounded-xl bg-emerald-50 border border-emerald-100 p-3">
+                <p className="text-xs font-black uppercase tracking-[0.12em] text-emerald-700">Parent Consent Receipt</p>
+                <p className="mt-1 text-sm font-semibold text-emerald-900">
+                  {parentConsentReceipt
+                    ? `Saved locally on ${parentConsentReceipt}.`
+                    : 'Complete parent setup to save the local consent receipt.'}
+                </p>
+              </div>
               <button
                 onClick={exportLocalProgress}
                 className="mb-3 w-full py-3 bg-slate-100 text-slate-700 font-semibold rounded-lg hover:bg-slate-200 transition flex items-center justify-center gap-2"

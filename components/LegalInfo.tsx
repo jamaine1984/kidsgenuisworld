@@ -34,7 +34,7 @@ export const LegalInfo: React.FC<LegalInfoProps> = ({ type, onBack }) => {
           {isPrivacy ? (
             <div className="space-y-5 text-slate-700 leading-relaxed">
               <p>
-                This draft notice explains how the current web app behaves before public launch. It is not a substitute for legal review.
+                This notice explains how Kid Genius World handles child learning data in the current web app. Final legal review is still required before adding accounts, payments, advertising, or synced child profiles.
               </p>
               <section>
                 <h2 className="text-xl font-black text-slate-900 mb-2">Current Data Storage</h2>
@@ -50,13 +50,13 @@ export const LegalInfo: React.FC<LegalInfoProps> = ({ type, onBack }) => {
               </section>
               <section>
                 <h2 className="text-xl font-black text-slate-900 mb-2">Before Public Launch</h2>
-                <p>Publish a finalized privacy policy, terms, contact method, data retention policy, deletion request process, and parental consent flow before adding accounts, analytics, subscriptions, payments, or synced child profiles.</p>
+                <p>Before commercial launch, publish a finalized privacy policy, support contact, data retention policy, deletion request process, and parental consent flow for any account, analytics, subscription, payment, or synced profile feature.</p>
               </section>
             </div>
           ) : (
             <div className="space-y-5 text-slate-700 leading-relaxed">
               <p>
-                These draft terms describe the intended use of Kid Genius World during development and beta testing.
+                These terms describe the intended use of Kid Genius World while the app is prepared for family testing and commercial launch.
               </p>
               <section>
                 <h2 className="text-xl font-black text-slate-900 mb-2">Educational Use</h2>
@@ -72,7 +72,7 @@ export const LegalInfo: React.FC<LegalInfoProps> = ({ type, onBack }) => {
               </section>
               <section>
                 <h2 className="text-xl font-black text-slate-900 mb-2">Launch Requirement</h2>
-                <p>Before commercial release, replace this draft with finalized legal terms reviewed for your target countries, app stores, payment model, and child-privacy obligations.</p>
+                <p>Before commercial release, finalize these terms for your target countries, hosting provider, payment model, support process, and child-privacy obligations.</p>
               </section>
             </div>
           )}

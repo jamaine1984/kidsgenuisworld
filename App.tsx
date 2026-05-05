@@ -312,6 +312,12 @@ const App: React.FC = () => {
   const [pinDraft, setPinDraft] = useState('');
   const [pinConfirmDraft, setPinConfirmDraft] = useState('');
   const [pinSetupError, setPinSetupError] = useState('');
+  const [parentConsentChecks, setParentConsentChecks] = useState({
+    guardian: false,
+    policies: false,
+    localStorage: false,
+    supervisedMedia: false,
+  });
   const [profiles, setProfiles] = useState<ChildProfile[]>(() => loadProfiles());
   const [activeProfileId, setActiveProfileId] = useState(() => localStorage.getItem(ACTIVE_PROFILE_KEY) || loadProfiles()[0]?.id || 'default');
 
@@ -577,6 +583,11 @@ const App: React.FC = () => {
   };
 
   const handleParentOnboardingComplete = () => {
+    const allConsentChecksReady = Object.values(parentConsentChecks).every(Boolean);
+    if (!allConsentChecksReady) {
+      setPinSetupError('Review and confirm each parent launch checkpoint before continuing.');
+      return;
+    }
     if (!/^\d{4,8}$/.test(pinDraft)) {
       setPinSetupError('Choose a 4 to 8 digit parent PIN.');
       return;
@@ -587,6 +598,13 @@ const App: React.FC = () => {
     }
     localStorage.setItem('kidGeniusParentPin', pinDraft);
     localStorage.setItem('kidGeniusParentOnboarded', 'true');
+    localStorage.setItem('kidGeniusParentConsentReceipt', JSON.stringify({
+      acceptedAt: new Date().toISOString(),
+      guardian: true,
+      policiesReviewed: true,
+      localStorageAcknowledged: true,
+      supervisedMediaAcknowledged: true,
+    }));
     setParentPin(pinDraft);
     setParentOnboarded(true);
     setShowGradeSelection(true);
@@ -1315,6 +1333,11 @@ const App: React.FC = () => {
     );
   }
 
+  const parentSetupReady =
+    Object.values(parentConsentChecks).every(Boolean) &&
+    /^\d{4,8}$/.test(pinDraft) &&
+    pinDraft === pinConfirmDraft;
+
   if (!parentOnboarded) {
     return (
       <div className="w-screen h-screen overflow-y-auto bg-slate-950 text-white">
@@ -1359,6 +1382,36 @@ const App: React.FC = () => {
                 <button onClick={() => setLegalView('privacy')} className="underline">Read Privacy Notice</button>
                 <button onClick={() => setLegalView('terms')} className="underline">Read Terms</button>
               </div>
+              <div className="rounded-2xl border border-indigo-100 bg-indigo-50 p-4 mb-5">
+                <h2 className="font-bold text-lg mb-2 text-indigo-950">Parent Launch Checkpoints</h2>
+                <p className="text-sm text-indigo-900/75 mb-3">
+                  Confirm these before a child starts. This creates a local parent consent receipt for this browser.
+                </p>
+                <div className="grid gap-2">
+                  {[
+                    ['guardian', 'I am the parent or guardian supervising this child account.'],
+                    ['policies', 'I reviewed the Privacy Notice and Terms of Use.'],
+                    ['localStorage', 'I understand progress is stored locally in this browser until accounts are added.'],
+                    ['supervisedMedia', 'I will supervise optional voice narration and generated story cover features.'],
+                  ].map(([key, label]) => (
+                    <label key={key} className="flex items-start gap-3 rounded-xl bg-white px-3 py-3 text-sm font-semibold text-slate-700 shadow-sm">
+                      <input
+                        type="checkbox"
+                        checked={parentConsentChecks[key as keyof typeof parentConsentChecks]}
+                        onChange={(event) => {
+                          setParentConsentChecks(checks => ({
+                            ...checks,
+                            [key]: event.target.checked,
+                          }));
+                          setPinSetupError('');
+                        }}
+                        className="mt-1 h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                      />
+                      <span>{label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
               <div className="rounded-2xl border border-slate-200 p-4 mb-5">
                 <h2 className="font-bold text-lg mb-2">Create Parent PIN</h2>
                 <p className="text-sm text-slate-600 mb-3">Use this PIN to open parent settings and data controls.</p>
@@ -1390,10 +1443,15 @@ const App: React.FC = () => {
               </div>
               <button
                 onClick={handleParentOnboardingComplete}
-                className="w-full py-4 rounded-2xl bg-indigo-600 text-white font-bold text-lg hover:bg-indigo-700 transition flex items-center justify-center gap-2"
+                disabled={!parentSetupReady}
+                className={`w-full py-4 rounded-2xl font-bold text-lg transition flex items-center justify-center gap-2 ${
+                  parentSetupReady
+                    ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                    : 'bg-slate-200 text-slate-500 cursor-not-allowed'
+                }`}
               >
                 <CheckCircle2 size={24} />
-                I Understand - Continue Setup
+                Save Parent Setup
               </button>
             </div>
           </div>

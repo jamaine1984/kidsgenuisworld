@@ -143,6 +143,9 @@ if (!parentDashboardSource.includes('Export Local Progress') || !parentDashboard
 if (!appSource.includes('Family Plan') || !appSource.includes('paid subscriptions need real accounts, billing, consent, and support flows first')) {
   fail('Parent onboarding must clearly frame paid launch prerequisites.');
 }
+if (!appSource.includes('Parent Launch Checkpoints') || !appSource.includes('kidGeniusParentConsentReceipt') || !appSource.includes('I reviewed the Privacy Notice and Terms of Use')) {
+  fail('Parent onboarding must require explicit privacy, terms, and consent checkpoints.');
+}
 if (!appSource.includes("setLegalView('privacy')")) fail('Privacy notice link is not wired in App.tsx.');
 if (!appSource.includes("setLegalView('terms')")) fail('Terms link is not wired in App.tsx.');
 if (!parentDashboardSource.includes('Parent PIN')) fail('Parent PIN UI is missing.');
@@ -166,6 +169,9 @@ if (!appSource.includes('kidGeniusAllowExternalVoice') || !appSource.includes('k
 }
 if (!parentDashboardSource.includes('Privacy Controls') || !parentDashboardSource.includes('Enable External Voice First')) {
   fail('Parent privacy controls are not visible in settings.');
+}
+if (!parentDashboardSource.includes('Parent Consent Receipt') || !parentDashboardSource.includes('kidGeniusParentConsentReceipt')) {
+  fail('Parent dashboard must show the local consent receipt status.');
 }
 if (!audioServiceSource.includes('kidGeniusAllowExternalVoice') || !voiceCacheSource.includes('kidGeniusAllowExternalVoice')) {
   fail('Voice API calls are not gated by parent privacy controls.');

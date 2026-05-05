@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "serve": "node server/production-server.mjs",
     "qa": "npm run build && node scripts/qa-check.mjs && node scripts/launch-readiness.mjs",
+    "qa:browser": "playwright test",
     "qa:source": "node scripts/qa-check.mjs",
     "qa:launch": "node scripts/launch-readiness.mjs",
     "voice:check": "node scripts/check-elevenlabs-key.mjs",
@@ -25,6 +26,7 @@
     "react-dom": "^19.2.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^5.0.0",
     "autoprefixer": "^10.5.0",

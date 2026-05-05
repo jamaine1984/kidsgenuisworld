@@ -714,7 +714,7 @@ const App: React.FC = () => {
   const handleEnterRoom = (room: RoomType, unitId?: string) => {
     stopSpeaking();
     setActiveUnitId(unitId || null);
-    setShowMissionFocus(Boolean(unitId));
+    setShowMissionFocus(false);
     setProgress(prev => ({
       ...prev,
       dailyStats: updateDailyStats(prev.dailyStats, { roomsVisited: [room] }),

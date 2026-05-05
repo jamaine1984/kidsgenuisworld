@@ -426,7 +426,10 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, level }) =
                 Mission Type: {getMissionLabel(problem)}
               </span>
             </div>
-            <h2 className={`${problem.context === 'equation' ? 'text-6xl sm:text-7xl font-mono tracking-wider' : 'text-2xl sm:text-3xl leading-snug'} font-bold text-indigo-900 mb-12 mt-8`}>
+            <h2
+              data-testid="math-question"
+              className={`${problem.context === 'equation' ? 'text-6xl sm:text-7xl font-mono tracking-wider' : 'text-2xl sm:text-3xl leading-snug'} font-bold text-indigo-900 mb-12 mt-8`}
+            >
               {problem.question}
             </h2>
             {renderMathManipulatives()}
@@ -434,6 +437,7 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, level }) =
               {problem.options.map((opt, idx) => (
                 <button
                   key={idx}
+                  data-testid="math-answer-option"
                   onClick={() => handleAnswer(opt)}
                   disabled={feedback !== 'idle'}
                   className={`

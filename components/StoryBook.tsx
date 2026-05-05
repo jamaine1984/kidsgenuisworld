@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, BookOpen, Play, Pause, ChevronLeft, ChevronRight, Star, Volume2, Mic2, Heart } from 'lucide-react';
 import { speakAsync, stopSpeaking, isSpeaking, playSuccess } from '../services/audioService';
+import { getMediaApiUrl } from '../services/mediaApi';
 
 interface StoryBookProps {
   level: number; // 1-7 corresponds to grade levels
@@ -55,6 +56,83 @@ export const STORIES: Story[] = [
     ],
     moral: 'Growing happens step by step.'
   },
+  {
+    id: 'pk-4', title: 'Benny Counts Stars', author: 'Kid Genius Originals', cover: '⭐', gradeLevel: 1, category: 'learning',
+    pages: [
+      'Benny looks up at the soft night sky.',
+      'He sees one bright star. Then two more stars.',
+      'Benny points slowly and counts each light.',
+      'Mom smiles and counts with him.',
+      'The sky feels friendly when they count together.'
+    ],
+    moral: 'Counting is easier when we go slowly.'
+  },
+  {
+    id: 'pk-5', title: 'Tali Shares the Truck', author: 'Kid Genius Originals', cover: '🚚', gradeLevel: 1, category: 'friendship',
+    pages: [
+      'Tali has a blue toy truck.',
+      'Noah asks, "Can I try?"',
+      'Tali takes one turn, then Noah takes one turn.',
+      'They build a road with blocks.',
+      'Sharing makes the truck game bigger.'
+    ],
+    moral: 'Taking turns helps friends play together.'
+  },
+  {
+    id: 'pk-6', title: 'The Red Mitten', author: 'Kid Genius Originals', cover: '🧤', gradeLevel: 1, category: 'family',
+    pages: [
+      'A red mitten falls near the door.',
+      'Maya picks it up and looks around.',
+      'Grandpa says, "That mitten is mine!"',
+      'Maya gives it back with a big smile.',
+      'Grandpa waves his warm hand.'
+    ],
+    moral: 'Helping family can be simple and kind.'
+  },
+  {
+    id: 'pk-7', title: 'Dot Hears a Drum', author: 'Kid Genius Originals', cover: '🥁', gradeLevel: 1, category: 'learning',
+    pages: [
+      'Dot hears tap, tap, tap.',
+      'She taps the table one time.',
+      'She taps the table two times.',
+      'Tap, pause, tap. Dot makes a pattern.',
+      'Her feet wiggle with the beat.'
+    ],
+    moral: 'Patterns can be heard and felt.'
+  },
+  {
+    id: 'pk-8', title: 'Ollie Looks Closely', author: 'Kid Genius Originals', cover: '🔍', gradeLevel: 1, category: 'nature',
+    pages: [
+      'Ollie finds a leaf on the path.',
+      'He sees lines, dots, and one tiny hole.',
+      'He looks closely but does not pull it apart.',
+      'A small bug walks under the leaf.',
+      'Ollie whispers, "I found a clue."'
+    ],
+    moral: 'Careful eyes help us discover.'
+  },
+  {
+    id: 'pk-9', title: 'The Calm Cloud', author: 'Kid Genius Originals', cover: '☁️', gradeLevel: 1, category: 'nature',
+    pages: [
+      'A little cloud floats over the playground.',
+      'It moves slowly across the blue sky.',
+      'Ari takes one slow breath.',
+      'The cloud drifts. Ari feels calm.',
+      'Slow breaths help busy bodies rest.'
+    ],
+    moral: 'Breathing slowly can help us feel steady.'
+  },
+  {
+    id: 'pk-10', title: 'Rae Finds Yellow', author: 'Kid Genius Originals', cover: '🟡', gradeLevel: 1, category: 'learning',
+    pages: [
+      'Rae looks for yellow things.',
+      'She finds a lemon, a duck, and a bright sock.',
+      'She draws a yellow sun.',
+      'Dad adds yellow rays around it.',
+      'The page glows like morning.'
+    ],
+    moral: 'Colors are all around us.'
+  },
   // KINDERGARTEN (Level 2)
   {
     id: 'k-1', title: 'Milo Builds a Bridge', author: 'Kid Genius Originals', cover: '🌉', gradeLevel: 2, category: 'learning',
@@ -88,6 +166,83 @@ export const STORIES: Story[] = [
       'The music starts, and the whole class marches proudly.'
     ],
     moral: 'Helping together makes hard jobs easier.'
+  },
+  {
+    id: 'k-4', title: 'The Number Picnic', author: 'Kid Genius Originals', cover: '🧺', gradeLevel: 2, category: 'learning',
+    pages: [
+      'Ava packs three apples and two oranges for a picnic.',
+      'She counts every fruit before closing the basket.',
+      'At the park, her brother adds one banana.',
+      'Ava counts again and finds six fruits.',
+      'The picnic tastes better with number practice.'
+    ],
+    moral: 'Numbers help us organize real life.'
+  },
+  {
+    id: 'k-5', title: 'Juno Follows the Map', author: 'Kid Genius Originals', cover: '🗺️', gradeLevel: 2, category: 'adventure',
+    pages: [
+      'Juno draws a map from the couch to the kitchen.',
+      'The map says forward, turn, and stop.',
+      'She follows each step with careful feet.',
+      'The last step leads to a snack plate.',
+      'Juno laughs. Her map really worked!'
+    ],
+    moral: 'Directions work best one step at a time.'
+  },
+  {
+    id: 'k-6', title: 'The Kind Line Leader', author: 'Kid Genius Originals', cover: '🤝', gradeLevel: 2, category: 'friendship',
+    pages: [
+      'Nia gets to be line leader at school.',
+      'She walks slowly so everyone can keep up.',
+      'When Ben drops his folder, Nia waits.',
+      'The class stays together all the way to music.',
+      'Nia learns that leading means caring.'
+    ],
+    moral: 'Good leaders help everyone belong.'
+  },
+  {
+    id: 'k-7', title: 'Finn Sorts the Shells', author: 'Kid Genius Originals', cover: '🐚', gradeLevel: 2, category: 'nature',
+    pages: [
+      'Finn finds shells beside the sand bucket.',
+      'Some are smooth. Some are bumpy.',
+      'He sorts them into two careful groups.',
+      'Then he sorts by color and size.',
+      'The beach becomes a science table.'
+    ],
+    moral: 'Sorting helps us notice details.'
+  },
+  {
+    id: 'k-8', title: 'The Moon Cake Mix-Up', author: 'Kid Genius Originals', cover: '🌙', gradeLevel: 2, category: 'family',
+    pages: [
+      'Kai helps Auntie make moon cakes.',
+      'He pours too much flour into the bowl.',
+      'Auntie smiles and adds a little more water.',
+      'Together they fix the sticky dough.',
+      'Mistakes can still become something sweet.'
+    ],
+    moral: 'A mistake can become a learning moment.'
+  },
+  {
+    id: 'k-9', title: 'Zara and the Robot Pet', author: 'Kid Genius Originals', cover: '🤖', gradeLevel: 2, category: 'learning',
+    pages: [
+      'Zara builds a tiny robot pet from blocks.',
+      'She gives it three commands: roll, stop, beep.',
+      'The robot rolls past the toy house.',
+      'Zara changes the order and tries again.',
+      'Now the robot stops right at the door.'
+    ],
+    moral: 'Changing the order can change the result.'
+  },
+  {
+    id: 'k-10', title: 'The Quiet Reading Fort', author: 'Kid Genius Originals', cover: '📚', gradeLevel: 2, category: 'learning',
+    pages: [
+      'Mina builds a fort with pillows and blankets.',
+      'She brings three books and a small flashlight.',
+      'Inside the fort, the room feels quiet.',
+      'Mina reads one page, then tells Dad what happened.',
+      'The fort becomes her reading place.'
+    ],
+    moral: 'A quiet place can help reading grow.'
   },
   // GRADE 1 (Level 3) - Simple sentences, 2-3 pages
   {
@@ -639,6 +794,22 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
   const [mode, setMode] = useState<'select' | 'listen' | 'read'>('select');
   const [completedStories, setCompletedStories] = useState<Set<string>>(new Set());
   const [coverImages, setCoverImages] = useState<Record<string, string | null>>({});
+  const [narrationNotice, setNarrationNotice] = useState('');
+
+  useEffect(() => {
+    const handleNarrationStatus = (event: Event) => {
+      const detail = (event as CustomEvent<{ status: string; message: string }>).detail;
+      if (!detail?.message) return;
+      if (detail.status === 'ready') {
+        setNarrationNotice('');
+        return;
+      }
+      setNarrationNotice(detail.message);
+    };
+
+    window.addEventListener('kidgenius:narration-status', handleNarrationStatus);
+    return () => window.removeEventListener('kidgenius:narration-status', handleNarrationStatus);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -654,7 +825,7 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
       for (const story of availableStories.slice(0, 8)) {
         if (coverImages[story.id] !== undefined) continue;
         try {
-          const res = await fetch('/api/story-cover', {
+          const res = await fetch(getMediaApiUrl('/api/story-cover'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -691,29 +862,31 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
   const readCurrentPage = async () => {
     if (!currentStory || isReading) return;
 
+    setNarrationNotice('');
     setIsReading(true);
-    await speakAsync(currentStory.pages[currentPage], 0.85, 1.0);
+    await speakAsync(currentStory.pages[currentPage], 0.72, 1.0, 'story');
     setIsReading(false);
   };
 
   const readEntireStory = async () => {
     if (!currentStory || isReading) return;
 
+    setNarrationNotice('');
     setIsReading(true);
     // Read title
-    await speakAsync(`${currentStory.title}. By ${currentStory.author}.`, 0.8, 1.1);
-    await new Promise(r => setTimeout(r, 500));
+    await speakAsync(`${currentStory.title}. By ${currentStory.author}.`, 0.72, 1.05, 'story');
+    await new Promise(r => setTimeout(r, 700));
 
     // Read each page
     for (let i = 0; i < currentStory.pages.length; i++) {
       setCurrentPage(i);
-      await speakAsync(currentStory.pages[i], 0.85, 1.0);
-      await new Promise(r => setTimeout(r, 800));
+      await speakAsync(currentStory.pages[i], 0.72, 1.0, 'story');
+      await new Promise(r => setTimeout(r, 950));
     }
 
     // Read moral if exists
     if (currentStory.moral) {
-      await speakAsync(`The moral of the story is: ${currentStory.moral}`, 0.8, 1.0);
+      await speakAsync(`The moral of the story is: ${currentStory.moral}`, 0.72, 1.0, 'story');
     }
 
     setIsReading(false);
@@ -775,6 +948,53 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
     }
   };
 
+  const getCoverScene = (story: Story) => {
+    const sceneMap: Record<Story['category'], { sky: string; ground: string; accent: string; label: string; shape: string }> = {
+      adventure: { sky: 'from-sky-300 via-orange-100 to-amber-200', ground: 'bg-orange-500', accent: 'bg-red-400', label: 'Quest', shape: 'rounded-t-full' },
+      animals: { sky: 'from-emerald-200 via-lime-100 to-sky-200', ground: 'bg-emerald-600', accent: 'bg-lime-300', label: 'Animal Tale', shape: 'rounded-full' },
+      friendship: { sky: 'from-rose-200 via-pink-100 to-sky-100', ground: 'bg-rose-500', accent: 'bg-pink-300', label: 'Friendship', shape: 'rounded-full' },
+      family: { sky: 'from-violet-200 via-fuchsia-100 to-amber-100', ground: 'bg-violet-600', accent: 'bg-amber-300', label: 'Family Story', shape: 'rounded-2xl' },
+      nature: { sky: 'from-cyan-200 via-sky-100 to-emerald-100', ground: 'bg-cyan-600', accent: 'bg-emerald-300', label: 'Nature Reader', shape: 'rounded-full' },
+      fantasy: { sky: 'from-indigo-300 via-violet-200 to-pink-100', ground: 'bg-indigo-700', accent: 'bg-fuchsia-300', label: 'Fantasy', shape: 'rounded-t-full' },
+      learning: { sky: 'from-yellow-200 via-amber-100 to-sky-100', ground: 'bg-amber-600', accent: 'bg-yellow-300', label: 'Learning Story', shape: 'rounded-xl' },
+    };
+    return sceneMap[story.category];
+  };
+
+  const renderPremiumCover = (story: Story) => {
+    const scene = getCoverScene(story);
+    const initials = story.title
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map(word => word[0])
+      .join('')
+      .toUpperCase();
+
+    return (
+      <div className={`relative h-full w-full overflow-hidden bg-gradient-to-b ${scene.sky}`}>
+        <div className="absolute inset-x-0 bottom-0 h-1/3 bg-white/20" />
+        <div className={`absolute -left-8 bottom-8 h-20 w-28 ${scene.ground} opacity-80 blur-sm`} />
+        <div className={`absolute -right-6 bottom-6 h-24 w-32 ${scene.accent} opacity-80 blur-sm`} />
+        <div className="absolute left-4 right-4 top-4 flex items-center justify-between">
+          <span className="rounded-full bg-white/80 px-2 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-slate-700 shadow-sm">
+            {scene.label}
+          </span>
+          <span className="rounded-full bg-slate-950/85 px-2 py-1 text-[10px] font-black text-white shadow-sm">
+            G{story.gradeLevel}
+          </span>
+        </div>
+        <div className={`absolute left-1/2 top-[38%] flex h-24 w-24 -translate-x-1/2 -translate-y-1/2 items-center justify-center ${scene.shape} bg-white/85 text-3xl font-black text-slate-900 shadow-2xl ring-4 ring-white/50`}>
+          {initials}
+        </div>
+        <div className="absolute inset-x-4 bottom-4 rounded-2xl bg-white/90 p-3 text-left shadow-xl">
+          <p className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500">{story.category}</p>
+          <p className="mt-1 line-clamp-2 text-sm font-black leading-tight text-slate-900">{story.title}</p>
+        </div>
+      </div>
+    );
+  };
+
   // Library View
   if (!currentStory) {
     return (
@@ -809,11 +1029,11 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
                     <Star size={16} fill="white" />
                   </div>
                 )}
-                <div className="mb-3 rounded-2xl overflow-hidden aspect-[3/4] bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center">
+                <div className="mb-3 rounded-2xl overflow-hidden aspect-[3/4] bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center shadow-inner">
                   {coverImages[story.id] ? (
                     <img src={coverImages[story.id] || ''} alt={story.title} className="w-full h-full object-cover" />
                   ) : (
-                    <div className="text-6xl">{story.cover}</div>
+                    renderPremiumCover(story)
                   )}
                 </div>
                 <h3 className="font-bold text-gray-800 text-sm mb-1 line-clamp-2">{story.title}</h3>
@@ -880,6 +1100,12 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
             <p className="text-xl md:text-2xl text-gray-800 leading-relaxed text-center font-serif">
               {currentStory.pages[currentPage]}
             </p>
+
+            {narrationNotice && (
+              <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm font-semibold text-amber-900">
+                {narrationNotice}
+              </div>
+            )}
 
             {/* Moral at the end */}
             {currentPage === currentStory.pages.length - 1 && currentStory.moral && (

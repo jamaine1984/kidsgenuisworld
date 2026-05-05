@@ -11,6 +11,7 @@ const requiredFiles = [
   'components/StoryBook.tsx',
   'services/curriculum.ts',
   'services/audioService.ts',
+  'services/mediaApi.ts',
   'services/voiceCacheService.ts',
   'server/production-server.mjs',
   '.firebaserc',
@@ -48,6 +49,7 @@ const worldMapSource = fs.readFileSync(path.join(root, 'components/WorldMap.tsx'
 const curriculumSource = fs.readFileSync(path.join(root, 'services/curriculum.ts'), 'utf8');
 const typesSource = fs.readFileSync(path.join(root, 'types.ts'), 'utf8');
 const audioServiceSource = fs.readFileSync(path.join(root, 'services/audioService.ts'), 'utf8');
+const mediaApiSource = fs.readFileSync(path.join(root, 'services/mediaApi.ts'), 'utf8');
 const voiceCacheSource = fs.readFileSync(path.join(root, 'services/voiceCacheService.ts'), 'utf8');
 const firebaseClientSource = fs.readFileSync(path.join(root, 'services/firebaseClient.ts'), 'utf8');
 const firebaseParentAuthSource = fs.readFileSync(path.join(root, 'services/firebaseParentAuth.ts'), 'utf8');
@@ -57,6 +59,7 @@ const firestoreRulesSource = fs.readFileSync(path.join(root, 'firestore.rules'),
 const storyBookSource = fs.readFileSync(path.join(root, 'components/StoryBook.tsx'), 'utf8');
 const cloudflareWorkerSource = fs.readFileSync(path.join(root, 'cloudflare/worker.ts'), 'utf8');
 const wranglerSource = fs.readFileSync(path.join(root, 'wrangler.jsonc'), 'utf8');
+const viteConfigSource = fs.readFileSync(path.join(root, 'vite.config.ts'), 'utf8');
 const codingRoomSource = fs.readFileSync(path.join(root, 'components/CodingRoom.tsx'), 'utf8');
 const mathRoomSource = fs.readFileSync(path.join(root, 'components/MathRoom.tsx'), 'utf8');
 const readingRoomSource = fs.readFileSync(path.join(root, 'components/ReadingRoom.tsx'), 'utf8');
@@ -104,6 +107,7 @@ const sourceFilesToScan = [
   'services/curriculum.ts',
   'services/firebaseParentAuth.ts',
   'services/firebaseProgressStore.ts',
+  'services/mediaApi.ts',
   'services/voiceCacheService.ts',
   'types.ts',
 ];
@@ -181,6 +185,9 @@ if (!typesSource.includes('PrivacySettings') || !typesSource.includes('allowExte
 if (!appSource.includes('kidGeniusAllowExternalVoice') || !appSource.includes('kidGeniusAllowGeneratedStoryCovers')) {
   fail('Privacy controls are not synced to browser storage.');
 }
+if (!appSource.includes('kidGeniusMediaDefaultsMigrated') || !appSource.includes('kidGeniusParentConsentReceipt')) {
+  fail('Parent-approved profiles must migrate to voice and generated-cover defaults without re-onboarding.');
+}
 if (!parentDashboardSource.includes('Privacy Controls') || !parentDashboardSource.includes('Enable External Voice First')) {
   fail('Parent privacy controls are not visible in settings.');
 }
@@ -234,20 +241,26 @@ if (!voiceWarmScript.includes('--max-chars=') || !voiceWarmScript.includes('erro
 if (!voiceCheckScript.includes('/v1/user/subscription') || !voiceCheckScript.includes('remainingCharacters') || !packageJson.scripts?.['voice:check']) {
   fail('ElevenLabs key validation script is missing.');
 }
-if (!wranglerSource.includes('"MEDIA_CACHE"') || !wranglerSource.includes('"kid-genius-world-media-cache"') || !wranglerSource.includes('"not_found_handling": "single-page-application"')) {
+if (!wranglerSource.includes('"MEDIA_CACHE"') || !wranglerSource.includes('"kid-genius-world-media-cache"') || !wranglerSource.includes('"not_found_handling": "single-page-application"') || !wranglerSource.includes('OPENAI_IMAGE_MODEL')) {
   fail('Cloudflare Worker config must bind R2 storage and serve the SPA build.');
 }
-if (!cloudflareWorkerSource.includes('env.MEDIA_CACHE.put') || !cloudflareWorkerSource.includes('/api/tts-precache') || !cloudflareWorkerSource.includes('/api/story-cover') || !cloudflareWorkerSource.includes('errorSamples')) {
-  fail('Cloudflare Worker must proxy cached TTS and story-cover API routes through R2.');
+if (!cloudflareWorkerSource.includes('env.MEDIA_CACHE.put') || !cloudflareWorkerSource.includes('/api/tts-precache') || !cloudflareWorkerSource.includes('/api/story-cover') || !cloudflareWorkerSource.includes('errorSamples') || !cloudflareWorkerSource.includes('OPENAI_API_KEY') || !cloudflareWorkerSource.includes('Access-Control-Allow-Origin')) {
+  fail('Cloudflare Worker must proxy cached TTS and premium story-cover API routes through R2.');
 }
-if (!packageJson.scripts?.['cf:deploy'] || !packageJson.scripts?.['cf:secret:elevenlabs']) {
+if (!viteConfigSource.includes('OPENAI_API_KEY') || !viteConfigSource.includes('gpt-image-1') || !viteConfigSource.includes("provider: 'openai'") || !viteConfigSource.includes('speed: 0.82')) {
+  fail('Local media proxy must match production story-cover and slower story narration behavior.');
+}
+if (!packageJson.scripts?.['cf:deploy'] || !packageJson.scripts?.['cf:secret:elevenlabs'] || !packageJson.scripts?.['cf:secret:openai']) {
   fail('Cloudflare deployment and secret scripts are missing.');
 }
 if (!audioServiceSource.includes('speechRunId') || !audioServiceSource.includes('stopActiveSpeechPlayback') || !audioServiceSource.includes('queueRunId === speechRunId')) {
   fail('Narration overlap guard is missing from audioService.');
 }
-if (!audioServiceSource.includes('playElevenLabsSpeech(text)') || !audioServiceSource.includes('.catch(resolve)')) {
+if (!audioServiceSource.includes('playElevenLabsSpeech(text)') || !audioServiceSource.includes('hasElevenLabsProxy()') || !audioServiceSource.includes('kidgenius:narration-status')) {
   fail('External voice mode should stay on ElevenLabs instead of falling back to browser speech.');
+}
+if (!mediaApiSource.includes('VITE_MEDIA_API_BASE_URL') || !audioServiceSource.includes("getMediaApiUrl('/api/tts')") || !voiceCacheSource.includes("getMediaApiUrl('/api/tts-precache')") || !storyBookSource.includes("getMediaApiUrl('/api/story-cover')")) {
+  fail('Firebase-hosted builds must route voice and story-cover calls through a configured media API base URL.');
 }
 if (!storyBookSource.includes('kidGeniusAllowGeneratedStoryCovers') || !storyBookSource.includes('/api/story-cover')) {
   fail('Generated story covers are not gated by parent privacy controls.');

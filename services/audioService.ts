@@ -1,3 +1,5 @@
+import { getMediaApiUrl } from './mediaApi';
+
 let audioContext: AudioContext | null = null;
 let currentAudio: HTMLAudioElement | null = null;
 let currentAudioUrl: string | null = null;
@@ -16,6 +18,13 @@ let speechPreferences: SpeechPreferences = {
   speechRate: 1.0,
   narrationStyle: 'gentle',
   ageGroup: 'elementary',
+};
+
+const notifyNarrationStatus = (status: 'blocked' | 'error' | 'ready', message: string) => {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new CustomEvent('kidgenius:narration-status', {
+    detail: { status, message },
+  }));
 };
 
 export const getAudioContext = () => {
@@ -61,10 +70,10 @@ const hasElevenLabsProxy = (): boolean => {
 
 const buildVoiceSettings = () => {
   const styleMap: Record<NarrationStyle, { stability: number; similarity_boost: number; style: number; speed: number; }> = {
-    gentle: { stability: 0.72, similarity_boost: 0.82, style: 0.2, speed: 0.94 },
+    gentle: { stability: 0.72, similarity_boost: 0.82, style: 0.2, speed: 0.9 },
     energetic: { stability: 0.45, similarity_boost: 0.88, style: 0.65, speed: 1.02 },
     phonics: { stability: 0.86, similarity_boost: 0.8, style: 0.05, speed: 0.82 },
-    story: { stability: 0.58, similarity_boost: 0.9, style: 0.78, speed: 0.96 },
+    story: { stability: 0.68, similarity_boost: 0.9, style: 0.56, speed: 0.82 },
   };
 
   const ageRateMap = {
@@ -97,7 +106,7 @@ export const setNarrationContext = (context: string) => {
 };
 
 const playElevenLabsSpeech = async (text: string): Promise<void> => {
-  const response = await fetch('/api/tts', {
+  const response = await fetch(getMediaApiUrl('/api/tts'), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -110,6 +119,7 @@ const playElevenLabsSpeech = async (text: string): Promise<void> => {
   });
 
   if (!response.ok) {
+    notifyNarrationStatus('error', 'Teacher narration could not load from the voice server. Check the media backend and ElevenLabs balance.');
     throw new Error(`TTS proxy failed with status ${response.status}`);
   }
 
@@ -135,7 +145,12 @@ const playElevenLabsSpeech = async (text: string): Promise<void> => {
 
     audio.onended = cleanup;
     audio.onerror = cleanup;
-    void audio.play().catch(() => cleanup());
+    void audio.play().then(() => {
+      notifyNarrationStatus('ready', 'Teacher narration is playing.');
+    }).catch(() => {
+      notifyNarrationStatus('error', 'The browser blocked audio playback. Tap the listen button again.');
+      cleanup();
+    });
   });
 };
 
@@ -218,8 +233,9 @@ const speakAndWait = (text: string, rate: number, pitch: number, runId: number):
     if (hasElevenLabsProxy()) {
       playElevenLabsSpeech(text)
         .then(resolve)
-        .catch(resolve);
+        .catch(() => resolve());
     } else {
+      notifyNarrationStatus('blocked', 'Teacher narration is off. A parent can enable External voice narration in Privacy Controls.');
       resolve();
     }
   });
@@ -247,12 +263,19 @@ export const speak = (text: string, rate: number = 0.9, pitch: number = 1.1): vo
 };
 
 // Speak and wait for completion (blocking)
-export const speakAsync = async (text: string, rate: number = 0.9, pitch: number = 1.1): Promise<void> => {
+export const speakAsync = async (text: string, rate: number = 0.9, pitch: number = 1.1, style?: NarrationStyle): Promise<void> => {
   speechQueue = [];
   const runId = ++speechRunId;
   stopActiveSpeechPlayback();
   await new Promise(r => setTimeout(r, 50));
+  const previousStyle = speechPreferences.narrationStyle;
+  if (style) {
+    setSpeechPreferences({ narrationStyle: style });
+  }
   await speakAndWait(text, rate, pitch, runId);
+  if (style) {
+    setSpeechPreferences({ narrationStyle: previousStyle });
+  }
 };
 
 // Stop speaking and clear queue

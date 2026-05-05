@@ -31,10 +31,10 @@ export default defineConfig(({ mode }) => {
       const speechRate = typeof input?.speechRate === 'number' ? input.speechRate : 1.0;
       const ageGroup = input?.ageGroup || 'elementary';
       const styleMap: Record<string, { stability: number; similarity_boost: number; style: number; speed: number }> = {
-        gentle: { stability: 0.72, similarity_boost: 0.82, style: 0.2, speed: 0.94 },
+        gentle: { stability: 0.72, similarity_boost: 0.82, style: 0.2, speed: 0.9 },
         energetic: { stability: 0.45, similarity_boost: 0.88, style: 0.65, speed: 1.02 },
         phonics: { stability: 0.86, similarity_boost: 0.8, style: 0.05, speed: 0.82 },
-        story: { stability: 0.58, similarity_boost: 0.9, style: 0.78, speed: 0.96 },
+        story: { stability: 0.64, similarity_boost: 0.92, style: 0.55, speed: 0.82 },
       };
       const ageRateMap: Record<string, number> = {
         early: 0.88,
@@ -139,8 +139,10 @@ export default defineConfig(({ mode }) => {
                 return;
               }
 
-              const apiKey = env.OPENROUTER_API_KEY;
-              const model = env.OPENROUTER_IMAGE_MODEL || 'google/gemini-3.1-flash-image-preview';
+              const openAiKey = env.OPENAI_API_KEY;
+              const openAiModel = env.OPENAI_IMAGE_MODEL || 'gpt-image-1';
+              const openRouterKey = env.OPENROUTER_API_KEY;
+              const openRouterModel = env.OPENROUTER_IMAGE_MODEL || 'google/gemini-3.1-flash-image-preview';
               const chunks: Buffer[] = [];
               for await (const chunk of req) {
                 chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
@@ -164,7 +166,38 @@ export default defineConfig(({ mode }) => {
                   return;
                 }
 
-                if (!apiKey) {
+                const prompt = `Create a premium, bright, child-friendly illustrated book cover for a kids educational app. Title: "${payload.title}". Category: ${payload.category}. Reading level: grade ${payload.gradeLevel}. Style: modern children's publishing, warm, playful, safe, clean composition, single clear focal subject, no readable text inside the artwork, no scary details. ${payload.promptSeed}`;
+
+                if (openAiKey) {
+                  const openAiRes = await fetch('https://api.openai.com/v1/images/generations', {
+                    method: 'POST',
+                    headers: {
+                      'Authorization': `Bearer ${openAiKey}`,
+                      'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                      model: openAiModel,
+                      prompt,
+                      size: '1024x1536',
+                      quality: 'high',
+                      n: 1,
+                    }),
+                  });
+
+                  if (openAiRes.ok) {
+                    const result = await openAiRes.json();
+                    const firstImage = result?.data?.[0];
+                    const imageUrl = firstImage?.b64_json ? `data:image/png;base64,${firstImage.b64_json}` : firstImage?.url || null;
+                    const responseBody = JSON.stringify({ imageUrl, cache: 'MISS', provider: 'openai' });
+                    fs.writeFileSync(cachePath, responseBody);
+                    res.statusCode = 200;
+                    res.setHeader('Content-Type', 'application/json');
+                    res.end(responseBody);
+                    return;
+                  }
+                }
+
+                if (!openRouterKey) {
                   const fallback = JSON.stringify({ imageUrl: null, cache: 'FALLBACK' });
                   res.statusCode = 200;
                   res.setHeader('Content-Type', 'application/json');
@@ -172,15 +205,14 @@ export default defineConfig(({ mode }) => {
                   return;
                 }
 
-                const prompt = `Create a bright, child-friendly illustrated book cover for a kids educational app. Title: "${payload.title}". Category: ${payload.category}. Reading level: grade ${payload.gradeLevel}. Style: warm, playful, safe, clean composition, single clear focal subject, no readable text inside the artwork, no scary details. ${payload.promptSeed}`;
                 const openRouterRes = await fetch('https://openrouter.ai/api/v1/chat/completions', {
                   method: 'POST',
                   headers: {
-                    'Authorization': `Bearer ${apiKey}`,
+                    'Authorization': `Bearer ${openRouterKey}`,
                     'Content-Type': 'application/json',
                   },
                   body: JSON.stringify({
-                    model,
+                    model: openRouterModel,
                     messages: [{ role: 'user', content: prompt }],
                     modalities: ['image', 'text'],
                     image_config: { aspect_ratio: '3:4', image_size: '1024x1024' },
@@ -197,7 +229,7 @@ export default defineConfig(({ mode }) => {
 
                 const result = await openRouterRes.json();
                 const imageUrl = result?.choices?.[0]?.message?.images?.[0]?.image_url?.url || null;
-                const responseBody = JSON.stringify({ imageUrl, cache: 'MISS' });
+                const responseBody = JSON.stringify({ imageUrl, cache: 'MISS', provider: 'openrouter' });
                 fs.writeFileSync(cachePath, responseBody);
                 res.statusCode = 200;
                 res.setHeader('Content-Type', 'application/json');

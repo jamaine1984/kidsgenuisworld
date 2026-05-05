@@ -24,7 +24,8 @@
     "cf:dev": "wrangler dev",
     "cf:deploy": "npm run qa && wrangler deploy",
     "cf:secret:elevenlabs": "wrangler secret put ELEVENLABS_API_KEY",
-    "cf:secret:openrouter": "wrangler secret put OPENROUTER_API_KEY"
+    "cf:secret:openrouter": "wrangler secret put OPENROUTER_API_KEY",
+    "cf:secret:openai": "wrangler secret put OPENAI_API_KEY"
   },
   "dependencies": {
     "firebase": "^12.6.0",

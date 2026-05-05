@@ -9,6 +9,8 @@ interface Env {
   ELEVENLABS_MODEL_ID?: string;
   OPENROUTER_API_KEY?: string;
   OPENROUTER_IMAGE_MODEL?: string;
+  OPENAI_API_KEY?: string;
+  OPENAI_IMAGE_MODEL?: string;
 }
 
 type VoiceStyle = 'gentle' | 'energetic' | 'phonics' | 'story';
@@ -16,10 +18,22 @@ type VoiceStyle = 'gentle' | 'energetic' | 'phonics' | 'story';
 const normalizeSpeechText = (text: unknown) =>
   String(text || '').replace(/\s+/g, ' ').replace(/[“”]/g, '"').replace(/[‘’]/g, "'").trim();
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+};
+
+const withCors = (response: Response) => {
+  const headers = new Headers(response.headers);
+  for (const [key, value] of Object.entries(corsHeaders)) headers.set(key, value);
+  return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+};
+
 const sendJson = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
     status,
-    headers: { 'Content-Type': 'application/json; charset=utf-8' },
+    headers: { 'Content-Type': 'application/json; charset=utf-8', ...corsHeaders },
   });
 
 const safeErrorSample = async (response: Response) => ({
@@ -43,10 +57,10 @@ const resolveVoiceSettings = (input: Record<string, unknown> = {}) => {
   }
 
   const styleMap: Record<VoiceStyle, { stability: number; similarity_boost: number; style: number; speed: number }> = {
-    gentle: { stability: 0.72, similarity_boost: 0.82, style: 0.2, speed: 0.94 },
+    gentle: { stability: 0.72, similarity_boost: 0.82, style: 0.2, speed: 0.9 },
     energetic: { stability: 0.45, similarity_boost: 0.88, style: 0.65, speed: 1.02 },
     phonics: { stability: 0.86, similarity_boost: 0.8, style: 0.05, speed: 0.82 },
-    story: { stability: 0.58, similarity_boost: 0.9, style: 0.78, speed: 0.96 },
+    story: { stability: 0.64, similarity_boost: 0.92, style: 0.55, speed: 0.82 },
   };
   const ageRateMap: Record<string, number> = { early: 0.88, elementary: 0.96, older: 1.0 };
   const selected = styleMap[(input.narrationStyle as VoiceStyle) || 'gentle'] || styleMap.gentle;
@@ -84,6 +98,7 @@ const handleTts = async (request: Request, env: Env) => {
         'Content-Type': 'audio/mpeg',
         'Cache-Control': 'public, max-age=31536000, immutable',
         'X-TTS-Cache': 'HIT',
+        ...corsHeaders,
       },
     });
   }
@@ -111,6 +126,7 @@ const handleTts = async (request: Request, env: Env) => {
       'Content-Type': 'audio/mpeg',
       'Cache-Control': 'public, max-age=31536000, immutable',
       'X-TTS-Cache': 'MISS',
+      ...corsHeaders,
     },
   });
 };
@@ -168,14 +184,42 @@ const handleStoryCover = async (request: Request, env: Env) => {
   };
   const cacheKey = `story-covers/${await hashJson(payload)}.json`;
   const cached = await env.MEDIA_CACHE.get(cacheKey);
-  if (cached) return new Response(cached.body, { headers: { 'Content-Type': 'application/json; charset=utf-8', 'X-Cover-Cache': 'HIT' } });
+  if (cached) return new Response(cached.body, { headers: { 'Content-Type': 'application/json; charset=utf-8', 'X-Cover-Cache': 'HIT', ...corsHeaders } });
+
+  const prompt = `Create a premium, bright, child-friendly illustrated book cover for a kids educational app. Title: "${payload.title}". Category: ${payload.category}. Reading level: grade ${payload.gradeLevel}. Style: modern children's publishing, warm, playful, safe, clean composition, single clear focal subject, no readable text inside the artwork, no scary details. ${payload.promptSeed}`;
+
+  if (env.OPENAI_API_KEY) {
+    const model = env.OPENAI_IMAGE_MODEL || 'gpt-image-1';
+    const openAiRes = await fetch('https://api.openai.com/v1/images/generations', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${env.OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model,
+        prompt,
+        size: '1024x1536',
+        quality: 'high',
+        n: 1,
+      }),
+    });
+
+    if (openAiRes.ok) {
+      const result = await openAiRes.json() as { data?: Array<{ b64_json?: string; url?: string }> };
+      const firstImage = result?.data?.[0];
+      const responseBody = {
+        imageUrl: firstImage?.b64_json ? `data:image/png;base64,${firstImage.b64_json}` : firstImage?.url || null,
+        cache: 'MISS',
+        provider: 'openai',
+      };
+      await env.MEDIA_CACHE.put(cacheKey, JSON.stringify(responseBody), { httpMetadata: { contentType: 'application/json; charset=utf-8' } });
+      return sendJson(responseBody);
+    }
+  }
 
   if (!env.OPENROUTER_API_KEY) {
     return sendJson({ imageUrl: null, cache: 'FALLBACK' });
   }
 
   const model = env.OPENROUTER_IMAGE_MODEL || 'google/gemini-3.1-flash-image-preview';
-  const prompt = `Create a bright, child-friendly illustrated book cover for a kids educational app. Title: "${payload.title}". Category: ${payload.category}. Reading level: grade ${payload.gradeLevel}. Style: warm, playful, safe, clean composition, single clear focal subject, no readable text inside the artwork, no scary details. ${payload.promptSeed}`;
   const openRouterRes = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
     headers: { Authorization: `Bearer ${env.OPENROUTER_API_KEY}`, 'Content-Type': 'application/json' },
@@ -189,7 +233,7 @@ const handleStoryCover = async (request: Request, env: Env) => {
 
   if (!openRouterRes.ok) return sendJson({ imageUrl: null, cache: 'ERROR' });
   const result = await openRouterRes.json() as { choices?: Array<{ message?: { images?: Array<{ image_url?: { url?: string } }> } }> };
-  const responseBody = { imageUrl: result?.choices?.[0]?.message?.images?.[0]?.image_url?.url || null, cache: 'MISS' };
+  const responseBody = { imageUrl: result?.choices?.[0]?.message?.images?.[0]?.image_url?.url || null, cache: 'MISS', provider: 'openrouter' };
   await env.MEDIA_CACHE.put(cacheKey, JSON.stringify(responseBody), { httpMetadata: { contentType: 'application/json; charset=utf-8' } });
   return sendJson(responseBody);
 };
@@ -197,9 +241,10 @@ const handleStoryCover = async (request: Request, env: Env) => {
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
-    if (url.pathname === '/api/tts') return handleTts(request, env);
-    if (url.pathname === '/api/tts-precache') return handleTtsPrecache(request, env);
-    if (url.pathname === '/api/story-cover') return handleStoryCover(request, env);
+    if (url.pathname.startsWith('/api/') && request.method === 'OPTIONS') return new Response(null, { status: 204, headers: corsHeaders });
+    if (url.pathname === '/api/tts') return withCors(await handleTts(request, env));
+    if (url.pathname === '/api/tts-precache') return withCors(await handleTtsPrecache(request, env));
+    if (url.pathname === '/api/story-cover') return withCors(await handleStoryCover(request, env));
     return env.ASSETS.fetch(request);
   },
 };

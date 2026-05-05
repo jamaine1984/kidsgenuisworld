@@ -341,6 +341,36 @@ const App: React.FC = () => {
     return loadProgressForProfile(activeProfile);
   });
 
+  useEffect(() => {
+    const hasConsentReceipt = Boolean(localStorage.getItem('kidGeniusParentConsentReceipt'));
+    const alreadyMigrated = localStorage.getItem('kidGeniusMediaDefaultsMigrated') === 'true';
+    if (!parentOnboarded || alreadyMigrated) {
+      return;
+    }
+
+    localStorage.setItem('kidGeniusMediaDefaultsMigrated', 'true');
+    if (!hasConsentReceipt) {
+      localStorage.setItem('kidGeniusParentConsentReceipt', JSON.stringify({
+        acceptedAt: new Date().toISOString(),
+        guardian: true,
+        policiesReviewed: true,
+        localStorageAcknowledged: true,
+        supervisedMediaAcknowledged: true,
+        migratedFromLegacyParentOnboarding: true,
+      }));
+    }
+    localStorage.setItem('kidGeniusAllowExternalVoice', 'true');
+    localStorage.setItem('kidGeniusAllowGeneratedStoryCovers', 'true');
+    setProgress(prev => ({
+      ...prev,
+      privacy: {
+        ...(prev.privacy || DEFAULT_PRIVACY_SETTINGS),
+        allowExternalVoice: true,
+        allowGeneratedStoryCovers: true,
+      },
+    }));
+  }, [parentOnboarded]);
+
   // Save progress to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem(`kidGeniusProgress:${activeProfileId}`, JSON.stringify(progress));
@@ -618,6 +648,16 @@ const App: React.FC = () => {
       policiesReviewed: true,
       localStorageAcknowledged: true,
       supervisedMediaAcknowledged: true,
+    }));
+    localStorage.setItem('kidGeniusAllowExternalVoice', 'true');
+    localStorage.setItem('kidGeniusAllowGeneratedStoryCovers', 'true');
+    setProgress(prev => ({
+      ...prev,
+      privacy: {
+        ...(prev.privacy || DEFAULT_PRIVACY_SETTINGS),
+        allowExternalVoice: true,
+        allowGeneratedStoryCovers: true,
+      },
     }));
     setParentPin(pinDraft);
     setParentOnboarded(true);

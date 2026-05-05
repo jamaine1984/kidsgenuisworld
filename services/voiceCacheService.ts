@@ -5,6 +5,7 @@ import { SCIENCE_EXPERIMENTS } from '../components/ScienceRoom';
 import { GEOGRAPHY_QUESTIONS } from '../components/GeographyRoom';
 import { CHALLENGES } from '../components/CodingRoom';
 import { AccessibilitySettings } from '../types';
+import { getMediaApiUrl } from './mediaApi';
 
 interface VoiceWarmupResult {
   requested: number;
@@ -191,7 +192,7 @@ export const warmVoiceCache = async (
     };
   }
 
-  const response = await fetch('/api/tts-precache', {
+  const response = await fetch(getMediaApiUrl('/api/tts-precache'), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

@@ -84,6 +84,60 @@ test('math room completion creates reward and parent-visible journal proof', asy
   await expect(page.getByText('Teach it back')).toBeVisible();
 });
 
+test('reading room completion creates reward and parent-visible journal proof', async ({ page }) => {
+  await completeKidSetup(page);
+  await page.getByTestId('room-card-READING').click();
+  await expect(page.getByText('Reading Coach')).toBeVisible();
+
+  for (let round = 0; round < 4; round += 1) {
+    await page.locator('[data-testid="reading-answer-option"][data-reading-correct="true"]').click();
+    if (round < 3) {
+      await expect(page.getByText('Great Job!')).toBeVisible();
+      await expect(page.getByText('Great Job!')).toBeHidden({ timeout: 5_000 });
+    }
+  }
+
+  await expect(page.getByText('Learning Reflection')).toBeVisible({ timeout: 7_500 });
+  await page.getByRole('button', { name: /What strategy worked/i }).click();
+  await expect(page.getByText('Saved for parent review')).toBeVisible();
+  await page.getByRole('button', { name: 'Back to World', exact: true }).click();
+
+  await page.getByTitle('Settings').click();
+  await page.getByLabel('Parent PIN').fill(PARENT_PIN);
+  await page.getByRole('button', { name: 'Unlock Parent Dashboard' }).click();
+  await expect(page.getByText('Learning Journal')).toBeVisible();
+  await expect(page.getByText('What strategy worked?')).toBeVisible();
+});
+
+test('arcade completion creates reward and parent-visible journal proof', async ({ page }) => {
+  await completeKidSetup(page);
+  await page.getByRole('button', { name: /Game Arcade/i }).click();
+  await expect(page.getByRole('heading', { name: 'Game Arcade' })).toBeVisible();
+  await page.getByRole('button', { name: /Number Dash/i }).click();
+
+  for (let round = 0; round < 3; round += 1) {
+    await page.locator('[data-testid="arcade-answer-option"][data-arcade-correct="true"]').click();
+    if (round < 2) {
+      await expect(page.getByText(/New round loading/i)).toBeVisible();
+      await expect(page.locator('[data-testid="arcade-answer-option"][data-arcade-correct="true"]')).toBeEnabled({ timeout: 5_000 });
+    }
+  }
+
+  await expect(page.getByText(/Number Dash complete/i)).toBeVisible();
+  await page.getByLabel('Back to world map').click();
+  await expect(page.getByText('Learning Reflection')).toBeVisible({ timeout: 7_500 });
+  await page.getByRole('button', { name: /What was tricky/i }).click();
+  await expect(page.getByText('Saved for parent review')).toBeVisible();
+  await page.getByRole('button', { name: 'Back to World', exact: true }).click();
+
+  await page.getByTitle('Settings').click();
+  await page.getByLabel('Parent PIN').fill(PARENT_PIN);
+  await page.getByRole('button', { name: 'Unlock Parent Dashboard' }).click();
+  await expect(page.getByText('Game Arcade Proof')).toBeVisible();
+  await expect(page.getByText('Learning Journal')).toBeVisible();
+  await expect(page.getByText('What was tricky?')).toBeVisible();
+});
+
 function solveMathQuestion(question: string) {
   const equation = question.match(/^(\d+)\s*([+-])\s*(\d+)\s*=/);
   if (!equation) {

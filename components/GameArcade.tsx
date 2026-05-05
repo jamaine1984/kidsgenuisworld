@@ -888,6 +888,8 @@ export const GameArcade: React.FC<GameArcadeProps> = ({ progress, onBack, onOpen
                   {prompt.options.map(option => (
                     <button
                       key={`${activeGame.id}-${roundKey}-${option}`}
+                      data-testid="arcade-answer-option"
+                      data-arcade-correct={option === prompt.answer ? 'true' : 'false'}
                       onClick={() => handleAnswer(option)}
                       disabled={answerDisabled}
                       className="min-h-[82px] rounded-[24px] border-2 border-slate-200 bg-white px-4 py-4 text-left text-xl font-black text-slate-900 shadow-sm transition hover:-translate-y-1 hover:border-cyan-400 hover:bg-cyan-50 hover:shadow-lg active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-70"

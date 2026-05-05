@@ -521,15 +521,23 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
         {/* Interaction Area (Options/Spelling) */}
         {(mode === 'MATCH' || mode === 'RHYME' || mode === 'COMPREHENSION') && (
           <div className="grid grid-cols-2 gap-4 w-full max-w-md">
-            {options.map((opt, i) => (
-              <button
-                key={i}
-                onClick={() => handleOptionClick(opt)}
-                className={`${mode === 'COMPREHENSION' ? 'min-h-24 px-4 text-base leading-snug' : 'h-28 text-4xl'} bg-white rounded-3xl font-bold flex items-center justify-center text-center shadow-lg hover:bg-orange-50 border-b-8 border-orange-100 active:border-b-0 active:translate-y-2 transition-all`}
-              >
-                {opt}
-              </button>
-            ))}
+            {options.map((opt, i) => {
+              const isCorrect =
+                (mode === 'MATCH' && opt === currentWord.emoji) ||
+                (mode === 'RHYME' && opt === currentWord.rhyme) ||
+                (mode === 'COMPREHENSION' && opt === currentPassage.answer);
+              return (
+                <button
+                  key={i}
+                  data-testid="reading-answer-option"
+                  data-reading-correct={isCorrect ? 'true' : 'false'}
+                  onClick={() => handleOptionClick(opt)}
+                  className={`${mode === 'COMPREHENSION' ? 'min-h-24 px-4 text-base leading-snug' : 'h-28 text-4xl'} bg-white rounded-3xl font-bold flex items-center justify-center text-center shadow-lg hover:bg-orange-50 border-b-8 border-orange-100 active:border-b-0 active:translate-y-2 transition-all`}
+                >
+                  {opt}
+                </button>
+              );
+            })}
           </div>
         )}
 

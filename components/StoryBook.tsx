@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, BookOpen, Play, Pause, ChevronLeft, ChevronRight, Star, Volume2, Mic2, Heart } from 'lucide-react';
 import { speakAsync, stopSpeaking, isSpeaking, playSuccess } from '../services/audioService';
-import { getMediaApiUrl } from '../services/mediaApi';
 
 interface StoryBookProps {
   level: number; // 1-7 corresponds to grade levels
@@ -793,7 +792,6 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
   const [isReading, setIsReading] = useState(false);
   const [mode, setMode] = useState<'select' | 'listen' | 'read'>('select');
   const [completedStories, setCompletedStories] = useState<Set<string>>(new Set());
-  const [coverImages, setCoverImages] = useState<Record<string, string | null>>({});
   const [narrationNotice, setNarrationNotice] = useState('');
 
   useEffect(() => {
@@ -810,48 +808,6 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
     window.addEventListener('kidgenius:narration-status', handleNarrationStatus);
     return () => window.removeEventListener('kidgenius:narration-status', handleNarrationStatus);
   }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const loadCovers = async () => {
-      const generatedCoversAllowed = typeof window !== 'undefined' &&
-        window.localStorage.getItem('kidGeniusAllowGeneratedStoryCovers') === 'true';
-
-      if (!generatedCoversAllowed) {
-        return;
-      }
-
-      for (const story of availableStories.slice(0, 8)) {
-        if (coverImages[story.id] !== undefined) continue;
-        try {
-          const res = await fetch(getMediaApiUrl('/api/story-cover'), {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              title: story.title,
-              category: story.category,
-              gradeLevel: story.gradeLevel,
-              promptSeed: `Focus on ${story.cover} energy and a friendly scene from the story.`,
-            }),
-          });
-          const data = await res.json();
-          if (!cancelled) {
-            setCoverImages(prev => ({ ...prev, [story.id]: data?.imageUrl || null }));
-          }
-        } catch {
-          if (!cancelled) {
-            setCoverImages(prev => ({ ...prev, [story.id]: null }));
-          }
-        }
-      }
-    };
-
-    void loadCovers();
-    return () => {
-      cancelled = true;
-    };
-  }, [availableStories, coverImages]);
 
   const selectStory = (story: Story) => {
     setCurrentStory(story);
@@ -1030,11 +986,7 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
                   </div>
                 )}
                 <div className="mb-3 rounded-2xl overflow-hidden aspect-[3/4] bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center shadow-inner">
-                  {coverImages[story.id] ? (
-                    <img src={coverImages[story.id] || ''} alt={story.title} className="w-full h-full object-cover" />
-                  ) : (
-                    renderPremiumCover(story)
-                  )}
+                  <img src={`/story-covers/${story.id}.svg`} alt={story.title} className="w-full h-full object-cover" />
                 </div>
                 <h3 className="font-bold text-gray-800 text-sm mb-1 line-clamp-2">{story.title}</h3>
                 <p className="text-xs text-gray-500 mb-2">Grade {story.gradeLevel} • {story.pages.length} pages</p>

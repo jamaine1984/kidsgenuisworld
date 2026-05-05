@@ -324,7 +324,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
     'Structured daily missions across every learning room',
     'Slow grade pacing with mastery checks before promotion',
     'Parent dashboard, printable practice, and local child profiles',
-    'Optional premium voice narration and generated story covers',
+    'Optional premium voice narration and illustrated story covers from saved static media',
   ];
   const paidLaunchRequirements = [
     { label: 'Formal privacy policy and terms', status: 'Needed before public launch' },
@@ -1751,7 +1751,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 Privacy Controls
               </h3>
               <p className="text-sm text-gray-600 mb-4">
-                Keep external services off by default or turn them on when a parent approves your configured app server services.
+                Keep media features parent-approved. Voice and covers play from saved static files; the child app does not generate media with live APIs.
               </p>
               {[
                 {
@@ -1761,13 +1761,13 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 },
                 {
                   key: 'allowExternalVoice',
-                  title: 'External voice narration',
-                  description: 'Uses the app server to create and reuse cached human lesson audio. Spoken narration stays off when this is off.',
+                  title: 'Saved voice narration',
+                  description: 'Plays pre-generated human lesson audio from the static voice cache. Spoken narration stays off when this is off.',
                 },
                 {
                   key: 'allowGeneratedStoryCovers',
-                  title: 'Generated story covers',
-                  description: 'Uses the app server for story cover images. Stories use the built-in emoji covers when this is off.',
+                  title: 'Illustrated story covers',
+                  description: 'Loads saved static cover art for each book. No child-facing cover generation API is called at runtime.',
                 },
               ].map(option => {
                 const enabled = privacy[option.key as keyof PrivacySettings];
@@ -1931,12 +1931,12 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 Voice Cache
               </h3>
               <p className="text-sm text-gray-600 mb-3">
-                Pre-render lesson and story narration for this grade. Saved MP3 files are reused from Cloudflare storage, so repeat lessons do not call ElevenLabs again.
+                Check saved lesson and story narration for this grade. MP3 files are reused from static storage, so child lessons do not call ElevenLabs.
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3 text-xs">
                 <div className="rounded-lg bg-slate-50 border border-slate-100 p-2">
-                  <p className="font-bold text-slate-700">1. Generate once</p>
-                  <p className="text-slate-500">ElevenLabs creates missing human narration.</p>
+                  <p className="font-bold text-slate-700">1. Prepare offline</p>
+                  <p className="text-slate-500">Missing human narration is generated outside the child app.</p>
                 </div>
                 <div className="rounded-lg bg-slate-50 border border-slate-100 p-2">
                   <p className="font-bold text-slate-700">2. Save audio</p>
@@ -1951,7 +1951,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 onClick={async () => {
                   if (!privacy.allowExternalVoice) {
                     setVoiceCacheTone('warning');
-                    setVoiceCacheSummary('External voice narration is off. Enable it in Privacy Controls before warming the voice cache.');
+                    setVoiceCacheSummary('Saved voice narration is off. Enable it in Privacy Controls before checking the static voice cache.');
                     return;
                   }
                   setIsWarmingVoiceCache(true);
@@ -1962,7 +1962,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                     const result = await warmVoiceCache(progress.currentLevel, progress.accessibility);
                     if (result.errors > 0) {
                       setVoiceCacheTone('error');
-                      setVoiceCacheSummary(`Voice cache had ${result.errors} provider errors. Saved files still work, but missing narration needs a valid ElevenLabs balance before generation can continue.`);
+                      setVoiceCacheSummary(`Voice cache had ${result.errors} errors. Saved files still work, but missing narration must be generated offline and redeployed.`);
                     } else if (result.misses > 0) {
                       setVoiceCacheTone('success');
                       setVoiceCacheSummary(`Voice cache updated. Checked ${result.requested} phrases, reused ${result.hits}, and saved ${result.misses} new human voice files.`);
@@ -1974,7 +1974,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                     setVoiceCacheTone('error');
                     const message = error instanceof Error ? error.message : 'Voice cache warmup failed.';
                     const friendlyMessage = message.includes('quota_exceeded') || message.includes('remaining')
-                      ? 'ElevenLabs says this API key has no remaining characters. Existing saved voices still play from cache, but new narration cannot be generated until credits are available.'
+                      ? 'The static voice cache is still usable. Generate any missing voices offline after ElevenLabs credits are available, then export and redeploy static media.'
                       : message;
                     setVoiceCacheSummary(friendlyMessage);
                   } finally {
@@ -1988,7 +1988,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                     : 'bg-indigo-500 text-white hover:bg-indigo-600'
                 }`}
               >
-                {isWarmingVoiceCache ? 'Warming Voice Cache...' : privacy.allowExternalVoice ? 'Warm Voice Cache' : 'Enable External Voice First'}
+                {isWarmingVoiceCache ? 'Checking Voice Cache...' : privacy.allowExternalVoice ? 'Check Static Voice Cache' : 'Enable Saved Voice First'}
               </button>
               {voiceCacheSummary && (
                 <p className={`text-sm mt-3 rounded-lg border p-3 ${voiceCacheStatusClasses[voiceCacheTone]}`}>{voiceCacheSummary}</p>
@@ -2096,7 +2096,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 Privacy & Data
               </h3>
               <p className="text-sm text-gray-600 mb-3">
-                Learning progress is stored locally in this browser. Voice narration and generated story covers may use configured third-party API services through the app server when enabled.
+                Learning progress is stored locally in this browser. Voice narration and story covers are served from saved static media files; the child app does not call live media generation APIs.
               </p>
               <p className="text-xs text-gray-500 mb-3">
                 Before public launch, publish a COPPA-ready privacy policy, terms, and parental consent flow if accounts, analytics, payments, or personal data are added.

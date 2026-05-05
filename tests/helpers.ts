@@ -17,7 +17,7 @@ export async function completeParentSetup(page: Page) {
   await page.getByLabel('I am the parent or guardian supervising this child account.').check();
   await page.getByLabel('I reviewed the Privacy Notice and Terms of Use.').check();
   await page.getByLabel('I understand progress is stored locally in this browser unless a parent enables Firebase cloud sync.').check();
-  await page.getByLabel('I will supervise optional voice narration and generated story cover features.').check();
+  await page.getByLabel('I will supervise optional saved voice narration and illustrated story cover features.').check();
   await page.getByPlaceholder('4-8 digit PIN').fill(PARENT_PIN);
   await page.getByPlaceholder('Confirm PIN').fill(PARENT_PIN);
   await page.getByRole('button', { name: 'Save Parent Setup' }).click();

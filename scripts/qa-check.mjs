@@ -23,6 +23,10 @@ const requiredFiles = [
   'services/firebaseProgressStore.ts',
   'scripts/check-elevenlabs-key.mjs',
   'scripts/warm-voice-cache.mjs',
+  'scripts/export-static-voice-cache.mjs',
+  'scripts/generate-static-story-covers.mjs',
+  'public/voice-cache/manifest.json',
+  'public/story-covers/pk-1.svg',
   'cloudflare/worker.ts',
   'wrangler.jsonc',
   'types.ts',
@@ -176,8 +180,8 @@ if (!parentDashboardSource.includes('Active grade depth') || !parentDashboardSou
 }
 if (parentDashboardSource.includes('hidden sm:inline')) fail('Parent dashboard tab labels are hidden on mobile.');
 if (!parentDashboardSource.includes('What is 8 + 7?')) fail('Parent dashboard fallback gate is missing.');
-if (!parentDashboardSource.includes('Voice narration and generated story covers may use configured third-party API services')) {
-  fail('Privacy copy does not disclose optional third-party API services.');
+if (!parentDashboardSource.includes('served from saved static media files') || !parentDashboardSource.includes('does not call live media generation APIs')) {
+  fail('Privacy copy must explain static saved media instead of live media generation APIs.');
 }
 if (!typesSource.includes('PrivacySettings') || !typesSource.includes('allowExternalVoice') || !typesSource.includes('allowGeneratedStoryCovers') || !typesSource.includes('allowCloudSync')) {
   fail('Privacy settings data model is missing.');
@@ -188,14 +192,14 @@ if (!appSource.includes('kidGeniusAllowExternalVoice') || !appSource.includes('k
 if (!appSource.includes('kidGeniusMediaDefaultsMigrated') || !appSource.includes('kidGeniusParentConsentReceipt')) {
   fail('Parent-approved profiles must migrate to voice and generated-cover defaults without re-onboarding.');
 }
-if (!parentDashboardSource.includes('Privacy Controls') || !parentDashboardSource.includes('Enable External Voice First')) {
+if (!parentDashboardSource.includes('Privacy Controls') || !parentDashboardSource.includes('Enable Saved Voice First')) {
   fail('Parent privacy controls are not visible in settings.');
 }
 if (!parentDashboardSource.includes('Parent Consent Receipt') || !parentDashboardSource.includes('kidGeniusParentConsentReceipt')) {
   fail('Parent dashboard must show the local consent receipt status.');
 }
 if (!audioServiceSource.includes('kidGeniusAllowExternalVoice') || !voiceCacheSource.includes('kidGeniusAllowExternalVoice')) {
-  fail('Voice API calls are not gated by parent privacy controls.');
+  fail('Saved voice playback is not gated by parent privacy controls.');
 }
 if (!packageJson.dependencies?.firebase || !packageJson.devDependencies?.['firebase-tools']) {
   fail('Firebase Web SDK and Firebase CLI dependencies must be present for web-only Firebase deployment.');
@@ -231,6 +235,8 @@ if (!voiceCacheSource.includes('Welcome back to Kid Genius World!') || !fs.readF
   fail('Human voice cache must include app greetings and support larger pre-cache batches.');
 }
 const voiceWarmScript = fs.readFileSync(path.join(root, 'scripts/warm-voice-cache.mjs'), 'utf8');
+const voiceStaticScript = fs.readFileSync(path.join(root, 'scripts/export-static-voice-cache.mjs'), 'utf8');
+const coversStaticScript = fs.readFileSync(path.join(root, 'scripts/generate-static-story-covers.mjs'), 'utf8');
 const voiceCheckScript = fs.readFileSync(path.join(root, 'scripts/check-elevenlabs-key.mjs'), 'utf8');
 if (!voiceWarmScript.includes('getVoiceCacheTexts') || !voiceWarmScript.includes('--migrate-only') || !packageJson.scripts?.['voice:cache']) {
   fail('Reusable whole-app human voice cache warmup script is missing.');
@@ -241,29 +247,35 @@ if (!voiceWarmScript.includes('--max-chars=') || !voiceWarmScript.includes('erro
 if (!voiceCheckScript.includes('/v1/user/subscription') || !voiceCheckScript.includes('remainingCharacters') || !packageJson.scripts?.['voice:check']) {
   fail('ElevenLabs key validation script is missing.');
 }
-if (!wranglerSource.includes('"MEDIA_CACHE"') || !wranglerSource.includes('"kid-genius-world-media-cache"') || !wranglerSource.includes('"not_found_handling": "single-page-application"') || !wranglerSource.includes('OPENAI_IMAGE_MODEL')) {
+if (!wranglerSource.includes('"MEDIA_CACHE"') || !wranglerSource.includes('"kid-genius-world-media-cache"') || !wranglerSource.includes('"not_found_handling": "single-page-application"')) {
   fail('Cloudflare Worker config must bind R2 storage and serve the SPA build.');
 }
-if (!cloudflareWorkerSource.includes('env.MEDIA_CACHE.put') || !cloudflareWorkerSource.includes('/api/tts-precache') || !cloudflareWorkerSource.includes('/api/story-cover') || !cloudflareWorkerSource.includes('errorSamples') || !cloudflareWorkerSource.includes('OPENAI_API_KEY') || !cloudflareWorkerSource.includes('Access-Control-Allow-Origin')) {
-  fail('Cloudflare Worker must proxy cached TTS and premium story-cover API routes through R2.');
+if (!cloudflareWorkerSource.includes('/voice-cache/') || !cloudflareWorkerSource.includes('MEDIA_CACHE.get(`tts/${fileName}`)') || !cloudflareWorkerSource.includes('Cache-Control')) {
+  fail('Cloudflare Worker must serve static voice MP3 files from R2 without child-facing generation calls.');
 }
-if (!viteConfigSource.includes('OPENAI_API_KEY') || !viteConfigSource.includes('gpt-image-1') || !viteConfigSource.includes("provider: 'openai'") || !viteConfigSource.includes('speed: 0.82')) {
-  fail('Local media proxy must match production story-cover and slower story narration behavior.');
+if (!viteConfigSource.includes('/voice-cache') || !viteConfigSource.includes('.tts-cache') || !viteConfigSource.includes('audio/mpeg')) {
+  fail('Local dev must serve static voice MP3 files without runtime TTS generation.');
 }
-if (!packageJson.scripts?.['cf:deploy'] || !packageJson.scripts?.['cf:secret:elevenlabs'] || !packageJson.scripts?.['cf:secret:openai']) {
-  fail('Cloudflare deployment and secret scripts are missing.');
+if (!packageJson.scripts?.['cf:deploy'] || !packageJson.scripts?.['voice:static'] || !packageJson.scripts?.['covers:static']) {
+  fail('Static media export and deployment scripts are missing.');
 }
 if (!audioServiceSource.includes('speechRunId') || !audioServiceSource.includes('stopActiveSpeechPlayback') || !audioServiceSource.includes('queueRunId === speechRunId')) {
   fail('Narration overlap guard is missing from audioService.');
 }
-if (!audioServiceSource.includes('playElevenLabsSpeech(text)') || !audioServiceSource.includes('hasElevenLabsProxy()') || !audioServiceSource.includes('kidgenius:narration-status')) {
-  fail('External voice mode should stay on ElevenLabs instead of falling back to browser speech.');
+if (!audioServiceSource.includes('playStaticVoiceSpeech(text)') || !audioServiceSource.includes('hasStaticVoiceCache()') || !audioServiceSource.includes('/voice-cache/manifest.json') || !audioServiceSource.includes('kidgenius:narration-status')) {
+  fail('Kid-facing voice mode must use static saved MP3 files instead of runtime TTS APIs.');
 }
-if (!mediaApiSource.includes('VITE_MEDIA_API_BASE_URL') || !audioServiceSource.includes("getMediaApiUrl('/api/tts')") || !voiceCacheSource.includes("getMediaApiUrl('/api/tts-precache')") || !storyBookSource.includes("getMediaApiUrl('/api/story-cover')")) {
-  fail('Firebase-hosted builds must route voice and story-cover calls through a configured media API base URL.');
+if (!mediaApiSource.includes('VITE_MEDIA_API_BASE_URL') || !mediaApiSource.includes('getStaticMediaUrl') || !audioServiceSource.includes("getStaticMediaUrl('/voice-cache/manifest.json')") || !voiceCacheSource.includes("getStaticMediaUrl('/voice-cache/manifest.json')")) {
+  fail('Firebase-hosted builds must route static media files through a configured media base URL.');
 }
-if (!storyBookSource.includes('kidGeniusAllowGeneratedStoryCovers') || !storyBookSource.includes('/api/story-cover')) {
-  fail('Generated story covers are not gated by parent privacy controls.');
+if (audioServiceSource.includes('/api/tts') || voiceCacheSource.includes('/api/tts-precache') || storyBookSource.includes('/api/story-cover') || storyBookSource.includes('fetch(')) {
+  fail('Child-facing app code must not call runtime media generation APIs.');
+}
+if (!storyBookSource.includes('/story-covers/${story.id}.svg') || !coversStaticScript.includes('public') || !coversStaticScript.includes('story-covers')) {
+  fail('Story covers must load from static saved files.');
+}
+if (!voiceStaticScript.includes('.tts-cache') || !voiceStaticScript.includes('manifest.json') || !voiceStaticScript.includes('files')) {
+  fail('Static voice cache manifest export is missing.');
 }
 if (!packageJson.scripts?.serve) fail('Production serve script is missing.');
 if (!distIndex.includes('/assets/')) fail('Production build output is missing bundled assets.');

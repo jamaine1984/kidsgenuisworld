@@ -29,6 +29,8 @@ const ignoredDirs = new Set([
   'dist',
   'ios',
   'node_modules',
+  'story-covers',
+  'voice-cache',
 ]);
 
 const ignoredFiles = new Set([
@@ -114,20 +116,20 @@ if (!appSource.includes("setLegalView('privacy')") || !appSource.includes("setLe
   fail('Privacy and terms links are not reachable from the app.');
 }
 const legalLower = legalSource.toLowerCase();
-if (!legalLower.includes('children') || !legalLower.includes('parent') || !legalLower.includes('third-party')) {
-  fail('Legal copy must clearly address children, parents, and third-party services.');
+if (!legalLower.includes('children') || !legalLower.includes('parent') || !legalLower.includes('saved static media')) {
+  fail('Legal copy must clearly address children, parents, and saved static media.');
 }
 if (!parentSource.includes('Privacy Controls') || !parentSource.includes('Parent PIN')) {
   fail('Parent privacy controls and PIN gate must be present before launch.');
 }
-if (!audioSource.includes('kidGeniusAllowExternalVoice') || !storySource.includes('kidGeniusAllowGeneratedStoryCovers')) {
-  fail('External voice and generated cover features must be parent-gated.');
+if (!audioSource.includes('kidGeniusAllowExternalVoice') || !storySource.includes('/story-covers/${story.id}.svg')) {
+  fail('Saved voice and static cover features must be wired before launch.');
 }
-if (!serverSource.includes('/api/tts') || !serverSource.includes('/api/story-cover')) {
-  fail('Production server must proxy external TTS and cover generation APIs.');
+if (audioSource.includes('/api/tts') || storySource.includes('/api/story-cover') || storySource.includes('fetch(')) {
+  fail('Child-facing media must load from static files, not runtime generation APIs.');
 }
-if (!cloudflareWorkerSource.includes('MEDIA_CACHE') || !cloudflareWorkerSource.includes('ELEVENLABS_API_KEY') || !wranglerSource.includes('r2_buckets')) {
-  fail('Cloudflare deployment must use R2 storage and Worker secrets for media APIs.');
+if (!cloudflareWorkerSource.includes('MEDIA_CACHE') || !cloudflareWorkerSource.includes('/voice-cache/') || !wranglerSource.includes('r2_buckets')) {
+  fail('Cloudflare deployment must serve static voice files from R2 storage.');
 }
 if (!firebaseJsonSource.includes('"public": "dist"') || !firebaseJsonSource.includes('"destination": "/index.html"')) {
   fail('Firebase Hosting must serve the Vite dist build with SPA rewrites.');

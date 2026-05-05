@@ -241,7 +241,21 @@ const handleStoryCover = async (request: Request, env: Env) => {
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
-    if (url.pathname.startsWith('/api/') && request.method === 'OPTIONS') return new Response(null, { status: 204, headers: corsHeaders });
+    if (request.method === 'GET' && url.pathname.startsWith('/voice-cache/') && url.pathname.endsWith('.mp3')) {
+      const fileName = url.pathname.split('/').pop() || '';
+      const cached = /^[a-f0-9]{64}\.mp3$/.test(fileName)
+        ? await env.MEDIA_CACHE.get(`tts/${fileName}`)
+        : null;
+      if (!cached) return new Response('Not Found', { status: 404 });
+      return new Response(cached.body, {
+        headers: {
+          'Content-Type': 'audio/mpeg',
+          'Cache-Control': 'public, max-age=31536000, immutable',
+          ...corsHeaders,
+        },
+      });
+    }
+    if (url.pathname.startsWith('/api/')) return sendJson({ error: 'Runtime media generation APIs are disabled. Use saved static media.' }, 404);
     if (url.pathname === '/api/tts') return withCors(await handleTts(request, env));
     if (url.pathname === '/api/tts-precache') return withCors(await handleTtsPrecache(request, env));
     if (url.pathname === '/api/story-cover') return withCors(await handleStoryCover(request, env));

@@ -16,16 +16,15 @@
     "qa:launch": "node scripts/launch-readiness.mjs",
     "voice:check": "node scripts/check-elevenlabs-key.mjs",
     "voice:cache": "node scripts/warm-voice-cache.mjs",
+    "voice:static": "node scripts/export-static-voice-cache.mjs",
+    "covers:static": "node scripts/generate-static-story-covers.mjs",
     "r2:upload-tts": "node scripts/upload-tts-cache-r2.mjs",
     "firebase:emulators": "firebase emulators:start",
     "firebase:deploy": "npm run qa:all && firebase deploy --project kid-genius-world",
     "firebase:deploy:hosting": "npm run qa:all && firebase deploy --only hosting --project kid-genius-world",
     "firebase:deploy:rules": "firebase deploy --only firestore:rules --project kid-genius-world",
     "cf:dev": "wrangler dev",
-    "cf:deploy": "npm run qa && wrangler deploy",
-    "cf:secret:elevenlabs": "wrangler secret put ELEVENLABS_API_KEY",
-    "cf:secret:openrouter": "wrangler secret put OPENROUTER_API_KEY",
-    "cf:secret:openai": "wrangler secret put OPENAI_API_KEY"
+    "cf:deploy": "npm run qa && wrangler deploy"
   },
   "dependencies": {
     "firebase": "^12.6.0",

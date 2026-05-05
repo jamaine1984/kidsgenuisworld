@@ -5,7 +5,7 @@ import { SCIENCE_EXPERIMENTS } from '../components/ScienceRoom';
 import { GEOGRAPHY_QUESTIONS } from '../components/GeographyRoom';
 import { CHALLENGES } from '../components/CodingRoom';
 import { AccessibilitySettings } from '../types';
-import { getMediaApiUrl } from './mediaApi';
+import { getStaticMediaUrl } from './mediaApi';
 
 interface VoiceWarmupResult {
   requested: number;
@@ -192,30 +192,25 @@ export const warmVoiceCache = async (
     };
   }
 
-  const response = await fetch(getMediaApiUrl('/api/tts-precache'), {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      texts,
-      voice_settings: {
-        narrationStyle: accessibility.narrationStyle,
-        speechRate: accessibility.speechRate,
-        ageGroup: level <= 2 ? 'early' : level <= 5 ? 'elementary' : 'older',
-      },
-    }),
-  });
-
+  void accessibility;
+  const response = await fetch(getStaticMediaUrl('/voice-cache/manifest.json'), { cache: 'force-cache' });
   if (!response.ok) {
-    throw new Error(`Voice cache warmup failed with status ${response.status}`);
+    return {
+      requested: texts.length,
+      hits: 0,
+      misses: texts.length,
+      errors: 0,
+      skipped: texts.length,
+    };
   }
 
-  const result = await response.json() as VoiceWarmupResult;
-  if (result.errors > 0 && result.errorSamples?.length) {
-    const sample = result.errorSamples[0];
-    throw new Error(`Voice cache blocked by provider status ${sample.status || 'unknown'}: ${sample.message}`);
-  }
-
-  return result;
+  const manifest = await response.json() as { files?: string[] };
+  const hits = Array.isArray(manifest.files) ? manifest.files.length : 0;
+  return {
+    requested: texts.length,
+    hits,
+    misses: Math.max(0, texts.length - hits),
+    errors: 0,
+    skipped: 0,
+  };
 };

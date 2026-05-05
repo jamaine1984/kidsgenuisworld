@@ -241,6 +241,33 @@ export default defineConfig(({ mode }) => {
               }
             });
 
+            server.middlewares.use('/voice-cache', async (req, res) => {
+              if (req.method !== 'GET' || !req.url?.endsWith('.mp3')) {
+                res.statusCode = 404;
+                res.end('Not Found');
+                return;
+              }
+
+              const fileName = path.basename(req.url.split('?')[0]);
+              if (!/^[a-f0-9]{64}\.mp3$/.test(fileName)) {
+                res.statusCode = 404;
+                res.end('Not Found');
+                return;
+              }
+
+              const audioPath = path.join(cacheDir, fileName);
+              if (!fs.existsSync(audioPath)) {
+                res.statusCode = 404;
+                res.end('Not Found');
+                return;
+              }
+
+              res.statusCode = 200;
+              res.setHeader('Content-Type', 'audio/mpeg');
+              res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+              res.end(fs.readFileSync(audioPath));
+            });
+
             server.middlewares.use('/api/tts', async (req, res) => {
               if (req.method !== 'POST') {
                 res.statusCode = 405;

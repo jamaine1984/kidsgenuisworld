@@ -45,8 +45,8 @@ export const LegalInfo: React.FC<LegalInfoProps> = ({ type, onBack }) => {
                 <p>When a parent creates or signs into a Firebase parent account and enables cloud sync, the app can save the active child profile and learning progress to Firebase for parent-managed access. Cloud sync is off by default.</p>
               </section>
               <section>
-                <h2 className="text-xl font-black text-slate-900 mb-2">External Services</h2>
-                <p>When configured by the app owner, narration and story cover generation may send lesson text or story-cover prompts through the app server to third-party API providers. Do not collect names, contact information, precise location, or other personal information from children without a full COPPA-compliant consent flow.</p>
+                <h2 className="text-xl font-black text-slate-900 mb-2">Saved Media</h2>
+                <p>Narration and story covers are served from saved static media files prepared by the app owner. The child-facing app should not send lesson text, story prompts, names, contact information, precise location, or other personal information to live media-generation APIs.</p>
               </section>
               <section>
                 <h2 className="text-xl font-black text-slate-900 mb-2">Parent Controls</h2>
@@ -68,7 +68,7 @@ export const LegalInfo: React.FC<LegalInfoProps> = ({ type, onBack }) => {
               </section>
               <section>
                 <h2 className="text-xl font-black text-slate-900 mb-2">Parent Responsibility</h2>
-                <p>A parent or guardian should choose the appropriate grade level, monitor usage, and decide whether optional voice or generated image features are enabled.</p>
+                <p>A parent or guardian should choose the appropriate grade level, monitor usage, and decide whether optional saved voice and illustrated cover features are enabled.</p>
               </section>
               <section>
                 <h2 className="text-xl font-black text-slate-900 mb-2">Content Accuracy</h2>

@@ -1,4 +1,4 @@
-import { getMediaApiUrl } from './mediaApi';
+import { getStaticMediaUrl } from './mediaApi';
 
 let audioContext: AudioContext | null = null;
 let currentAudio: HTMLAudioElement | null = null;
@@ -43,8 +43,8 @@ export const resumeAudioContext = async () => {
 
 // ============================================
 // TEXT-TO-SPEECH
-// ElevenLabs via local proxy with local server-side caching.
-// Browser speech is intentionally not used for lessons so kid-facing voices stay human.
+// Static human voice MP3 cache.
+// Browser speech and runtime TTS APIs are intentionally not used for lessons.
 // ============================================
 
 // Check if running in iOS native wrapper
@@ -64,7 +64,7 @@ const allowsExternalVoice = (): boolean => {
   return window.localStorage.getItem('kidGeniusAllowExternalVoice') === 'true';
 };
 
-const hasElevenLabsProxy = (): boolean => {
+const hasStaticVoiceCache = (): boolean => {
   return allowsExternalVoice();
 };
 
@@ -94,6 +94,62 @@ const buildVoiceSettings = () => {
   };
 };
 
+const normalizeSpeechText = (text: string) =>
+  String(text || '').replace(/\s+/g, ' ').replace(/[“”]/g, '"').replace(/[‘’]/g, "'").trim();
+
+const toHex = (buffer: ArrayBuffer) =>
+  Array.from(new Uint8Array(buffer)).map(byte => byte.toString(16).padStart(2, '0')).join('');
+
+const hashVoicePayload = async (payload: unknown) => {
+  const bytes = new TextEncoder().encode(JSON.stringify(payload));
+  const digest = await crypto.subtle.digest('SHA-256', bytes);
+  return toHex(digest);
+};
+
+let staticVoiceManifest: Set<string> | null = null;
+let staticVoiceManifestLoaded = false;
+
+const getStaticVoiceManifest = async () => {
+  if (staticVoiceManifestLoaded) return staticVoiceManifest;
+  staticVoiceManifestLoaded = true;
+  try {
+    const response = await fetch(getStaticMediaUrl('/voice-cache/manifest.json'), { cache: 'force-cache' });
+    if (!response.ok) {
+      staticVoiceManifest = null;
+      return staticVoiceManifest;
+    }
+    const data = await response.json() as { files?: string[] };
+    staticVoiceManifest = new Set(Array.isArray(data.files) ? data.files : []);
+  } catch {
+    staticVoiceManifest = null;
+  }
+  return staticVoiceManifest;
+};
+
+const getStaticVoiceCandidates = async (text: string) => {
+  const voiceId = 'JBFqnCBsd6RMkjVDRZzb';
+  const modelId = 'eleven_flash_v2_5';
+  const normalizedText = normalizeSpeechText(text);
+  const exactSettings = buildVoiceSettings();
+  const legacyProfiles = [
+    exactSettings,
+    { stability: 0.72, similarity_boost: 0.82, style: 0.2, use_speaker_boost: true, speed: 0.9024 },
+    { stability: 0.72, similarity_boost: 0.82, style: 0.2, use_speaker_boost: true, speed: 0.94 },
+    { stability: 0.58, similarity_boost: 0.9, style: 0.78, use_speaker_boost: true, speed: 0.811008 },
+    { stability: 0.58, similarity_boost: 0.9, style: 0.78, use_speaker_boost: true, speed: 0.96 },
+  ];
+
+  const uniquePayloads = new Map<string, Record<string, unknown>>();
+  for (const voiceSettings of legacyProfiles) {
+    uniquePayloads.set(JSON.stringify(voiceSettings), voiceSettings);
+  }
+
+  return Promise.all(Array.from(uniquePayloads.values()).map(async voiceSettings => {
+    const hash = await hashVoicePayload({ text: normalizedText, voiceId, modelId, voiceSettings });
+    return `${hash}.mp3`;
+  }));
+};
+
 export const setSpeechPreferences = (preferences: Partial<SpeechPreferences>) => {
   speechPreferences = {
     ...speechPreferences,
@@ -105,46 +161,36 @@ export const setNarrationContext = (context: string) => {
   currentNarrationContext = context;
 };
 
-const playElevenLabsSpeech = async (text: string): Promise<void> => {
-  const response = await fetch(getMediaApiUrl('/api/tts'), {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      text,
-      context: currentNarrationContext,
-      voice_settings: buildVoiceSettings(),
-    }),
-  });
+const playStaticVoiceSpeech = async (text: string): Promise<void> => {
+  const manifest = await getStaticVoiceManifest();
+  const candidates = await getStaticVoiceCandidates(text);
+  const fileName = manifest
+    ? candidates.find(candidate => manifest.has(candidate))
+    : candidates[0];
 
-  if (!response.ok) {
-    notifyNarrationStatus('error', 'Teacher narration could not load from the voice server. Check the media backend and ElevenLabs balance.');
-    throw new Error(`TTS proxy failed with status ${response.status}`);
+  if (!fileName) {
+    notifyNarrationStatus('error', 'This teacher voice line has not been generated yet. Run the offline voice cache builder, then redeploy static media.');
+    throw new Error(`Static voice is missing for ${currentNarrationContext}.`);
   }
 
-  const audioBlob = await response.blob();
-  const audioUrl = URL.createObjectURL(audioBlob);
-  const audio = new Audio(audioUrl);
+  const audio = new Audio(getStaticMediaUrl(`/voice-cache/${fileName}`));
 
   stopActiveSpeechPlayback();
   currentAudio = audio;
-  currentAudioUrl = audioUrl;
 
   return new Promise((resolve) => {
     const cleanup = () => {
       if (currentAudio === audio) {
         currentAudio = null;
       }
-      if (currentAudioUrl === audioUrl) {
-        URL.revokeObjectURL(audioUrl);
-        currentAudioUrl = null;
-      }
       resolve();
     };
 
     audio.onended = cleanup;
-    audio.onerror = cleanup;
+    audio.onerror = () => {
+      notifyNarrationStatus('error', 'This teacher voice line is not in the static voice cache yet.');
+      cleanup();
+    };
     void audio.play().then(() => {
       notifyNarrationStatus('ready', 'Teacher narration is playing.');
     }).catch(() => {
@@ -230,8 +276,8 @@ const speakAndWait = (text: string, rate: number, pitch: number, runId: number):
 
     stopActiveSpeechPlayback();
 
-    if (hasElevenLabsProxy()) {
-      playElevenLabsSpeech(text)
+    if (hasStaticVoiceCache()) {
+      playStaticVoiceSpeech(text)
         .then(resolve)
         .catch(() => resolve());
     } else {

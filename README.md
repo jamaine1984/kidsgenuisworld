@@ -1,6 +1,6 @@
 # Kid Genius World
 
-Kid Genius World is a colorful web-only educational app for kids with guided daily missions, room-based learning, parent controls, local progress tracking, Firebase-ready cloud sync, and optional server-proxied voice/story-cover generation.
+Kid Genius World is a colorful web-only educational app for kids with guided daily missions, room-based learning, parent controls, local progress tracking, Firebase-ready cloud sync, static story-cover art, and saved human voice narration.
 
 ## Local Development
 
@@ -28,7 +28,7 @@ Build the static web app:
 npm run build
 ```
 
-Serve the production build with the included API proxy:
+Serve the production build:
 
 ```bash
 npm run serve
@@ -78,13 +78,13 @@ npx firebase login
 npm run firebase:deploy:hosting
 ```
 
-Firebase Hosting is a static host for this app. It will serve the React build, but it will not run `/api/tts`, `/api/tts-precache`, or `/api/story-cover` unless those routes are moved to Firebase Functions. For the current web-only launch path, keep Firebase for hosting/auth/Firestore and point media calls to the Cloudflare Worker by setting this before the production build:
+Firebase Hosting is a static host for this app. It serves the React build and static story-cover files. For saved voice MP3s stored on Cloudflare R2, point media calls to the Cloudflare Worker before the production build:
 
 ```bash
 VITE_MEDIA_API_BASE_URL=https://your-media-worker.example.com
 ```
 
-Without `VITE_MEDIA_API_BASE_URL`, the Firebase-hosted build cannot play ElevenLabs narration or fetch generated story covers because those API routes do not exist on static hosting.
+Without `VITE_MEDIA_API_BASE_URL`, the Firebase-hosted build still shows story covers, but saved voice narration only works for MP3 files hosted alongside Firebase.
 
 Deploy Firestore rules:
 
@@ -98,15 +98,15 @@ Run local emulators:
 npm run firebase:emulators
 ```
 
-## Legacy Cloudflare Hosting
+## Cloudflare Static Media
 
-This repo is scaffolded for Cloudflare Workers static assets plus API routes:
+This repo uses Cloudflare Workers static assets plus R2-backed saved voice files:
 
 - React/Vite build output is served from `dist/`.
-- `/api/tts` and `/api/tts-precache` run in `cloudflare/worker.ts`.
-- `/api/story-cover` runs in `cloudflare/worker.ts`.
-- R2 binding `MEDIA_CACHE` stores generated narration MP3 files and story-cover JSON responses.
-- API keys must be set as Cloudflare Worker secrets, not committed files.
+- `/voice-cache/manifest.json` is a static manifest generated from `.tts-cache`.
+- `/voice-cache/{hash}.mp3` is served from R2 binding `MEDIA_CACHE`.
+- Story covers are static files in `public/story-covers/`.
+- Runtime media generation APIs are disabled for the child-facing app.
 
 One-time Cloudflare setup:
 
@@ -114,9 +114,6 @@ One-time Cloudflare setup:
 npm install -D wrangler
 npx wrangler login
 npx wrangler r2 bucket create kid-genius-world-media-cache
-npx wrangler secret put ELEVENLABS_API_KEY
-npx wrangler secret put OPENAI_API_KEY
-npx wrangler secret put OPENROUTER_API_KEY
 ```
 
 Legacy deploy:
@@ -128,19 +125,21 @@ npx wrangler deploy
 
 The GitHub remote for this local repo is expected to point at `jamaine1984/kidsgenuisworld`. Cloudflare can also connect to that GitHub repository for automatic deploys after the Worker project exists. For the current web-only Firebase direction, Firebase Hosting should be treated as the primary deploy target.
 
-The Worker supports OpenAI image generation first when `OPENAI_API_KEY` is configured, then falls back to OpenRouter when only `OPENROUTER_API_KEY` is available. Both story-cover responses and ElevenLabs MP3 files are cached in R2 so repeat plays do not spend provider credits again.
+Run `npm run covers:static` after changing story titles or IDs. Run `npm run voice:static` after generating or migrating voice MP3s, then upload `.tts-cache` to R2 with `npm run r2:upload-tts`.
 
 ## Human Voice Cache
 
-Warm or migrate the app-wide human narration cache:
+Generate or migrate the app-wide human narration cache offline, then export the static manifest:
 
 ```bash
 npm run voice:cache -- --dry-run
 npm run voice:cache -- http://127.0.0.1:5177 --migrate-only
 npm run voice:cache -- http://127.0.0.1:5177
+npm run voice:static
+npm run r2:upload-tts
 ```
 
-Use `--migrate-only` when you want to reuse existing local cache files without spending ElevenLabs credits. Run the full command only when the ElevenLabs account has enough credits.
+Use `--migrate-only` when you want to reuse existing local cache files without spending ElevenLabs credits. Run the full generation command only when the ElevenLabs account has enough credits. The child app only loads saved MP3 files.
 
 ## QA Gates
 
@@ -163,20 +162,16 @@ npm run qa:launch
 
 Private keys must stay in `.env.local` for development or hosted environment secrets for production. Do not commit real keys.
 
-- `ELEVENLABS_API_KEY`: enables server-proxied narration.
+- `ELEVENLABS_API_KEY`: enables offline/admin voice cache generation.
 - `ELEVENLABS_VOICE_ID`: optional ElevenLabs voice override.
 - `ELEVENLABS_MODEL_ID`: optional ElevenLabs model override.
-- `OPENROUTER_API_KEY`: enables optional generated story covers.
-- `OPENROUTER_IMAGE_MODEL`: optional image model override.
-- `OPENAI_API_KEY`: preferred provider for premium generated story covers.
-- `OPENAI_IMAGE_MODEL`: optional OpenAI image model override.
 - `VITE_FIREBASE_*`: public Firebase Web app config values generated by Firebase Console after adding a Web app.
-- `VITE_MEDIA_API_BASE_URL`: public URL for the Worker or Function that serves `/api/tts`, `/api/tts-precache`, and `/api/story-cover` when the app is hosted on Firebase.
+- `VITE_MEDIA_API_BASE_URL`: public URL for the static media host that serves `/voice-cache/manifest.json` and `/voice-cache/{hash}.mp3` when the app is hosted on Firebase.
 
 If an API key was pasted into chat, logs, screenshots, or a ticket, rotate it before using the app publicly.
 
 ## Kids Privacy Notes
 
-The app includes draft privacy and terms screens, parent PIN controls, and parent-gated external voice/story-cover settings. Before public launch, replace draft legal copy with reviewed policies for the countries, payment model, accounts, analytics, and child-data flows you actually use.
+The app includes draft privacy and terms screens, parent PIN controls, and parent-gated saved voice/story-cover settings. Before public launch, replace draft legal copy with reviewed policies for the countries, payment model, accounts, analytics, and child-data flows you actually use.
 
 Current progress starts in local-browser storage. Parents can create or sign into a Firebase account, turn on Firebase cloud progress sync in Privacy Controls, and manually sync the active child profile. Keep this parent-gated and consent-backed before syncing child profiles across devices in production.

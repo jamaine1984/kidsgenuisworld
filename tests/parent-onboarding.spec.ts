@@ -1,11 +1,8 @@
 import { expect, test } from '@playwright/test';
+import { resetApp } from './helpers';
 
 test('parent setup requires launch checkpoints before child access', async ({ page }) => {
-  await page.goto('/');
-  await page.evaluate(() => {
-    window.localStorage.clear();
-  });
-  await page.reload();
+  await resetApp(page);
 
   await page.getByRole('button', { name: /Start Adventure/i }).click();
   await expect(page.getByRole('heading', { name: 'Parent Setup' })).toBeVisible();

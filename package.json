@@ -10,6 +10,7 @@
     "serve": "node server/production-server.mjs",
     "qa": "npm run build && node scripts/qa-check.mjs && node scripts/launch-readiness.mjs",
     "qa:browser": "playwright test",
+    "qa:all": "npm run qa && npm run qa:browser",
     "qa:source": "node scripts/qa-check.mjs",
     "qa:launch": "node scripts/launch-readiness.mjs",
     "voice:check": "node scripts/check-elevenlabs-key.mjs",

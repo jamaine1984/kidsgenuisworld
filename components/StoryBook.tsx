@@ -724,6 +724,15 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
     onReward();
   };
 
+  const completeCurrentStory = () => {
+    if (!currentStory || completedStories.has(currentStory.id)) return;
+    stopSpeaking();
+    setIsReading(false);
+    playSuccess();
+    setCompletedStories(prev => new Set(prev).add(currentStory.id));
+    onReward();
+  };
+
   const stopReading = () => {
     stopSpeaking();
     setIsReading(false);
@@ -886,6 +895,7 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
           <div className="flex justify-between items-center mt-8 ml-4">
             <button
               onClick={prevPage}
+              aria-label="Previous story page"
               disabled={currentPage === 0}
               className={`p-3 rounded-full transition ${
                 currentPage === 0 ? 'bg-gray-100 text-gray-300' : 'bg-amber-100 text-amber-600 hover:bg-amber-200'
@@ -915,9 +925,10 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
                       </button>
                       <button
                         onClick={readEntireStory}
+                        disabled={completedStories.has(currentStory.id)}
                         className="px-4 py-3 bg-green-500 text-white rounded-full font-bold flex items-center gap-2 hover:bg-green-600 transition"
                       >
-                        <Play size={20} /> Whole Story
+                        <Play size={20} /> {completedStories.has(currentStory.id) ? 'Finished' : 'Whole Story'}
                       </button>
                     </>
                   )}
@@ -931,10 +942,21 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
                   <Mic2 size={20} /> Help Me
                 </button>
               )}
+              {currentPage === currentStory.pages.length - 1 && (
+                <button
+                  onClick={completeCurrentStory}
+                  disabled={completedStories.has(currentStory.id)}
+                  className="px-4 py-3 bg-emerald-600 text-white rounded-full font-bold flex items-center gap-2 hover:bg-emerald-700 transition disabled:cursor-not-allowed disabled:bg-emerald-200"
+                >
+                  <Star size={20} fill="currentColor" />
+                  {completedStories.has(currentStory.id) ? 'Story Finished' : 'I Finished Reading'}
+                </button>
+              )}
             </div>
 
             <button
               onClick={nextPage}
+              aria-label="Next story page"
               disabled={currentPage === currentStory.pages.length - 1}
               className={`p-3 rounded-full transition ${
                 currentPage === currentStory.pages.length - 1 ? 'bg-gray-100 text-gray-300' : 'bg-amber-100 text-amber-600 hover:bg-amber-200'
@@ -952,6 +974,7 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
           <button
             key={i}
             onClick={() => setCurrentPage(i)}
+            aria-label={`Go to story page ${i + 1}`}
             className={`w-3 h-3 rounded-full transition ${
               i === currentPage ? 'bg-amber-500 scale-125' : 'bg-amber-200 hover:bg-amber-300'
             }`}

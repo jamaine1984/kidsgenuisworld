@@ -138,6 +138,31 @@ test('arcade completion creates reward and parent-visible journal proof', async 
   await expect(page.getByText('What was tricky?')).toBeVisible();
 });
 
+test('story time completion creates reward and parent-visible journal proof', async ({ page }) => {
+  await completeKidSetup(page);
+  await page.getByTestId('room-card-STORYBOOK').click();
+  await expect(page.getByText('Story Library')).toBeVisible();
+  await page.getByRole('button', { name: /Pip and the Puddle/i }).click();
+  await expect(page.getByRole('heading', { name: 'Pip and the Puddle' })).toBeVisible();
+
+  for (let pageIndex = 0; pageIndex < 4; pageIndex += 1) {
+    await page.getByLabel('Next story page').click();
+  }
+
+  await expect(page.getByText('Small moments can be joyful.')).toBeVisible();
+  await page.getByRole('button', { name: 'I Finished Reading' }).click();
+  await expect(page.getByText('Learning Reflection')).toBeVisible({ timeout: 7_500 });
+  await page.getByRole('button', { name: /Teach it back/i }).click();
+  await expect(page.getByText('Saved for parent review')).toBeVisible();
+  await page.getByRole('button', { name: 'Back to World', exact: true }).click();
+
+  await page.getByTitle('Settings').click();
+  await page.getByLabel('Parent PIN').fill(PARENT_PIN);
+  await page.getByRole('button', { name: 'Unlock Parent Dashboard' }).click();
+  await expect(page.getByText('Learning Journal')).toBeVisible();
+  await expect(page.getByText('Teach it back')).toBeVisible();
+});
+
 function solveMathQuestion(question: string) {
   const equation = question.match(/^(\d+)\s*([+-])\s*(\d+)\s*=/);
   if (!equation) {

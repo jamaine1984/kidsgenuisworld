@@ -21,6 +21,20 @@ export const getFirebaseSyncStatus = () => {
   };
 };
 
+const ensureFamilyDocument = async (
+  db: Firestore,
+  context: FamilySyncContext,
+  parentUid: string
+) => {
+  const familyRef = doc(db, 'families', context.familyId);
+  await setDoc(familyRef, {
+    parentUids: [parentUid],
+    cloudSyncConsent: true,
+    cloudSyncConsentAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  }, { merge: true });
+};
+
 const writeProgressSnapshot = async (
   db: Firestore,
   context: FamilySyncContext,
@@ -68,6 +82,7 @@ export const syncProgressToFirebase = async (
     return { ok: false, reason: 'Firebase is not configured or the parent is not signed in.' };
   }
 
+  await ensureFamilyDocument(services.db, context, services.auth.currentUser.uid);
   await writeProgressSnapshot(services.db, context, progress, profile);
   return { ok: true };
 };

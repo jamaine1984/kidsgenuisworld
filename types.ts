@@ -189,6 +189,7 @@ export interface AccessibilitySettings {
 export interface PrivacySettings {
   allowExternalVoice: boolean;
   allowGeneratedStoryCovers: boolean;
+  allowCloudSync: boolean;
 }
 
 // ============================================
@@ -534,6 +535,7 @@ export const DEFAULT_ACCESSIBILITY: AccessibilitySettings = {
 export const DEFAULT_PRIVACY_SETTINGS: PrivacySettings = {
   allowExternalVoice: false,
   allowGeneratedStoryCovers: false,
+  allowCloudSync: false,
 };
 
 export const DEFAULT_ARCADE_PROGRESS: ArcadeProgress = {

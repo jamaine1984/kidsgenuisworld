@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import {
   ArrowLeft, BarChart3, Clock, Target, TrendingUp,
   Star, Award, Brain, Calendar, CheckCircle2, ChevronRight, Lock,
-  Settings, Shield, Volume2, Eye, Type, BookOpen, Map, Printer, Download, Gamepad2
+  Settings, Shield, Volume2, Eye, Type, BookOpen, Map, Printer, Download, Gamepad2,
+  Cloud, LogIn, LogOut
 } from 'lucide-react';
 import {
   UserProgress,
@@ -16,6 +17,7 @@ import {
   DEFAULT_ARCADE_PROGRESS
 } from '../types';
 import { getCurrentGradeUnits, getRoadmapRecommendations, getUnitReadiness, getUnitsForGrade, getWeeklyLearningPlan, type CurriculumUnit } from '../services/curriculum';
+import type { ParentCloudSession } from '../services/firebaseParentAuth';
 
 interface ParentDashboardProps {
   progress: UserProgress;
@@ -32,6 +34,12 @@ interface ParentDashboardProps {
   onUpdatePrivacy?: (settings: PrivacySettings) => void;
   onUpdateLearningGoals?: (weeklyGoalMinutes: number, dailySessionLimitMinutes: number) => void;
   requireParentGate?: boolean;
+  cloudSession?: ParentCloudSession;
+  cloudSyncStatus?: string;
+  onCreateParentAccount?: (email: string, password: string) => Promise<void>;
+  onSignInParentAccount?: (email: string, password: string) => Promise<void>;
+  onSignOutParentAccount?: () => Promise<void>;
+  onSyncProgressToCloud?: () => Promise<void>;
 }
 
 export const ParentDashboard: React.FC<ParentDashboardProps> = ({
@@ -49,6 +57,18 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
   onUpdatePrivacy,
   onUpdateLearningGoals,
   requireParentGate = true,
+  cloudSession = {
+    configured: false,
+    signedIn: false,
+    uid: null,
+    email: null,
+    familyId: null,
+  },
+  cloudSyncStatus = '',
+  onCreateParentAccount,
+  onSignInParentAccount,
+  onSignOutParentAccount,
+  onSyncProgressToCloud,
 }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'skills' | 'curriculum' | 'settings'>('overview');
   const [isWarmingVoiceCache, setIsWarmingVoiceCache] = useState(false);
@@ -68,6 +88,10 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
   const [weeklyGoalDraft, setWeeklyGoalDraft] = useState(String(progress.weeklyGoalMinutes || 60));
   const [dailyLimitDraft, setDailyLimitDraft] = useState(String(progress.dailySessionLimitMinutes || 20));
   const [goalStatus, setGoalStatus] = useState('');
+  const [parentEmail, setParentEmail] = useState('');
+  const [parentPassword, setParentPassword] = useState('');
+  const [cloudAuthStatus, setCloudAuthStatus] = useState('');
+  const [isCloudActionBusy, setIsCloudActionBusy] = useState(false);
 
   // Calculate stats
   const totalProblems = progress.mathScore + progress.readingScore + progress.scienceScore +
@@ -303,11 +327,12 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
   const paidLaunchRequirements = [
     { label: 'Formal privacy policy and terms', status: 'Needed before public launch' },
     { label: 'COPPA review and parental consent path', status: 'Needed before collecting child data' },
-    { label: 'Account, subscription, and billing backend', status: 'Needed before charging families' },
+    { label: 'Subscription and billing backend', status: 'Needed before charging families' },
     { label: 'Production API server for voice and covers', status: 'Needed before premium media features' },
   ];
   const betaReadySignals = [
     'Local parent PIN protects settings and data controls',
+    'Firebase parent account sign-in and opt-in progress sync are wired',
     'Curriculum roadmap covers grades and rooms',
     'Progress and learning goals are visible to parents',
   ];
@@ -516,6 +541,19 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
     anchor.click();
     anchor.remove();
     URL.revokeObjectURL(url);
+  };
+
+  const runCloudAction = async (action: () => Promise<void>, fallbackMessage: string) => {
+    setIsCloudActionBusy(true);
+    setCloudAuthStatus('');
+    try {
+      await action();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : fallbackMessage;
+      setCloudAuthStatus(message);
+    } finally {
+      setIsCloudActionBusy(false);
+    }
   };
 
   if (requireParentGate && !isParentVerified) {
@@ -1681,6 +1719,11 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
               </p>
               {[
                 {
+                  key: 'allowCloudSync',
+                  title: 'Firebase cloud progress sync',
+                  description: 'Saves parent-approved child progress to Firebase after a parent account signs in.',
+                },
+                {
                   key: 'allowExternalVoice',
                   title: 'External voice narration',
                   description: 'Uses the app server to create and reuse cached human lesson audio. Spoken narration stays off when this is off.',
@@ -1716,6 +1759,116 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                   </div>
                 );
               })}
+            </div>
+
+            <div className="bg-white rounded-xl p-4 shadow-sm border border-sky-100">
+              <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <Cloud size={20} className="text-sky-500" />
+                Firebase Parent Account
+              </h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Cloud sync is parent-only. Sign in here, turn on Firebase cloud progress sync in Privacy Controls, then sync the active child profile.
+              </p>
+
+              {!cloudSession.configured && (
+                <div className="rounded-xl bg-amber-50 border border-amber-100 p-3 text-sm text-amber-900">
+                  Firebase Web config is missing for this browser. Add the VITE_FIREBASE values in local environment settings before using cloud sync.
+                </div>
+              )}
+
+              {cloudSession.configured && cloudSession.signedIn ? (
+                <div className="space-y-3">
+                  <div className="rounded-xl bg-sky-50 border border-sky-100 p-3">
+                    <p className="text-xs font-black uppercase tracking-[0.12em] text-sky-700">Signed in parent</p>
+                    <p className="mt-1 text-sm font-bold text-sky-950 break-words">{cloudSession.email || 'Firebase parent account'}</p>
+                    <p className="mt-1 text-xs text-sky-800 break-words">Family ID: {cloudSession.familyId}</p>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <button
+                      onClick={() => runCloudAction(
+                        () => onSyncProgressToCloud?.() || Promise.resolve(),
+                        'Firebase progress sync failed.'
+                      )}
+                      disabled={isCloudActionBusy || !privacy.allowCloudSync}
+                      className={`py-3 rounded-lg font-semibold transition flex items-center justify-center gap-2 ${
+                        privacy.allowCloudSync
+                          ? 'bg-sky-600 text-white hover:bg-sky-700'
+                          : 'bg-gray-200 text-gray-500'
+                      }`}
+                    >
+                      <Cloud size={18} />
+                      {privacy.allowCloudSync ? 'Sync Progress Now' : 'Turn On Cloud Sync First'}
+                    </button>
+                    <button
+                      onClick={() => runCloudAction(
+                        () => onSignOutParentAccount?.() || Promise.resolve(),
+                        'Firebase sign out failed.'
+                      )}
+                      disabled={isCloudActionBusy}
+                      className="py-3 rounded-lg bg-slate-100 text-slate-700 font-semibold hover:bg-slate-200 transition flex items-center justify-center gap-2"
+                    >
+                      <LogOut size={18} />
+                      Sign Out
+                    </button>
+                  </div>
+                </div>
+              ) : cloudSession.configured ? (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <input
+                      value={parentEmail}
+                      onChange={(event) => {
+                        setParentEmail(event.target.value);
+                        setCloudAuthStatus('');
+                      }}
+                      type="email"
+                      autoComplete="email"
+                      placeholder="Parent email"
+                      className="rounded-lg border border-gray-200 px-3 py-2 focus:border-sky-500 focus:outline-none"
+                    />
+                    <input
+                      value={parentPassword}
+                      onChange={(event) => {
+                        setParentPassword(event.target.value);
+                        setCloudAuthStatus('');
+                      }}
+                      type="password"
+                      autoComplete="current-password"
+                      placeholder="Password, 6+ characters"
+                      className="rounded-lg border border-gray-200 px-3 py-2 focus:border-sky-500 focus:outline-none"
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <button
+                      onClick={() => runCloudAction(
+                        () => onSignInParentAccount?.(parentEmail, parentPassword) || Promise.resolve(),
+                        'Firebase parent sign in failed.'
+                      )}
+                      disabled={isCloudActionBusy || parentEmail.trim().length === 0 || parentPassword.length < 6}
+                      className="py-3 rounded-lg bg-sky-600 text-white font-semibold hover:bg-sky-700 disabled:bg-gray-200 disabled:text-gray-500 transition flex items-center justify-center gap-2"
+                    >
+                      <LogIn size={18} />
+                      Sign In Parent
+                    </button>
+                    <button
+                      onClick={() => runCloudAction(
+                        () => onCreateParentAccount?.(parentEmail, parentPassword) || Promise.resolve(),
+                        'Firebase parent account creation failed.'
+                      )}
+                      disabled={isCloudActionBusy || parentEmail.trim().length === 0 || parentPassword.length < 6}
+                      className="py-3 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700 disabled:bg-gray-200 disabled:text-gray-500 transition"
+                    >
+                      Create Parent Account
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+
+              {(cloudAuthStatus || cloudSyncStatus) && (
+                <p className="mt-3 rounded-lg border border-sky-100 bg-sky-50 p-3 text-sm font-semibold text-sky-900">
+                  {cloudAuthStatus || cloudSyncStatus}
+                </p>
+              )}
             </div>
 
             <div className="bg-white rounded-xl p-4 shadow-sm">
@@ -1877,7 +2030,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
               <div className="rounded-xl bg-slate-50 border border-slate-200 p-3">
                 <p className="text-xs font-bold text-slate-700">No payment collection</p>
                 <p className="text-xs text-slate-500 mt-1">
-                  This build intentionally does not collect card data, create subscriptions, or promise cloud sync. Add a production auth and billing plan before selling access.
+                  This build intentionally does not collect card data or create subscriptions. Keep Firebase sync parent-gated and add a production billing plan before selling access.
                 </p>
               </div>
             </div>

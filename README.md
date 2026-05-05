@@ -68,6 +68,7 @@ This repo now includes Firebase web hosting config:
 - `.firebaserc` points at project `kid-genius-world`.
 - `firestore.rules` starts with parent-owned family records and denies everything else.
 - `services/firebaseClient.ts` initializes the Firebase Web SDK only when web env values exist.
+- `services/firebaseParentAuth.ts` wires parent email/password account creation, sign-in, sign-out, and family IDs.
 - `services/firebaseProgressStore.ts` contains the first cloud progress-sync boundary for parent-owned child profiles.
 
 Login and deploy:
@@ -164,4 +165,4 @@ If an API key was pasted into chat, logs, screenshots, or a ticket, rotate it be
 
 The app includes draft privacy and terms screens, parent PIN controls, and parent-gated external voice/story-cover settings. Before public launch, replace draft legal copy with reviewed policies for the countries, payment model, accounts, analytics, and child-data flows you actually use.
 
-Current progress is still local-browser storage until parent account/auth is enabled. Firebase scaffolding is present, but cloud sync should remain parent-gated and consent-backed before syncing child profiles across devices.
+Current progress starts in local-browser storage. Parents can create or sign into a Firebase account, turn on Firebase cloud progress sync in Privacy Controls, and manually sync the active child profile. Keep this parent-gated and consent-backed before syncing child profiles across devices in production.

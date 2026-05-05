@@ -34,11 +34,15 @@ export const LegalInfo: React.FC<LegalInfoProps> = ({ type, onBack }) => {
           {isPrivacy ? (
             <div className="space-y-5 text-slate-700 leading-relaxed">
               <p>
-                This notice explains how Kid Genius World handles child learning data in the current web app. Final legal review is still required before adding accounts, payments, advertising, or synced child profiles.
+                This notice explains how Kid Genius World handles child learning data in the current web app. Final legal review is still required before public accounts, payments, advertising, analytics, or paid subscriptions launch.
               </p>
               <section>
                 <h2 className="text-xl font-black text-slate-900 mb-2">Current Data Storage</h2>
-                <p>Child progress, grade selection, pet choice, achievements, accessibility settings, and local app preferences are stored in this browser using local storage.</p>
+                <p>Child progress, grade selection, pet choice, achievements, accessibility settings, and local app preferences are stored in this browser using local storage unless a parent signs in and turns on Firebase cloud progress sync.</p>
+              </section>
+              <section>
+                <h2 className="text-xl font-black text-slate-900 mb-2">Optional Firebase Sync</h2>
+                <p>When a parent creates or signs into a Firebase parent account and enables cloud sync, the app can save the active child profile and learning progress to Firebase for parent-managed access. Cloud sync is off by default.</p>
               </section>
               <section>
                 <h2 className="text-xl font-black text-slate-900 mb-2">External Services</h2>
@@ -46,11 +50,11 @@ export const LegalInfo: React.FC<LegalInfoProps> = ({ type, onBack }) => {
               </section>
               <section>
                 <h2 className="text-xl font-black text-slate-900 mb-2">Parent Controls</h2>
-                <p>Parents can review progress, adjust accessibility settings, warm voice cache, and reset local progress from the parent dashboard after passing a grown-up check.</p>
+                <p>Parents can review progress, adjust accessibility settings, manage Firebase sign-in and sync, warm voice cache, export local progress, and reset local progress from the parent dashboard after passing a grown-up check.</p>
               </section>
               <section>
                 <h2 className="text-xl font-black text-slate-900 mb-2">Before Public Launch</h2>
-                <p>Before commercial launch, publish a finalized privacy policy, support contact, data retention policy, deletion request process, and parental consent flow for any account, analytics, subscription, payment, or synced profile feature.</p>
+                <p>Before commercial launch, publish a finalized privacy policy, support contact, data retention policy, deletion request process, and parental consent flow for analytics, subscription, payment, or synced profile features.</p>
               </section>
             </div>
           ) : (

@@ -18,6 +18,7 @@ const requiredFiles = [
   'firestore.rules',
   'firestore.indexes.json',
   'services/firebaseClient.ts',
+  'services/firebaseParentAuth.ts',
   'services/firebaseProgressStore.ts',
   'scripts/check-elevenlabs-key.mjs',
   'scripts/warm-voice-cache.mjs',
@@ -49,6 +50,7 @@ const typesSource = fs.readFileSync(path.join(root, 'types.ts'), 'utf8');
 const audioServiceSource = fs.readFileSync(path.join(root, 'services/audioService.ts'), 'utf8');
 const voiceCacheSource = fs.readFileSync(path.join(root, 'services/voiceCacheService.ts'), 'utf8');
 const firebaseClientSource = fs.readFileSync(path.join(root, 'services/firebaseClient.ts'), 'utf8');
+const firebaseParentAuthSource = fs.readFileSync(path.join(root, 'services/firebaseParentAuth.ts'), 'utf8');
 const firebaseProgressStoreSource = fs.readFileSync(path.join(root, 'services/firebaseProgressStore.ts'), 'utf8');
 const firebaseJsonSource = fs.readFileSync(path.join(root, 'firebase.json'), 'utf8');
 const firestoreRulesSource = fs.readFileSync(path.join(root, 'firestore.rules'), 'utf8');
@@ -100,6 +102,8 @@ const sourceFilesToScan = [
   'components/WorldMap.tsx',
   'services/audioService.ts',
   'services/curriculum.ts',
+  'services/firebaseParentAuth.ts',
+  'services/firebaseProgressStore.ts',
   'services/voiceCacheService.ts',
   'types.ts',
 ];
@@ -171,7 +175,7 @@ if (!parentDashboardSource.includes('What is 8 + 7?')) fail('Parent dashboard fa
 if (!parentDashboardSource.includes('Voice narration and generated story covers may use configured third-party API services')) {
   fail('Privacy copy does not disclose optional third-party API services.');
 }
-if (!typesSource.includes('PrivacySettings') || !typesSource.includes('allowExternalVoice') || !typesSource.includes('allowGeneratedStoryCovers')) {
+if (!typesSource.includes('PrivacySettings') || !typesSource.includes('allowExternalVoice') || !typesSource.includes('allowGeneratedStoryCovers') || !typesSource.includes('allowCloudSync')) {
   fail('Privacy settings data model is missing.');
 }
 if (!appSource.includes('kidGeniusAllowExternalVoice') || !appSource.includes('kidGeniusAllowGeneratedStoryCovers')) {
@@ -195,8 +199,17 @@ if (!firebaseJsonSource.includes('"public": "dist"') || !firebaseJsonSource.incl
 if (!firebaseClientSource.includes('VITE_FIREBASE_PROJECT_ID') || !firebaseClientSource.includes('kid-genius-world')) {
   fail('Firebase Web SDK must be initialized from VITE_FIREBASE_* config with the expected project fallback.');
 }
+if (!firebaseParentAuthSource.includes('createUserWithEmailAndPassword') || !firebaseParentAuthSource.includes('signInWithEmailAndPassword') || !parentDashboardSource.includes('Firebase Parent Account')) {
+  fail('Firebase parent account creation/sign-in must be wired into the parent dashboard.');
+}
+if (!parentDashboardSource.includes('Firebase cloud progress sync') || !parentDashboardSource.includes('Sync Progress Now') || !appSource.includes('syncProgressToFirebase')) {
+  fail('Firebase cloud progress sync must be parent-gated and available from the parent dashboard.');
+}
 if (!firebaseProgressStoreSource.includes('families') || !firebaseProgressStoreSource.includes('children') || !firebaseProgressStoreSource.includes('progress')) {
   fail('Firebase progress sync boundary must use parent-owned family/child/progress paths.');
+}
+if (!firebaseProgressStoreSource.includes('ensureFamilyDocument') || !firebaseProgressStoreSource.includes('cloudSyncConsent')) {
+  fail('Firebase progress sync must create a parent-owned family consent record before child progress writes.');
 }
 if (!firestoreRulesSource.includes('isFamilyParent') || !firestoreRulesSource.includes('allow read, write: if false')) {
   fail('Firestore rules must enforce parent-owned access and deny unknown collections.');

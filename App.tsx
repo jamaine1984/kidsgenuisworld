@@ -29,6 +29,15 @@ import {
 } from './types';
 import { resumeAudioContext, playSuccess, speak, stopSpeaking, setNarrationContext, setSpeechPreferences } from './services/audioService';
 import { updateSkillMetrics, updateLearningProfile, getEncouragingMessage } from './services/adaptiveLearning';
+import {
+  createParentAccount,
+  getCurrentParentSession,
+  signInParentAccount,
+  signOutParentAccount,
+  subscribeParentCloudSession,
+  type ParentCloudSession,
+} from './services/firebaseParentAuth';
+import { syncProgressToFirebase } from './services/firebaseProgressStore';
 import { BookOpen, CheckCircle2, Lightbulb, LockKeyhole, MessageCircle, Play, ShieldCheck, Sparkles, Target, X } from 'lucide-react';
 
 const MathRoom = lazy(() => import('./components/MathRoom').then(module => ({ default: module.MathRoom })));
@@ -318,6 +327,8 @@ const App: React.FC = () => {
     localStorage: false,
     supervisedMedia: false,
   });
+  const [parentCloudSession, setParentCloudSession] = useState<ParentCloudSession>(() => getCurrentParentSession());
+  const [cloudSyncStatus, setCloudSyncStatus] = useState('');
   const [profiles, setProfiles] = useState<ChildProfile[]>(() => loadProfiles());
   const [activeProfileId, setActiveProfileId] = useState(() => localStorage.getItem(ACTIVE_PROFILE_KEY) || loadProfiles()[0]?.id || 'default');
 
@@ -345,6 +356,8 @@ const App: React.FC = () => {
     localStorage.setItem(PROFILES_KEY, JSON.stringify(profiles));
     localStorage.setItem(ACTIVE_PROFILE_KEY, activeProfileId);
   }, [profiles, activeProfileId]);
+
+  useEffect(() => subscribeParentCloudSession(setParentCloudSession), []);
 
   useEffect(() => {
     if (!hasStarted) {
@@ -613,6 +626,53 @@ const App: React.FC = () => {
   const handleUpdateParentPin = (newPin: string) => {
     localStorage.setItem('kidGeniusParentPin', newPin);
     setParentPin(newPin);
+  };
+
+  const handleCreateParentAccount = async (email: string, password: string) => {
+    setCloudSyncStatus('Creating parent account...');
+    await createParentAccount(email, password);
+    setCloudSyncStatus('Parent account created. Turn on cloud sync when you are ready to save progress to Firebase.');
+  };
+
+  const handleSignInParentAccount = async (email: string, password: string) => {
+    setCloudSyncStatus('Signing in...');
+    await signInParentAccount(email, password);
+    setCloudSyncStatus('Parent signed in. Turn on cloud sync to save this child progress to Firebase.');
+  };
+
+  const handleSignOutParentAccount = async () => {
+    await signOutParentAccount();
+    setCloudSyncStatus('Parent signed out. Local progress still works on this browser.');
+  };
+
+  const handleSyncProgressToCloud = async () => {
+    const privacy = progress.privacy || DEFAULT_PRIVACY_SETTINGS;
+    if (!privacy.allowCloudSync) {
+      setCloudSyncStatus('Cloud sync is off. Turn it on in Privacy Controls before syncing progress.');
+      return;
+    }
+    if (!parentCloudSession.familyId || !parentCloudSession.uid) {
+      setCloudSyncStatus('Sign in with a parent Firebase account before syncing progress.');
+      return;
+    }
+
+    const activeProfile = profiles.find(profile => profile.id === activeProfileId) || profiles[0];
+    setCloudSyncStatus('Syncing progress to Firebase...');
+    const result = await syncProgressToFirebase(
+      {
+        familyId: parentCloudSession.familyId,
+        childId: activeProfileId || progress.memberId || 'default',
+      },
+      progress,
+      activeProfile
+    );
+
+    if (result.ok) {
+      localStorage.setItem('kidGeniusLastCloudSyncAt', new Date().toISOString());
+      setCloudSyncStatus('Progress synced to Firebase for this parent account.');
+    } else {
+      setCloudSyncStatus(result.reason || 'Firebase sync did not complete.');
+    }
   };
 
   const handleResetProgress = () => {
@@ -1476,6 +1536,12 @@ const App: React.FC = () => {
         onUpdateChildProfile={handleUpdateChildProfile}
         onUpdatePrivacy={handleUpdatePrivacy}
         onUpdateLearningGoals={handleUpdateLearningGoals}
+        cloudSession={parentCloudSession}
+        cloudSyncStatus={cloudSyncStatus}
+        onCreateParentAccount={handleCreateParentAccount}
+        onSignInParentAccount={handleSignInParentAccount}
+        onSignOutParentAccount={handleSignOutParentAccount}
+        onSyncProgressToCloud={handleSyncProgressToCloud}
       />
     );
   }

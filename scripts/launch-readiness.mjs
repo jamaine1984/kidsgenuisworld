@@ -107,6 +107,8 @@ const wranglerSource = read('wrangler.jsonc');
 const firebaseJsonSource = read('firebase.json');
 const firestoreRulesSource = read('firestore.rules');
 const firebaseClientSource = read('services/firebaseClient.ts');
+const firebaseParentAuthSource = read('services/firebaseParentAuth.ts');
+const firebaseProgressStoreSource = read('services/firebaseProgressStore.ts');
 
 if (!appSource.includes("setLegalView('privacy')") || !appSource.includes("setLegalView('terms')")) {
   fail('Privacy and terms links are not reachable from the app.');
@@ -135,6 +137,12 @@ if (!firestoreRulesSource.includes('isFamilyParent') || !firestoreRulesSource.in
 }
 if (!firebaseClientSource.includes('VITE_FIREBASE_API_KEY') || !firebaseClientSource.includes('getFirebaseServices')) {
   fail('Firebase Web SDK config must be env-driven and initialized behind a helper.');
+}
+if (!firebaseParentAuthSource.includes('createUserWithEmailAndPassword') || !firebaseParentAuthSource.includes('signInWithEmailAndPassword') || !parentSource.includes('Firebase Parent Account')) {
+  fail('Firebase parent auth must be wired before cloud progress sync is offered.');
+}
+if (!parentSource.includes('Firebase cloud progress sync') || !firebaseProgressStoreSource.includes('cloudSyncConsent') || !appSource.includes('syncProgressToFirebase')) {
+  fail('Firebase cloud progress sync must be explicit, consent-backed, and parent-gated.');
 }
 if (!exists('tailwind.config.js') || !exists('postcss.config.js') || !exists('index.css')) {
   fail('Tailwind must stay in the local build pipeline for production.');

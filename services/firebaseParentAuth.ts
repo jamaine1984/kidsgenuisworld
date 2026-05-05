@@ -1,7 +1,9 @@
 import {
   createUserWithEmailAndPassword,
+  GoogleAuthProvider,
   onAuthStateChanged,
   signInWithEmailAndPassword,
+  signInWithPopup,
   signOut,
   type User,
 } from 'firebase/auth';
@@ -84,6 +86,21 @@ export const signInParentAccount = async (email: string, password: string) => {
     email.trim(),
     password
   );
+  return credential.user;
+};
+
+export const signInParentWithGoogle = async () => {
+  const services = getFirebaseServices();
+  if (!services) {
+    throw new Error('Firebase is not configured for this browser.');
+  }
+
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({
+    prompt: 'select_account',
+  });
+
+  const credential = await signInWithPopup(services.auth, provider);
   return credential.user;
 };
 

@@ -38,6 +38,7 @@ interface ParentDashboardProps {
   cloudSyncStatus?: string;
   onCreateParentAccount?: (email: string, password: string) => Promise<void>;
   onSignInParentAccount?: (email: string, password: string) => Promise<void>;
+  onSignInParentWithGoogle?: () => Promise<void>;
   onSignOutParentAccount?: () => Promise<void>;
   onSyncProgressToCloud?: () => Promise<void>;
 }
@@ -67,6 +68,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
   cloudSyncStatus = '',
   onCreateParentAccount,
   onSignInParentAccount,
+  onSignInParentWithGoogle,
   onSignOutParentAccount,
   onSyncProgressToCloud,
 }) => {
@@ -555,6 +557,18 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
     }
     if (message.includes('auth/weak-password')) {
       return 'Use a stronger parent password with at least 6 characters.';
+    }
+    if (message.includes('auth/popup-closed-by-user')) {
+      return 'Google sign-in was closed before it finished.';
+    }
+    if (message.includes('auth/popup-blocked')) {
+      return 'The browser blocked the Google sign-in popup. Allow popups for this site and try again.';
+    }
+    if (message.includes('auth/unauthorized-domain')) {
+      return 'This domain is not authorized for Firebase Google sign-in. Add it in Firebase Authentication settings.';
+    }
+    if (message.includes('auth/account-exists-with-different-credential')) {
+      return 'That email already uses another sign-in method. Sign in with the original method first.';
     }
     if (message.includes('permission-denied')) {
       return 'Firebase blocked this write. Check that the parent is signed in and Firestore rules are deployed.';
@@ -1788,8 +1802,8 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 <Cloud size={20} className="text-sky-500" />
                 Firebase Parent Account
               </h3>
-              <p className="text-sm text-gray-600 mb-4">
-                Cloud sync is parent-only. Sign in here, turn on Firebase cloud progress sync in Privacy Controls, then sync the active child profile.
+                  <p className="text-sm text-gray-600 mb-4">
+                Cloud sync is parent-only. Sign in with Google or email, turn on Firebase cloud progress sync in Privacy Controls, then sync the active child profile.
               </p>
 
               {!cloudSession.configured && (
@@ -1836,6 +1850,24 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 </div>
               ) : cloudSession.configured ? (
                 <div className="space-y-3">
+                  <button
+                    onClick={() => runCloudAction(
+                      () => onSignInParentWithGoogle?.() || Promise.resolve(),
+                      'Firebase Google parent sign in failed.'
+                    )}
+                    disabled={isCloudActionBusy}
+                    className="w-full py-3 rounded-lg bg-white text-slate-800 font-semibold hover:bg-slate-50 disabled:bg-gray-200 disabled:text-gray-500 transition flex items-center justify-center gap-2 border border-slate-200 shadow-sm"
+                  >
+                    <LogIn size={18} />
+                    Continue with Google
+                  </button>
+
+                  <div className="flex items-center gap-3 text-xs font-black uppercase tracking-[0.14em] text-slate-400">
+                    <span className="h-px flex-1 bg-slate-200" />
+                    Or use email
+                    <span className="h-px flex-1 bg-slate-200" />
+                  </div>
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <input
                       value={parentEmail}

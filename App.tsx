@@ -33,6 +33,7 @@ import {
   createParentAccount,
   getCurrentParentSession,
   signInParentAccount,
+  signInParentWithGoogle,
   signOutParentAccount,
   subscribeParentCloudSession,
   type ParentCloudSession,
@@ -638,6 +639,12 @@ const App: React.FC = () => {
     setCloudSyncStatus('Signing in...');
     await signInParentAccount(email, password);
     setCloudSyncStatus('Parent signed in. Turn on cloud sync to save this child progress to Firebase.');
+  };
+
+  const handleSignInParentWithGoogle = async () => {
+    setCloudSyncStatus('Opening Google sign-in...');
+    await signInParentWithGoogle();
+    setCloudSyncStatus('Parent signed in with Google. Turn on cloud sync to save this child progress to Firebase.');
   };
 
   const handleSignOutParentAccount = async () => {
@@ -1540,6 +1547,7 @@ const App: React.FC = () => {
         cloudSyncStatus={cloudSyncStatus}
         onCreateParentAccount={handleCreateParentAccount}
         onSignInParentAccount={handleSignInParentAccount}
+        onSignInParentWithGoogle={handleSignInParentWithGoogle}
         onSignOutParentAccount={handleSignOutParentAccount}
         onSyncProgressToCloud={handleSyncProgressToCloud}
       />

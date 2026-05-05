@@ -199,13 +199,13 @@ if (!firebaseJsonSource.includes('"public": "dist"') || !firebaseJsonSource.incl
 if (!firebaseClientSource.includes('VITE_FIREBASE_PROJECT_ID') || !firebaseClientSource.includes('kid-genius-world')) {
   fail('Firebase Web SDK must be initialized from VITE_FIREBASE_* config with the expected project fallback.');
 }
-if (!firebaseParentAuthSource.includes('createUserWithEmailAndPassword') || !firebaseParentAuthSource.includes('signInWithEmailAndPassword') || !parentDashboardSource.includes('Firebase Parent Account')) {
-  fail('Firebase parent account creation/sign-in must be wired into the parent dashboard.');
+if (!firebaseParentAuthSource.includes('createUserWithEmailAndPassword') || !firebaseParentAuthSource.includes('signInWithEmailAndPassword') || !firebaseParentAuthSource.includes('GoogleAuthProvider') || !parentDashboardSource.includes('Firebase Parent Account')) {
+  fail('Firebase parent account creation/sign-in, including Google, must be wired into the parent dashboard.');
 }
 if (!parentDashboardSource.includes('Firebase cloud progress sync') || !parentDashboardSource.includes('Sync Progress Now') || !appSource.includes('syncProgressToFirebase')) {
   fail('Firebase cloud progress sync must be parent-gated and available from the parent dashboard.');
 }
-if (!parentDashboardSource.includes('getFriendlyFirebaseMessage') || !parentDashboardSource.includes('auth/operation-not-allowed')) {
+if (!parentDashboardSource.includes('getFriendlyFirebaseMessage') || !parentDashboardSource.includes('auth/operation-not-allowed') || !parentDashboardSource.includes('auth/popup-blocked')) {
   fail('Firebase parent auth errors must be translated into parent-friendly messages.');
 }
 if (!firebaseProgressStoreSource.includes('families') || !firebaseProgressStoreSource.includes('children') || !firebaseProgressStoreSource.includes('progress')) {

@@ -53,6 +53,8 @@ test('parent dashboard exposes Firebase cloud sync as parent opt-in', async ({ p
   await expect(page.getByText('Firebase cloud progress sync', { exact: true })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Firebase Parent Account' })).toBeVisible();
   await expect(page.getByText(/Cloud sync is parent-only/i)).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Continue with Google' })).toBeVisible();
+  await expect(page.getByText('Or use email')).toBeVisible();
 
   const syncToggle = page.getByLabel('Toggle Firebase cloud progress sync');
   await expect(syncToggle).toHaveAttribute('aria-pressed', 'false');

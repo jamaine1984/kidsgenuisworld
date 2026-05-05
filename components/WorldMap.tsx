@@ -55,7 +55,7 @@ export const WorldMap: React.FC<WorldMapProps> = ({
       return {
         label: `${unit.reviewCycleDays}d cycle`,
         detail: 'First practice is ready when you are.',
-        lastLabel: 'Not practiced yet',
+        lastLabel: 'First practice ready',
         isDue: false,
       };
     }
@@ -652,8 +652,8 @@ export const WorldMap: React.FC<WorldMapProps> = ({
               <div className="mt-3 rounded-2xl bg-white/10 p-3">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <p className="text-[11px] font-black uppercase tracking-[0.16em] text-cyan-200">Arcade Passport Preview</p>
-                    <p className="mt-1 text-xs font-semibold text-slate-200">Badge trail progress before you play.</p>
+                    <p className="text-[11px] font-black uppercase tracking-[0.16em] text-cyan-200">Arcade Passport</p>
+                    <p className="mt-1 text-xs font-semibold text-slate-200">Badge trail progress for every game.</p>
                   </div>
                   <div className="rounded-xl bg-cyan-100 px-3 py-2 text-center text-slate-950">
                     <p className="text-lg font-black">{arcadeLongTermMasteryPercent}%</p>

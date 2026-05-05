@@ -148,13 +148,13 @@ if (!typesSource.includes('weeklyGoalMinutes') || !typesSource.includes('dailySe
 if (!parentDashboardSource.includes('Daily Activity') || !parentDashboardSource.includes('minutes this week') || !parentDashboardSource.includes('rooms explored')) {
   fail('Parent dashboard daily activity summary is missing.');
 }
-if (!parentDashboardSource.includes('Family Plan Preview') || !parentDashboardSource.includes('No payment collection') || !parentDashboardSource.includes('Paid Launch Readiness')) {
+if (!parentDashboardSource.includes('Family Plan') || !parentDashboardSource.includes('No payment collection') || !parentDashboardSource.includes('Paid Launch Readiness')) {
   fail('Parent dashboard must explain family plan value without collecting payments.');
 }
-if (!parentDashboardSource.includes('Export Local Progress') || !parentDashboardSource.includes('kid-genius-progress-') || !parentDashboardSource.includes('Local progress export')) {
+if (!parentDashboardSource.includes('Export Local Progress') || !parentDashboardSource.includes('kid-genius-progress-') || !parentDashboardSource.includes('Parent progress export')) {
   fail('Parent dashboard must provide local progress export before reset or device migration.');
 }
-if (!appSource.includes('Family Plan') || !appSource.includes('paid subscriptions need real accounts, billing, consent, and support flows first')) {
+if (!appSource.includes('Family Plan') || !appSource.includes('Subscriptions stay off until billing, cancellation support, and final legal review are complete')) {
   fail('Parent onboarding must clearly frame paid launch prerequisites.');
 }
 if (!appSource.includes('Parent Launch Checkpoints') || !appSource.includes('kidGeniusParentConsentReceipt') || !appSource.includes('I reviewed the Privacy Notice and Terms of Use')) {
@@ -443,7 +443,7 @@ if (!worldMapSource.includes('Next lesson') || !worldMapSource.includes('nextUni
 if (!appSource.includes('GameArcade') || !worldMapSource.includes('Game Arcade') || !worldMapSource.includes('onOpenGameArcade')) {
   fail('Modern Game Arcade is not wired from the world map.');
 }
-for (const worldMapArcadeMarker of ['Arcade Passport Preview', 'Next arcade game', 'Badge trail', 'Long-term mastery']) {
+for (const worldMapArcadeMarker of ['Arcade Passport', 'Next arcade game', 'Badge trail', 'Long-term mastery']) {
   if (!worldMapSource.includes(worldMapArcadeMarker)) fail(`World map needs arcade progression preview marker: ${worldMapArcadeMarker}.`);
 }
 for (const gameMarker of ['Number Dash', 'Word Builder', 'Pattern Quest', 'Story Detective', 'Robot Maze', 'Rhythm Tap']) {

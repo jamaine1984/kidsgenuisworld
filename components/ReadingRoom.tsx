@@ -506,7 +506,7 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
                 </button>
               </div>
 
-              {/* Fake Waveform */}
+              {/* Decorative audio waveform */}
               {isRecording && (
                 <div className="flex gap-1 mt-4 h-8 items-center">
                   {[1,2,3,4,5,6,7,8].map(i => (

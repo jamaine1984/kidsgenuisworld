@@ -249,8 +249,8 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
     if (!lastPracticedAt) {
       return {
         label: `${unit.reviewCycleDays}d cycle`,
-        detail: 'No logged practice yet.',
-        lastLabel: 'Not practiced yet',
+        detail: 'Ready for the first guided practice round.',
+        lastLabel: 'First practice ready',
         isDue: false,
       };
     }
@@ -332,7 +332,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
     { label: 'Subscription and billing backend', status: 'Needed before charging families' },
     { label: 'Production API server for voice and covers', status: 'Needed before premium media features' },
   ];
-  const betaReadySignals = [
+  const launchReadySignals = [
     'Local parent PIN protects settings and data controls',
     'Firebase parent account sign-in and opt-in progress sync are wired',
     'Curriculum roadmap covers grades and rooms',
@@ -357,17 +357,17 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
     },
     {
       label: 'Accuracy signal',
-      value: weeklyAttempted > 0 ? `${weeklyAccuracy}%` : 'Waiting',
+      value: weeklyAttempted > 0 ? `${weeklyAccuracy}%` : 'Ready',
       detail: weeklyAttempted > 0
         ? `${weeklyCorrect}/${weeklyAttempted} activities correct this week.`
-        : 'Accuracy appears after kids complete scored activities.',
+        : 'Accuracy starts tracking after the first scored activity.',
     },
     {
       label: 'Strongest room',
-      value: strongestSubject?.name || 'Not yet',
+      value: strongestSubject?.name || 'Start today',
       detail: strongestSubject
         ? `${strongestSubject.score} correct activities recorded.`
-        : 'Complete a scored activity to identify strengths.',
+        : 'The strongest room appears after the first completed lesson.',
     },
     {
       label: 'Healthy pacing',
@@ -449,10 +449,10 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
     },
     {
       label: 'Strongest arcade skill',
-      value: arcadeStrongestGame?.wins ? arcadeStrongestGame.label : 'Not yet',
+      value: arcadeStrongestGame?.wins ? arcadeStrongestGame.label : 'Start arcade',
       detail: arcadeStrongestGame?.wins
         ? `${arcadeStrongestGame.skill} has the most saved wins so far.`
-        : 'Strongest skill appears after the first completed arcade mission.',
+        : 'The strongest arcade skill appears after the first completed game mission.',
     },
   ];
   const arcadePassportCards = [
@@ -528,8 +528,8 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
     const exportData = {
       exportedAt: new Date().toISOString(),
       app: 'Kid Genius World',
-      version: 'local-beta',
-      note: 'Local progress export. Do not share publicly because it may include child profile names and learning activity.',
+      version: 'web-parent-export',
+      note: 'Parent progress export. Do not share publicly because it may include child profile names and learning activity.',
       progress,
       profiles,
       activeProfileId,
@@ -1062,10 +1062,10 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
             <div className="bg-gradient-to-br from-slate-900 via-indigo-900 to-sky-800 rounded-xl p-4 shadow-sm text-white">
               <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                 <div>
-                  <p className="text-xs font-black uppercase tracking-wide text-sky-200">Family Plan Preview</p>
+                  <p className="text-xs font-black uppercase tracking-wide text-sky-200">Family Plan</p>
                   <h3 className="text-xl font-black mt-1">What paid families should understand</h3>
                   <p className="text-sm text-white/80 mt-2 max-w-2xl">
-                    This app is being shaped for a paid family plan, but payment collection stays out until privacy, accounts, consent, and billing are production-ready.
+                    Kid Genius World gives families structured daily missions, parent reports, and slow mastery paths. Payment collection stays off until billing, cancellation support, and final legal review are complete.
                   </p>
                 </div>
                 <div className="rounded-xl bg-white/10 border border-white/20 px-4 py-3">
@@ -1646,7 +1646,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 Child Profiles
               </h3>
               <p className="text-sm text-gray-600 mb-3">
-                Keep separate local progress for each child on this device.
+                Keep separate progress for each child. Firebase sync can save the active child profile after parent approval.
               </p>
 
               <div className="space-y-2 mb-4">
@@ -1751,7 +1751,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 Privacy Controls
               </h3>
               <p className="text-sm text-gray-600 mb-4">
-                Keep external services off for demos or turn them on when a parent approves your configured app server services.
+                Keep external services off by default or turn them on when a parent approves your configured app server services.
               </p>
               {[
                 {
@@ -2055,13 +2055,13 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 Paid Launch Readiness
               </h3>
               <p className="text-sm text-gray-600 mb-4">
-                Use this as the parent-facing launch checklist. Beta families can test learning quality now, but the paid subscription layer should wait until the items below are finished.
+                Use this as the parent-facing launch checklist. Families can use the learning path now; the paid subscription layer should wait until the items below are finished.
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
                 <div className="rounded-xl bg-emerald-50 border border-emerald-100 p-3">
-                  <p className="text-sm font-black text-emerald-800 mb-2">Beta-ready signals</p>
+                  <p className="text-sm font-black text-emerald-800 mb-2">Ready now</p>
                   <div className="space-y-2">
-                    {betaReadySignals.map(signal => (
+                    {launchReadySignals.map(signal => (
                       <div key={signal} className="text-xs font-semibold text-emerald-700 flex gap-2">
                         <span className="mt-0.5 h-2 w-2 rounded-full bg-emerald-500 shrink-0" />
                         <span>{signal}</span>

@@ -1433,12 +1433,12 @@ const App: React.FC = () => {
               <div className="rounded-2xl border border-slate-200 p-4">
                 <ShieldCheck className="text-sky-600 mb-3" size={28} />
                 <h2 className="font-bold text-lg mb-2">Privacy Notice</h2>
-                <p className="text-sm text-slate-600">Progress is local to this browser. Voice and generated cover features may call configured third-party services through your app server.</p>
+                <p className="text-sm text-slate-600">Progress starts on this device and can sync to Firebase after a parent signs in and turns on cloud sync.</p>
               </div>
               <div className="rounded-2xl border border-slate-200 p-4">
                 <Sparkles className="text-amber-600 mb-3" size={28} />
                 <h2 className="font-bold text-lg mb-2">Family Plan</h2>
-                <p className="text-sm text-slate-600">Beta testing can start with local progress, but paid subscriptions need real accounts, billing, consent, and support flows first.</p>
+                <p className="text-sm text-slate-600">Family access is account-ready. Subscriptions stay off until billing, cancellation support, and final legal review are complete.</p>
               </div>
             </div>
             <div className="px-6 pb-6">

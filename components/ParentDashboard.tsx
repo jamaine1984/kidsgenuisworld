@@ -543,6 +543,28 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
     URL.revokeObjectURL(url);
   };
 
+  const getFriendlyFirebaseMessage = (message: string) => {
+    if (message.includes('auth/operation-not-allowed')) {
+      return 'Firebase Email/Password sign-in is not enabled yet. Turn it on in Firebase Console under Authentication > Sign-in method.';
+    }
+    if (message.includes('auth/email-already-in-use')) {
+      return 'That parent email already has an account. Use Sign In Parent instead.';
+    }
+    if (message.includes('auth/invalid-credential') || message.includes('auth/wrong-password') || message.includes('auth/user-not-found')) {
+      return 'The parent email or password did not match a Firebase account.';
+    }
+    if (message.includes('auth/weak-password')) {
+      return 'Use a stronger parent password with at least 6 characters.';
+    }
+    if (message.includes('permission-denied')) {
+      return 'Firebase blocked this write. Check that the parent is signed in and Firestore rules are deployed.';
+    }
+    if (message.includes('network-request-failed')) {
+      return 'Firebase could not be reached. Check the internet connection and try again.';
+    }
+    return message;
+  };
+
   const runCloudAction = async (action: () => Promise<void>, fallbackMessage: string) => {
     setIsCloudActionBusy(true);
     setCloudAuthStatus('');
@@ -550,7 +572,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
       await action();
     } catch (error) {
       const message = error instanceof Error ? error.message : fallbackMessage;
-      setCloudAuthStatus(message);
+      setCloudAuthStatus(getFriendlyFirebaseMessage(message));
     } finally {
       setIsCloudActionBusy(false);
     }

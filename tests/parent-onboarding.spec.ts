@@ -16,7 +16,7 @@ test('parent setup requires launch checkpoints before child access', async ({ pa
 
   await page.getByLabel('I am the parent or guardian supervising this child account.').check();
   await page.getByLabel('I reviewed the Privacy Notice and Terms of Use.').check();
-  await page.getByLabel('I understand progress is stored locally in this browser until accounts are added.').check();
+  await page.getByLabel('I understand progress is stored locally in this browser unless a parent enables Firebase cloud sync.').check();
   await page.getByLabel('I will supervise optional voice narration and generated story cover features.').check();
   await expect(saveButton).toBeEnabled();
 

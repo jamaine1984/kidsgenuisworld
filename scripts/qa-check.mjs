@@ -205,6 +205,9 @@ if (!firebaseParentAuthSource.includes('createUserWithEmailAndPassword') || !fir
 if (!parentDashboardSource.includes('Firebase cloud progress sync') || !parentDashboardSource.includes('Sync Progress Now') || !appSource.includes('syncProgressToFirebase')) {
   fail('Firebase cloud progress sync must be parent-gated and available from the parent dashboard.');
 }
+if (!parentDashboardSource.includes('getFriendlyFirebaseMessage') || !parentDashboardSource.includes('auth/operation-not-allowed')) {
+  fail('Firebase parent auth errors must be translated into parent-friendly messages.');
+}
 if (!firebaseProgressStoreSource.includes('families') || !firebaseProgressStoreSource.includes('children') || !firebaseProgressStoreSource.includes('progress')) {
   fail('Firebase progress sync boundary must use parent-owned family/child/progress paths.');
 }

@@ -42,6 +42,29 @@ test('parent dashboard gate protects tabs and privacy receipt', async ({ page })
   await expect(page.getByText(/Saved locally on/i)).toBeVisible();
 });
 
+test('parent dashboard exposes Firebase cloud sync as parent opt-in', async ({ page }) => {
+  await completeKidSetup(page);
+
+  await page.getByTitle('Settings').click();
+  await page.getByLabel('Parent PIN').fill(PARENT_PIN);
+  await page.getByRole('button', { name: 'Unlock Parent Dashboard' }).click();
+  await page.getByRole('button', { name: /Settings/i }).click();
+
+  await expect(page.getByText('Firebase cloud progress sync', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Firebase Parent Account' })).toBeVisible();
+  await expect(page.getByText(/Cloud sync is parent-only/i)).toBeVisible();
+
+  const syncToggle = page.getByLabel('Toggle Firebase cloud progress sync');
+  await expect(syncToggle).toHaveAttribute('aria-pressed', 'false');
+  await syncToggle.click();
+  await expect(syncToggle).toHaveAttribute('aria-pressed', 'true');
+
+  await expect(page.getByPlaceholder('Parent email')).toBeVisible();
+  await expect(page.getByPlaceholder('Password, 6+ characters')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Sign In Parent' })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Create Parent Account' })).toBeDisabled();
+});
+
 test('world review quest and arcade are reachable on tablet', async ({ page }) => {
   await completeKidSetup(page);
 

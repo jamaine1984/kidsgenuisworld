@@ -1451,7 +1451,7 @@ const App: React.FC = () => {
                   {[
                     ['guardian', 'I am the parent or guardian supervising this child account.'],
                     ['policies', 'I reviewed the Privacy Notice and Terms of Use.'],
-                    ['localStorage', 'I understand progress is stored locally in this browser until accounts are added.'],
+                    ['localStorage', 'I understand progress is stored locally in this browser unless a parent enables Firebase cloud sync.'],
                     ['supervisedMedia', 'I will supervise optional voice narration and generated story cover features.'],
                   ].map(([key, label]) => (
                     <label key={key} className="flex items-start gap-3 rounded-xl bg-white px-3 py-3 text-sm font-semibold text-slate-700 shadow-sm">

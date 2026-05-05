@@ -22,6 +22,7 @@ output/playwright
 .dev.vars*
 !.dev.vars.example
 .wrangler
+.firebase
 
 # Editor directories and files
 .vscode/*

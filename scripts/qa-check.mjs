@@ -27,6 +27,7 @@ const requiredFiles = [
   'scripts/generate-static-story-covers.mjs',
   'public/voice-cache/manifest.json',
   'public/story-covers/pk-1.svg',
+  'public/story-covers/pk-1.png',
   'cloudflare/worker.ts',
   'wrangler.jsonc',
   'types.ts',
@@ -271,7 +272,7 @@ if (!mediaApiSource.includes('VITE_MEDIA_API_BASE_URL') || !mediaApiSource.inclu
 if (audioServiceSource.includes('/api/tts') || voiceCacheSource.includes('/api/tts-precache') || storyBookSource.includes('/api/story-cover') || storyBookSource.includes('fetch(')) {
   fail('Child-facing app code must not call runtime media generation APIs.');
 }
-if (!storyBookSource.includes('/story-covers/${story.id}.svg') || !coversStaticScript.includes('public') || !coversStaticScript.includes('story-covers')) {
+if (!storyBookSource.includes('/story-covers/${story.id}.png') || !coversStaticScript.includes('sharp') || !coversStaticScript.includes('pngPath') || !coversStaticScript.includes('sceneFor')) {
   fail('Story covers must load from static saved files.');
 }
 if (!voiceStaticScript.includes('.tts-cache') || !voiceStaticScript.includes('manifest.json') || !voiceStaticScript.includes('files')) {

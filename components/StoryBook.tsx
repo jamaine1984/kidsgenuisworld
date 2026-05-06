@@ -19,6 +19,12 @@ interface Story {
   category: 'adventure' | 'animals' | 'friendship' | 'family' | 'nature' | 'fantasy' | 'learning';
 }
 
+const getStoryShelfLabel = (gradeLevel: number) => {
+  if (gradeLevel === 1) return 'Pre-K';
+  if (gradeLevel === 2) return 'Kindergarten';
+  return `Grade ${gradeLevel - 2}`;
+};
+
 // 50 Stories organized by grade level
 export const STORIES: Story[] = [
   // PRE-K (Level 1)
@@ -986,10 +992,17 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
                   </div>
                 )}
                 <div className="mb-3 rounded-2xl overflow-hidden aspect-[3/4] bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center shadow-inner">
-                  <img src={`/story-covers/${story.id}.svg`} alt={story.title} className="w-full h-full object-cover" />
+                  <img
+                    src={`/story-covers/${story.id}.png`}
+                    alt={story.title}
+                    className="w-full h-full object-cover"
+                    onError={(event) => {
+                      event.currentTarget.src = `/story-covers/${story.id}.svg`;
+                    }}
+                  />
                 </div>
                 <h3 className="font-bold text-gray-800 text-sm mb-1 line-clamp-2">{story.title}</h3>
-                <p className="text-xs text-gray-500 mb-2">Grade {story.gradeLevel} • {story.pages.length} pages</p>
+                <p className="text-xs text-gray-500 mb-2">{getStoryShelfLabel(story.gradeLevel)} • {story.pages.length} pages</p>
                 <span className={`text-xs px-2 py-1 rounded-full bg-gradient-to-r ${getCategoryColor(story.category)} text-white`}>
                   {story.category}
                 </span>

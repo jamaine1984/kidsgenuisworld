@@ -122,7 +122,7 @@ if (!legalLower.includes('children') || !legalLower.includes('parent') || !legal
 if (!parentSource.includes('Privacy Controls') || !parentSource.includes('Parent PIN')) {
   fail('Parent privacy controls and PIN gate must be present before launch.');
 }
-if (!audioSource.includes('kidGeniusAllowExternalVoice') || !storySource.includes('/story-covers/${story.id}.svg')) {
+if (!audioSource.includes('kidGeniusAllowExternalVoice') || !storySource.includes('/story-covers/${story.id}.png')) {
   fail('Saved voice and static cover features must be wired before launch.');
 }
 if (audioSource.includes('/api/tts') || storySource.includes('/api/story-cover') || storySource.includes('fetch(')) {

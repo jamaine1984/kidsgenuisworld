@@ -2,34 +2,39 @@
   <defs>
     <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#ede9fe"/>
-      <stop offset="0.58" stop-color="#ffffff"/>
-      <stop offset="1" stop-color="#8b5cf6"/>
+      <stop offset="0.52" stop-color="#faf5ff"/>
+      <stop offset="1" stop-color="#7c3aed"/>
     </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="34%" r="55%">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.92"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
     <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#0f172a" flood-opacity="0.2"/>
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#0f172a" flood-opacity="0.24"/>
     </filter>
   </defs>
   <rect width="768" height="1024" rx="44" fill="url(#sky)"/>
-  <circle cx="620" cy="130" r="120" fill="#f0abfc" opacity="0.58"/>
-  <circle cx="128" cy="248" r="86" fill="#ffffff" opacity="0.72"/>
-  <path d="M0 600 C150 512 245 672 386 590 C520 512 605 560 768 492 L768 1024 L0 1024 Z" fill="#8b5cf6" opacity="0.82"/>
-  <path d="M0 692 C170 620 250 752 392 682 C540 608 640 650 768 596 L768 1024 L0 1024 Z" fill="#f0abfc" opacity="0.7"/>
+  <rect width="768" height="1024" rx="44" fill="url(#glow)"/>
+  <circle cx="626" cy="134" r="118" fill="#f0abfc" opacity="0.45"/>
+  <circle cx="120" cy="254" r="82" fill="#ffffff" opacity="0.58"/>
   <g filter="url(#shadow)">
-    <rect x="64" y="82" width="312" height="78" rx="39" fill="#ffffff" opacity="0.88"/>
-    <text x="92" y="132" font-size="28" font-weight="900" letter-spacing="3" fill="#312e81" font-family="Arial, sans-serif">FANTASY</text>
-    <rect x="588" y="82" width="96" height="78" rx="39" fill="#312e81"/>
-    <text x="616" y="132" font-size="30" font-weight="900" fill="#ffffff" font-family="Arial, sans-serif">G5</text>
+    <rect x="54" y="70" width="340" height="76" rx="38" fill="#ffffff" opacity="0.9"/>
+    <text x="86" y="119" font-size="26" font-weight="900" letter-spacing="3" fill="#312e81" font-family="Arial, sans-serif">FANTASY</text>
+    <rect x="588" y="70" width="98" height="76" rx="38" fill="#312e81"/>
+    <text x="637" y="119" font-size="30" font-weight="900" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif">G3</text>
   </g>
   <g filter="url(#shadow)">
-    <circle cx="384" cy="388" r="158" fill="#ffffff" opacity="0.86"/>
-    <circle cx="384" cy="388" r="126" fill="#ede9fe" opacity="0.95"/>
-    <text x="384" y="356" text-anchor="middle" font-size="86" font-weight="900" fill="#312e81" font-family="Arial, sans-serif">MP</text>
-    <text x="384" y="450" text-anchor="middle" font-size="86" fill="#312e81" font-family="Arial, sans-serif">🖌️</text>
+    
+      <path d="M244 586 L524 586 L490 338 Q384 238 278 338 Z" fill="#7c3aed" stroke="#312e81" stroke-width="12"/>
+      <path d="M304 586 L304 428 Q384 362 464 428 L464 586 Z" fill="#ede9fe" stroke="#312e81" stroke-width="10"/>
+      <path d="M206 228 L218.32 259.68 L250 272 L218.32 284.32 L206 316 L193.68 284.32 L162 272 L193.68 259.68 Z" fill="#f0abfc" opacity="0.92"/><path d="M560 210 L569.52 234.48 L594 244 L569.52 253.52 L560 278 L550.48 253.52 L526 244 L550.48 234.48 Z" fill="#ffffff" opacity="0.9"/><path d="M600 358 L606.72 375.28 L624 382 L606.72 388.72 L600 406 L593.28 388.72 L576 382 L593.28 375.28 Z" fill="#f0abfc" opacity="0.86"/>
+      <path d="M196 634 C282 590 496 590 586 634" stroke="#f0abfc" stroke-width="22" stroke-linecap="round" fill="none"/>
   </g>
+  <path d="M0 704 C160 628 250 736 392 684 C536 630 626 690 768 640 L768 1024 L0 1024 Z" fill="#312e81" opacity="0.12"/>
   <g filter="url(#shadow)">
-    <rect x="48" y="630" width="672" height="284" rx="42" fill="#ffffff" opacity="0.92"/>
-    <text x="64" y="668" font-size="22" font-weight="900" letter-spacing="4" fill="#64748b" font-family="Arial, sans-serif">KID GENIUS ORIGINAL</text>
-    <text x="64" y="690" font-size="50" font-weight="900" fill="#312e81" font-family="Arial, sans-serif">The Magic</text>
-<text x="64" y="748" font-size="50" font-weight="900" fill="#312e81" font-family="Arial, sans-serif">Paintbrush</text>
+    <rect x="42" y="662" width="684" height="300" rx="42" fill="#ffffff" opacity="0.94"/>
+    <text x="64" y="720" font-size="22" font-weight="900" letter-spacing="4" fill="#64748b" font-family="Arial, sans-serif">KID GENIUS ORIGINAL</text>
+    <text x="64" y="798" font-size="52" font-weight="900" fill="#312e81" font-family="Arial, sans-serif">The Magic</text>
+<text x="64" y="856" font-size="52" font-weight="900" fill="#312e81" font-family="Arial, sans-serif">Paintbrush</text>
   </g>
 </svg>

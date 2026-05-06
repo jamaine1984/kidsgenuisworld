@@ -18,6 +18,10 @@
     "ELEVENLABS_VOICE_ID": "JBFqnCBsd6RMkjVDRZzb",
     "ELEVENLABS_MODEL_ID": "eleven_flash_v2_5"
   },
+  // Required before Stripe billing works:
+  // wrangler secret put STRIPE_SECRET_KEY
+  // wrangler secret put FIREBASE_WEB_API_KEY
+  // Add STRIPE_MONTHLY_PRICE_ID here after creating a recurring Stripe Price.
   "observability": {
     "enabled": true
   }

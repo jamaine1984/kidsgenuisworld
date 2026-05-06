@@ -3,7 +3,7 @@ import {
   ArrowLeft, BarChart3, Clock, Target, TrendingUp,
   Star, Award, Brain, Calendar, CheckCircle2, ChevronRight, Lock,
   Settings, Shield, Volume2, Eye, Type, BookOpen, Map, Printer, Download, Gamepad2,
-  Cloud, LogIn, LogOut
+  Cloud, CreditCard, LogIn, LogOut
 } from 'lucide-react';
 import {
   UserProgress,
@@ -41,6 +41,9 @@ interface ParentDashboardProps {
   onSignInParentWithGoogle?: () => Promise<void>;
   onSignOutParentAccount?: () => Promise<void>;
   onSyncProgressToCloud?: () => Promise<void>;
+  onStartStripeCheckout?: () => Promise<void>;
+  onOpenStripeBillingPortal?: () => Promise<void>;
+  billingStatus?: string;
 }
 
 export const ParentDashboard: React.FC<ParentDashboardProps> = ({
@@ -71,6 +74,9 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
   onSignInParentWithGoogle,
   onSignOutParentAccount,
   onSyncProgressToCloud,
+  onStartStripeCheckout,
+  onOpenStripeBillingPortal,
+  billingStatus = '',
 }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'skills' | 'curriculum' | 'settings'>('overview');
   const [isWarmingVoiceCache, setIsWarmingVoiceCache] = useState(false);
@@ -94,6 +100,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
   const [parentPassword, setParentPassword] = useState('');
   const [cloudAuthStatus, setCloudAuthStatus] = useState('');
   const [isCloudActionBusy, setIsCloudActionBusy] = useState(false);
+  const [isBillingBusy, setIsBillingBusy] = useState(false);
 
   // Calculate stats
   const totalProblems = progress.mathScore + progress.readingScore + progress.scienceScore +
@@ -589,6 +596,19 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
       setCloudAuthStatus(getFriendlyFirebaseMessage(message));
     } finally {
       setIsCloudActionBusy(false);
+    }
+  };
+
+  const runBillingAction = async (action: () => Promise<void>, fallbackMessage: string) => {
+    setIsBillingBusy(true);
+    setCloudAuthStatus('');
+    try {
+      await action();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : fallbackMessage;
+      setCloudAuthStatus(message);
+    } finally {
+      setIsBillingBusy(false);
     }
   };
 
@@ -1921,6 +1941,59 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
               {(cloudAuthStatus || cloudSyncStatus) && (
                 <p className="mt-3 rounded-lg border border-sky-100 bg-sky-50 p-3 text-sm font-semibold text-sky-900">
                   {cloudAuthStatus || cloudSyncStatus}
+                </p>
+              )}
+            </div>
+
+            <div className="bg-white rounded-xl p-4 shadow-sm border border-emerald-100">
+              <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <CreditCard size={20} className="text-emerald-600" />
+                Family Subscription
+              </h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Stripe checkout stays parent-only. Kids never see card forms, receipts, cancellation, or account billing controls inside the learning rooms.
+              </p>
+
+              {cloudSession.signedIn ? (
+                <div className="space-y-3">
+                  <div className="rounded-xl bg-emerald-50 border border-emerald-100 p-3">
+                    <p className="text-xs font-black uppercase tracking-[0.12em] text-emerald-700">Billing parent</p>
+                    <p className="mt-1 text-sm font-bold text-emerald-950 break-words">{cloudSession.email || 'Signed-in parent account'}</p>
+                    <p className="mt-1 text-xs text-emerald-800">Stripe-hosted checkout and billing portal</p>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <button
+                      onClick={() => runBillingAction(
+                        () => onStartStripeCheckout?.() || Promise.resolve(),
+                        'Stripe checkout could not be opened.'
+                      )}
+                      disabled={isBillingBusy}
+                      className="py-3 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700 disabled:bg-gray-200 disabled:text-gray-500 transition flex items-center justify-center gap-2"
+                    >
+                      <CreditCard size={18} />
+                      Start Subscription
+                    </button>
+                    <button
+                      onClick={() => runBillingAction(
+                        () => onOpenStripeBillingPortal?.() || Promise.resolve(),
+                        'Stripe billing portal could not be opened.'
+                      )}
+                      disabled={isBillingBusy}
+                      className="py-3 rounded-lg bg-slate-100 text-slate-700 font-semibold hover:bg-slate-200 disabled:bg-gray-200 disabled:text-gray-500 transition flex items-center justify-center gap-2"
+                    >
+                      Manage Billing
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-xl bg-amber-50 border border-amber-100 p-3 text-sm text-amber-900">
+                  Sign in with the Firebase parent account above before opening Stripe checkout or billing management.
+                </div>
+              )}
+
+              {billingStatus && (
+                <p className="mt-3 rounded-lg border border-emerald-100 bg-emerald-50 p-3 text-sm font-semibold text-emerald-900">
+                  {billingStatus}
                 </p>
               )}
             </div>

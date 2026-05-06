@@ -21,6 +21,7 @@ const requiredFiles = [
   'services/firebaseClient.ts',
   'services/firebaseParentAuth.ts',
   'services/firebaseProgressStore.ts',
+  'services/stripeBilling.ts',
   'scripts/check-elevenlabs-key.mjs',
   'scripts/warm-voice-cache.mjs',
   'scripts/export-static-voice-cache.mjs',
@@ -59,6 +60,7 @@ const voiceCacheSource = fs.readFileSync(path.join(root, 'services/voiceCacheSer
 const firebaseClientSource = fs.readFileSync(path.join(root, 'services/firebaseClient.ts'), 'utf8');
 const firebaseParentAuthSource = fs.readFileSync(path.join(root, 'services/firebaseParentAuth.ts'), 'utf8');
 const firebaseProgressStoreSource = fs.readFileSync(path.join(root, 'services/firebaseProgressStore.ts'), 'utf8');
+const stripeBillingSource = fs.readFileSync(path.join(root, 'services/stripeBilling.ts'), 'utf8');
 const firebaseJsonSource = fs.readFileSync(path.join(root, 'firebase.json'), 'utf8');
 const firestoreRulesSource = fs.readFileSync(path.join(root, 'firestore.rules'), 'utf8');
 const storyBookSource = fs.readFileSync(path.join(root, 'components/StoryBook.tsx'), 'utf8');
@@ -228,6 +230,15 @@ if (!firebaseProgressStoreSource.includes('ensureFamilyDocument') || !firebasePr
 }
 if (!firestoreRulesSource.includes('isFamilyParent') || !firestoreRulesSource.includes('allow read, write: if false')) {
   fail('Firestore rules must enforce parent-owned access and deny unknown collections.');
+}
+if (!stripeBillingSource.includes('getCurrentParentIdToken') || !stripeBillingSource.includes('/api/billing/checkout') || !stripeBillingSource.includes('/api/billing/portal')) {
+  fail('Stripe billing must require Firebase parent auth before checkout or portal access.');
+}
+if (!cloudflareWorkerSource.includes('STRIPE_SECRET_KEY') || !cloudflareWorkerSource.includes('STRIPE_MONTHLY_PRICE_ID') || !cloudflareWorkerSource.includes('accounts:lookup') || !cloudflareWorkerSource.includes('/api/billing/checkout')) {
+  fail('Cloudflare Worker must create Stripe billing sessions behind verified Firebase parent auth.');
+}
+if (!parentDashboardSource.includes('Family Subscription') || !parentDashboardSource.includes('Start Subscription') || !parentDashboardSource.includes('Manage Billing')) {
+  fail('Parent dashboard must expose parent-only Stripe subscription controls.');
 }
 if (audioServiceSource.includes('new SpeechSynthesisUtterance') || audioServiceSource.includes('window.speechSynthesis.speak(')) {
   fail('Kid-facing narration should use cached human voice audio, not browser speech synthesis.');

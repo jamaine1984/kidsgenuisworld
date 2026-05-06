@@ -39,6 +39,7 @@ import {
   type ParentCloudSession,
 } from './services/firebaseParentAuth';
 import { syncProgressToFirebase } from './services/firebaseProgressStore';
+import { openStripeBillingPortal, openStripeCheckout } from './services/stripeBilling';
 import { BookOpen, CheckCircle2, Lightbulb, LockKeyhole, MessageCircle, Play, ShieldCheck, Sparkles, Target, X } from 'lucide-react';
 
 const MathRoom = lazy(() => import('./components/MathRoom').then(module => ({ default: module.MathRoom })));
@@ -330,6 +331,7 @@ const App: React.FC = () => {
   });
   const [parentCloudSession, setParentCloudSession] = useState<ParentCloudSession>(() => getCurrentParentSession());
   const [cloudSyncStatus, setCloudSyncStatus] = useState('');
+  const [billingStatus, setBillingStatus] = useState('');
   const [profiles, setProfiles] = useState<ChildProfile[]>(() => loadProfiles());
   const [activeProfileId, setActiveProfileId] = useState(() => localStorage.getItem(ACTIVE_PROFILE_KEY) || loadProfiles()[0]?.id || 'default');
 
@@ -720,6 +722,26 @@ const App: React.FC = () => {
     } else {
       setCloudSyncStatus(result.reason || 'Firebase sync did not complete.');
     }
+  };
+
+  const handleStartStripeCheckout = async () => {
+    if (!parentCloudSession.signedIn) {
+      setBillingStatus('Sign in with a parent Firebase account before opening Stripe checkout.');
+      return;
+    }
+
+    setBillingStatus('Opening secure Stripe checkout...');
+    await openStripeCheckout(parentCloudSession);
+  };
+
+  const handleOpenStripeBillingPortal = async () => {
+    if (!parentCloudSession.signedIn) {
+      setBillingStatus('Sign in with a parent Firebase account before opening billing management.');
+      return;
+    }
+
+    setBillingStatus('Opening secure Stripe billing portal...');
+    await openStripeBillingPortal(parentCloudSession);
   };
 
   const handleResetProgress = () => {
@@ -1590,6 +1612,9 @@ const App: React.FC = () => {
         onSignInParentWithGoogle={handleSignInParentWithGoogle}
         onSignOutParentAccount={handleSignOutParentAccount}
         onSyncProgressToCloud={handleSyncProgressToCloud}
+        onStartStripeCheckout={handleStartStripeCheckout}
+        onOpenStripeBillingPortal={handleOpenStripeBillingPortal}
+        billingStatus={billingStatus}
       />
     );
   }

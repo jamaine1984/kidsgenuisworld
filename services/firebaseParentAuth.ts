@@ -35,6 +35,16 @@ export const getCurrentParentSession = (): ParentCloudSession => {
   };
 };
 
+export const getCurrentParentIdToken = async () => {
+  const services = getFirebaseServices();
+  const user = services?.auth.currentUser || null;
+  if (!user) {
+    throw new Error('Sign in with a parent account before opening billing.');
+  }
+
+  return user.getIdToken();
+};
+
 export const subscribeParentCloudSession = (
   onChange: (session: ParentCloudSession) => void
 ) => {

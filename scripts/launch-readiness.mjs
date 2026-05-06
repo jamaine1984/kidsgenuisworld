@@ -111,6 +111,7 @@ const firestoreRulesSource = read('firestore.rules');
 const firebaseClientSource = read('services/firebaseClient.ts');
 const firebaseParentAuthSource = read('services/firebaseParentAuth.ts');
 const firebaseProgressStoreSource = read('services/firebaseProgressStore.ts');
+const stripeBillingSource = read('services/stripeBilling.ts');
 
 if (!appSource.includes("setLegalView('privacy')") || !appSource.includes("setLegalView('terms')")) {
   fail('Privacy and terms links are not reachable from the app.');
@@ -145,6 +146,9 @@ if (!firebaseParentAuthSource.includes('createUserWithEmailAndPassword') || !fir
 }
 if (!parentSource.includes('Firebase cloud progress sync') || !firebaseProgressStoreSource.includes('cloudSyncConsent') || !appSource.includes('syncProgressToFirebase')) {
   fail('Firebase cloud progress sync must be explicit, consent-backed, and parent-gated.');
+}
+if (!parentSource.includes('Family Subscription') || !stripeBillingSource.includes('getCurrentParentIdToken') || !cloudflareWorkerSource.includes('STRIPE_SECRET_KEY') || !cloudflareWorkerSource.includes('accounts:lookup')) {
+  fail('Stripe subscription controls must be parent-only and backed by verified Firebase auth.');
 }
 if (!exists('tailwind.config.js') || !exists('postcss.config.js') || !exists('index.css')) {
   fail('Tailwind must stay in the local build pipeline for production.');

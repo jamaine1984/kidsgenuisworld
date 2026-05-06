@@ -11,6 +11,10 @@ interface Env {
   OPENROUTER_IMAGE_MODEL?: string;
   OPENAI_API_KEY?: string;
   OPENAI_IMAGE_MODEL?: string;
+  FIREBASE_WEB_API_KEY?: string;
+  STRIPE_SECRET_KEY?: string;
+  STRIPE_MONTHLY_PRICE_ID?: string;
+  STRIPE_ANNUAL_PRICE_ID?: string;
 }
 
 type VoiceStyle = 'gentle' | 'energetic' | 'phonics' | 'story';
@@ -35,6 +39,150 @@ const sendJson = (body: unknown, status = 200) =>
     status,
     headers: { 'Content-Type': 'application/json; charset=utf-8', ...corsHeaders },
   });
+
+const stripeRequest = async (env: Env, path: string, init: RequestInit = {}) => {
+  if (!env.STRIPE_SECRET_KEY) {
+    return sendJson({ error: 'Stripe secret key is not configured.' }, 503);
+  }
+
+  const response = await fetch(`https://api.stripe.com/v1${path}`, {
+    ...init,
+    headers: {
+      Authorization: `Bearer ${env.STRIPE_SECRET_KEY}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
+      ...(init.headers || {}),
+    },
+  });
+
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const message = (result as { error?: { message?: string } }).error?.message || 'Stripe request failed.';
+    return sendJson({ error: message }, response.status);
+  }
+
+  return sendJson(result);
+};
+
+const verifyFirebaseParent = async (env: Env, idToken: string) => {
+  if (!env.FIREBASE_WEB_API_KEY) {
+    return { error: 'Firebase Web API key is not configured for billing auth.' };
+  }
+  if (!idToken) {
+    return { error: 'Parent sign-in token is required.' };
+  }
+
+  const response = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${env.FIREBASE_WEB_API_KEY}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ idToken }),
+  });
+  const result = await response.json().catch(() => ({})) as { users?: Array<{ localId?: string; email?: string }> };
+  const user = result.users?.[0];
+  if (!response.ok || !user?.localId) {
+    return { error: 'Parent Firebase sign-in could not be verified.' };
+  }
+
+  return {
+    uid: user.localId,
+    email: user.email || '',
+  };
+};
+
+const findOrCreateStripeCustomer = async (
+  env: Env,
+  parent: { uid: string; email: string },
+  familyId: string
+) => {
+  const listResponse = await stripeRequest(env, `/customers?email=${encodeURIComponent(parent.email)}&limit=1`);
+  if (!listResponse.ok) return listResponse;
+  const list = await listResponse.json() as { data?: Array<{ id: string }> };
+  const existingCustomer = list.data?.[0];
+  if (existingCustomer?.id) {
+    return sendJson(existingCustomer);
+  }
+
+  const params = new URLSearchParams();
+  params.set('email', parent.email);
+  params.set('metadata[firebase_uid]', parent.uid);
+  params.set('metadata[family_id]', familyId);
+  params.set('metadata[app]', 'kid-genius-world');
+  return stripeRequest(env, '/customers', {
+    method: 'POST',
+    body: params,
+  });
+};
+
+const safeReturnUrl = (request: Request, value: unknown) => {
+  const requestOrigin = new URL(request.url).origin;
+  if (typeof value !== 'string') return requestOrigin;
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' || url.hostname === 'localhost' || url.hostname === '127.0.0.1'
+      ? url.origin
+      : requestOrigin;
+  } catch {
+    return requestOrigin;
+  }
+};
+
+const handleBillingCheckout = async (request: Request, env: Env) => {
+  if (request.method !== 'POST') return sendJson({ error: 'Method Not Allowed' }, 405);
+  const body = await request.json().catch(() => ({})) as Record<string, unknown>;
+  const parent = await verifyFirebaseParent(env, String(body.idToken || ''));
+  if ('error' in parent) return sendJson({ error: parent.error }, 401);
+
+  const priceId = env.STRIPE_MONTHLY_PRICE_ID || env.STRIPE_ANNUAL_PRICE_ID;
+  if (!priceId) {
+    return sendJson({ error: 'Stripe subscription Price ID is not configured.' }, 503);
+  }
+
+  const familyId = typeof body.familyId === 'string' && body.familyId ? body.familyId : `family-${parent.uid}`;
+  const customerResponse = await findOrCreateStripeCustomer(env, parent, familyId);
+  if (!customerResponse.ok) return customerResponse;
+  const customer = await customerResponse.json() as { id?: string };
+  if (!customer.id) return sendJson({ error: 'Stripe customer could not be created.' }, 502);
+
+  const returnUrl = safeReturnUrl(request, body.returnUrl);
+  const params = new URLSearchParams();
+  params.set('mode', 'subscription');
+  params.set('customer', customer.id);
+  params.set('line_items[0][price]', priceId);
+  params.set('line_items[0][quantity]', '1');
+  params.set('allow_promotion_codes', 'true');
+  params.set('client_reference_id', parent.uid);
+  params.set('success_url', `${returnUrl}/?billing=success`);
+  params.set('cancel_url', `${returnUrl}/?billing=cancelled`);
+  params.set('metadata[firebase_uid]', parent.uid);
+  params.set('metadata[family_id]', familyId);
+  params.set('subscription_data[metadata][firebase_uid]', parent.uid);
+  params.set('subscription_data[metadata][family_id]', familyId);
+
+  return stripeRequest(env, '/checkout/sessions', {
+    method: 'POST',
+    body: params,
+  });
+};
+
+const handleBillingPortal = async (request: Request, env: Env) => {
+  if (request.method !== 'POST') return sendJson({ error: 'Method Not Allowed' }, 405);
+  const body = await request.json().catch(() => ({})) as Record<string, unknown>;
+  const parent = await verifyFirebaseParent(env, String(body.idToken || ''));
+  if ('error' in parent) return sendJson({ error: parent.error }, 401);
+
+  const familyId = typeof body.familyId === 'string' && body.familyId ? body.familyId : `family-${parent.uid}`;
+  const customerResponse = await findOrCreateStripeCustomer(env, parent, familyId);
+  if (!customerResponse.ok) return customerResponse;
+  const customer = await customerResponse.json() as { id?: string };
+  if (!customer.id) return sendJson({ error: 'Stripe customer could not be created.' }, 502);
+
+  const params = new URLSearchParams();
+  params.set('customer', customer.id);
+  params.set('return_url', safeReturnUrl(request, body.returnUrl));
+  return stripeRequest(env, '/billing_portal/sessions', {
+    method: 'POST',
+    body: params,
+  });
+};
 
 const safeErrorSample = async (response: Response) => ({
   status: response.status,
@@ -255,6 +403,8 @@ export default {
         },
       });
     }
+    if (url.pathname === '/api/billing/checkout') return withCors(await handleBillingCheckout(request, env));
+    if (url.pathname === '/api/billing/portal') return withCors(await handleBillingPortal(request, env));
     if (url.pathname.startsWith('/api/')) return sendJson({ error: 'Runtime media generation APIs are disabled. Use saved static media.' }, 404);
     if (url.pathname === '/api/tts') return withCors(await handleTts(request, env));
     if (url.pathname === '/api/tts-precache') return withCors(await handleTtsPrecache(request, env));

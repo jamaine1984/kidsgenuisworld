@@ -326,11 +326,11 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
     'Parent dashboard, printable practice, and local child profiles',
     'Optional premium voice narration and illustrated story covers from saved static media',
   ];
-  const paidLaunchRequirements = [
-    { label: 'Formal privacy policy and terms', status: 'Needed before public launch' },
-    { label: 'COPPA review and parental consent path', status: 'Needed before collecting child data' },
-    { label: 'Subscription and billing backend', status: 'Needed before charging families' },
-    { label: 'Production API server for voice and covers', status: 'Needed before premium media features' },
+  const familyProtectionItems = [
+    { label: 'Parent-controlled setup', status: 'A grown-up creates the child profile and PIN.' },
+    { label: 'Opt-in cloud sync', status: 'Firebase progress sync stays off until a parent turns it on.' },
+    { label: 'Static media library', status: 'Story covers and narration are served from saved media files.' },
+    { label: 'No kid payment screens', status: 'Billing choices stay outside the child learning area.' },
   ];
   const launchReadySignals = [
     'Local parent PIN protects settings and data controls',
@@ -1063,9 +1063,9 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
               <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                 <div>
                   <p className="text-xs font-black uppercase tracking-wide text-sky-200">Family Plan</p>
-                  <h3 className="text-xl font-black mt-1">What paid families should understand</h3>
+                  <h3 className="text-xl font-black mt-1">What families get</h3>
                   <p className="text-sm text-white/80 mt-2 max-w-2xl">
-                    Kid Genius World gives families structured daily missions, parent reports, and slow mastery paths. Payment collection stays off until billing, cancellation support, and final legal review are complete.
+                    Kid Genius World gives families structured daily missions, parent reports, slow mastery paths, saved story media, and parent-controlled privacy settings.
                   </p>
                 </div>
                 <div className="rounded-xl bg-white/10 border border-white/20 px-4 py-3">
@@ -1081,7 +1081,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 ))}
               </div>
               <div className="mt-4 rounded-xl bg-amber-300/15 border border-amber-200/30 p-3 text-sm text-amber-50">
-                No payment collection is active in this build. Add verified accounts, subscriptions, receipts, cancellation support, and legal review before charging families.
+                Kids never enter payment details inside the learning app. Parent account, sync, and privacy choices stay behind the grown-up check.
               </div>
             </div>
 
@@ -2070,9 +2070,9 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                   </div>
                 </div>
                 <div className="rounded-xl bg-amber-50 border border-amber-100 p-3">
-                  <p className="text-sm font-black text-amber-800 mb-2">Before paid launch</p>
+                  <p className="text-sm font-black text-amber-800 mb-2">Family protections</p>
                   <div className="space-y-2">
-                    {paidLaunchRequirements.map(item => (
+                    {familyProtectionItems.map(item => (
                       <div key={item.label} className="rounded-lg bg-white p-2">
                         <p className="text-xs font-bold text-gray-800">{item.label}</p>
                         <p className="text-[11px] text-amber-700">{item.status}</p>
@@ -2084,7 +2084,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
               <div className="rounded-xl bg-slate-50 border border-slate-200 p-3">
                 <p className="text-xs font-bold text-slate-700">No payment collection</p>
                 <p className="text-xs text-slate-500 mt-1">
-                  This build intentionally does not collect card data or create subscriptions. Keep Firebase sync parent-gated and add a production billing plan before selling access.
+                  The child learning area does not collect card data or create subscriptions. Keep checkout, receipts, cancellation, and account changes in parent-controlled billing screens.
                 </p>
               </div>
             </div>
@@ -2099,7 +2099,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 Learning progress is stored locally in this browser. Voice narration and story covers are served from saved static media files; the child app does not call live media generation APIs.
               </p>
               <p className="text-xs text-gray-500 mb-3">
-                Before public launch, publish a COPPA-ready privacy policy, terms, and parental consent flow if accounts, analytics, payments, or personal data are added.
+                Parent controls should stay active for cloud sync, account access, privacy requests, subscriptions, and any feature that stores family data outside this browser.
               </p>
               <div className="mb-3 rounded-xl bg-emerald-50 border border-emerald-100 p-3">
                 <p className="text-xs font-black uppercase tracking-[0.12em] text-emerald-700">Parent Consent Receipt</p>

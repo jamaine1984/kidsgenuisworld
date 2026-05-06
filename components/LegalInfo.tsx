@@ -34,7 +34,7 @@ export const LegalInfo: React.FC<LegalInfoProps> = ({ type, onBack }) => {
           {isPrivacy ? (
             <div className="space-y-5 text-slate-700 leading-relaxed">
               <p>
-                This notice explains how Kid Genius World handles child learning data in the current web app. Final legal review is still required before public accounts, payments, advertising, analytics, or paid subscriptions launch.
+                This notice explains how Kid Genius World handles child learning data in the web app and which choices stay under parent control.
               </p>
               <section>
                 <h2 className="text-xl font-black text-slate-900 mb-2">Current Data Storage</h2>
@@ -53,14 +53,14 @@ export const LegalInfo: React.FC<LegalInfoProps> = ({ type, onBack }) => {
                 <p>Parents can review progress, adjust accessibility settings, manage Firebase sign-in and sync, warm voice cache, export local progress, and reset local progress from the parent dashboard after passing a grown-up check.</p>
               </section>
               <section>
-                <h2 className="text-xl font-black text-slate-900 mb-2">Before Public Launch</h2>
-                <p>Before commercial launch, publish a finalized privacy policy, support contact, data retention policy, deletion request process, and parental consent flow for analytics, subscription, payment, or synced profile features.</p>
+                <h2 className="text-xl font-black text-slate-900 mb-2">Privacy Requests</h2>
+                <p>Parents should have a clear way to request help, review stored data, turn off optional sync, delete a child profile, and manage any account or subscription choices tied to their family.</p>
               </section>
             </div>
           ) : (
             <div className="space-y-5 text-slate-700 leading-relaxed">
               <p>
-                These terms describe the intended use of Kid Genius World while the app is prepared for family testing and commercial launch.
+                These terms describe the intended use of Kid Genius World for supervised family learning.
               </p>
               <section>
                 <h2 className="text-xl font-black text-slate-900 mb-2">Educational Use</h2>
@@ -71,12 +71,12 @@ export const LegalInfo: React.FC<LegalInfoProps> = ({ type, onBack }) => {
                 <p>A parent or guardian should choose the appropriate grade level, monitor usage, and decide whether optional saved voice and illustrated cover features are enabled.</p>
               </section>
               <section>
-                <h2 className="text-xl font-black text-slate-900 mb-2">Content Accuracy</h2>
-                <p>Lessons should be reviewed before public launch for age fit, factual accuracy, reading level, accessibility, and cultural sensitivity.</p>
+                <h2 className="text-xl font-black text-slate-900 mb-2">Content Quality</h2>
+                <p>Lessons are designed for age-appropriate practice and should be used with parent judgment for reading level, accessibility, factual accuracy, and cultural fit.</p>
               </section>
               <section>
-                <h2 className="text-xl font-black text-slate-900 mb-2">Launch Requirement</h2>
-                <p>Before commercial release, finalize these terms for your target countries, hosting provider, payment model, support process, and child-privacy obligations.</p>
+                <h2 className="text-xl font-black text-slate-900 mb-2">Accounts and Billing</h2>
+                <p>Account changes, support requests, subscription choices, receipts, cancellation, and privacy requests should be handled by a parent or guardian outside the child learning area.</p>
               </section>
             </div>
           )}

@@ -24,7 +24,7 @@ const normalizeSpeechText = (text: unknown) =>
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type',
 };
 
@@ -406,6 +406,9 @@ export default {
           ...corsHeaders,
         },
       });
+    }
+    if (request.method === 'GET' && url.pathname === '/voice-cache/manifest.json') {
+      return withCors(await env.ASSETS.fetch(request));
     }
     if (url.pathname === '/api/billing/checkout') return withCors(await handleBillingCheckout(request, env));
     if (url.pathname === '/api/billing/portal') return withCors(await handleBillingPortal(request, env));

@@ -2141,7 +2141,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 Paid Launch Readiness
               </h3>
               <p className="text-sm text-gray-600 mb-4">
-                Use this as the parent-facing launch checklist. Families can use the learning path now; the paid subscription layer should wait until the items below are finished.
+                Use this as the parent-facing launch checklist. Families can use the learning path now, and subscription actions stay in parent-only billing screens.
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
                 <div className="rounded-xl bg-emerald-50 border border-emerald-100 p-3">

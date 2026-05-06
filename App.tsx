@@ -1500,12 +1500,12 @@ const App: React.FC = () => {
               <div className="rounded-2xl border border-slate-200 p-4">
                 <Sparkles className="text-amber-600 mb-3" size={28} />
                 <h2 className="font-bold text-lg mb-2">Family Plan</h2>
-                <p className="text-sm text-slate-600">Family access is account-ready. Subscriptions stay off until billing, cancellation support, and final legal review are complete.</p>
+                <p className="text-sm text-slate-600">Family access uses parent-only Firebase sign-in and Stripe checkout for the monthly plans.</p>
               </div>
             </div>
             <div className="px-6 pb-6">
               <div className="rounded-2xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-900 mb-5">
-                Public launch still needs a formal privacy policy, terms, and COPPA review before collecting personal data, accounts, analytics, or payments.
+                Parent setup keeps the child experience gated while families review privacy, local progress storage, optional Firebase sync, saved media, and parent-only billing.
               </div>
               <div className="flex justify-center gap-4 mb-4 text-sm font-bold text-indigo-700">
                 <button onClick={() => setLegalView('privacy')} className="underline">Read Privacy Notice</button>

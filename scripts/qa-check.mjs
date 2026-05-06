@@ -165,8 +165,8 @@ if (!parentDashboardSource.includes('Family Plan') || !parentDashboardSource.inc
 if (!parentDashboardSource.includes('Export Local Progress') || !parentDashboardSource.includes('kid-genius-progress-') || !parentDashboardSource.includes('Parent progress export')) {
   fail('Parent dashboard must provide local progress export before reset or device migration.');
 }
-if (!appSource.includes('Family Plan') || !appSource.includes('Subscriptions stay off until billing, cancellation support, and final legal review are complete')) {
-  fail('Parent onboarding must clearly frame paid launch prerequisites.');
+if (!appSource.includes('Family Plan') || !appSource.includes('parent-only Firebase sign-in and Stripe checkout')) {
+  fail('Parent onboarding must clearly frame parent-only family billing.');
 }
 if (!appSource.includes('Parent Launch Checkpoints') || !appSource.includes('kidGeniusParentConsentReceipt') || !appSource.includes('I reviewed the Privacy Notice and Terms of Use')) {
   fail('Parent onboarding must require explicit privacy, terms, and consent checkpoints.');

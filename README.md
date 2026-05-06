@@ -138,10 +138,11 @@ npx wrangler secret put STRIPE_SECRET_KEY
 npx wrangler secret put FIREBASE_WEB_API_KEY
 ```
 
-Add the recurring Price ID to `wrangler.jsonc` under `vars`:
+Add the recurring Price IDs to `wrangler.jsonc` under `vars`:
 
 ```jsonc
-"STRIPE_MONTHLY_PRICE_ID": "price_..."
+"STRIPE_MONTHLY_PRICE_ID": "price_...",
+"STRIPE_ANNUAL_PRICE_ID": "price_..."
 ```
 
 For Firebase Hosting builds, point billing calls to the Cloudflare Worker:

@@ -724,14 +724,14 @@ const App: React.FC = () => {
     }
   };
 
-  const handleStartStripeCheckout = async () => {
+  const handleStartStripeCheckout = async (plan: 'monthly' | 'annual') => {
     if (!parentCloudSession.signedIn) {
       setBillingStatus('Sign in with a parent Firebase account before opening Stripe checkout.');
       return;
     }
 
-    setBillingStatus('Opening secure Stripe checkout...');
-    await openStripeCheckout(parentCloudSession);
+    setBillingStatus(`Opening secure Stripe ${plan} checkout...`);
+    await openStripeCheckout(parentCloudSession, plan);
   };
 
   const handleOpenStripeBillingPortal = async () => {

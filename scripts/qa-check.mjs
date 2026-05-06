@@ -237,7 +237,7 @@ if (!stripeBillingSource.includes('getCurrentParentIdToken') || !stripeBillingSo
 if (!cloudflareWorkerSource.includes('STRIPE_SECRET_KEY') || !cloudflareWorkerSource.includes('STRIPE_MONTHLY_PRICE_ID') || !cloudflareWorkerSource.includes('accounts:lookup') || !cloudflareWorkerSource.includes('/api/billing/checkout')) {
   fail('Cloudflare Worker must create Stripe billing sessions behind verified Firebase parent auth.');
 }
-if (!parentDashboardSource.includes('Family Subscription') || !parentDashboardSource.includes('Start Subscription') || !parentDashboardSource.includes('Manage Billing')) {
+if (!parentDashboardSource.includes('Family Subscription') || !parentDashboardSource.includes('Start Monthly') || !parentDashboardSource.includes('Start Annual') || !parentDashboardSource.includes('Manage Billing')) {
   fail('Parent dashboard must expose parent-only Stripe subscription controls.');
 }
 if (audioServiceSource.includes('new SpeechSynthesisUtterance') || audioServiceSource.includes('window.speechSynthesis.speak(')) {

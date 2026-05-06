@@ -21,7 +21,7 @@
   // Required before Stripe billing works:
   // wrangler secret put STRIPE_SECRET_KEY
   // wrangler secret put FIREBASE_WEB_API_KEY
-  // Add STRIPE_MONTHLY_PRICE_ID here after creating a recurring Stripe Price.
+  // Add STRIPE_MONTHLY_PRICE_ID and STRIPE_ANNUAL_PRICE_ID here after creating recurring Stripe Prices.
   "observability": {
     "enabled": true
   }

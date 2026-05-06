@@ -131,9 +131,12 @@ const handleBillingCheckout = async (request: Request, env: Env) => {
   const parent = await verifyFirebaseParent(env, String(body.idToken || ''));
   if ('error' in parent) return sendJson({ error: parent.error }, 401);
 
-  const priceId = env.STRIPE_MONTHLY_PRICE_ID || env.STRIPE_ANNUAL_PRICE_ID;
+  const requestedPlan = body.plan === 'annual' ? 'annual' : 'monthly';
+  const priceId = requestedPlan === 'annual'
+    ? env.STRIPE_ANNUAL_PRICE_ID
+    : env.STRIPE_MONTHLY_PRICE_ID;
   if (!priceId) {
-    return sendJson({ error: 'Stripe subscription Price ID is not configured.' }, 503);
+    return sendJson({ error: `Stripe ${requestedPlan} subscription Price ID is not configured.` }, 503);
   }
 
   const familyId = typeof body.familyId === 'string' && body.familyId ? body.familyId : `family-${parent.uid}`;
@@ -156,6 +159,7 @@ const handleBillingCheckout = async (request: Request, env: Env) => {
   params.set('metadata[family_id]', familyId);
   params.set('subscription_data[metadata][firebase_uid]', parent.uid);
   params.set('subscription_data[metadata][family_id]', familyId);
+  params.set('subscription_data[metadata][plan]', requestedPlan);
 
   return stripeRequest(env, '/checkout/sessions', {
     method: 'POST',

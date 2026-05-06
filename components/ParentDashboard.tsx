@@ -41,7 +41,7 @@ interface ParentDashboardProps {
   onSignInParentWithGoogle?: () => Promise<void>;
   onSignOutParentAccount?: () => Promise<void>;
   onSyncProgressToCloud?: () => Promise<void>;
-  onStartStripeCheckout?: () => Promise<void>;
+  onStartStripeCheckout?: (plan: 'monthly' | 'annual') => Promise<void>;
   onOpenStripeBillingPortal?: () => Promise<void>;
   billingStatus?: string;
 }
@@ -1964,15 +1964,28 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <button
                       onClick={() => runBillingAction(
-                        () => onStartStripeCheckout?.() || Promise.resolve(),
-                        'Stripe checkout could not be opened.'
+                        () => onStartStripeCheckout?.('monthly') || Promise.resolve(),
+                        'Stripe monthly checkout could not be opened.'
                       )}
                       disabled={isBillingBusy}
                       className="py-3 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700 disabled:bg-gray-200 disabled:text-gray-500 transition flex items-center justify-center gap-2"
                     >
                       <CreditCard size={18} />
-                      Start Subscription
+                      Start Monthly
                     </button>
+                    <button
+                      onClick={() => runBillingAction(
+                        () => onStartStripeCheckout?.('annual') || Promise.resolve(),
+                        'Stripe annual checkout could not be opened.'
+                      )}
+                      disabled={isBillingBusy}
+                      className="py-3 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 disabled:bg-gray-200 disabled:text-gray-500 transition flex items-center justify-center gap-2"
+                    >
+                      <CreditCard size={18} />
+                      Start Annual
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-1">
                     <button
                       onClick={() => runBillingAction(
                         () => onOpenStripeBillingPortal?.() || Promise.resolve(),

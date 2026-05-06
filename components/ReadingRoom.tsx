@@ -125,6 +125,8 @@ export const READING_PASSAGES: ReadingPassage[] = [
   { id: 'g5-primary-source', level: 7, title: 'A Diary from Camp', passage: 'In her diary, Elena wrote that the first night at camp felt noisy and strange. By the third day, she knew the trail names and had two new friends. She wrote that trying something new was easier after the first step.', question: 'How does Elena change during the diary passage?', answer: 'She becomes more comfortable at camp', options: ['She becomes more comfortable at camp', 'She decides camp has no trails', 'She forgets how to write', 'She stops meeting people'], skill: 'Analyze character change' },
 ];
 
+const SUCCESS_ROUND_DELAY_MS = 1800;
+
 export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, level }) => {
   const [mode, setMode] = useState<Activity>('MATCH');
   const [score, setScore] = useState(0);
@@ -276,7 +278,7 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
         void speakCorrect(`Great reading. ${currentWord.word}. ${currentWord.sentence}`);
       }
       if (score > 0 && score % 3 === 0) onReward();
-      setTimeout(nextRound, 2500);
+      setTimeout(nextRound, SUCCESS_ROUND_DELAY_MS);
     } else {
       playWrongBuzzer();
       setShowWrong(true);
@@ -303,7 +305,7 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
       setScore(s => s + 1);
       void speakCorrect(`You spelled ${currentWord.word}. ${currentWord.sentence}`);
       if (score > 0 && score % 3 === 0) onReward();
-      setTimeout(nextRound, 2500);
+      setTimeout(nextRound, SUCCESS_ROUND_DELAY_MS);
     } else if (newSpelled.length === currentWord.word.length && newSpelled !== currentWord.word.toUpperCase()) {
       // Wrong spelling
       playWrongBuzzer();
@@ -332,7 +334,7 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
       void speakCorrect(`Excellent pronunciation. You said ${currentWord.word} very clearly.`);
       setScore(s => s + 1);
       if (score > 0 && score % 3 === 0) onReward();
-      setTimeout(nextRound, 2500);
+      setTimeout(nextRound, SUCCESS_ROUND_DELAY_MS);
     }, 3500);
   };
 

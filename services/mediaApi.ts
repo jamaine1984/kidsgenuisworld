@@ -13,3 +13,5 @@ export const getMediaApiUrl = (path: string) => {
 export const isRemoteMediaApiConfigured = Boolean(configuredMediaBaseUrl);
 
 export const getStaticMediaUrl = (path: string) => getMediaApiUrl(path);
+
+export const getStaticVoiceManifestUrl = () => '/voice-cache/manifest.json';

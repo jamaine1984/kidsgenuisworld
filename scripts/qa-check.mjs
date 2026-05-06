@@ -274,11 +274,11 @@ if (!packageJson.scripts?.['cf:deploy'] || !packageJson.scripts?.['voice:static'
 if (!audioServiceSource.includes('speechRunId') || !audioServiceSource.includes('stopActiveSpeechPlayback') || !audioServiceSource.includes('queueRunId === speechRunId')) {
   fail('Narration overlap guard is missing from audioService.');
 }
-if (!audioServiceSource.includes('playStaticVoiceSpeech(text)') || !audioServiceSource.includes('hasStaticVoiceCache()') || !audioServiceSource.includes('/voice-cache/manifest.json') || !audioServiceSource.includes('kidgenius:narration-status')) {
+if (!audioServiceSource.includes('playStaticVoiceSpeech(text)') || !audioServiceSource.includes('hasStaticVoiceCache()') || !audioServiceSource.includes('getStaticVoiceManifestUrl()') || !audioServiceSource.includes('kidgenius:narration-status')) {
   fail('Kid-facing voice mode must use static saved MP3 files instead of runtime TTS APIs.');
 }
-if (!mediaApiSource.includes('VITE_MEDIA_API_BASE_URL') || !mediaApiSource.includes('getStaticMediaUrl') || !audioServiceSource.includes("getStaticMediaUrl('/voice-cache/manifest.json')") || !voiceCacheSource.includes("getStaticMediaUrl('/voice-cache/manifest.json')")) {
-  fail('Firebase-hosted builds must route static media files through a configured media base URL.');
+if (!mediaApiSource.includes('VITE_MEDIA_API_BASE_URL') || !mediaApiSource.includes('getStaticMediaUrl') || !mediaApiSource.includes('getStaticVoiceManifestUrl') || !audioServiceSource.includes('getStaticVoiceManifestUrl()') || !voiceCacheSource.includes('getStaticVoiceManifestUrl()')) {
+  fail('Firebase-hosted builds must route static MP3 files through a configured media base URL while loading the static manifest from the app origin.');
 }
 if (audioServiceSource.includes('/api/tts') || voiceCacheSource.includes('/api/tts-precache') || storyBookSource.includes('/api/story-cover') || storyBookSource.includes('fetch(')) {
   fail('Child-facing app code must not call runtime media generation APIs.');

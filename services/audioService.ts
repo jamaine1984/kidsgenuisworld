@@ -1,4 +1,4 @@
-import { getStaticMediaUrl } from './mediaApi';
+import { getStaticMediaUrl, getStaticVoiceManifestUrl } from './mediaApi';
 
 let audioContext: AudioContext | null = null;
 let currentAudio: HTMLAudioElement | null = null;
@@ -113,7 +113,7 @@ const getStaticVoiceManifest = async () => {
   if (staticVoiceManifestLoaded) return staticVoiceManifest;
   staticVoiceManifestLoaded = true;
   try {
-    const response = await fetch(getStaticMediaUrl('/voice-cache/manifest.json'), { cache: 'force-cache' });
+    const response = await fetch(getStaticVoiceManifestUrl(), { cache: 'force-cache' });
     if (!response.ok) {
       staticVoiceManifest = null;
       return staticVoiceManifest;

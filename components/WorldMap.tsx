@@ -259,21 +259,34 @@ export const WorldMap: React.FC<WorldMapProps> = ({
     [RoomType.PUZZLE]: visitedRooms.has(RoomType.PUZZLE) ? 1 : 0,
   };
 
-  const roomDetails: Record<RoomType, { land: string; action: string; detail: string; glow: string }> = {
+  const roomDetails: Record<RoomType, { land: string; action: string; detail: string; glow: string; scene?: string }> = {
     [RoomType.HUB]: { land: 'hub', action: 'Choose a path', detail: 'Start learning', glow: 'bg-white/20' },
-    [RoomType.MATH]: { land: 'mountain', action: 'Climb numbers', detail: 'Counting, facts, word problems', glow: 'bg-sky-200/30' },
-    [RoomType.READING]: { land: 'river', action: 'Sail through words', detail: 'Phonics, sight words, fluency', glow: 'bg-amber-200/30' },
-    [RoomType.SCIENCE]: { land: 'springs', action: 'Try experiments', detail: 'Observe, predict, explain', glow: 'bg-emerald-200/30' },
-    [RoomType.GEOGRAPHY]: { land: 'globe', action: 'Explore places', detail: 'Maps, flags, landmarks', glow: 'bg-cyan-200/30' },
-    [RoomType.CODING]: { land: 'castle', action: 'Command robots', detail: 'Sequences, loops, debugging', glow: 'bg-violet-200/30' },
-    [RoomType.ART]: { land: 'garden', action: 'Create a masterpiece', detail: 'Color, shape, design', glow: 'bg-pink-200/30' },
-    [RoomType.MUSIC]: { land: 'music', action: 'Build rhythms', detail: 'Pitch, patterns, beats', glow: 'bg-fuchsia-200/30' },
-    [RoomType.LANGUAGE]: { land: 'lanterns', action: 'Say new words', detail: 'Spanish, French, Mandarin', glow: 'bg-rose-200/30' },
-    [RoomType.PUZZLE]: { land: 'pier', action: 'Solve challenges', detail: 'Memory, logic, strategy', glow: 'bg-teal-200/30' },
-    [RoomType.STORYBOOK]: { land: 'treehouse', action: 'Read adventures', detail: 'Stories, morals, comprehension', glow: 'bg-yellow-200/30' },
+    [RoomType.MATH]: { land: 'mountain', action: 'Climb numbers', detail: 'Counting, facts, word problems', glow: 'bg-sky-200/30', scene: 'math' },
+    [RoomType.READING]: { land: 'river', action: 'Sail through words', detail: 'Phonics, sight words, fluency', glow: 'bg-amber-200/30', scene: 'reading' },
+    [RoomType.SCIENCE]: { land: 'springs', action: 'Try experiments', detail: 'Observe, predict, explain', glow: 'bg-emerald-200/30', scene: 'science' },
+    [RoomType.GEOGRAPHY]: { land: 'globe', action: 'Explore places', detail: 'Maps, flags, landmarks', glow: 'bg-cyan-200/30', scene: 'geography' },
+    [RoomType.CODING]: { land: 'castle', action: 'Command robots', detail: 'Code paths, patterns, problem solving', glow: 'bg-violet-200/30', scene: 'coding' },
+    [RoomType.ART]: { land: 'garden', action: 'Create a masterpiece', detail: 'Color, shape, design', glow: 'bg-pink-200/30', scene: 'art' },
+    [RoomType.MUSIC]: { land: 'music', action: 'Build rhythms', detail: 'Pitch, patterns, beats', glow: 'bg-fuchsia-200/30', scene: 'music' },
+    [RoomType.LANGUAGE]: { land: 'lanterns', action: 'Say new words', detail: 'Spanish, French, Mandarin', glow: 'bg-rose-200/30', scene: 'language' },
+    [RoomType.PUZZLE]: { land: 'pier', action: 'Solve challenges', detail: 'Memory, logic, strategy', glow: 'bg-teal-200/30', scene: 'puzzle' },
+    [RoomType.STORYBOOK]: { land: 'treehouse', action: 'Read adventures', detail: 'Stories, morals, comprehension', glow: 'bg-yellow-200/30', scene: 'storybook' },
   };
 
   const renderRoomScene = (room: RoomType) => {
+    const scene = roomDetails[room]?.scene;
+    if (scene) {
+      return (
+        <img
+          src={`/room-scenes/${scene}.png`}
+          alt=""
+          aria-hidden="true"
+          className="h-full w-full rounded-[20px] object-cover shadow-lg"
+          loading="lazy"
+        />
+      );
+    }
+
     switch (room) {
       case RoomType.MATH:
         return (
@@ -510,6 +523,38 @@ export const WorldMap: React.FC<WorldMapProps> = ({
                 Your passport is ready for the first mission stamp.
               </div>
             )}
+          </div>
+        </div>
+
+        <div className="mb-4 rounded-[28px] border-4 border-white/60 bg-white/92 p-4 shadow-xl backdrop-blur-sm">
+          <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-xs uppercase tracking-[0.18em] text-sky-700 font-black">Explore Learning Rooms</p>
+              <h2 className="text-2xl font-black text-slate-900">Choose a room to start learning</h2>
+            </div>
+            <p className="text-sm font-bold text-slate-600">Daily mission and weekly review are below the rooms.</p>
+          </div>
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
+            {rooms.map((room) => {
+              const details = roomDetails[room.type];
+              const nextUnit = nextUnitByRoom[room.type];
+              return (
+                <button
+                  key={`quick-${room.type}`}
+                  onClick={() => { playPop(); onEnterRoom(room.type, nextUnit?.id); }}
+                  className="group overflow-hidden rounded-2xl bg-slate-900 text-left shadow-md transition hover:-translate-y-1 hover:shadow-xl"
+                  aria-label={`Enter ${room.name}`}
+                >
+                  <div className="aspect-[4/3] overflow-hidden">
+                    {renderRoomScene(room.type)}
+                  </div>
+                  <div className={`bg-gradient-to-br ${room.color} p-3`}>
+                    <p className="text-sm font-black text-white drop-shadow">{room.name}</p>
+                    <p className="mt-1 line-clamp-1 text-[11px] font-bold text-white/85">{details.detail}</p>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
 

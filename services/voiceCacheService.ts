@@ -5,7 +5,7 @@ import { SCIENCE_EXPERIMENTS } from '../components/ScienceRoom';
 import { GEOGRAPHY_QUESTIONS } from '../components/GeographyRoom';
 import { CHALLENGES } from '../components/CodingRoom';
 import { AccessibilitySettings } from '../types';
-import { getStaticMediaUrl } from './mediaApi';
+import { getStaticVoiceManifestUrl } from './mediaApi';
 
 interface VoiceWarmupResult {
   requested: number;
@@ -193,7 +193,7 @@ export const warmVoiceCache = async (
   }
 
   void accessibility;
-  const response = await fetch(getStaticMediaUrl('/voice-cache/manifest.json'), { cache: 'force-cache' });
+  const response = await fetch(getStaticVoiceManifestUrl(), { cache: 'force-cache' });
   if (!response.ok) {
     return {
       requested: texts.length,

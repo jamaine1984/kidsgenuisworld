@@ -41,7 +41,7 @@ interface ParentDashboardProps {
   onSignInParentWithGoogle?: () => Promise<void>;
   onSignOutParentAccount?: () => Promise<void>;
   onSyncProgressToCloud?: () => Promise<void>;
-  onStartStripeCheckout?: (plan: 'monthly' | 'annual') => Promise<void>;
+  onStartStripeCheckout?: (plan: 'starter' | 'premium') => Promise<void>;
   onOpenStripeBillingPortal?: () => Promise<void>;
   billingStatus?: string;
 }
@@ -1959,30 +1959,30 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                   <div className="rounded-xl bg-emerald-50 border border-emerald-100 p-3">
                     <p className="text-xs font-black uppercase tracking-[0.12em] text-emerald-700">Billing parent</p>
                     <p className="mt-1 text-sm font-bold text-emerald-950 break-words">{cloudSession.email || 'Signed-in parent account'}</p>
-                    <p className="mt-1 text-xs text-emerald-800">Stripe-hosted checkout and billing portal</p>
+                    <p className="mt-1 text-xs text-emerald-800">Choose the $4.99 or $9.99 monthly plan in Stripe checkout.</p>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <button
                       onClick={() => runBillingAction(
-                        () => onStartStripeCheckout?.('monthly') || Promise.resolve(),
-                        'Stripe monthly checkout could not be opened.'
+                        () => onStartStripeCheckout?.('starter') || Promise.resolve(),
+                        'Stripe $4.99 checkout could not be opened.'
                       )}
                       disabled={isBillingBusy}
                       className="py-3 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700 disabled:bg-gray-200 disabled:text-gray-500 transition flex items-center justify-center gap-2"
                     >
                       <CreditCard size={18} />
-                      Start Monthly
+                      Start $4.99/mo
                     </button>
                     <button
                       onClick={() => runBillingAction(
-                        () => onStartStripeCheckout?.('annual') || Promise.resolve(),
-                        'Stripe annual checkout could not be opened.'
+                        () => onStartStripeCheckout?.('premium') || Promise.resolve(),
+                        'Stripe $9.99 checkout could not be opened.'
                       )}
                       disabled={isBillingBusy}
                       className="py-3 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 disabled:bg-gray-200 disabled:text-gray-500 transition flex items-center justify-center gap-2"
                     >
                       <CreditCard size={18} />
-                      Start Annual
+                      Start $9.99/mo
                     </button>
                   </div>
                   <div className="grid grid-cols-1">

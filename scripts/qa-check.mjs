@@ -234,10 +234,10 @@ if (!firestoreRulesSource.includes('isFamilyParent') || !firestoreRulesSource.in
 if (!stripeBillingSource.includes('getCurrentParentIdToken') || !stripeBillingSource.includes('/api/billing/checkout') || !stripeBillingSource.includes('/api/billing/portal')) {
   fail('Stripe billing must require Firebase parent auth before checkout or portal access.');
 }
-if (!cloudflareWorkerSource.includes('STRIPE_SECRET_KEY') || !cloudflareWorkerSource.includes('STRIPE_MONTHLY_PRICE_ID') || !cloudflareWorkerSource.includes('accounts:lookup') || !cloudflareWorkerSource.includes('/api/billing/checkout')) {
+if (!cloudflareWorkerSource.includes('STRIPE_SECRET_KEY') || !cloudflareWorkerSource.includes('STRIPE_STARTER_PRICE_ID') || !cloudflareWorkerSource.includes('STRIPE_PREMIUM_PRICE_ID') || !cloudflareWorkerSource.includes('accounts:lookup') || !cloudflareWorkerSource.includes('/api/billing/checkout')) {
   fail('Cloudflare Worker must create Stripe billing sessions behind verified Firebase parent auth.');
 }
-if (!parentDashboardSource.includes('Family Subscription') || !parentDashboardSource.includes('Start Monthly') || !parentDashboardSource.includes('Start Annual') || !parentDashboardSource.includes('Manage Billing')) {
+if (!parentDashboardSource.includes('Family Subscription') || !parentDashboardSource.includes('Start $4.99/mo') || !parentDashboardSource.includes('Start $9.99/mo') || !parentDashboardSource.includes('Manage Billing')) {
   fail('Parent dashboard must expose parent-only Stripe subscription controls.');
 }
 if (audioServiceSource.includes('new SpeechSynthesisUtterance') || audioServiceSource.includes('window.speechSynthesis.speak(')) {

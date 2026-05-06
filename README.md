@@ -131,7 +131,12 @@ Run `npm run covers:static` after changing story titles or IDs. Run `npm run voi
 
 Stripe checkout is parent-only and runs through the Cloudflare Worker. The child-facing React app never receives the Stripe secret key and never displays card forms.
 
-Create a recurring Stripe Product/Price in the Stripe dashboard for the account `crateshipstudios@gmail.com`, then configure the Worker:
+Create a Stripe product named `Kid Genius World Family Plan`, then create two recurring monthly prices in the Stripe dashboard for the account `crateshipstudios@gmail.com`:
+
+- Starter: `$4.99/month`
+- Premium: `$9.99/month`
+
+Then configure the Worker:
 
 ```bash
 npx wrangler secret put STRIPE_SECRET_KEY
@@ -141,8 +146,8 @@ npx wrangler secret put FIREBASE_WEB_API_KEY
 Add the recurring Price IDs to `wrangler.jsonc` under `vars`:
 
 ```jsonc
-"STRIPE_MONTHLY_PRICE_ID": "price_...",
-"STRIPE_ANNUAL_PRICE_ID": "price_..."
+"STRIPE_STARTER_PRICE_ID": "price_...",
+"STRIPE_PREMIUM_PRICE_ID": "price_..."
 ```
 
 For Firebase Hosting builds, point billing calls to the Cloudflare Worker:
@@ -196,7 +201,8 @@ Private keys must stay in `.env.local` for development or hosted environment sec
 - `VITE_BILLING_API_BASE_URL`: public URL for the Cloudflare Worker billing endpoint used by Firebase Hosting builds.
 - `FIREBASE_WEB_API_KEY`: Worker-side Firebase Web API key used to verify parent ID tokens before Stripe billing.
 - `STRIPE_SECRET_KEY`: Worker-side Stripe secret key. Store as a Cloudflare secret only.
-- `STRIPE_MONTHLY_PRICE_ID`: Worker-side recurring Stripe Price ID for the family subscription.
+- `STRIPE_STARTER_PRICE_ID`: Worker-side recurring Stripe Price ID for the `$4.99/month` plan.
+- `STRIPE_PREMIUM_PRICE_ID`: Worker-side recurring Stripe Price ID for the `$9.99/month` plan.
 
 If an API key was pasted into chat, logs, screenshots, or a ticket, rotate it before using the app publicly.
 

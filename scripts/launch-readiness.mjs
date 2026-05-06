@@ -147,7 +147,7 @@ if (!firebaseParentAuthSource.includes('createUserWithEmailAndPassword') || !fir
 if (!parentSource.includes('Firebase cloud progress sync') || !firebaseProgressStoreSource.includes('cloudSyncConsent') || !appSource.includes('syncProgressToFirebase')) {
   fail('Firebase cloud progress sync must be explicit, consent-backed, and parent-gated.');
 }
-if (!parentSource.includes('Family Subscription') || !stripeBillingSource.includes('getCurrentParentIdToken') || !cloudflareWorkerSource.includes('STRIPE_SECRET_KEY') || !cloudflareWorkerSource.includes('accounts:lookup')) {
+if (!parentSource.includes('Family Subscription') || !stripeBillingSource.includes('getCurrentParentIdToken') || !cloudflareWorkerSource.includes('STRIPE_SECRET_KEY') || !cloudflareWorkerSource.includes('STRIPE_STARTER_PRICE_ID') || !cloudflareWorkerSource.includes('STRIPE_PREMIUM_PRICE_ID') || !cloudflareWorkerSource.includes('accounts:lookup')) {
   fail('Stripe subscription controls must be parent-only and backed by verified Firebase auth.');
 }
 if (!exists('tailwind.config.js') || !exists('postcss.config.js') || !exists('index.css')) {

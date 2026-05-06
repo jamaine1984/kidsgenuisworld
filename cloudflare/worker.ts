@@ -13,8 +13,8 @@ interface Env {
   OPENAI_IMAGE_MODEL?: string;
   FIREBASE_WEB_API_KEY?: string;
   STRIPE_SECRET_KEY?: string;
-  STRIPE_MONTHLY_PRICE_ID?: string;
-  STRIPE_ANNUAL_PRICE_ID?: string;
+  STRIPE_STARTER_PRICE_ID?: string;
+  STRIPE_PREMIUM_PRICE_ID?: string;
 }
 
 type VoiceStyle = 'gentle' | 'energetic' | 'phonics' | 'story';
@@ -131,12 +131,12 @@ const handleBillingCheckout = async (request: Request, env: Env) => {
   const parent = await verifyFirebaseParent(env, String(body.idToken || ''));
   if ('error' in parent) return sendJson({ error: parent.error }, 401);
 
-  const requestedPlan = body.plan === 'annual' ? 'annual' : 'monthly';
-  const priceId = requestedPlan === 'annual'
-    ? env.STRIPE_ANNUAL_PRICE_ID
-    : env.STRIPE_MONTHLY_PRICE_ID;
+  const requestedPlan = body.plan === 'premium' ? 'premium' : 'starter';
+  const priceId = requestedPlan === 'premium'
+    ? env.STRIPE_PREMIUM_PRICE_ID
+    : env.STRIPE_STARTER_PRICE_ID;
   if (!priceId) {
-    return sendJson({ error: `Stripe ${requestedPlan} subscription Price ID is not configured.` }, 503);
+    return sendJson({ error: `Stripe ${requestedPlan} monthly subscription Price ID is not configured.` }, 503);
   }
 
   const familyId = typeof body.familyId === 'string' && body.familyId ? body.familyId : `family-${parent.uid}`;

@@ -12,7 +12,7 @@ const getBillingApiBaseUrl = () => {
 const postBillingRequest = async (
   path: '/api/billing/checkout' | '/api/billing/portal',
   cloudSession: ParentCloudSession,
-  plan?: 'monthly' | 'annual'
+  plan?: 'starter' | 'premium'
 ) => {
   if (!cloudSession.signedIn || !cloudSession.uid) {
     throw new Error('Sign in with a parent account before opening billing.');
@@ -42,7 +42,7 @@ const postBillingRequest = async (
 
 export const openStripeCheckout = async (
   cloudSession: ParentCloudSession,
-  plan: 'monthly' | 'annual' = 'monthly'
+  plan: 'starter' | 'premium' = 'starter'
 ) => {
   window.location.assign(await postBillingRequest('/api/billing/checkout', cloudSession, plan));
 };

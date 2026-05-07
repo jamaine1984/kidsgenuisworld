@@ -39,7 +39,7 @@ import {
   type ParentCloudSession,
 } from './services/firebaseParentAuth';
 import { syncProgressToFirebase } from './services/firebaseProgressStore';
-import { getStripeBillingAccess, openStripeBillingPortal, openStripeCheckout } from './services/stripeBilling';
+import { createStripeCheckoutUrl, getStripeBillingAccess, openStripeBillingPortal } from './services/stripeBilling';
 import { BookOpen, CheckCircle2, Lightbulb, LockKeyhole, MessageCircle, Play, ShieldCheck, Sparkles, Target, X } from 'lucide-react';
 
 const MathRoom = lazy(() => import('./components/MathRoom').then(module => ({ default: module.MathRoom })));
@@ -391,6 +391,7 @@ const App: React.FC = () => {
   const [accessEmail, setAccessEmail] = useState('');
   const [accessPassword, setAccessPassword] = useState('');
   const [accessBusy, setAccessBusy] = useState(false);
+  const [stripeCheckoutUrl, setStripeCheckoutUrl] = useState('');
   const [profiles, setProfiles] = useState<ChildProfile[]>(() => loadProfiles());
   const [activeProfileId, setActiveProfileId] = useState(() => localStorage.getItem(ACTIVE_PROFILE_KEY) || loadProfiles()[0]?.id || 'default');
 
@@ -872,10 +873,17 @@ const App: React.FC = () => {
       return;
     }
 
+    setStripeCheckoutUrl('');
     setBillingStatus(`Opening secure Stripe ${plan === 'premium' ? '$9.99' : '$4.99'} monthly checkout with a 3-day trial...`);
-    setAccessGateStatus(`Opening Stripe for the ${plan === 'premium' ? '$9.99' : '$4.99'} monthly plan. The first 3 days are free.`);
+    setAccessGateStatus(`Creating secure Stripe checkout for the ${plan === 'premium' ? '$9.99' : '$4.99'} monthly plan...`);
     try {
-      await openStripeCheckout(parentCloudSession, plan);
+      const checkoutUrl = await createStripeCheckoutUrl(parentCloudSession, plan);
+      setStripeCheckoutUrl(checkoutUrl);
+      setBillingStatus('Stripe checkout is ready. Redirecting now...');
+      setAccessGateStatus('Stripe checkout is ready. If it does not open automatically, tap the secure checkout link below.');
+      window.setTimeout(() => {
+        window.location.href = checkoutUrl;
+      }, 100);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Stripe checkout could not be opened.';
       setBillingStatus(message);
@@ -2131,6 +2139,15 @@ const App: React.FC = () => {
                   >
                     Continue to Learning
                   </button>
+                )}
+
+                {stripeCheckoutUrl && (
+                  <a
+                    href={stripeCheckoutUrl}
+                    className="mt-4 block rounded-2xl bg-amber-400 px-4 py-3 text-center font-black text-slate-950 shadow-lg hover:bg-amber-300"
+                  >
+                    Open Secure Stripe Checkout
+                  </a>
                 )}
               </div>
             </div>

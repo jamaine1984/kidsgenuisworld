@@ -76,11 +76,16 @@ export const getStripeBillingAccess = async (cloudSession: ParentCloudSession) =
   };
 };
 
+export const createStripeCheckoutUrl = async (
+  cloudSession: ParentCloudSession,
+  plan: 'starter' | 'premium' = 'starter'
+) => postBillingRequest('/api/billing/checkout', cloudSession, plan);
+
 export const openStripeCheckout = async (
   cloudSession: ParentCloudSession,
   plan: 'starter' | 'premium' = 'starter'
 ) => {
-  window.location.assign(await postBillingRequest('/api/billing/checkout', cloudSession, plan));
+  window.location.assign(await createStripeCheckoutUrl(cloudSession, plan));
 };
 
 export const openStripeBillingPortal = async (cloudSession: ParentCloudSession) => {

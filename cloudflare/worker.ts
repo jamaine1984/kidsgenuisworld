@@ -63,6 +63,31 @@ const stripeRequest = async (env: Env, path: string, init: RequestInit = {}) => 
   return sendJson(result);
 };
 
+const stripeJsonRequest = async <T,>(env: Env, path: string, init: RequestInit = {}) => {
+  if (!env.STRIPE_SECRET_KEY) {
+    return { error: 'Stripe secret key is not configured.', status: 503 };
+  }
+
+  const response = await fetch(`https://api.stripe.com/v1${path}`, {
+    ...init,
+    headers: {
+      Authorization: `Bearer ${env.STRIPE_SECRET_KEY}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
+      ...(init.headers || {}),
+    },
+  });
+
+  const result = await response.json().catch(() => ({})) as T & { error?: { message?: string } };
+  if (!response.ok) {
+    return {
+      error: result.error?.message || 'Stripe request failed.',
+      status: response.status,
+    };
+  }
+
+  return { data: result, status: response.status };
+};
+
 const verifyFirebaseParent = async (env: Env, idToken: string) => {
   if (!env.FIREBASE_WEB_API_KEY) {
     return { error: 'Firebase Web API key is not configured for billing auth.' };
@@ -157,9 +182,12 @@ const handleBillingCheckout = async (request: Request, env: Env) => {
   params.set('cancel_url', `${returnUrl}/?billing=cancelled`);
   params.set('metadata[firebase_uid]', parent.uid);
   params.set('metadata[family_id]', familyId);
+  params.set('metadata[trial_days]', '3');
+  params.set('subscription_data[trial_period_days]', '3');
   params.set('subscription_data[metadata][firebase_uid]', parent.uid);
   params.set('subscription_data[metadata][family_id]', familyId);
   params.set('subscription_data[metadata][plan]', requestedPlan);
+  params.set('subscription_data[metadata][trial_days]', '3');
 
   return stripeRequest(env, '/checkout/sessions', {
     method: 'POST',
@@ -185,6 +213,60 @@ const handleBillingPortal = async (request: Request, env: Env) => {
   return stripeRequest(env, '/billing_portal/sessions', {
     method: 'POST',
     body: params,
+  });
+};
+
+const handleBillingAccess = async (request: Request, env: Env) => {
+  if (request.method !== 'POST') return sendJson({ error: 'Method Not Allowed' }, 405);
+  const body = await request.json().catch(() => ({})) as Record<string, unknown>;
+  const parent = await verifyFirebaseParent(env, String(body.idToken || ''));
+  if ('error' in parent) return sendJson({ error: parent.error }, 401);
+
+  const customers = await stripeJsonRequest<{ data?: Array<{ id: string }> }>(
+    env,
+    `/customers?email=${encodeURIComponent(parent.email)}&limit=1`
+  );
+  if ('error' in customers) return sendJson({ error: customers.error }, customers.status);
+
+  const customerId = customers.data?.data?.[0]?.id;
+  if (!customerId) {
+    return sendJson({ active: false, status: 'none' });
+  }
+
+  const subscriptions = await stripeJsonRequest<{
+    data?: Array<{
+      id: string;
+      status: string;
+      trial_end?: number;
+      current_period_end?: number;
+      metadata?: { plan?: string };
+      items?: { data?: Array<{ price?: { id?: string } }> };
+    }>;
+  }>(
+    env,
+    `/subscriptions?customer=${encodeURIComponent(customerId)}&status=all&limit=20`
+  );
+  if ('error' in subscriptions) return sendJson({ error: subscriptions.error }, subscriptions.status);
+
+  const activeSubscription = subscriptions.data?.data?.find(subscription =>
+    ['trialing', 'active', 'past_due'].includes(subscription.status)
+  );
+  if (!activeSubscription) {
+    return sendJson({ active: false, status: 'none', customerId });
+  }
+
+  const priceId = activeSubscription.items?.data?.[0]?.price?.id || '';
+  const plan = activeSubscription.metadata?.plan ||
+    (priceId === env.STRIPE_PREMIUM_PRICE_ID ? 'premium' : 'starter');
+
+  return sendJson({
+    active: true,
+    customerId,
+    subscriptionId: activeSubscription.id,
+    status: activeSubscription.status,
+    plan,
+    trialEndsAt: activeSubscription.trial_end ? activeSubscription.trial_end * 1000 : null,
+    currentPeriodEndsAt: activeSubscription.current_period_end ? activeSubscription.current_period_end * 1000 : null,
   });
 };
 
@@ -412,6 +494,7 @@ export default {
     }
     if (url.pathname === '/api/billing/checkout') return withCors(await handleBillingCheckout(request, env));
     if (url.pathname === '/api/billing/portal') return withCors(await handleBillingPortal(request, env));
+    if (url.pathname === '/api/billing/access') return withCors(await handleBillingAccess(request, env));
     if (url.pathname.startsWith('/api/')) return sendJson({ error: 'Runtime media generation APIs are disabled. Use saved static media.' }, 404);
     if (url.pathname === '/api/tts') return withCors(await handleTts(request, env));
     if (url.pathname === '/api/tts-precache') return withCors(await handleTtsPrecache(request, env));

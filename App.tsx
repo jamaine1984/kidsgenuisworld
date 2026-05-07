@@ -39,7 +39,7 @@ import {
   type ParentCloudSession,
 } from './services/firebaseParentAuth';
 import { syncProgressToFirebase } from './services/firebaseProgressStore';
-import { openStripeBillingPortal, openStripeCheckout } from './services/stripeBilling';
+import { getStripeBillingAccess, openStripeBillingPortal, openStripeCheckout } from './services/stripeBilling';
 import { BookOpen, CheckCircle2, Lightbulb, LockKeyhole, MessageCircle, Play, ShieldCheck, Sparkles, Target, X } from 'lucide-react';
 
 const MathRoom = lazy(() => import('./components/MathRoom').then(module => ({ default: module.MathRoom })));
@@ -56,6 +56,10 @@ const GameArcade = lazy(() => import('./components/GameArcade').then(module => (
 
 const PROFILES_KEY = 'kidGeniusProfiles';
 const ACTIVE_PROFILE_KEY = 'kidGeniusActiveProfileId';
+const FAMILY_ACCESS_KEY_PREFIX = 'kidGeniusFamilyAccess';
+const DEV_ACCESS_OVERRIDE_KEY = 'kidGeniusDevAccessOverride';
+const BILLING_TRIAL_DAYS = 3;
+const BILLING_TRIAL_MS = BILLING_TRIAL_DAYS * 24 * 60 * 60 * 1000;
 
 interface LearningReflection {
   roomLabel: string;
@@ -74,6 +78,21 @@ interface LearningReflectionOverride {
   parentActivity?: string;
   successCheck?: string;
 }
+
+interface FamilyAccessRecord {
+  familyId: string;
+  billingAccessActive: boolean;
+  plan?: 'starter' | 'premium';
+  trialStartedAt?: number;
+  trialEndsAt?: number;
+  checkoutCompletedAt?: number;
+  verifiedByBillingApi?: boolean;
+  checkedAt?: number;
+}
+
+type PaidAccessAction =
+  | { type: 'room'; room: RoomType; unitId?: string }
+  | { type: 'arcade' };
 
 const gradeToLevel: { [key in GradeLevel]: number } = {
   [GradeLevel.PRE_K]: 1,
@@ -302,6 +321,36 @@ const loadProgressForProfile = (profile: ChildProfile): UserProgress => {
   };
 };
 
+const getFamilyAccessKey = (familyId?: string | null) => `${FAMILY_ACCESS_KEY_PREFIX}:${familyId || 'unknown'}`;
+
+const loadFamilyAccess = (familyId?: string | null): FamilyAccessRecord | null => {
+  if (!familyId) return null;
+  const saved = localStorage.getItem(getFamilyAccessKey(familyId));
+  if (!saved) return null;
+  try {
+    const parsed = JSON.parse(saved) as FamilyAccessRecord;
+    return parsed.familyId === familyId ? parsed : null;
+  } catch {
+    return null;
+  }
+};
+
+const saveFamilyAccess = (record: FamilyAccessRecord) => {
+  localStorage.setItem(getFamilyAccessKey(record.familyId), JSON.stringify(record));
+};
+
+const clearFamilyAccess = (familyId?: string | null) => {
+  if (familyId) localStorage.removeItem(getFamilyAccessKey(familyId));
+};
+
+const hasDevAccessOverride = () =>
+  Boolean(import.meta.env.DEV && localStorage.getItem(DEV_ACCESS_OVERRIDE_KEY) === 'true');
+
+const formatTrialEndDate = (timestamp?: number) => {
+  if (!timestamp) return 'after the free trial';
+  return new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric' }).format(new Date(timestamp));
+};
+
 const App: React.FC = () => {
   const [hasStarted, setHasStarted] = useState(false);
   const [showGradeSelection, setShowGradeSelection] = useState(false);
@@ -332,6 +381,16 @@ const App: React.FC = () => {
   const [parentCloudSession, setParentCloudSession] = useState<ParentCloudSession>(() => getCurrentParentSession());
   const [cloudSyncStatus, setCloudSyncStatus] = useState('');
   const [billingStatus, setBillingStatus] = useState('');
+  const [familyAccess, setFamilyAccess] = useState<FamilyAccessRecord | null>(() => {
+    const session = getCurrentParentSession();
+    return loadFamilyAccess(session.familyId);
+  });
+  const [showAccessGate, setShowAccessGate] = useState(false);
+  const [pendingAccessAction, setPendingAccessAction] = useState<PaidAccessAction | null>(null);
+  const [accessGateStatus, setAccessGateStatus] = useState('');
+  const [accessEmail, setAccessEmail] = useState('');
+  const [accessPassword, setAccessPassword] = useState('');
+  const [accessBusy, setAccessBusy] = useState(false);
   const [profiles, setProfiles] = useState<ChildProfile[]>(() => loadProfiles());
   const [activeProfileId, setActiveProfileId] = useState(() => localStorage.getItem(ACTIVE_PROFILE_KEY) || loadProfiles()[0]?.id || 'default');
 
@@ -342,6 +401,41 @@ const App: React.FC = () => {
     const activeProfile = loadedProfiles.find(profile => profile.id === activeId) || loadedProfiles[0];
     return loadProgressForProfile(activeProfile);
   });
+
+  const refreshBillingAccess = async (statusPrefix = 'Checking Stripe trial access...') => {
+    if (!parentCloudSession.signedIn || !parentCloudSession.familyId) {
+      setFamilyAccess(null);
+      return null;
+    }
+
+    setBillingStatus(statusPrefix);
+    const access = await getStripeBillingAccess(parentCloudSession);
+    if (!access.active) {
+      clearFamilyAccess(parentCloudSession.familyId);
+      setFamilyAccess(null);
+      setBillingStatus('No active Stripe trial or subscription found for this parent account.');
+      return null;
+    }
+
+    const now = Date.now();
+    const nextAccess: FamilyAccessRecord = {
+      familyId: parentCloudSession.familyId,
+      billingAccessActive: true,
+      plan: access.plan,
+      trialStartedAt: access.trialEndsAt ? access.trialEndsAt - BILLING_TRIAL_MS : undefined,
+      trialEndsAt: access.trialEndsAt || undefined,
+      checkoutCompletedAt: now,
+      verifiedByBillingApi: true,
+      checkedAt: now,
+    };
+    saveFamilyAccess(nextAccess);
+    setFamilyAccess(nextAccess);
+    const trialCopy = access.status === 'trialing' && access.trialEndsAt
+      ? ` 3-day trial ends ${formatTrialEndDate(access.trialEndsAt)}.`
+      : '';
+    setBillingStatus(`Stripe ${access.status} access verified.${trialCopy}`);
+    return nextAccess;
+  };
 
   useEffect(() => {
     const hasConsentReceipt = Boolean(localStorage.getItem('kidGeniusParentConsentReceipt'));
@@ -391,6 +485,53 @@ const App: React.FC = () => {
   }, [profiles, activeProfileId]);
 
   useEffect(() => subscribeParentCloudSession(setParentCloudSession), []);
+
+  useEffect(() => {
+    const savedAccess = loadFamilyAccess(parentCloudSession.familyId);
+    setFamilyAccess(savedAccess);
+    if (parentCloudSession.signedIn && parentCloudSession.familyId) {
+      refreshBillingAccess('Checking Stripe trial access...').catch(error => {
+        setBillingStatus(error instanceof Error ? error.message : 'Stripe trial access could not be checked.');
+      });
+    }
+  }, [parentCloudSession.signedIn, parentCloudSession.familyId]);
+
+  useEffect(() => {
+    const billingResult = new URLSearchParams(window.location.search).get('billing');
+    if (!billingResult) return;
+
+    if (billingResult === 'cancelled') {
+      setBillingStatus('Stripe checkout was cancelled. Pick a plan when you are ready to start the 3-day trial.');
+      window.history.replaceState({}, '', window.location.pathname);
+      return;
+    }
+
+    if (billingResult !== 'success' || !parentCloudSession.familyId) return;
+
+    refreshBillingAccess('Verifying Stripe checkout and 3-day trial...')
+      .catch(error => {
+        const now = Date.now();
+        const fallbackAccess: FamilyAccessRecord = {
+          familyId: parentCloudSession.familyId || 'unknown',
+          billingAccessActive: true,
+          trialStartedAt: now,
+          trialEndsAt: now + BILLING_TRIAL_MS,
+          checkoutCompletedAt: now,
+          verifiedByBillingApi: false,
+          checkedAt: now,
+        };
+        saveFamilyAccess(fallbackAccess);
+        setFamilyAccess(fallbackAccess);
+        setBillingStatus(
+          error instanceof Error
+            ? `Stripe checkout returned success. Access is unlocked while server verification finishes: ${error.message}`
+            : 'Stripe checkout returned success. Access is unlocked while server verification finishes.'
+        );
+      })
+      .finally(() => {
+        window.history.replaceState({}, '', window.location.pathname);
+      });
+  }, [parentCloudSession.familyId]);
 
   useEffect(() => {
     if (!hasStarted) {
@@ -727,10 +868,12 @@ const App: React.FC = () => {
   const handleStartStripeCheckout = async (plan: 'starter' | 'premium') => {
     if (!parentCloudSession.signedIn) {
       setBillingStatus('Sign in with a parent Firebase account before opening Stripe checkout.');
+      setAccessGateStatus('Sign in or create a parent account first. Then choose a plan to start the 3-day trial.');
       return;
     }
 
-    setBillingStatus(`Opening secure Stripe ${plan === 'premium' ? '$9.99' : '$4.99'} monthly checkout...`);
+    setBillingStatus(`Opening secure Stripe ${plan === 'premium' ? '$9.99' : '$4.99'} monthly checkout with a 3-day trial...`);
+    setAccessGateStatus(`Opening Stripe for the ${plan === 'premium' ? '$9.99' : '$4.99'} monthly plan. The first 3 days are free.`);
     await openStripeCheckout(parentCloudSession, plan);
   };
 
@@ -742,6 +885,106 @@ const App: React.FC = () => {
 
     setBillingStatus('Opening secure Stripe billing portal...');
     await openStripeBillingPortal(parentCloudSession);
+  };
+
+  const hasPaidAccess = () => {
+    if (hasDevAccessOverride()) return true;
+    return Boolean(
+      parentCloudSession.signedIn &&
+      parentCloudSession.familyId &&
+      familyAccess?.familyId === parentCloudSession.familyId &&
+      familyAccess.billingAccessActive &&
+      (familyAccess.verifiedByBillingApi || Boolean(familyAccess.checkoutCompletedAt))
+    );
+  };
+
+  const runPaidAccessAction = (action: PaidAccessAction) => {
+    if (action.type === 'room') {
+      enterRoomUnlocked(action.room, action.unitId);
+      return;
+    }
+
+    stopSpeaking();
+    setShowGameArcade(true);
+  };
+
+  const requestPaidAccess = (action: PaidAccessAction) => {
+    if (hasPaidAccess()) {
+      runPaidAccessAction(action);
+      return;
+    }
+
+    stopSpeaking();
+    setPendingAccessAction(action);
+    setShowAccessGate(true);
+    if (!parentCloudSession.signedIn) {
+      setAccessGateStatus('A parent needs to sign in or create an account before kids can enter learning sections.');
+      return;
+    }
+
+    setAccessGateStatus('Choose a monthly plan to start the 3-day free trial before this section opens.');
+  };
+
+  const continueAfterAccess = () => {
+    if (!pendingAccessAction) {
+      setShowAccessGate(false);
+      return;
+    }
+    if (!hasPaidAccess()) {
+      setAccessGateStatus('Choose a plan to start the 3-day trial before this section opens.');
+      return;
+    }
+    const action = pendingAccessAction;
+    setPendingAccessAction(null);
+    setShowAccessGate(false);
+    runPaidAccessAction(action);
+  };
+
+  const handleAccessCreateParentAccount = async () => {
+    if (!accessEmail.trim() || accessPassword.length < 6) {
+      setAccessGateStatus('Enter a parent email and a password with at least 6 characters.');
+      return;
+    }
+    setAccessBusy(true);
+    setAccessGateStatus('Creating parent account...');
+    try {
+      await createParentAccount(accessEmail.trim(), accessPassword);
+      setAccessGateStatus('Parent account created. Choose a plan to start the 3-day free trial.');
+    } catch (error) {
+      setAccessGateStatus(error instanceof Error ? error.message : 'Parent account could not be created.');
+    } finally {
+      setAccessBusy(false);
+    }
+  };
+
+  const handleAccessSignInParentAccount = async () => {
+    if (!accessEmail.trim() || accessPassword.length < 6) {
+      setAccessGateStatus('Enter the parent email and password.');
+      return;
+    }
+    setAccessBusy(true);
+    setAccessGateStatus('Signing in parent...');
+    try {
+      await signInParentAccount(accessEmail.trim(), accessPassword);
+      setAccessGateStatus('Parent signed in. Choose a plan to start the 3-day free trial.');
+    } catch (error) {
+      setAccessGateStatus(error instanceof Error ? error.message : 'Parent sign-in failed.');
+    } finally {
+      setAccessBusy(false);
+    }
+  };
+
+  const handleAccessSignInWithGoogle = async () => {
+    setAccessBusy(true);
+    setAccessGateStatus('Opening Google sign-in...');
+    try {
+      await signInParentWithGoogle();
+      setAccessGateStatus('Parent signed in with Google. Choose a plan to start the 3-day free trial.');
+    } catch (error) {
+      setAccessGateStatus(error instanceof Error ? error.message : 'Google sign-in failed.');
+    } finally {
+      setAccessBusy(false);
+    }
   };
 
   const handleResetProgress = () => {
@@ -840,7 +1083,7 @@ const App: React.FC = () => {
     speak(`Welcome to Kid Genius World! ${pet.name} is excited to learn with you!`);
   };
 
-  const handleEnterRoom = (room: RoomType, unitId?: string) => {
+  const enterRoomUnlocked = (room: RoomType, unitId?: string) => {
     stopSpeaking();
     setActiveUnitId(unitId || null);
     setShowMissionFocus(false);
@@ -857,6 +1100,10 @@ const App: React.FC = () => {
     }));
     setCurrentRoom(room);
     setGuideTrigger(p => p + 1);
+  };
+
+  const handleEnterRoom = (room: RoomType, unitId?: string) => {
+    requestPaidAccess({ type: 'room', room, unitId });
   };
 
   const handleBack = () => {
@@ -1653,10 +1900,7 @@ const App: React.FC = () => {
             }}
             onOpenAchievements={() => setShowAchievements(true)}
             onOpenPet={() => setShowPet(true)}
-            onOpenGameArcade={() => {
-              stopSpeaking();
-              setShowGameArcade(true);
-            }}
+            onOpenGameArcade={() => requestPaidAccess({ type: 'arcade' })}
             onOpenSettings={() => {
               stopSpeaking();
               setShowParentDashboard(true);
@@ -1756,6 +2000,141 @@ const App: React.FC = () => {
               <span className="shrink-0 rounded-full bg-white/20 px-2 py-1 text-xs">{activeUnitPracticeCount}/3</span>
             </button>
           )}
+        </div>
+      )}
+
+      {showAccessGate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-2xl rounded-[28px] border-4 border-white bg-white p-5 shadow-2xl">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-700">
+                  <LockKeyhole size={26} />
+                </div>
+                <div>
+                  <p className="text-xs font-black uppercase tracking-[0.18em] text-indigo-600">Parent Access</p>
+                  <h2 className="text-xl font-black text-slate-900">Start learning with a parent-approved trial</h2>
+                  <p className="mt-1 text-sm font-semibold text-slate-600">
+                    Kids can explore after a parent signs in and starts a 3-day free Stripe trial.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowAccessGate(false)}
+                className="rounded-full bg-slate-100 p-2 text-slate-600 hover:bg-slate-200"
+                aria-label="Close Parent Access"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="mt-5 grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
+              <div className="rounded-[24px] bg-slate-50 p-4">
+                <div className="flex items-center gap-2 text-slate-800">
+                  <ShieldCheck size={20} className="text-emerald-600" />
+                  <p className="font-black">Step 1: Parent sign in</p>
+                </div>
+
+                {parentCloudSession.signedIn ? (
+                  <div className="mt-4 rounded-2xl bg-emerald-50 p-4">
+                    <p className="font-black text-emerald-800">Signed in</p>
+                    <p className="mt-1 text-sm font-semibold text-emerald-900">{parentCloudSession.email}</p>
+                    {familyAccess?.billingAccessActive && (
+                      <p className="mt-2 text-xs font-bold text-emerald-700">
+                        Trial/subscription access is active for this family.
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="mt-4 space-y-3">
+                    <input
+                      type="email"
+                      value={accessEmail}
+                      onChange={event => setAccessEmail(event.target.value)}
+                      placeholder="Parent email"
+                      className="w-full rounded-2xl border-2 border-slate-200 px-4 py-3 text-sm font-bold outline-none focus:border-indigo-400"
+                    />
+                    <input
+                      type="password"
+                      value={accessPassword}
+                      onChange={event => setAccessPassword(event.target.value)}
+                      placeholder="Password"
+                      className="w-full rounded-2xl border-2 border-slate-200 px-4 py-3 text-sm font-bold outline-none focus:border-indigo-400"
+                    />
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      <button
+                        onClick={handleAccessCreateParentAccount}
+                        disabled={accessBusy}
+                        className="rounded-2xl bg-indigo-600 px-4 py-3 text-sm font-black text-white shadow-lg hover:bg-indigo-700 disabled:opacity-60"
+                      >
+                        Create Account
+                      </button>
+                      <button
+                        onClick={handleAccessSignInParentAccount}
+                        disabled={accessBusy}
+                        className="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-black text-white shadow-lg hover:bg-slate-800 disabled:opacity-60"
+                      >
+                        Sign In
+                      </button>
+                    </div>
+                    <button
+                      onClick={handleAccessSignInWithGoogle}
+                      disabled={accessBusy}
+                      className="w-full rounded-2xl border-2 border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-800 hover:bg-slate-50 disabled:opacity-60"
+                    >
+                      Continue with Google
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <div className="rounded-[24px] bg-indigo-50 p-4">
+                <div className="flex items-center gap-2 text-indigo-900">
+                  <Sparkles size={20} />
+                  <p className="font-black">Step 2: Pick the trial plan</p>
+                </div>
+                <p className="mt-2 text-sm font-semibold text-indigo-900">
+                  Stripe starts a 3-day free trial now. The monthly plan begins after the trial unless the parent cancels.
+                </p>
+
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  <button
+                    onClick={() => handleStartStripeCheckout('starter')}
+                    disabled={!parentCloudSession.signedIn}
+                    className="rounded-[22px] bg-white p-4 text-left shadow-lg ring-2 ring-indigo-100 hover:ring-indigo-300 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    <p className="text-xs font-black uppercase tracking-[0.14em] text-indigo-600">Starter</p>
+                    <p className="mt-1 text-2xl font-black text-slate-900">$4.99</p>
+                    <p className="text-xs font-bold text-slate-500">per month after 3 days</p>
+                  </button>
+                  <button
+                    onClick={() => handleStartStripeCheckout('premium')}
+                    disabled={!parentCloudSession.signedIn}
+                    className="rounded-[22px] bg-slate-900 p-4 text-left text-white shadow-lg ring-2 ring-indigo-200 hover:ring-indigo-400 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    <p className="text-xs font-black uppercase tracking-[0.14em] text-sky-200">Premium</p>
+                    <p className="mt-1 text-2xl font-black">$9.99</p>
+                    <p className="text-xs font-bold text-slate-300">per month after 3 days</p>
+                  </button>
+                </div>
+
+                {familyAccess?.billingAccessActive && (
+                  <button
+                    onClick={continueAfterAccess}
+                    className="mt-4 w-full rounded-2xl bg-emerald-600 px-4 py-3 font-black text-white shadow-lg hover:bg-emerald-700"
+                  >
+                    Continue to Learning
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {accessGateStatus && (
+              <div className="mt-4 rounded-2xl bg-amber-50 px-4 py-3 text-sm font-bold text-amber-900">
+                {accessGateStatus}
+              </div>
+            )}
+          </div>
         </div>
       )}
 

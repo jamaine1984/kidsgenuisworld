@@ -26,6 +26,9 @@ export async function completeParentSetup(page: Page) {
 
 export async function completeKidSetup(page: Page) {
   await completeParentSetup(page);
+  await page.evaluate(() => {
+    window.localStorage.setItem('kidGeniusDevAccessOverride', 'true');
+  });
   await page.getByRole('button', { name: /Kindergarten/i }).click();
   await expect(page.getByRole('heading', { name: /Choose Your Learning Buddy/i })).toBeVisible();
   await page.getByRole('button', { name: /Puppy/i }).click();

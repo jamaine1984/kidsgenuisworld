@@ -29,7 +29,9 @@ const ignoredDirs = new Set([
   'dist',
   'ios',
   'node_modules',
+  'playwright-report',
   'story-covers',
+  'test-results',
   'voice-cache',
 ]);
 
@@ -149,6 +151,9 @@ if (!parentSource.includes('Firebase cloud progress sync') || !firebaseProgressS
 }
 if (!parentSource.includes('Family Subscription') || !stripeBillingSource.includes('getCurrentParentIdToken') || !cloudflareWorkerSource.includes('STRIPE_SECRET_KEY') || !cloudflareWorkerSource.includes('STRIPE_STARTER_PRICE_ID') || !cloudflareWorkerSource.includes('STRIPE_PREMIUM_PRICE_ID') || !cloudflareWorkerSource.includes('accounts:lookup')) {
   fail('Stripe subscription controls must be parent-only and backed by verified Firebase auth.');
+}
+if (!cloudflareWorkerSource.includes("subscription_data[trial_period_days]") || !cloudflareWorkerSource.includes('/api/billing/access') || !stripeBillingSource.includes('getStripeBillingAccess') || !appSource.includes('verifiedByBillingApi')) {
+  fail('Paid learning sections must use a Stripe-backed 3-day trial and verified billing access before opening.');
 }
 if (!exists('tailwind.config.js') || !exists('postcss.config.js') || !exists('index.css')) {
   fail('Tailwind must stay in the local build pipeline for production.');

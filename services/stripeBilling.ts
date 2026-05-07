@@ -1,10 +1,7 @@
 import { getCurrentParentIdToken, type ParentCloudSession } from './firebaseParentAuth';
 
 const getBillingApiBaseUrl = () => {
-  const configured =
-    import.meta.env.VITE_BILLING_API_BASE_URL ||
-    import.meta.env.VITE_MEDIA_API_BASE_URL ||
-    '';
+  const configured = import.meta.env.VITE_BILLING_API_BASE_URL || '';
 
   return String(configured).replace(/\/$/, '');
 };

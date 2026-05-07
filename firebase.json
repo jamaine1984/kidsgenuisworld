@@ -28,11 +28,44 @@
     ],
     "rewrites": [
       {
+        "source": "/api/billing/checkout",
+        "function": {
+          "functionId": "billingCheckout",
+          "region": "us-central1"
+        }
+      },
+      {
+        "source": "/api/billing/portal",
+        "function": {
+          "functionId": "billingPortal",
+          "region": "us-central1"
+        }
+      },
+      {
+        "source": "/api/billing/access",
+        "function": {
+          "functionId": "billingAccess",
+          "region": "us-central1"
+        }
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }
     ]
   },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log"
+      ]
+    }
+  ],
   "firestore": {
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"

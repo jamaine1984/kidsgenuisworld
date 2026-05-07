@@ -114,6 +114,7 @@ const firebaseClientSource = read('services/firebaseClient.ts');
 const firebaseParentAuthSource = read('services/firebaseParentAuth.ts');
 const firebaseProgressStoreSource = read('services/firebaseProgressStore.ts');
 const stripeBillingSource = read('services/stripeBilling.ts');
+const firebaseFunctionsSource = read('functions/index.js');
 
 if (!appSource.includes("setLegalView('privacy')") || !appSource.includes("setLegalView('terms')")) {
   fail('Privacy and terms links are not reachable from the app.');
@@ -149,16 +150,16 @@ if (!firebaseParentAuthSource.includes('createUserWithEmailAndPassword') || !fir
 if (!parentSource.includes('Firebase cloud progress sync') || !firebaseProgressStoreSource.includes('cloudSyncConsent') || !appSource.includes('syncProgressToFirebase')) {
   fail('Firebase cloud progress sync must be explicit, consent-backed, and parent-gated.');
 }
-if (!parentSource.includes('Family Subscription') || !stripeBillingSource.includes('getCurrentParentIdToken') || !cloudflareWorkerSource.includes('STRIPE_SECRET_KEY') || !cloudflareWorkerSource.includes('STRIPE_STARTER_PRICE_ID') || !cloudflareWorkerSource.includes('STRIPE_PREMIUM_PRICE_ID') || !cloudflareWorkerSource.includes('accounts:lookup')) {
-  fail('Stripe subscription controls must be parent-only and backed by verified Firebase auth.');
+if (!parentSource.includes('Family Subscription') || !stripeBillingSource.includes('getCurrentParentIdToken') || !firebaseFunctionsSource.includes('STRIPE_SECRET_KEY') || !firebaseFunctionsSource.includes('STRIPE_STARTER_PRICE_ID') || !firebaseFunctionsSource.includes('STRIPE_PREMIUM_PRICE_ID') || !firebaseFunctionsSource.includes('verifyIdToken')) {
+  fail('Stripe subscription controls must be parent-only and backed by Firebase Functions verified auth.');
 }
-if (!wranglerSource.includes('price_1TU8rvQRAEgZiCW1ZBMSCSq2') || !wranglerSource.includes('price_1TU8tCQRAEgZiCW1pr5nMlzY')) {
-  fail('Stripe recurring Price IDs must be configured in wrangler vars before billing can open.');
+if (!firebaseJsonSource.includes('/api/billing/checkout') || !firebaseJsonSource.includes('billingCheckout') || !firebaseJsonSource.includes('billingAccess')) {
+  fail('Firebase Hosting must rewrite billing API routes to Firebase Functions.');
 }
-if (!cloudflareWorkerSource.includes("request.method === 'OPTIONS'") || !cloudflareWorkerSource.includes("status: 204")) {
-  fail('Billing Worker must answer CORS preflight before browser checkout can open Stripe.');
+if (stripeBillingSource.includes('VITE_MEDIA_API_BASE_URL')) {
+  fail('Stripe billing must not fall back to the media host; it should use Firebase Hosting /api/billing routes.');
 }
-if (!cloudflareWorkerSource.includes("subscription_data[trial_period_days]") || !cloudflareWorkerSource.includes('/api/billing/access') || !stripeBillingSource.includes('getStripeBillingAccess') || !appSource.includes('verifiedByBillingApi')) {
+if (!firebaseFunctionsSource.includes("subscription_data") || !firebaseFunctionsSource.includes("trial_period_days: 3") || !stripeBillingSource.includes('getStripeBillingAccess') || !appSource.includes('verifiedByBillingApi')) {
   fail('Paid learning sections must use a Stripe-backed 3-day trial and verified billing access before opening.');
 }
 if (!exists('tailwind.config.js') || !exists('postcss.config.js') || !exists('index.css')) {

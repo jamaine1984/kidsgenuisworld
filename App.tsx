@@ -873,6 +873,15 @@ const App: React.FC = () => {
       return;
     }
 
+    let checkoutWindow: Window | null = null;
+    try {
+      checkoutWindow = window.open('about:blank', '_blank');
+      checkoutWindow?.document.write('<title>Opening Stripe Checkout</title><p style="font-family:sans-serif;padding:24px;">Opening secure Stripe checkout...</p>');
+      checkoutWindow?.document.close();
+    } catch {
+      checkoutWindow = null;
+    }
+
     setStripeCheckoutUrl('');
     setBillingStatus(`Opening secure Stripe ${plan === 'premium' ? '$9.99' : '$4.99'} monthly checkout with a 3-day trial...`);
     setAccessGateStatus(`Creating secure Stripe checkout for the ${plan === 'premium' ? '$9.99' : '$4.99'} monthly plan...`);
@@ -881,10 +890,17 @@ const App: React.FC = () => {
       setStripeCheckoutUrl(checkoutUrl);
       setBillingStatus('Stripe checkout is ready. Redirecting now...');
       setAccessGateStatus('Stripe checkout is ready. If it does not open automatically, tap the secure checkout link below.');
+      if (checkoutWindow && !checkoutWindow.closed) {
+        checkoutWindow.location.href = checkoutUrl;
+        return;
+      }
       window.setTimeout(() => {
         window.location.href = checkoutUrl;
       }, 100);
     } catch (error) {
+      if (checkoutWindow && !checkoutWindow.closed) {
+        checkoutWindow.close();
+      }
       const message = error instanceof Error ? error.message : 'Stripe checkout could not be opened.';
       setBillingStatus(message);
       setAccessGateStatus(`Payment setup needs attention: ${message}`);

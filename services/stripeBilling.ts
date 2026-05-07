@@ -34,7 +34,7 @@ const postBillingRequest = async (
 
   const result = await response.json().catch(() => ({})) as { url?: string; error?: string };
   if (!response.ok || !result.url) {
-    throw new Error(result.error || 'Billing session could not be created.');
+    throw new Error(result.error || `Billing session could not be created. Server returned ${response.status}.`);
   }
 
   return result.url;

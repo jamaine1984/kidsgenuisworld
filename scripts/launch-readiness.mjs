@@ -152,6 +152,12 @@ if (!parentSource.includes('Firebase cloud progress sync') || !firebaseProgressS
 if (!parentSource.includes('Family Subscription') || !stripeBillingSource.includes('getCurrentParentIdToken') || !cloudflareWorkerSource.includes('STRIPE_SECRET_KEY') || !cloudflareWorkerSource.includes('STRIPE_STARTER_PRICE_ID') || !cloudflareWorkerSource.includes('STRIPE_PREMIUM_PRICE_ID') || !cloudflareWorkerSource.includes('accounts:lookup')) {
   fail('Stripe subscription controls must be parent-only and backed by verified Firebase auth.');
 }
+if (!wranglerSource.includes('price_1TU8rvQRAEgZiCW1ZBMSCSq2') || !wranglerSource.includes('price_1TU8tCQRAEgZiCW1pr5nMlzY')) {
+  fail('Stripe recurring Price IDs must be configured in wrangler vars before billing can open.');
+}
+if (!cloudflareWorkerSource.includes("request.method === 'OPTIONS'") || !cloudflareWorkerSource.includes("status: 204")) {
+  fail('Billing Worker must answer CORS preflight before browser checkout can open Stripe.');
+}
 if (!cloudflareWorkerSource.includes("subscription_data[trial_period_days]") || !cloudflareWorkerSource.includes('/api/billing/access') || !stripeBillingSource.includes('getStripeBillingAccess') || !appSource.includes('verifiedByBillingApi')) {
   fail('Paid learning sections must use a Stripe-backed 3-day trial and verified billing access before opening.');
 }

@@ -874,7 +874,13 @@ const App: React.FC = () => {
 
     setBillingStatus(`Opening secure Stripe ${plan === 'premium' ? '$9.99' : '$4.99'} monthly checkout with a 3-day trial...`);
     setAccessGateStatus(`Opening Stripe for the ${plan === 'premium' ? '$9.99' : '$4.99'} monthly plan. The first 3 days are free.`);
-    await openStripeCheckout(parentCloudSession, plan);
+    try {
+      await openStripeCheckout(parentCloudSession, plan);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Stripe checkout could not be opened.';
+      setBillingStatus(message);
+      setAccessGateStatus(`Payment setup needs attention: ${message}`);
+    }
   };
 
   const handleOpenStripeBillingPortal = async () => {

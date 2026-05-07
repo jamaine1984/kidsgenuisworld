@@ -475,6 +475,9 @@ const handleStoryCover = async (request: Request, env: Env) => {
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
+    if (request.method === 'OPTIONS') {
+      return new Response(null, { status: 204, headers: corsHeaders });
+    }
     if (request.method === 'GET' && url.pathname.startsWith('/voice-cache/') && url.pathname.endsWith('.mp3')) {
       const fileName = url.pathname.split('/').pop() || '';
       const cached = /^[a-f0-9]{64}\.mp3$/.test(fileName)

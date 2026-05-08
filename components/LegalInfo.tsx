@@ -28,6 +28,7 @@ export const LegalInfo: React.FC<LegalInfoProps> = ({ type, onBack }) => {
             <div>
               <p className="text-xs uppercase tracking-[0.2em] text-indigo-600 font-black">Kid Genius World</p>
               <h1 className="text-3xl font-black">{isPrivacy ? 'Privacy Notice' : 'Terms of Use'}</h1>
+              <p className="mt-1 text-sm font-bold text-slate-500">A CrateShip Studios learning app</p>
             </div>
           </div>
 
@@ -36,6 +37,10 @@ export const LegalInfo: React.FC<LegalInfoProps> = ({ type, onBack }) => {
               <p>
                 This notice explains how Kid Genius World handles child learning data in the web app and which choices stay under parent control.
               </p>
+              <section>
+                <h2 className="text-xl font-black text-slate-900 mb-2">App Owner</h2>
+                <p>Kid Genius World is created and operated by CrateShip Studios. Parents may see CrateShip Studios on checkout, receipts, support, or business pages because it is the studio brand behind this learning app.</p>
+              </section>
               <section>
                 <h2 className="text-xl font-black text-slate-900 mb-2">Current Data Storage</h2>
                 <p>Child progress, grade selection, pet choice, achievements, accessibility settings, and local app preferences are stored in this browser using local storage unless a parent signs in and turns on Firebase cloud progress sync.</p>
@@ -63,6 +68,10 @@ export const LegalInfo: React.FC<LegalInfoProps> = ({ type, onBack }) => {
                 These terms describe the intended use of Kid Genius World for supervised family learning.
               </p>
               <section>
+                <h2 className="text-xl font-black text-slate-900 mb-2">Studio Brand</h2>
+                <p>Kid Genius World is a CrateShip Studios product. Stripe checkout, receipts, or support references may use CrateShip Studios as the business brand for this app.</p>
+              </section>
+              <section>
                 <h2 className="text-xl font-black text-slate-900 mb-2">Educational Use</h2>
                 <p>Kid Genius World is an educational practice app for children with parent supervision. It does not replace a teacher, school curriculum, therapist, or medical professional.</p>
               </section>
@@ -80,6 +89,18 @@ export const LegalInfo: React.FC<LegalInfoProps> = ({ type, onBack }) => {
               </section>
             </div>
           )}
+          <div className="mt-8 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-bold text-slate-600">
+            Copyright 2026 CrateShip Studios. Kid Genius World by CrateShip Studios. Visit{' '}
+            <a
+              href="https://crateshipstudios.com"
+              target="_blank"
+              rel="noreferrer"
+              className="text-indigo-700 underline"
+            >
+              crateshipstudios.com
+            </a>
+            .
+          </div>
         </div>
       </div>
     </div>

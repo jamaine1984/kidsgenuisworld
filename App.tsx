@@ -1616,6 +1616,9 @@ const App: React.FC = () => {
             Learning is an Adventure!
             <span className="animate-sparkle" style={{ animationDelay: '0.7s' }}>✨</span>
           </p>
+          <p className="mt-3 inline-flex rounded-full bg-white/85 px-4 py-2 text-sm font-black text-slate-700 shadow-lg">
+            Kid Genius World by CrateShip Studios
+          </p>
         </div>
 
         {/* Start Button */}
@@ -1656,7 +1659,9 @@ const App: React.FC = () => {
           <span className="text-2xl">🐾</span>
         </div>
 
-        <div className="absolute bottom-3 left-0 right-0 z-20 flex justify-center gap-3 text-xs font-bold text-white/90">
+        <div className="absolute bottom-3 left-4 right-4 z-20 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center text-xs font-bold text-white/90">
+          <span>Copyright 2026 CrateShip Studios</span>
+          <span className="hidden sm:inline">|</span>
           <button onClick={() => setLegalView('privacy')} className="underline decoration-white/50 hover:text-white">Privacy</button>
           <button onClick={() => setLegalView('terms')} className="underline decoration-white/50 hover:text-white">Terms</button>
         </div>
@@ -1755,6 +1760,7 @@ const App: React.FC = () => {
                 <div>
                   <h1 className="text-3xl font-bold">Parent Setup</h1>
                   <p className="text-white/85">A quick grown-up review before kids start learning.</p>
+                  <p className="mt-1 text-sm font-black text-white/90">Kid Genius World by CrateShip Studios</p>
                 </div>
               </div>
             </div>
@@ -1782,7 +1788,7 @@ const App: React.FC = () => {
             </div>
             <div className="px-6 pb-6">
               <div className="rounded-2xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-900 mb-5">
-                Parent setup keeps the child experience gated while families review privacy, local progress storage, optional Firebase sync, saved media, and parent-only billing.
+                Kid Genius World is a CrateShip Studios learning app. Parent setup keeps the child experience gated while families review privacy, local progress storage, optional Firebase sync, saved media, and parent-only billing.
               </div>
               <div className="flex justify-center gap-4 mb-4 text-sm font-bold text-indigo-700">
                 <button onClick={() => setLegalView('privacy')} className="underline">Read Privacy Notice</button>

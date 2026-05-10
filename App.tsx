@@ -511,22 +511,12 @@ const App: React.FC = () => {
 
     refreshBillingAccess('Verifying Stripe checkout and 3-day trial...')
       .catch(error => {
-        const now = Date.now();
-        const fallbackAccess: FamilyAccessRecord = {
-          familyId: parentCloudSession.familyId || 'unknown',
-          billingAccessActive: true,
-          trialStartedAt: now,
-          trialEndsAt: now + BILLING_TRIAL_MS,
-          checkoutCompletedAt: now,
-          verifiedByBillingApi: false,
-          checkedAt: now,
-        };
-        saveFamilyAccess(fallbackAccess);
-        setFamilyAccess(fallbackAccess);
+        clearFamilyAccess(parentCloudSession.familyId);
+        setFamilyAccess(null);
         setBillingStatus(
           error instanceof Error
-            ? `Stripe checkout returned success. Access is unlocked while server verification finishes: ${error.message}`
-            : 'Stripe checkout returned success. Access is unlocked while server verification finishes.'
+            ? `Stripe checkout returned success, but access could not be verified yet: ${error.message}`
+            : 'Stripe checkout returned success, but access could not be verified yet.'
         );
       })
       .finally(() => {

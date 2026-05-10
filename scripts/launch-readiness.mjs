@@ -162,6 +162,9 @@ if (stripeBillingSource.includes('VITE_MEDIA_API_BASE_URL')) {
 if (!firebaseFunctionsSource.includes("subscription_data") || !firebaseFunctionsSource.includes("trial_period_days: 3") || !stripeBillingSource.includes('getStripeBillingAccess') || !appSource.includes('verifiedByBillingApi')) {
   fail('Paid learning sections must use a Stripe-backed 3-day trial and verified billing access before opening.');
 }
+if (appSource.includes('Access is unlocked while server verification finishes') || appSource.includes('verifiedByBillingApi: false')) {
+  fail('Checkout success must not unlock paid learning access without Stripe verification.');
+}
 if (!exists('tailwind.config.js') || !exists('postcss.config.js') || !exists('index.css')) {
   fail('Tailwind must stay in the local build pipeline for production.');
 }

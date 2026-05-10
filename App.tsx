@@ -5,7 +5,7 @@ import { Dashboard } from './components/Dashboard';
 import { VirtualPetPanel, PetSelection } from './components/VirtualPet';
 import { AchievementsPanel, AchievementUnlockToast } from './components/AchievementsPanel';
 import { ParentDashboard } from './components/ParentDashboard';
-import { LegalInfo } from './components/LegalInfo';
+import { LegalInfo, type LegalPageType } from './components/LegalInfo';
 import { getUnitsForGrade } from './services/curriculum';
 import {
   RoomType,
@@ -367,7 +367,7 @@ const App: React.FC = () => {
   const [showMissionFocus, setShowMissionFocus] = useState(false);
   const [learningReflection, setLearningReflection] = useState<LearningReflection | null>(null);
   const [parentOnboarded, setParentOnboarded] = useState(() => localStorage.getItem('kidGeniusParentOnboarded') === 'true');
-  const [legalView, setLegalView] = useState<'privacy' | 'terms' | null>(null);
+  const [legalView, setLegalView] = useState<LegalPageType | null>(null);
   const [parentPin, setParentPin] = useState(() => localStorage.getItem('kidGeniusParentPin') || '');
   const [pinDraft, setPinDraft] = useState('');
   const [pinConfirmDraft, setPinConfirmDraft] = useState('');
@@ -1654,6 +1654,7 @@ const App: React.FC = () => {
           <span className="hidden sm:inline">|</span>
           <button onClick={() => setLegalView('privacy')} className="underline decoration-white/50 hover:text-white">Privacy</button>
           <button onClick={() => setLegalView('terms')} className="underline decoration-white/50 hover:text-white">Terms</button>
+          <button onClick={() => setLegalView('support')} className="underline decoration-white/50 hover:text-white">Parent Support</button>
         </div>
       </div>
     );
@@ -1778,11 +1779,12 @@ const App: React.FC = () => {
             </div>
             <div className="px-6 pb-6">
               <div className="rounded-2xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-900 mb-5">
-                Kid Genius World is a CrateShip Studios learning app. Parent setup keeps the child experience gated while families review privacy, local progress storage, optional Firebase sync, saved media, and parent-only billing.
+                Kid Genius World is a CrateShip Studios learning app. Parent setup keeps the child experience gated while families review privacy, local progress storage, optional Firebase sync, saved media, and parent-only billing. Parent support is available at crateshipstudios@gmail.com.
               </div>
               <div className="flex justify-center gap-4 mb-4 text-sm font-bold text-indigo-700">
                 <button onClick={() => setLegalView('privacy')} className="underline">Read Privacy Notice</button>
                 <button onClick={() => setLegalView('terms')} className="underline">Read Terms</button>
+                <button onClick={() => setLegalView('support')} className="underline">Parent Support</button>
               </div>
               <div className="rounded-2xl border border-indigo-100 bg-indigo-50 p-4 mb-5">
                 <h2 className="font-bold text-lg mb-2 text-indigo-950">Parent Launch Checkpoints</h2>
@@ -2121,6 +2123,9 @@ const App: React.FC = () => {
                 </div>
                 <p className="mt-2 text-sm font-semibold text-indigo-900">
                   Stripe starts a 3-day free trial now. The monthly plan begins after the trial unless the parent cancels.
+                </p>
+                <p className="mt-2 text-xs font-bold text-indigo-800">
+                  Need help? Parent support: crateshipstudios@gmail.com
                 </p>
 
                 <div className="mt-4 grid gap-3 sm:grid-cols-2">

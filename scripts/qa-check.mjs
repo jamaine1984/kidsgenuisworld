@@ -173,6 +173,14 @@ if (!appSource.includes('Parent Launch Checkpoints') || !appSource.includes('kid
 }
 if (!appSource.includes("setLegalView('privacy')")) fail('Privacy notice link is not wired in App.tsx.');
 if (!appSource.includes("setLegalView('terms')")) fail('Terms link is not wired in App.tsx.');
+if (!appSource.includes("setLegalView('support')") || !appSource.includes('crateshipstudios@gmail.com')) {
+  fail('Parent support page and support email must be reachable from the app.');
+}
+const legalSource = fs.readFileSync(path.join(root, 'components/LegalInfo.tsx'), 'utf8');
+const legalLower = legalSource.toLowerCase();
+if (!legalLower.includes('parent support') || !legalLower.includes('crateshipstudios@gmail.com') || !legalLower.includes('request deletion') || !legalLower.includes('do not sell child personal information')) {
+  fail('Legal pages must include parent support, support email, deletion rights, and child data sale language.');
+}
 if (!parentDashboardSource.includes('Parent PIN')) fail('Parent PIN UI is missing.');
 if (!parentDashboardSource.includes('Child Profiles')) fail('Child profile UI is missing.');
 if (!parentDashboardSource.includes('Create Child Profile')) fail('Create child profile action is missing.');

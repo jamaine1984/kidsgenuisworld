@@ -116,12 +116,20 @@ const firebaseProgressStoreSource = read('services/firebaseProgressStore.ts');
 const stripeBillingSource = read('services/stripeBilling.ts');
 const firebaseFunctionsSource = read('functions/index.js');
 
-if (!appSource.includes("setLegalView('privacy')") || !appSource.includes("setLegalView('terms')")) {
-  fail('Privacy and terms links are not reachable from the app.');
+if (!appSource.includes("setLegalView('privacy')") || !appSource.includes("setLegalView('terms')") || !appSource.includes("setLegalView('support')")) {
+  fail('Privacy, terms, and parent support links are not reachable from the app.');
 }
 const legalLower = legalSource.toLowerCase();
-if (!legalLower.includes('children') || !legalLower.includes('parent') || !legalLower.includes('saved static media')) {
-  fail('Legal copy must clearly address children, parents, and saved static media.');
+if (
+  !legalLower.includes('children') ||
+  !legalLower.includes('parent') ||
+  !legalLower.includes('saved static media') ||
+  !legalLower.includes('crateshipstudios@gmail.com') ||
+  !legalLower.includes('review stored account data') ||
+  !legalLower.includes('request deletion') ||
+  !legalLower.includes('do not sell child personal information')
+) {
+  fail('Legal copy must clearly address children, parents, saved static media, support contact, and parent data rights.');
 }
 if (!parentSource.includes('Privacy Controls') || !parentSource.includes('Parent PIN')) {
   fail('Parent privacy controls and PIN gate must be present before launch.');

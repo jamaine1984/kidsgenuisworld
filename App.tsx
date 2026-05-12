@@ -1652,6 +1652,7 @@ const App: React.FC = () => {
         <div className="absolute bottom-3 left-4 right-4 z-20 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center text-xs font-bold text-white/90">
           <span>Copyright 2026 CrateShip Studios</span>
           <span className="hidden sm:inline">|</span>
+          <a href="/blog/" className="underline decoration-white/50 hover:text-white">Blog</a>
           <button onClick={() => setLegalView('privacy')} className="underline decoration-white/50 hover:text-white">Privacy</button>
           <button onClick={() => setLegalView('terms')} className="underline decoration-white/50 hover:text-white">Terms</button>
           <button onClick={() => setLegalView('support')} className="underline decoration-white/50 hover:text-white">Parent Support</button>

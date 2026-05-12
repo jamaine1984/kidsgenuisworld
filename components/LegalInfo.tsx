@@ -70,7 +70,7 @@ export const LegalInfo: React.FC<LegalInfoProps> = ({ type, onBack }) => {
                 </p>
               </section>
               <section>
-                <h2 className="text-xl font-black text-slate-900 mb-2">Local Storage and Optional Firebase Sync</h2>
+                <h2 className="text-xl font-black text-slate-900 mb-2">Current Data Storage</h2>
                 <p>
                   Child progress starts in this browser using local storage. If a parent creates or signs into a Firebase
                   parent account and turns on cloud sync, the app can save the active child profile and learning progress to

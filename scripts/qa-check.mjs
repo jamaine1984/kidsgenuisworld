@@ -22,10 +22,22 @@ const requiredFiles = [
   'services/firebaseParentAuth.ts',
   'services/firebaseProgressStore.ts',
   'services/stripeBilling.ts',
+  'components/InstallAppButton.tsx',
   'scripts/check-elevenlabs-key.mjs',
   'scripts/warm-voice-cache.mjs',
   'scripts/export-static-voice-cache.mjs',
   'scripts/generate-static-story-covers.mjs',
+  'public/manifest.webmanifest',
+  'public/sw.js',
+  'public/icons/icon.svg',
+  'public/icons/icon-192.png',
+  'public/icons/icon-512.png',
+  'public/icons/maskable-icon-512.png',
+  'public/icons/apple-touch-icon.png',
+  'public/brand/logo-options.html',
+  'public/brand/logo-option-1-genius-globe.svg',
+  'public/brand/logo-option-2-brain-book.svg',
+  'public/brand/logo-option-3-rocket-pencil.svg',
   'public/voice-cache/manifest.json',
   'public/story-covers/pk-1.svg',
   'public/story-covers/pk-1.png',
@@ -61,6 +73,7 @@ const firebaseClientSource = fs.readFileSync(path.join(root, 'services/firebaseC
 const firebaseParentAuthSource = fs.readFileSync(path.join(root, 'services/firebaseParentAuth.ts'), 'utf8');
 const firebaseProgressStoreSource = fs.readFileSync(path.join(root, 'services/firebaseProgressStore.ts'), 'utf8');
 const stripeBillingSource = fs.readFileSync(path.join(root, 'services/stripeBilling.ts'), 'utf8');
+const installAppButtonSource = fs.readFileSync(path.join(root, 'components/InstallAppButton.tsx'), 'utf8');
 const firebaseJsonSource = fs.readFileSync(path.join(root, 'firebase.json'), 'utf8');
 const firestoreRulesSource = fs.readFileSync(path.join(root, 'firestore.rules'), 'utf8');
 const storyBookSource = fs.readFileSync(path.join(root, 'components/StoryBook.tsx'), 'utf8');
@@ -78,6 +91,10 @@ const artRoomSource = fs.readFileSync(path.join(root, 'components/ArtRoom.tsx'),
 const puzzleRoomSource = fs.readFileSync(path.join(root, 'components/PuzzleRoom.tsx'), 'utf8');
 const musicRoomSource = fs.readFileSync(path.join(root, 'components/MusicRoom.tsx'), 'utf8');
 const packageJson = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
+const htmlSource = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+const indexSource = fs.readFileSync(path.join(root, 'index.tsx'), 'utf8');
+const pwaManifest = JSON.parse(fs.readFileSync(path.join(root, 'public/manifest.webmanifest'), 'utf8'));
+const serviceWorkerSource = fs.readFileSync(path.join(root, 'public/sw.js'), 'utf8');
 const distIndex = fs.existsSync(path.join(root, 'dist/index.html'))
   ? fs.readFileSync(path.join(root, 'dist/index.html'), 'utf8')
   : '';
@@ -299,6 +316,24 @@ if (!voiceStaticScript.includes('.tts-cache') || !voiceStaticScript.includes('ma
 }
 if (!packageJson.scripts?.serve) fail('Production serve script is missing.');
 if (!distIndex.includes('/assets/')) fail('Production build output is missing bundled assets.');
+if (!htmlSource.includes('/manifest.webmanifest') || !htmlSource.includes('apple-mobile-web-app-capable') || !htmlSource.includes('/icons/apple-touch-icon.png')) {
+  fail('PWA and mobile install metadata is missing from index.html.');
+}
+if (!indexSource.includes("navigator.serviceWorker.register('/sw.js')")) {
+  fail('Service worker registration is missing from the app entry point.');
+}
+if (!installAppButtonSource.includes('beforeinstallprompt') || !installAppButtonSource.includes('Add to Home Screen')) {
+  fail('Install App button must support browser install prompts and iOS add-to-home-screen guidance.');
+}
+if (pwaManifest.name !== 'Kid Genius World' || pwaManifest.display !== 'standalone' || pwaManifest.start_url !== '/?source=pwa') {
+  fail('PWA manifest must identify Kid Genius World as a standalone web app.');
+}
+if (!Array.isArray(pwaManifest.icons) || !pwaManifest.icons.some((icon) => icon.src === '/icons/maskable-icon-512.png' && icon.purpose === 'maskable')) {
+  fail('PWA manifest must include a maskable 512px app icon.');
+}
+if (!serviceWorkerSource.includes('CACHE_NAME') || !serviceWorkerSource.includes("url.pathname.startsWith('/api/')") || !serviceWorkerSource.includes("request.mode === 'navigate'")) {
+  fail('Service worker must cache the app shell without caching protected API calls.');
+}
 
 const coreCurriculumUnitCount = (curriculumSource.match(/id: '/g) || []).length;
 const hasEveryRoomExpansion = curriculumSource.includes('EVERY_ROOM_CURRICULUM_UNITS') &&

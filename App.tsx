@@ -6,6 +6,7 @@ import { VirtualPetPanel, PetSelection } from './components/VirtualPet';
 import { AchievementsPanel, AchievementUnlockToast } from './components/AchievementsPanel';
 import { ParentDashboard } from './components/ParentDashboard';
 import { LegalInfo, type LegalPageType } from './components/LegalInfo';
+import { InstallAppButton } from './components/InstallAppButton';
 import { getUnitsForGrade } from './services/curriculum';
 import {
   RoomType,
@@ -1620,6 +1621,8 @@ const App: React.FC = () => {
           Start Adventure!
           <Sparkles size={36} className="animate-pulse" />
         </button>
+
+        <InstallAppButton className="z-20" />
 
         {/* Features */}
         <div className="z-20 grid grid-cols-2 sm:flex gap-3 mt-2 flex-wrap justify-center w-full max-w-[560px]">

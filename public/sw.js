@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kid-genius-world-pwa-v1';
+const CACHE_NAME = 'kid-genius-world-pwa-v2';
 const APP_SHELL = [
   '/',
   '/index.html',
@@ -7,6 +7,7 @@ const APP_SHELL = [
   '/icons/icon-192.png',
   '/icons/icon-512.png',
   '/icons/maskable-icon-512.png',
+  '/icons/apple-touch-icon.png',
   '/blog/',
   '/robots.txt',
   '/sitemap.xml'

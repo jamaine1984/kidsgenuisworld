@@ -2,85 +2,224 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
     <loc>https://kid-genius-world.com/</loc>
-    <lastmod>2026-05-12</lastmod>
+    <lastmod>2026-05-17</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://kid-genius-world.com/blog/</loc>
-    <lastmod>2026-05-12</lastmod>
+    <lastmod>2026-05-17</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
-    <image:image><image:loc>https://kid-genius-world.com/room-scenes/storybook.png</image:loc></image:image>
   </url>
   <url>
     <loc>https://kid-genius-world.com/blog/best-online-learning-app-for-kids.html</loc>
-    <lastmod>2026-05-12</lastmod>
+    <lastmod>2026-05-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <image:image><image:loc>https://kid-genius-world.com/room-scenes/storybook.png</image:loc></image:image>
   </url>
   <url>
     <loc>https://kid-genius-world.com/blog/daily-learning-routine-for-kids.html</loc>
-    <lastmod>2026-05-12</lastmod>
+    <lastmod>2026-05-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <image:image><image:loc>https://kid-genius-world.com/room-scenes/reading.png</image:loc></image:image>
   </url>
   <url>
     <loc>https://kid-genius-world.com/blog/reading-aloud-builds-confidence.html</loc>
-    <lastmod>2026-05-12</lastmod>
+    <lastmod>2026-05-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <image:image><image:loc>https://kid-genius-world.com/story-covers/k-1.png</image:loc></image:image>
   </url>
   <url>
     <loc>https://kid-genius-world.com/blog/fun-math-practice-at-home.html</loc>
-    <lastmod>2026-05-12</lastmod>
+    <lastmod>2026-05-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <image:image><image:loc>https://kid-genius-world.com/room-scenes/math.png</image:loc></image:image>
   </url>
   <url>
     <loc>https://kid-genius-world.com/blog/educational-screen-time-that-teaches.html</loc>
-    <lastmod>2026-05-12</lastmod>
+    <lastmod>2026-05-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <image:image><image:loc>https://kid-genius-world.com/room-scenes/coding.png</image:loc></image:image>
   </url>
   <url>
     <loc>https://kid-genius-world.com/blog/early-coding-for-kids.html</loc>
-    <lastmod>2026-05-12</lastmod>
+    <lastmod>2026-05-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <image:image><image:loc>https://kid-genius-world.com/room-scenes/puzzle.png</image:loc></image:image>
   </url>
   <url>
     <loc>https://kid-genius-world.com/blog/science-curiosity-at-home.html</loc>
-    <lastmod>2026-05-12</lastmod>
+    <lastmod>2026-05-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <image:image><image:loc>https://kid-genius-world.com/room-scenes/science.png</image:loc></image:image>
   </url>
   <url>
     <loc>https://kid-genius-world.com/blog/social-emotional-learning-for-kids.html</loc>
-    <lastmod>2026-05-12</lastmod>
+    <lastmod>2026-05-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <image:image><image:loc>https://kid-genius-world.com/room-scenes/art.png</image:loc></image:image>
   </url>
   <url>
     <loc>https://kid-genius-world.com/blog/track-learning-progress-without-pressure.html</loc>
-    <lastmod>2026-05-12</lastmod>
+    <lastmod>2026-05-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <image:image><image:loc>https://kid-genius-world.com/room-scenes/geography.png</image:loc></image:image>
   </url>
   <url>
     <loc>https://kid-genius-world.com/blog/grade-level-lessons-without-rushing.html</loc>
-    <lastmod>2026-05-12</lastmod>
+    <lastmod>2026-05-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <image:image><image:loc>https://kid-genius-world.com/room-scenes/language.png</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://kid-genius-world.com/blog/reading-confidence-for-elementary-kids.html</loc>
+    <lastmod>2026-05-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://kid-genius-world.com/blog/images/reading-confidence-for-elementary-kids.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://kid-genius-world.com/blog/math-fact-practice-without-stress.html</loc>
+    <lastmod>2026-05-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://kid-genius-world.com/blog/images/math-fact-practice-without-stress.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://kid-genius-world.com/blog/science-activities-for-curious-kids-at-home.html</loc>
+    <lastmod>2026-05-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://kid-genius-world.com/blog/images/science-activities-for-curious-kids-at-home.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://kid-genius-world.com/blog/coding-for-kids-at-home-loops-logic-and-debugging.html</loc>
+    <lastmod>2026-05-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://kid-genius-world.com/blog/images/coding-for-kids-at-home-loops-logic-and-debugging.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://kid-genius-world.com/blog/geography-lessons-for-kids-with-maps-and-missions.html</loc>
+    <lastmod>2026-05-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://kid-genius-world.com/blog/images/geography-lessons-for-kids-with-maps-and-missions.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://kid-genius-world.com/blog/vocabulary-games-that-help-kids-use-new-words.html</loc>
+    <lastmod>2026-05-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://kid-genius-world.com/blog/images/vocabulary-games-that-help-kids-use-new-words.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://kid-genius-world.com/blog/parent-dashboard-learning-progress-that-makes-sense.html</loc>
+    <lastmod>2026-05-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://kid-genius-world.com/blog/images/parent-dashboard-learning-progress-that-makes-sense.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://kid-genius-world.com/blog/safe-educational-screen-time-that-actually-teaches.html</loc>
+    <lastmod>2026-05-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://kid-genius-world.com/blog/images/safe-educational-screen-time-that-actually-teaches.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://kid-genius-world.com/blog/summer-learning-routine-for-kids.html</loc>
+    <lastmod>2026-05-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://kid-genius-world.com/blog/images/summer-learning-routine-for-kids.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://kid-genius-world.com/blog/homeschool-enrichment-with-kid-genius-world.html</loc>
+    <lastmod>2026-05-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://kid-genius-world.com/blog/images/homeschool-enrichment-with-kid-genius-world.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://kid-genius-world.com/blog/english-learning-for-kids-worldwide.html</loc>
+    <lastmod>2026-05-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://kid-genius-world.com/blog/images/english-learning-for-kids-worldwide.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://kid-genius-world.com/blog/math-practice-for-bilingual-families.html</loc>
+    <lastmod>2026-05-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://kid-genius-world.com/blog/images/math-practice-for-bilingual-families.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://kid-genius-world.com/blog/global-classroom-curiosity-for-kids.html</loc>
+    <lastmod>2026-05-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://kid-genius-world.com/blog/images/global-classroom-curiosity-for-kids.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://kid-genius-world.com/blog/after-school-learning-for-international-families.html</loc>
+    <lastmod>2026-05-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://kid-genius-world.com/blog/images/after-school-learning-for-international-families.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://kid-genius-world.com/blog/early-coding-for-kids-around-the-world.html</loc>
+    <lastmod>2026-05-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://kid-genius-world.com/blog/images/early-coding-for-kids-around-the-world.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://kid-genius-world.com/blog/reading-routines-for-busy-families.html</loc>
+    <lastmod>2026-05-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://kid-genius-world.com/blog/images/reading-routines-for-busy-families.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://kid-genius-world.com/blog/stem-learning-at-home-worldwide.html</loc>
+    <lastmod>2026-05-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://kid-genius-world.com/blog/images/stem-learning-at-home-worldwide.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://kid-genius-world.com/blog/parent-guided-online-learning-for-every-schedule.html</loc>
+    <lastmod>2026-05-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://kid-genius-world.com/blog/images/parent-guided-online-learning-for-every-schedule.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://kid-genius-world.com/blog/focus-and-confidence-skills-for-young-learners.html</loc>
+    <lastmod>2026-05-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://kid-genius-world.com/blog/images/focus-and-confidence-skills-for-young-learners.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://kid-genius-world.com/blog/grade-level-practice-for-global-learners.html</loc>
+    <lastmod>2026-05-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://kid-genius-world.com/blog/images/grade-level-practice-for-global-learners.jpg</image:loc></image:image>
   </url>
 </urlset>

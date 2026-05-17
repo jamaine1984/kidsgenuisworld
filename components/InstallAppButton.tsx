@@ -65,7 +65,7 @@ export const InstallAppButton: React.FC<{ className?: string }> = ({ className =
   };
 
   return (
-    <div className={`relative ${className}`}>
+    <div className={`relative z-[80] ${className}`}>
       <button
         type="button"
         onClick={handleInstall}
@@ -76,7 +76,7 @@ export const InstallAppButton: React.FC<{ className?: string }> = ({ className =
       </button>
 
       {showInstallTip && (
-        <div className="absolute left-1/2 top-full z-50 mt-3 w-[min(18rem,calc(100vw-2rem))] -translate-x-1/2 rounded-2xl border border-sky-100 bg-white p-4 text-left text-sm font-bold text-slate-700 shadow-2xl">
+        <div className="absolute left-1/2 top-full z-[90] mt-3 w-[min(18rem,calc(100vw-2rem))] -translate-x-1/2 rounded-2xl border border-sky-100 bg-white p-4 text-left text-sm font-bold text-slate-700 shadow-2xl">
           <button
             type="button"
             onClick={() => setShowInstallTip(false)}
@@ -89,7 +89,10 @@ export const InstallAppButton: React.FC<{ className?: string }> = ({ className =
             <CheckCircle2 size={18} />
             {isAppleMobile() ? 'Add to Home Screen' : 'Install from Browser'}
           </div>
-          <p className="pr-4 leading-5">Open the browser menu, then choose Install app or Add to Home Screen.</p>
+          <div className="space-y-2 pr-4 leading-5">
+            <p>iPhone or iPad: open Safari Share, then choose Add to Home Screen.</p>
+            <p>Android: open Chrome menu, then choose Install app or Add to Home screen.</p>
+          </div>
         </div>
       )}
     </div>

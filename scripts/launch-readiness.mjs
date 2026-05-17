@@ -115,6 +115,7 @@ const firebaseParentAuthSource = read('services/firebaseParentAuth.ts');
 const firebaseProgressStoreSource = read('services/firebaseProgressStore.ts');
 const stripeBillingSource = read('services/stripeBilling.ts');
 const firebaseFunctionsSource = read('functions/index.js');
+const blogIndexSource = read('public/blog/index.html');
 
 if (!appSource.includes("setLegalView('privacy')") || !appSource.includes("setLegalView('terms')") || !appSource.includes("setLegalView('support')")) {
   fail('Privacy, terms, and parent support links are not reachable from the app.');
@@ -175,6 +176,15 @@ if (appSource.includes('Access is unlocked while server verification finishes') 
 }
 if (!exists('tailwind.config.js') || !exists('postcss.config.js') || !exists('index.css')) {
   fail('Tailwind must stay in the local build pipeline for production.');
+}
+if (/href="\d+\//.test(blogIndexSource)) {
+  fail('Blog index must link to canonical /blog/article.html URLs, not numbered placeholder folders.');
+}
+for (const match of blogIndexSource.matchAll(/href="\/blog\/([^"]+\.html)"/g)) {
+  const blogFile = `public/blog/${match[1]}`;
+  if (!exists(blogFile)) {
+    fail(`Blog index links to missing article file: ${blogFile}`);
+  }
 }
 
 if (failures.length) {

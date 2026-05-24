@@ -195,6 +195,7 @@ Targeted checks:
 npm run qa:secrets
 npm run qa:media
 npm run qa:mobile-handoff
+npm run qa:ops
 npm run qa:source
 npm run qa:launch
 npm run qa:production-live
@@ -203,6 +204,8 @@ npm run qa:production-live
 `npm run qa:media` verifies that every story has saved PNG/SVG cover art and that the static voice manifest contains a production-sized saved narration library.
 
 `npm run qa:mobile-handoff` verifies that future mobile work stays out of this web repo and that reusable brand/media/Firebase handoff details are documented.
+
+`npm run qa:ops` verifies support, monitoring, SEO, media, mobile boundary, live QA, and rollback documentation. See `docs/launch-operations-runbook.md`.
 
 ## Production Finish Line
 

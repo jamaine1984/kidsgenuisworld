@@ -249,16 +249,20 @@ const liveSiteCheckSource = read('scripts/check-live-site.mjs');
 const functionsDeployScriptSource = read('scripts/deploy-firebase-functions.mjs');
 const staticMediaCheckSource = read('scripts/check-static-media-readiness.mjs');
 const mobileHandoffCheckSource = read('scripts/check-mobile-handoff-readiness.mjs');
+const operationsCheckSource = read('scripts/check-operations-readiness.mjs');
 const finishLineSource = read('docs/production-finish-line.md');
 const mobileHandoffSource = read('docs/mobile-handoff.md');
+const launchOperationsSource = read('docs/launch-operations-runbook.md');
 if (
   !packageJson.scripts?.['qa:site-live'] ||
   !packageJson.scripts?.['qa:billing-live'] ||
   !packageJson.scripts?.['qa:production-live'] ||
   !packageJson.scripts?.['qa:media'] ||
   !packageJson.scripts?.['qa:mobile-handoff'] ||
+  !packageJson.scripts?.['qa:ops'] ||
   !packageJson.scripts?.qa?.includes('qa:media') ||
   !packageJson.scripts?.qa?.includes('qa:mobile-handoff') ||
+  !packageJson.scripts?.qa?.includes('qa:ops') ||
   !liveSiteCheckSource.includes('checkWwwRedirect') ||
   !liveSiteCheckSource.includes('/manifest.webmanifest') ||
   !liveSiteCheckSource.includes('/sitemap.xml') ||
@@ -278,9 +282,13 @@ if (
   !mobileHandoffSource.includes('com.kidgenius.world') ||
   !finishLineSource.includes('Kid Genius World Mobile') ||
   !finishLineSource.includes('separate GitHub repo') ||
-  !finishLineSource.includes('$0.50')
+  !finishLineSource.includes('$0.50') ||
+  !operationsCheckSource.includes('Operations readiness passed') ||
+  !launchOperationsSource.includes('Firebase Monitoring') ||
+  !launchOperationsSource.includes('Search And SEO Monitoring') ||
+  !launchOperationsSource.includes('Rollback path')
 ) {
-  fail('Live production, static media, finish-line, billing API, and Firebase deploy smoke scripts must stay available.');
+  fail('Live production, static media, finish-line, operations, billing API, and Firebase deploy smoke scripts must stay available.');
 }
 if (!firebaseJsonSource.includes('/api/billing/checkout') || !firebaseJsonSource.includes('billingCheckout') || !firebaseJsonSource.includes('billingAccess') || !firebaseJsonSource.includes('/api/billing/webhook') || !firebaseJsonSource.includes('billingWebhook')) {
   fail('Firebase Hosting must rewrite billing API routes to Firebase Functions.');

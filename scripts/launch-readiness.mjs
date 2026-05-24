@@ -188,6 +188,16 @@ if (!parentSource.includes('Family Subscription') || !stripeBillingSource.includ
   fail('Stripe subscription controls must be parent-only and backed by Firebase Functions verified auth.');
 }
 if (
+  !read('services/schoolMode.ts').includes('whyItMatters') ||
+  !read('components/WorldMap.tsx').includes('Proof to finish') ||
+  !read('components/WorldMap.tsx').includes('Class reward') ||
+  !read('components/WorldMap.tsx').includes('period.proof') ||
+  !parentSource.includes('Required proof') ||
+  !parentSource.includes('period.whyItMatters')
+) {
+  fail('School day plan must show required proof, rewards, and parent rationale for each class period.');
+}
+if (
   !readmeSource.includes('https://kid-genius-world.com/api/billing/webhook') ||
   !readmeSource.includes('STRIPE_WEBHOOK_SECRET') ||
   !secretCheckSource.includes('Stripe webhook signing secret')

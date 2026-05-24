@@ -1004,6 +1004,12 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                         <span className="rounded-full bg-white/10 px-2 py-1 text-[10px] font-black text-slate-100">{period.actionLabel}</span>
                       </div>
                       <p className="mt-1 line-clamp-2 text-xs font-semibold text-slate-300">{period.detail}</p>
+                      <div className="mt-2 rounded-lg bg-white/10 p-2">
+                        <p className="text-[10px] font-black uppercase tracking-[0.12em] text-emerald-100">Required proof</p>
+                        <p className="mt-1 line-clamp-2 text-xs font-semibold text-white">{period.proof}</p>
+                      </div>
+                      <p className="mt-2 text-[11px] font-bold text-sky-100">Reward: {period.reward}</p>
+                      <p className="mt-1 line-clamp-2 text-[11px] font-semibold text-slate-300">{period.whyItMatters}</p>
                     </div>
                   ))}
                 </div>

@@ -83,9 +83,12 @@ test('world review quest and arcade are reachable on tablet', async ({ page }) =
   await expect(page.getByTestId('next-class-pass')).toContainText('Next Class Pass');
   await expect(page.getByTestId('next-class-pass')).toContainText('Ms. Nova says');
   await expect(page.getByTestId('next-class-pass')).toContainText('school day');
+  await expect(page.getByTestId('next-class-pass')).toContainText('Proof to finish');
+  await expect(page.getByTestId('next-class-pass')).toContainText('Class reward');
   await expect(page.getByTestId('school-day-tracker')).toContainText('School Day Tracker');
   await expect(page.getByTestId('school-day-tracker')).toContainText('periods complete');
   await expect(page.getByTestId('school-day-tracker')).toContainText('Now');
+  await expect(page.getByTestId('school-day-tracker')).toContainText('Proof');
   await expect(page.getByTestId('teacher-assignment-cards')).toContainText('Teacher Assignment Cards');
   await expect(page.getByTestId('teacher-assignment-cards')).toContainText('Mastery rubric');
   await expect(page.getByText('School Campus', { exact: true })).toBeVisible();
@@ -134,6 +137,8 @@ test('math room completion creates reward and parent-visible journal proof', asy
   await expect(page.getByText('Teacher Mission Control')).toBeVisible();
   await expect(page.getByTestId('parent-school-day-attendance')).toContainText('School-day attendance');
   await expect(page.getByTestId('parent-school-day-attendance')).toContainText('periods complete');
+  await expect(page.getByTestId('parent-school-day-attendance')).toContainText('Required proof');
+  await expect(page.getByTestId('parent-school-day-attendance')).toContainText('Reward:');
   await expect(page.getByTestId('parent-teacher-assignments')).toContainText('Teacher assignment cards');
   await expect(page.getByTestId('parent-teacher-assignments')).toContainText('Mastery rubric');
   await page.getByRole('button', { name: /Gradebook/i }).click();

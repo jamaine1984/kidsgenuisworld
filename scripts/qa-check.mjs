@@ -378,6 +378,16 @@ if (!voiceCacheSource.includes('Welcome back to Kid Genius World!') || !fs.readF
 if (!voiceCacheSource.includes('getTeacherVoiceTexts') || !voiceCacheSource.includes('getTeacherScript') || !voiceCacheSource.includes('SCHOOL_LESSON_PHASES')) {
   fail('Static human voice cache must include AI homeroom teacher scripts and lesson phases.');
 }
+if (
+  !fs.readFileSync(path.join(root, 'services/schoolMode.ts'), 'utf8').includes('whyItMatters') ||
+  !worldMapSource.includes('Proof to finish') ||
+  !worldMapSource.includes('Class reward') ||
+  !worldMapSource.includes('period.proof') ||
+  !parentDashboardSource.includes('Required proof') ||
+  !parentDashboardSource.includes('period.whyItMatters')
+) {
+  fail('School day plan must show required proof, rewards, and parent rationale for each class period.');
+}
 const voiceWarmScript = fs.readFileSync(path.join(root, 'scripts/warm-voice-cache.mjs'), 'utf8');
 const voiceStaticScript = fs.readFileSync(path.join(root, 'scripts/export-static-voice-cache.mjs'), 'utf8');
 const coversStaticScript = fs.readFileSync(path.join(root, 'scripts/generate-static-story-covers.mjs'), 'utf8');

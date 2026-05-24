@@ -559,6 +559,11 @@ export const WorldMap: React.FC<WorldMapProps> = ({
                     <p className="text-[10px] font-black uppercase tracking-[0.14em] text-indigo-500">{item.time}</p>
                     <p className="mt-1 text-sm font-black text-slate-900">{item.label}</p>
                     <p className="mt-1 line-clamp-2 text-xs font-semibold text-slate-600">{item.detail}</p>
+                    <div className="mt-2 rounded-xl bg-white px-2 py-1">
+                      <p className="text-[10px] font-black uppercase tracking-[0.12em] text-emerald-700">Proof</p>
+                      <p className="line-clamp-2 text-[11px] font-bold text-slate-700">{item.proof}</p>
+                    </div>
+                    <p className="mt-2 text-[10px] font-black uppercase tracking-[0.1em] text-indigo-600">{item.reward}</p>
                   </button>
                 ))}
               </div>
@@ -612,6 +617,16 @@ export const WorldMap: React.FC<WorldMapProps> = ({
                       <MapPin size={13} />
                       {getCampusRoom(nextSchoolStep.room).classroomName}
                     </span>
+                  </div>
+                  <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                    <div className="rounded-2xl border border-emerald-100 bg-emerald-50 px-3 py-2">
+                      <p className="text-[10px] font-black uppercase tracking-[0.12em] text-emerald-700">Proof to finish</p>
+                      <p className="mt-1 text-xs font-bold text-emerald-950">{nextSchoolStep.proof}</p>
+                    </div>
+                    <div className="rounded-2xl border border-amber-100 bg-amber-50 px-3 py-2">
+                      <p className="text-[10px] font-black uppercase tracking-[0.12em] text-amber-700">Class reward</p>
+                      <p className="mt-1 text-xs font-bold text-amber-950">{nextSchoolStep.reward}</p>
+                    </div>
                   </div>
                 </div>
                 <button
@@ -674,6 +689,11 @@ export const WorldMap: React.FC<WorldMapProps> = ({
                     <span className="shrink-0 rounded-full bg-white/80 px-2 py-1 text-[10px] font-black">{period.actionLabel}</span>
                   </div>
                   <p className="mt-2 line-clamp-2 text-xs font-semibold opacity-80">{period.detail}</p>
+                  <div className="mt-2 rounded-xl bg-white/70 px-2 py-1">
+                    <p className="text-[10px] font-black uppercase tracking-[0.12em] opacity-70">Proof</p>
+                    <p className="line-clamp-2 text-[11px] font-bold opacity-90">{period.proof}</p>
+                  </div>
+                  <p className="mt-2 text-[10px] font-black uppercase tracking-[0.1em] opacity-70">{period.reward}</p>
                 </button>
               );
             })}

@@ -59,6 +59,9 @@ export interface SchoolDayPeriod {
   id: string;
   label: string;
   detail: string;
+  proof: string;
+  reward: string;
+  whyItMatters: string;
   room: RoomType;
   unitId?: string;
   status: SchoolDayPeriodStatus;
@@ -101,6 +104,9 @@ export interface NextSchoolStep {
   actionLabel: string;
   teacherPrompt: string;
   progressLabel: string;
+  proof: string;
+  reward: string;
+  whyItMatters: string;
   room: RoomType;
   unitId?: string;
   isSchoolDayComplete: boolean;
@@ -383,24 +389,38 @@ export const getSchoolDayPlan = (progress: UserProgress) => {
       time: 'Homeroom',
       label: `${AI_TEACHER.name} greeting`,
       detail: `Set today's mission in ${missionRoom.classroomName}.`,
+      proof: 'Say the mission goal out loud before starting.',
+      reward: 'Attendance stamp',
+      whyItMatters: 'A clear goal helps kids know what their brain is practicing.',
       room: RoomType.HUB,
     },
     {
       time: 'Lesson 1',
       label: missionRoom.classroomName,
       detail: mission.title,
+      proof: mission.objective,
+      reward: `${missionRoom.shortName} class stamp`,
+      whyItMatters: mission.parentExplanation || mission.masteryTarget,
       room: mission.room,
     },
     {
       time: 'Practice',
       label: 'Guided then independent',
       detail: `${mastery.practiceCount}/${MASTERED_PRACTICE_TARGET} mastery rounds saved.`,
+      proof: mastery.mastered
+        ? 'Show the strategy with less help.'
+        : `Complete ${Math.max(1, MASTERED_PRACTICE_TARGET - mastery.practiceCount)} more practice round${MASTERED_PRACTICE_TARGET - mastery.practiceCount === 1 ? '' : 's'}.`,
+      reward: 'Practice streak credit',
+      whyItMatters: 'Repeated practice keeps kids from moving to the next grade too fast.',
       room: mission.room,
     },
     {
       time: 'Exit Ticket',
       label: 'Teach-back check',
       detail: mission.successCheck,
+      proof: mission.successCheck,
+      reward: 'Parent-visible proof note',
+      whyItMatters: 'Explaining the answer is stronger evidence than guessing correctly.',
       room: mission.room,
     },
   ];
@@ -422,6 +442,9 @@ export const getSchoolDayPlan = (progress: UserProgress) => {
       id: 'homeroom',
       label: 'Homeroom',
       detail: `${AI_TEACHER.name} greets the child and sets the mission.`,
+      proof: 'Child starts the day and names the learning goal.',
+      reward: 'Attendance stamp',
+      whyItMatters: 'Homeroom turns the app into a guided school day instead of random clicking.',
       room: mission.room,
       unitId: mission.id,
       status: hasTodayActivity ? 'done' : 'ready',
@@ -431,6 +454,9 @@ export const getSchoolDayPlan = (progress: UserProgress) => {
       id: 'core',
       label: missionRoom.classroomName,
       detail: mission.title,
+      proof: mission.successCheck,
+      reward: `${missionRoom.shortName} mastery credit`,
+      whyItMatters: mission.parentExplanation || mission.masteryTarget,
       room: mission.room,
       unitId: mission.id,
       status: mastery.mastered ? 'done' : mastery.practiceCount > 0 || missionPracticedToday ? 'in-progress' : 'ready',
@@ -440,6 +466,9 @@ export const getSchoolDayPlan = (progress: UserProgress) => {
       id: 'reading',
       label: 'Reading Block',
       detail: 'Read, listen, and answer with text evidence.',
+      proof: 'Answer one story or reading question using a clue from the words.',
+      reward: 'Library stamp',
+      whyItMatters: 'Daily reading practice builds vocabulary, fluency, and comprehension.',
       room: RoomType.STORYBOOK,
       status: readingDone ? 'done' : 'ready',
       actionLabel: readingDone ? 'Done' : 'Read',
@@ -448,6 +477,9 @@ export const getSchoolDayPlan = (progress: UserProgress) => {
       id: 'stem',
       label: 'STEM Lab',
       detail: 'Practice science, world studies, or coding logic.',
+      proof: 'Make a prediction, explain evidence, or debug one step.',
+      reward: 'Discovery badge',
+      whyItMatters: 'STEM practice teaches kids to test ideas instead of only memorizing answers.',
       room: RoomType.SCIENCE,
       status: stemDone ? 'done' : 'ready',
       actionLabel: stemDone ? 'Done' : 'Explore',
@@ -456,6 +488,9 @@ export const getSchoolDayPlan = (progress: UserProgress) => {
       id: 'creative',
       label: 'Creative Studio',
       detail: 'Use art, music, languages, or strategy thinking.',
+      proof: 'Create, repeat, speak, or solve, then explain one choice.',
+      reward: 'Creative thinking badge',
+      whyItMatters: 'Creative rooms build memory, communication, and flexible problem solving.',
       room: RoomType.ART,
       status: creativeDone ? 'done' : 'ready',
       actionLabel: creativeDone ? 'Done' : 'Create',
@@ -464,6 +499,9 @@ export const getSchoolDayPlan = (progress: UserProgress) => {
       id: 'exit',
       label: 'Exit Ticket',
       detail: mission.successCheck,
+      proof: mission.successCheck,
+      reward: 'Parent proof saved',
+      whyItMatters: 'The exit ticket gives parents evidence that the child can explain the skill.',
       room: mission.room,
       unitId: mission.id,
       status: exitTicketDone ? 'done' : todayJournalEntries.length > 0 ? 'in-progress' : reviewDueCount > 0 ? 'due' : 'ready',
@@ -526,6 +564,9 @@ export const getNextSchoolStep = (progress: UserProgress): NextSchoolStep => {
     actionLabel: isSchoolDayComplete ? 'Review favorite class' : actionLabelByPeriod[nextPeriod.id] || nextPeriod.actionLabel,
     teacherPrompt,
     progressLabel: `${schoolDay.completedPeriods}/${schoolDay.totalPeriods} periods complete`,
+    proof: nextPeriod.proof,
+    reward: nextPeriod.reward,
+    whyItMatters: nextPeriod.whyItMatters,
     room: nextPeriod.room,
     unitId: nextPeriod.unitId,
     isSchoolDayComplete,

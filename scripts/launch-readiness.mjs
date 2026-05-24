@@ -116,6 +116,7 @@ const firebaseProgressStoreSource = read('services/firebaseProgressStore.ts');
 const stripeBillingSource = read('services/stripeBilling.ts');
 const firebaseFunctionsSource = read('functions/index.js');
 const blogIndexSource = read('public/blog/index.html');
+const packageJson = JSON.parse(read('package.json'));
 
 if (!appSource.includes("setLegalView('privacy')") || !appSource.includes("setLegalView('terms')") || !appSource.includes("setLegalView('support')")) {
   fail('Privacy, terms, and parent support links are not reachable from the app.');
@@ -171,6 +172,18 @@ if (
   !firebaseFunctionsSource.includes('Parent account does not match the requested family billing record')
 ) {
   fail('Firebase billing functions must derive family access from verified Firebase auth and persist Stripe customer mappings.');
+}
+const liveBillingCheckSource = read('scripts/check-live-billing-api.mjs');
+const functionsDeployScriptSource = read('scripts/deploy-firebase-functions.mjs');
+if (
+  !packageJson.scripts?.['qa:billing-live'] ||
+  !liveBillingCheckSource.includes('/api/billing/access') ||
+  !liveBillingCheckSource.includes('Parent sign-in token is required.') ||
+  !liveBillingCheckSource.includes('CORS preflight') ||
+  !packageJson.scripts?.['firebase:deploy:functions'] ||
+  !functionsDeployScriptSource.includes('FUNCTIONS_DISCOVERY_TIMEOUT')
+) {
+  fail('Live billing API and Firebase Functions deploy smoke scripts must stay available.');
 }
 if (!firebaseJsonSource.includes('/api/billing/checkout') || !firebaseJsonSource.includes('billingCheckout') || !firebaseJsonSource.includes('billingAccess')) {
   fail('Firebase Hosting must rewrite billing API routes to Firebase Functions.');

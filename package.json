@@ -14,6 +14,7 @@
     "qa:all": "npm run qa && npm run qa:browser",
     "qa:source": "node scripts/qa-check.mjs",
     "qa:launch": "node scripts/launch-readiness.mjs",
+    "qa:billing-live": "node scripts/check-live-billing-api.mjs",
     "voice:check": "node scripts/check-elevenlabs-key.mjs",
     "voice:cache": "node scripts/warm-voice-cache.mjs",
     "voice:static": "node scripts/export-static-voice-cache.mjs",
@@ -22,6 +23,7 @@
     "firebase:emulators": "firebase emulators:start",
     "firebase:deploy": "npm run qa:all && firebase deploy --project kid-genius-world",
     "firebase:deploy:hosting": "npm run qa:all && firebase deploy --only hosting --project kid-genius-world",
+    "firebase:deploy:functions": "node scripts/deploy-firebase-functions.mjs",
     "firebase:deploy:rules": "firebase deploy --only firestore:rules --project kid-genius-world",
     "cf:dev": "wrangler dev",
     "cf:deploy": "npm run qa && wrangler deploy"

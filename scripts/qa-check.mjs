@@ -24,6 +24,8 @@ const requiredFiles = [
   'services/stripeBilling.ts',
   'components/InstallAppButton.tsx',
   'scripts/check-elevenlabs-key.mjs',
+  'scripts/check-live-billing-api.mjs',
+  'scripts/deploy-firebase-functions.mjs',
   'scripts/warm-voice-cache.mjs',
   'scripts/export-static-voice-cache.mjs',
   'scripts/generate-static-story-covers.mjs',
@@ -272,6 +274,18 @@ if (
   !firebaseFunctionsSource.includes('Parent account does not match the requested family billing record')
 ) {
   fail('Firebase billing functions must derive family access from verified Firebase auth and persist Stripe customer mappings.');
+}
+const liveBillingCheckSource = fs.readFileSync(path.join(root, 'scripts/check-live-billing-api.mjs'), 'utf8');
+const functionsDeployScriptSource = fs.readFileSync(path.join(root, 'scripts/deploy-firebase-functions.mjs'), 'utf8');
+if (
+  !packageJson.scripts?.['qa:billing-live'] ||
+  !liveBillingCheckSource.includes('/api/billing/access') ||
+  !liveBillingCheckSource.includes('Parent sign-in token is required.') ||
+  !liveBillingCheckSource.includes('CORS preflight') ||
+  !packageJson.scripts?.['firebase:deploy:functions'] ||
+  !functionsDeployScriptSource.includes('FUNCTIONS_DISCOVERY_TIMEOUT')
+) {
+  fail('Live billing API and Firebase Functions deploy smoke scripts must stay available.');
 }
 if (!parentDashboardSource.includes('Family Subscription') || !parentDashboardSource.includes('Start $4.99/mo') || !parentDashboardSource.includes('Start $9.99/mo') || !parentDashboardSource.includes('Manage Billing')) {
   fail('Parent dashboard must expose parent-only Stripe subscription controls.');

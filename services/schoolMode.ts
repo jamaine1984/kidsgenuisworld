@@ -152,6 +152,18 @@ export interface StudentPassportSummary {
   nextStampTarget: string;
 }
 
+export interface TeacherConferencePlan {
+  statusLabel: string;
+  headline: string;
+  focusRoom: string;
+  evidenceLabel: string;
+  teacherMove: string;
+  studentCanSay: string;
+  parentCheckIn: string;
+  reviewPlan: string;
+  tone: 'start' | 'reteach' | 'practice' | 'review';
+}
+
 export interface TeacherHelpStep {
   id: string;
   label: string;
@@ -681,6 +693,67 @@ export const getStudentPassportSummary = (progress: UserProgress): StudentPasspo
       : nextStep.isSchoolDayComplete
         ? 'Review a favorite class or explain today to a grown-up.'
         : `${getCampusRoom(nextStep.room).classroomName}: ${nextStep.title}`,
+  };
+};
+
+export const getTeacherConferencePlan = (progress: UserProgress): TeacherConferencePlan => {
+  const schoolDay = getSchoolDayPlan(progress);
+  const recentEntries = [...(progress.learningJournal || [])].sort((a, b) => b.createdAt - a.createdAt);
+  const latestProof = recentEntries[0];
+  const nextStep = getNextSchoolStep(progress);
+  const nextReadyAssignment = getTeacherAssignmentCards(progress).find(card => card.status !== 'done');
+  const childName = progress.childName || 'Learner';
+
+  if (!latestProof) {
+    const missionRoom = getCampusRoom(schoolDay.mission.room);
+    return {
+      statusLabel: 'Ready for first conference',
+      headline: `${childName} has a first teacher-led lesson ready in ${missionRoom.classroomName}.`,
+      focusRoom: missionRoom.classroomName,
+      evidenceLabel: 'No proof saved yet',
+      teacherMove: `Start with ${AI_TEACHER.name}'s objective, model one example, then save the first exit ticket.`,
+      studentCanSay: schoolDay.mission.successCheck,
+      parentCheckIn: schoolDay.mission.parentActivity || 'Ask the child to explain one idea after the first practice round.',
+      reviewPlan: 'Keep the child in the current grade path until the first proof item and reflection are saved.',
+      tone: 'start',
+    };
+  }
+
+  const proofRoom = getCampusRoom(latestProof.room);
+  const practiceCount = Math.min(latestProof.practiceCount, MASTERED_PRACTICE_TARGET);
+  const remainingPractice = Math.max(0, MASTERED_PRACTICE_TARGET - practiceCount);
+  const latestUnit = getUnitsForGrade(progress.currentGrade).find(unit => unit.id === latestProof.unitId);
+  const reviewCycleDays = latestUnit?.reviewCycleDays || 3;
+
+  if (!latestProof.mastered) {
+    const needsTeachBack = !latestProof.childReflection;
+    return {
+      statusLabel: needsTeachBack ? 'Needs teach-back' : 'Reteach plan ready',
+      headline: `${latestProof.unitTitle} should stay in guided practice before the next grade step opens.`,
+      focusRoom: proofRoom.classroomName,
+      evidenceLabel: `${practiceCount}/${MASTERED_PRACTICE_TARGET} practice rounds saved`,
+      teacherMove: needsTeachBack
+        ? `Use Hint and Model from the help ladder, then ask ${childName} to teach the strategy back.`
+        : `Use Try Together on one similar example, then repeat the exit ticket.`,
+      studentCanSay: latestProof.successCheck || 'I can explain the strategy in my own words.',
+      parentCheckIn: latestProof.parentActivity || 'Do one short example together and ask the child to explain each step.',
+      reviewPlan: remainingPractice > 0
+        ? `Complete ${remainingPractice} more practice round${remainingPractice === 1 ? '' : 's'} before mastery is counted.`
+        : 'Repeat the exit ticket so the child proves the strategy without guessing.',
+      tone: needsTeachBack ? 'practice' : 'reteach',
+    };
+  }
+
+  return {
+    statusLabel: 'Ready for review conference',
+    headline: `${latestProof.unitTitle} is mastered and ready for spiral review.`,
+    focusRoom: proofRoom.classroomName,
+    evidenceLabel: latestProof.childReflection ? `Reflection saved: ${latestProof.childReflection}` : 'Mastery proof saved',
+    teacherMove: `Ask one transfer question, then connect the skill to ${nextReadyAssignment?.classroomName || getCampusRoom(nextStep.room).classroomName}.`,
+    studentCanSay: latestProof.childReflection || latestProof.successCheck || 'I can teach the strategy and show a new example.',
+    parentCheckIn: latestProof.parentActivity || nextReadyAssignment?.parentNote || 'Ask the child to teach the skill in one minute.',
+    reviewPlan: `Review again in ${reviewCycleDays} day${reviewCycleDays === 1 ? '' : 's'} so the skill stays fresh.`,
+    tone: 'review',
   };
 };
 

@@ -14,6 +14,7 @@ import {
   getNextSchoolStep,
   getSchoolDayPlan,
   getStudentPassportSummary,
+  getTeacherConferencePlan,
   getTeacherScript,
   getTeacherAssignmentCards,
 } from '../services/schoolMode';
@@ -48,6 +49,7 @@ export const WorldMap: React.FC<WorldMapProps> = ({
   const missionTeacherScript = getTeacherScript(mission, progress);
   const nextSchoolStep = getNextSchoolStep(progress);
   const studentPassport = getStudentPassportSummary(progress);
+  const teacherConferencePlan = getTeacherConferencePlan(progress);
   const weeklyPlan = getWeeklyLearningPlan(progress);
   const unitPracticeCounts = progress.unitPracticeCounts || {};
   const completedUnitIds = new Set(progress.completedUnitIds || []);
@@ -836,6 +838,35 @@ export const WorldMap: React.FC<WorldMapProps> = ({
                 <div className="rounded-xl bg-indigo-50 px-3 py-2">
                   <p className="text-[10px] font-black uppercase tracking-[0.12em] text-indigo-600">Next stamp target</p>
                   <p className="mt-1 text-xs font-bold text-indigo-950">{studentPassport.nextStampTarget}</p>
+                </div>
+              </div>
+              <div
+                data-testid="student-teacher-conference-plan"
+                className="mt-3 rounded-xl border border-sky-100 bg-sky-50 px-3 py-2"
+              >
+                <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.12em] text-sky-700">Teacher conference plan</p>
+                    <p className="mt-1 text-sm font-black text-slate-900">{teacherConferencePlan.statusLabel}: {teacherConferencePlan.headline}</p>
+                    <p className="mt-1 text-xs font-semibold text-slate-600">{teacherConferencePlan.focusRoom} - {teacherConferencePlan.evidenceLabel}</p>
+                  </div>
+                  <span className="shrink-0 rounded-full bg-white px-3 py-1 text-[11px] font-black text-sky-800 shadow-sm">
+                    {teacherConferencePlan.tone === 'review' ? 'Review ready' : teacherConferencePlan.tone === 'start' ? 'Start here' : 'Teacher support'}
+                  </span>
+                </div>
+                <div className="mt-2 grid gap-2 md:grid-cols-3">
+                  <div className="rounded-lg bg-white/80 px-2 py-2">
+                    <p className="text-[9px] font-black uppercase tracking-[0.1em] text-sky-700">Teacher move</p>
+                    <p className="mt-1 line-clamp-3 text-[11px] font-bold text-slate-700">{teacherConferencePlan.teacherMove}</p>
+                  </div>
+                  <div className="rounded-lg bg-white/80 px-2 py-2">
+                    <p className="text-[9px] font-black uppercase tracking-[0.1em] text-emerald-700">Student can say</p>
+                    <p className="mt-1 line-clamp-3 text-[11px] font-bold text-slate-700">{teacherConferencePlan.studentCanSay}</p>
+                  </div>
+                  <div className="rounded-lg bg-white/80 px-2 py-2">
+                    <p className="text-[9px] font-black uppercase tracking-[0.1em] text-amber-700">Review plan</p>
+                    <p className="mt-1 line-clamp-3 text-[11px] font-bold text-slate-700">{teacherConferencePlan.reviewPlan}</p>
+                  </div>
                 </div>
               </div>
             </div>

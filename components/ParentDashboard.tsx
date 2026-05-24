@@ -26,6 +26,7 @@ import {
   getCampusRoom,
   getSchoolDayPlan,
   getStudentPassportSummary,
+  getTeacherConferencePlan,
   getTeacherHelpLadder,
   getTeacherScript,
   getTeacherAssignmentCards,
@@ -272,6 +273,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
   const weeklyPlan = getWeeklyLearningPlan(progress);
   const schoolDay = getSchoolDayPlan(progress);
   const studentPassport = getStudentPassportSummary(progress);
+  const teacherConferencePlan = getTeacherConferencePlan(progress);
   const missionTeacherScript = getTeacherScript(schoolDay.mission, progress);
   const teacherHelpLadder = getTeacherHelpLadder(schoolDay.mission);
   const teacherNotes = buildTeacherNotesFromJournal(progress);
@@ -1368,6 +1370,40 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 <div className="rounded-xl border border-amber-100 bg-amber-50 p-3">
                   <p className="text-xs font-black uppercase tracking-[0.12em] text-amber-700">Next stamp target</p>
                   <p className="mt-1 text-sm font-bold text-amber-950">{studentPassport.nextStampTarget}</p>
+                </div>
+              </div>
+              <div
+                data-testid="parent-teacher-conference-plan"
+                className="mt-3 rounded-xl border border-sky-100 bg-sky-50 p-3"
+              >
+                <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-[0.12em] text-sky-700">Teacher conference plan</p>
+                    <h4 className="mt-1 text-base font-black text-slate-900">{teacherConferencePlan.statusLabel}</h4>
+                    <p className="mt-1 text-sm font-semibold text-slate-700">{teacherConferencePlan.headline}</p>
+                  </div>
+                  <div className="rounded-xl bg-white px-3 py-2 text-center shadow-sm">
+                    <p className="text-sm font-black text-sky-800">{teacherConferencePlan.focusRoom}</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.1em] text-slate-500">{teacherConferencePlan.evidenceLabel}</p>
+                  </div>
+                </div>
+                <div className="mt-3 grid gap-2 md:grid-cols-2 xl:grid-cols-4">
+                  <div className="rounded-lg bg-white p-2">
+                    <p className="text-[10px] font-black uppercase tracking-[0.12em] text-sky-700">Teacher move</p>
+                    <p className="mt-1 text-xs font-bold text-slate-700">{teacherConferencePlan.teacherMove}</p>
+                  </div>
+                  <div className="rounded-lg bg-white p-2">
+                    <p className="text-[10px] font-black uppercase tracking-[0.12em] text-emerald-700">Student can say</p>
+                    <p className="mt-1 text-xs font-bold text-slate-700">{teacherConferencePlan.studentCanSay}</p>
+                  </div>
+                  <div className="rounded-lg bg-white p-2">
+                    <p className="text-[10px] font-black uppercase tracking-[0.12em] text-amber-700">Parent check-in</p>
+                    <p className="mt-1 text-xs font-bold text-slate-700">{teacherConferencePlan.parentCheckIn}</p>
+                  </div>
+                  <div className="rounded-lg bg-white p-2">
+                    <p className="text-[10px] font-black uppercase tracking-[0.12em] text-violet-700">Review plan</p>
+                    <p className="mt-1 text-xs font-bold text-slate-700">{teacherConferencePlan.reviewPlan}</p>
+                  </div>
                 </div>
               </div>
             </div>

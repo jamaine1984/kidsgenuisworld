@@ -93,6 +93,8 @@ test('world review quest and arcade are reachable on tablet', async ({ page }) =
   await expect(page.getByTestId('teacher-assignment-cards')).toContainText('Mastery rubric');
   await expect(page.getByTestId('student-passport-conference')).toContainText('Teacher conference question');
   await expect(page.getByTestId('student-passport-conference')).toContainText('Next stamp target');
+  await expect(page.getByTestId('student-teacher-conference-plan')).toContainText('Teacher conference plan');
+  await expect(page.getByTestId('student-teacher-conference-plan')).toContainText('Teacher move');
   await expect(page.getByText('School Campus', { exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: /Math Classroom/i }).first()).toBeVisible();
 
@@ -154,6 +156,8 @@ test('math room completion creates reward and parent-visible journal proof', asy
   await expect(page.getByTestId('parent-student-passport')).toContainText('Student Learning Passport');
   await expect(page.getByTestId('parent-student-passport')).toContainText('Teacher conference question');
   await expect(page.getByTestId('parent-student-passport')).toContainText('Parent follow-up');
+  await expect(page.getByTestId('parent-teacher-conference-plan')).toContainText('Teacher conference plan');
+  await expect(page.getByTestId('parent-teacher-conference-plan')).toContainText('Student can say');
   await expect(page.getByText('Learning Journal')).toBeVisible();
   await expect(page.getByText('Ms. Nova note')).toBeVisible();
   await expect(page.getByText('Teach it back')).toBeVisible();

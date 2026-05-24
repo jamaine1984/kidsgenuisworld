@@ -621,14 +621,18 @@ if (
   !worldMapSource.includes('Passport Stamp Collection') ||
   !worldMapSource.includes('reflection stamps') ||
   !worldMapSource.includes('student-passport-conference') ||
+  !worldMapSource.includes('student-teacher-conference-plan') ||
+  !worldMapSource.includes('Teacher conference plan') ||
   !worldMapSource.includes('Teacher conference question') ||
   !worldMapSource.includes('Next stamp target') ||
   !parentDashboardSource.includes('parent-student-passport') ||
+  !parentDashboardSource.includes('parent-teacher-conference-plan') ||
   !parentDashboardSource.includes('Student Learning Passport') ||
   !parentDashboardSource.includes('Parent follow-up') ||
-  !fs.readFileSync(path.join(root, 'services/schoolMode.ts'), 'utf8').includes('getStudentPassportSummary')
+  !schoolModeSource.includes('getStudentPassportSummary') ||
+  !schoolModeSource.includes('getTeacherConferencePlan')
 ) {
-  fail('Kid-facing learning passport evidence is missing from the world map.');
+  fail('Kid-facing learning passport and teacher conference evidence are missing.');
 }
 if (!worldMapSource.includes('At-home idea') || !worldMapSource.includes('Review in') || !worldMapSource.includes('Story Time')) {
   fail('World map daily path does not surface curriculum guidance clearly.');

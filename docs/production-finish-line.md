@@ -53,6 +53,8 @@ jamaine1984/kid-genius-world-mobile
 
 The mobile repo should not reuse the web repo folder. It can share product decisions, curriculum data, static media, Firebase project settings, and brand assets, but commits, dependencies, native build files, and store release work should stay separate.
 
+Before creating the mobile app, read `docs/mobile-handoff.md`. The current web repo has a legacy tracked `ios/` folder from earlier work; treat it as reference only and do not extend it for the Play Store path.
+
 ## Non-Stripe Launch Checklist
 
 - `npm run qa:media` passes.

@@ -248,13 +248,17 @@ const liveBillingCheckSource = read('scripts/check-live-billing-api.mjs');
 const liveSiteCheckSource = read('scripts/check-live-site.mjs');
 const functionsDeployScriptSource = read('scripts/deploy-firebase-functions.mjs');
 const staticMediaCheckSource = read('scripts/check-static-media-readiness.mjs');
+const mobileHandoffCheckSource = read('scripts/check-mobile-handoff-readiness.mjs');
 const finishLineSource = read('docs/production-finish-line.md');
+const mobileHandoffSource = read('docs/mobile-handoff.md');
 if (
   !packageJson.scripts?.['qa:site-live'] ||
   !packageJson.scripts?.['qa:billing-live'] ||
   !packageJson.scripts?.['qa:production-live'] ||
   !packageJson.scripts?.['qa:media'] ||
+  !packageJson.scripts?.['qa:mobile-handoff'] ||
   !packageJson.scripts?.qa?.includes('qa:media') ||
+  !packageJson.scripts?.qa?.includes('qa:mobile-handoff') ||
   !liveSiteCheckSource.includes('checkWwwRedirect') ||
   !liveSiteCheckSource.includes('/manifest.webmanifest') ||
   !liveSiteCheckSource.includes('/sitemap.xml') ||
@@ -269,6 +273,9 @@ if (
   !functionsDeployScriptSource.includes('FUNCTIONS_DISCOVERY_TIMEOUT') ||
   !staticMediaCheckSource.includes('MIN_STATIC_VOICE_FILES') ||
   !staticMediaCheckSource.includes('Missing SVG story cover fallbacks') ||
+  !mobileHandoffCheckSource.includes('disallowedWebRepoMobileDeps') ||
+  !mobileHandoffSource.includes('Legacy Native Reference') ||
+  !mobileHandoffSource.includes('com.kidgenius.world') ||
   !finishLineSource.includes('Kid Genius World Mobile') ||
   !finishLineSource.includes('separate GitHub repo') ||
   !finishLineSource.includes('$0.50')

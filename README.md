@@ -194,12 +194,15 @@ Targeted checks:
 ```bash
 npm run qa:secrets
 npm run qa:media
+npm run qa:mobile-handoff
 npm run qa:source
 npm run qa:launch
 npm run qa:production-live
 ```
 
 `npm run qa:media` verifies that every story has saved PNG/SVG cover art and that the static voice manifest contains a production-sized saved narration library.
+
+`npm run qa:mobile-handoff` verifies that future mobile work stays out of this web repo and that reusable brand/media/Firebase handoff details are documented.
 
 ## Production Finish Line
 
@@ -214,6 +217,8 @@ C:\Users\koike\Downloads\Kid Genius World Mobile
 ```
 
 Use a separate GitHub repo for the mobile app so native dependencies, store assets, and mobile build files do not mix with this web app.
+
+See `docs/mobile-handoff.md` before creating the mobile folder or repo.
 
 ## Environment Variables
 

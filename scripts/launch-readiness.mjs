@@ -247,10 +247,14 @@ if (
 const liveBillingCheckSource = read('scripts/check-live-billing-api.mjs');
 const liveSiteCheckSource = read('scripts/check-live-site.mjs');
 const functionsDeployScriptSource = read('scripts/deploy-firebase-functions.mjs');
+const staticMediaCheckSource = read('scripts/check-static-media-readiness.mjs');
+const finishLineSource = read('docs/production-finish-line.md');
 if (
   !packageJson.scripts?.['qa:site-live'] ||
   !packageJson.scripts?.['qa:billing-live'] ||
   !packageJson.scripts?.['qa:production-live'] ||
+  !packageJson.scripts?.['qa:media'] ||
+  !packageJson.scripts?.qa?.includes('qa:media') ||
   !liveSiteCheckSource.includes('checkWwwRedirect') ||
   !liveSiteCheckSource.includes('/manifest.webmanifest') ||
   !liveSiteCheckSource.includes('/sitemap.xml') ||
@@ -262,9 +266,14 @@ if (
   !liveBillingCheckSource.includes('CORS preflight') ||
   !packageJson.scripts?.['firebase:deploy:functions'] ||
   !packageJson.scripts?.['firebase:deploy:hosting']?.includes('qa:production-live') ||
-  !functionsDeployScriptSource.includes('FUNCTIONS_DISCOVERY_TIMEOUT')
+  !functionsDeployScriptSource.includes('FUNCTIONS_DISCOVERY_TIMEOUT') ||
+  !staticMediaCheckSource.includes('MIN_STATIC_VOICE_FILES') ||
+  !staticMediaCheckSource.includes('Missing SVG story cover fallbacks') ||
+  !finishLineSource.includes('Kid Genius World Mobile') ||
+  !finishLineSource.includes('separate GitHub repo') ||
+  !finishLineSource.includes('$0.50')
 ) {
-  fail('Live production site, billing API, and Firebase deploy smoke scripts must stay available.');
+  fail('Live production, static media, finish-line, billing API, and Firebase deploy smoke scripts must stay available.');
 }
 if (!firebaseJsonSource.includes('/api/billing/checkout') || !firebaseJsonSource.includes('billingCheckout') || !firebaseJsonSource.includes('billingAccess') || !firebaseJsonSource.includes('/api/billing/webhook') || !firebaseJsonSource.includes('billingWebhook')) {
   fail('Firebase Hosting must rewrite billing API routes to Firebase Functions.');

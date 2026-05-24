@@ -27,6 +27,7 @@ const requiredFiles = [
   'scripts/check-elevenlabs-key.mjs',
   'scripts/check-live-site.mjs',
   'scripts/check-live-billing-api.mjs',
+  'scripts/check-static-media-readiness.mjs',
   'scripts/deploy-firebase-functions.mjs',
   'scripts/warm-voice-cache.mjs',
   'scripts/export-static-voice-cache.mjs',
@@ -43,6 +44,7 @@ const requiredFiles = [
   'public/brand/logo-option-2-brain-book.svg',
   'public/brand/logo-option-3-rocket-pencil.svg',
   'public/voice-cache/manifest.json',
+  'docs/production-finish-line.md',
   'public/story-covers/pk-1.svg',
   'public/story-covers/pk-1.png',
   'cloudflare/worker.ts',
@@ -99,6 +101,8 @@ const musicRoomSource = fs.readFileSync(path.join(root, 'components/MusicRoom.ts
 const packageJson = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 const readmeSource = fs.readFileSync(path.join(root, 'README.md'), 'utf8');
 const secretCheckSource = fs.readFileSync(path.join(root, 'scripts/check-secrets.mjs'), 'utf8');
+const staticMediaCheckSource = fs.readFileSync(path.join(root, 'scripts/check-static-media-readiness.mjs'), 'utf8');
+const finishLineSource = fs.readFileSync(path.join(root, 'docs/production-finish-line.md'), 'utf8');
 const htmlSource = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const indexSource = fs.readFileSync(path.join(root, 'index.tsx'), 'utf8');
 const pwaManifest = JSON.parse(fs.readFileSync(path.join(root, 'public/manifest.webmanifest'), 'utf8'));
@@ -420,6 +424,12 @@ if (!viteConfigSource.includes('/voice-cache') || !viteConfigSource.includes('.t
 }
 if (!packageJson.scripts?.['cf:deploy'] || !packageJson.scripts?.['voice:static'] || !packageJson.scripts?.['covers:static']) {
   fail('Static media export and deployment scripts are missing.');
+}
+if (!packageJson.scripts?.['qa:media'] || !packageJson.scripts?.qa?.includes('qa:media') || !staticMediaCheckSource.includes('MIN_STATIC_VOICE_FILES') || !staticMediaCheckSource.includes('Missing PNG story covers')) {
+  fail('Static media readiness must be part of the launch QA path.');
+}
+if (!finishLineSource.includes('Kid Genius World Mobile') || !finishLineSource.includes('separate GitHub repo') || !finishLineSource.includes('$0.50') || !readmeSource.includes('docs/production-finish-line.md')) {
+  fail('Production finish line and separate mobile handoff documentation are missing.');
 }
 if (!audioServiceSource.includes('speechRunId') || !audioServiceSource.includes('stopActiveSpeechPlayback') || !audioServiceSource.includes('queueRunId === speechRunId')) {
   fail('Narration overlap guard is missing from audioService.');

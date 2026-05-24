@@ -193,10 +193,27 @@ Targeted checks:
 
 ```bash
 npm run qa:secrets
+npm run qa:media
 npm run qa:source
 npm run qa:launch
 npm run qa:production-live
 ```
+
+`npm run qa:media` verifies that every story has saved PNG/SVG cover art and that the static voice manifest contains a production-sized saved narration library.
+
+## Production Finish Line
+
+Keep Stripe checkout as the final gate after the non-payment product, media, and QA work is complete. The detailed finish order is in `docs/production-finish-line.md`.
+
+For a temporary live checkout test, use Stripe's current minimum non-zero USD charge as the safe floor. Stripe documents a `$0.50` USD minimum charge, so a one-cent live checkout may fail unless Stripe allows it for the specific payment method/account setup.
+
+Mobile app work should start in a separate folder after web launch:
+
+```text
+C:\Users\koike\Downloads\Kid Genius World Mobile
+```
+
+Use a separate GitHub repo for the mobile app so native dependencies, store assets, and mobile build files do not mix with this web app.
 
 ## Environment Variables
 

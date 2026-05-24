@@ -7,9 +7,11 @@ const requiredFiles = [
   'components/LegalInfo.tsx',
   'components/ParentDashboard.tsx',
   'components/WorldMap.tsx',
+  'components/AchievementsPanel.tsx',
   'components/GameArcade.tsx',
   'components/StoryBook.tsx',
   'services/curriculum.ts',
+  'services/achievements.ts',
   'services/audioService.ts',
   'services/mediaApi.ts',
   'services/voiceCacheService.ts',
@@ -74,8 +76,10 @@ for (const file of requiredFiles) {
 const appSource = fs.readFileSync(path.join(root, 'App.tsx'), 'utf8');
 const parentDashboardSource = fs.readFileSync(path.join(root, 'components/ParentDashboard.tsx'), 'utf8');
 const worldMapSource = fs.readFileSync(path.join(root, 'components/WorldMap.tsx'), 'utf8');
+const achievementsPanelSource = fs.readFileSync(path.join(root, 'components/AchievementsPanel.tsx'), 'utf8');
 const teacherRoomCoachSource = fs.readFileSync(path.join(root, 'components/TeacherRoomCoach.tsx'), 'utf8');
 const curriculumSource = fs.readFileSync(path.join(root, 'services/curriculum.ts'), 'utf8');
+const achievementServiceSource = fs.readFileSync(path.join(root, 'services/achievements.ts'), 'utf8');
 const schoolModeSource = fs.readFileSync(path.join(root, 'services/schoolMode.ts'), 'utf8');
 const typesSource = fs.readFileSync(path.join(root, 'types.ts'), 'utf8');
 const audioServiceSource = fs.readFileSync(path.join(root, 'services/audioService.ts'), 'utf8');
@@ -133,6 +137,7 @@ const roomBackButtonSources = [
 
 const sourceFilesToScan = [
   'App.tsx',
+  'components/AchievementsPanel.tsx',
   'components/ArtRoom.tsx',
   'components/CodingRoom.tsx',
   'components/GeographyRoom.tsx',
@@ -149,6 +154,7 @@ const sourceFilesToScan = [
   'components/TeacherRoomCoach.tsx',
   'components/WorldMap.tsx',
   'services/audioService.ts',
+  'services/achievements.ts',
   'services/curriculum.ts',
   'services/firebaseParentAuth.ts',
   'services/firebaseProgressStore.ts',
@@ -407,6 +413,36 @@ if (
   !parentDashboardSource.includes('parent-teacher-help-ladder')
 ) {
   fail('School day plan must show required proof, rewards, parent rationale, and teacher help ladder support.');
+}
+for (const achievementMarker of [
+  'math_streak_10',
+  'read_100',
+  'science_10',
+  'geo_50',
+  'code_10',
+  'lang_25',
+  'sticker_100',
+  'pet_level_10',
+  'all_rooms',
+  'week_streak',
+]) {
+  if (!achievementServiceSource.includes(achievementMarker)) {
+    fail(`Achievement progress service must track ${achievementMarker}.`);
+  }
+}
+if (
+  !achievementServiceSource.includes('LEARNING_ROOM_ACHIEVEMENT_ROOMS') ||
+  !achievementServiceSource.includes('getAchievementProgress') ||
+  !achievementServiceSource.includes('getAchievementsWithProgress') ||
+  !appSource.includes('getAchievementProgress(achievement.id, newProgress)') ||
+  !appSource.includes('achievementsUnlocked: newlyUnlocked.map') ||
+  !appSource.includes('return checkAchievements(nextProgress)') ||
+  !achievementsPanelSource.includes('getAchievementsWithProgress(progress)') ||
+  !achievementsPanelSource.includes('aria-label={`${achievement.name}: ${achievement.currentProgress} of ${achievement.requirement}`') ||
+  !typesSource.includes("description: 'Visit all current learning rooms'") ||
+  !typesSource.includes('requirement: 10')
+) {
+  fail('Achievement progress, unlock, and badge panel coverage must include every launch badge.');
 }
 const voiceWarmScript = fs.readFileSync(path.join(root, 'scripts/warm-voice-cache.mjs'), 'utf8');
 const voiceStaticScript = fs.readFileSync(path.join(root, 'scripts/export-static-voice-cache.mjs'), 'utf8');

@@ -43,6 +43,7 @@ import {
 } from './services/firebaseParentAuth';
 import { syncProgressToFirebase } from './services/firebaseProgressStore';
 import { createStripeCheckoutUrl, getStripeBillingAccess, openStripeBillingPortal } from './services/stripeBilling';
+import { getAchievementProgress } from './services/achievements';
 import {
   AI_TEACHER,
   MASTERED_PRACTICE_TARGET,
@@ -781,86 +782,36 @@ const App: React.FC = () => {
     }));
   };
 
-  // Check for achievements
   const checkAchievements = (newProgress: UserProgress) => {
-    const unlockedIds = newProgress.achievements || [];
+    const unlockedIds = new Set(newProgress.achievements || []);
+    const newlyUnlocked: Achievement[] = [];
 
     ACHIEVEMENTS.forEach(achievement => {
-      if (unlockedIds.includes(achievement.id)) return; // Already unlocked
+      if (unlockedIds.has(achievement.id)) return;
 
-      let shouldUnlock = false;
-      let currentProgress = 0;
-
-      switch (achievement.id) {
-        case 'math_starter':
-          currentProgress = newProgress.mathScore;
-          shouldUnlock = currentProgress >= 1;
-          break;
-        case 'math_10':
-          currentProgress = newProgress.mathScore;
-          shouldUnlock = currentProgress >= 10;
-          break;
-        case 'math_50':
-          currentProgress = newProgress.mathScore;
-          shouldUnlock = currentProgress >= 50;
-          break;
-        case 'math_100':
-          currentProgress = newProgress.mathScore;
-          shouldUnlock = currentProgress >= 100;
-          break;
-        case 'read_starter':
-          currentProgress = newProgress.readingScore;
-          shouldUnlock = currentProgress >= 1;
-          break;
-        case 'read_25':
-          currentProgress = newProgress.readingScore;
-          shouldUnlock = currentProgress >= 25;
-          break;
-        case 'sticker_10':
-          currentProgress = newProgress.stickers.length;
-          shouldUnlock = currentProgress >= 10;
-          break;
-        case 'sticker_50':
-          currentProgress = newProgress.stickers.length;
-          shouldUnlock = currentProgress >= 50;
-          break;
-        case 'science_starter':
-          currentProgress = newProgress.scienceScore;
-          shouldUnlock = currentProgress >= 1;
-          break;
-        case 'geo_starter':
-          currentProgress = newProgress.geographyScore;
-          shouldUnlock = currentProgress >= 1;
-          break;
-        case 'code_starter':
-          currentProgress = newProgress.codingScore;
-          shouldUnlock = currentProgress >= 1;
-          break;
-        case 'lang_starter':
-          currentProgress = newProgress.languageScore;
-          shouldUnlock = currentProgress >= 1;
-          break;
-        case 'story_starter':
-          currentProgress = newProgress.storybookScore || 0;
-          shouldUnlock = currentProgress >= 1;
-          break;
-        case 'story_10':
-          currentProgress = newProgress.storybookScore || 0;
-          shouldUnlock = currentProgress >= 10;
-          break;
-        case 'story_25':
-          currentProgress = newProgress.storybookScore || 0;
-          shouldUnlock = currentProgress >= 25;
-          break;
-      }
-
-      if (shouldUnlock) {
-        newProgress.achievements = [...(newProgress.achievements || []), achievement.id];
-        setNewAchievement({ ...achievement, unlockedAt: Date.now() });
+      const currentProgress = getAchievementProgress(achievement.id, newProgress);
+      if (currentProgress >= achievement.requirement) {
+        unlockedIds.add(achievement.id);
+        newlyUnlocked.push({ ...achievement, currentProgress, unlockedAt: Date.now() });
       }
     });
 
-    return newProgress;
+    if (newlyUnlocked.length === 0) {
+      return {
+        ...newProgress,
+        achievements: Array.from(unlockedIds),
+      };
+    }
+
+    setNewAchievement(newlyUnlocked[0]);
+
+    return {
+      ...newProgress,
+      achievements: Array.from(unlockedIds),
+      dailyStats: updateDailyStats(newProgress.dailyStats, {
+        achievementsUnlocked: newlyUnlocked.map(achievement => achievement.id),
+      }),
+    };
   };
 
   // Start Screen to unlock AudioContext
@@ -873,12 +824,13 @@ const App: React.FC = () => {
       const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
       const alreadyPlayedToday = prev.lastPlayedDate === today;
       const continuedStreak = prev.lastPlayedDate === yesterday;
-      return {
+      const nextProgress = {
         ...prev,
         sessionsCompleted: alreadyPlayedToday ? prev.sessionsCompleted : (prev.sessionsCompleted || 0) + 1,
         currentStreak: alreadyPlayedToday ? prev.currentStreak : continuedStreak ? (prev.currentStreak || 0) + 1 : 1,
         lastPlayedDate: today,
       };
+      return checkAchievements(nextProgress);
     });
 
     // Check if this is a new player who needs to select grade and pet
@@ -1296,17 +1248,21 @@ const App: React.FC = () => {
     setActiveUnitId(resolvedUnit?.id || null);
     setShowMissionFocus(false);
     setShowLessonIntro(Boolean(resolvedUnit && room !== RoomType.HUB));
-    setProgress(prev => ({
-      ...prev,
-      dailyStats: updateDailyStats(prev.dailyStats, { roomsVisited: [room] }),
-      gradeRoomVisits: {
-        ...(prev.gradeRoomVisits || {}),
-        [String(prev.currentLevel)]: Array.from(new Set([
-          ...(prev.gradeRoomVisits?.[String(prev.currentLevel)] || []),
-          room,
-        ])),
-      },
-    }));
+    setProgress(prev => {
+      const nextProgress = {
+        ...prev,
+        dailyStats: updateDailyStats(prev.dailyStats, { roomsVisited: [room] }),
+        gradeRoomVisits: {
+          ...(prev.gradeRoomVisits || {}),
+          [String(prev.currentLevel)]: Array.from(new Set([
+            ...(prev.gradeRoomVisits?.[String(prev.currentLevel)] || []),
+            room,
+          ])),
+        },
+      };
+
+      return checkAchievements(nextProgress);
+    });
     setCurrentRoom(room);
     setGuideTrigger(p => p + 1);
   };
@@ -2630,6 +2586,7 @@ const App: React.FC = () => {
       {showAchievements && (
         <AchievementsPanel
           unlockedAchievements={progress.achievements || []}
+          progress={progress}
           onClose={() => setShowAchievements(false)}
         />
       )}

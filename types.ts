@@ -167,7 +167,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: 'sticker_50', name: 'Sticker Collector', description: 'Collect 50 stickers', icon: '🌟', category: 'general', requirement: 50, currentProgress: 0, rarity: 'rare' },
   { id: 'sticker_100', name: 'Sticker Legend', description: 'Collect 100 stickers', icon: '💎', category: 'general', requirement: 100, currentProgress: 0, rarity: 'legendary' },
   { id: 'pet_level_10', name: 'Pet Parent', description: 'Raise your pet to level 10', icon: '🐾', category: 'general', requirement: 10, currentProgress: 0, rarity: 'rare' },
-  { id: 'all_rooms', name: 'Explorer Extraordinaire', description: 'Visit all learning rooms', icon: '🗝️', category: 'general', requirement: 12, currentProgress: 0, rarity: 'epic' },
+  { id: 'all_rooms', name: 'Explorer Extraordinaire', description: 'Visit all current learning rooms', icon: '🗝️', category: 'general', requirement: 10, currentProgress: 0, rarity: 'epic' },
   { id: 'week_streak', name: 'Dedicated Learner', description: 'Learn 7 days in a row', icon: '📅', category: 'general', requirement: 7, currentProgress: 0, rarity: 'epic' },
 ];
 

@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { Trophy, Star, Lock, Sparkles, X } from 'lucide-react';
-import { Achievement, ACHIEVEMENTS } from '../types';
+import { Achievement, type UserProgress } from '../types';
+import { getAchievementsWithProgress } from '../services/achievements';
 import { speak } from '../services/audioService';
 
 interface AchievementsPanelProps {
   unlockedAchievements: string[];
+  progress: UserProgress;
   onClose: () => void;
 }
 
@@ -35,20 +37,23 @@ const CATEGORY_TABS = [
 
 export const AchievementsPanel: React.FC<AchievementsPanelProps> = ({
   unlockedAchievements,
+  progress,
   onClose,
 }) => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedAchievement, setSelectedAchievement] = useState<Achievement | null>(null);
+  const unlockedAchievementIds = new Set(unlockedAchievements);
+  const achievementProgress = getAchievementsWithProgress(progress);
 
-  const filteredAchievements = ACHIEVEMENTS.filter(
+  const filteredAchievements = achievementProgress.filter(
     a => selectedCategory === 'all' || a.category === selectedCategory
   );
 
-  const unlockedCount = unlockedAchievements.length;
-  const totalCount = ACHIEVEMENTS.length;
-  const progress = Math.round((unlockedCount / totalCount) * 100);
+  const unlockedCount = achievementProgress.filter(achievement => unlockedAchievementIds.has(achievement.id)).length;
+  const totalCount = achievementProgress.length;
+  const panelProgress = Math.round((unlockedCount / totalCount) * 100);
 
-  const isUnlocked = (id: string) => unlockedAchievements.includes(id);
+  const isUnlocked = (id: string) => unlockedAchievementIds.has(id);
 
   const handleAchievementClick = (achievement: Achievement) => {
     setSelectedAchievement(achievement);
@@ -79,7 +84,7 @@ export const AchievementsPanel: React.FC<AchievementsPanelProps> = ({
             <div className="flex-1 h-3 bg-white/30 rounded-full overflow-hidden">
               <div
                 className="h-full bg-yellow-300 rounded-full transition-all"
-                style={{ width: `${progress}%` }}
+                style={{ width: `${panelProgress}%` }}
               />
             </div>
             <span className="text-sm font-bold">{unlockedCount}/{totalCount}</span>
@@ -108,35 +113,47 @@ export const AchievementsPanel: React.FC<AchievementsPanelProps> = ({
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {filteredAchievements.map(achievement => {
               const unlocked = isUnlocked(achievement.id);
+              const cardProgress = Math.min(100, (achievement.currentProgress / achievement.requirement) * 100);
 
               return (
                 <button
                   key={achievement.id}
                   onClick={() => handleAchievementClick(achievement)}
-                  className={`relative p-4 rounded-xl transition-all transform hover:scale-105 ${
+                  aria-label={`${achievement.name}: ${achievement.currentProgress} of ${achievement.requirement}`}
+                  className={`relative min-h-[174px] p-4 rounded-xl transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-amber-300 ${
                     unlocked
                       ? `bg-gradient-to-br ${RARITY_COLORS[achievement.rarity]} text-white shadow-lg ${RARITY_GLOW[achievement.rarity]}`
-                      : 'bg-gray-200 text-gray-400'
+                      : 'bg-white text-slate-700 border border-amber-200 shadow-sm'
                   }`}
                 >
-                  {/* Icon */}
-                  <div className="text-4xl mb-2">
-                    {unlocked ? achievement.icon : <Lock size={32} className="mx-auto opacity-50" />}
+                  <div className={`text-4xl mb-2 ${unlocked ? '' : 'opacity-60 grayscale'}`}>
+                    {achievement.icon}
                   </div>
 
-                  {/* Name */}
                   <h3 className={`font-bold text-sm ${unlocked ? '' : 'text-gray-500'}`}>
-                    {unlocked ? achievement.name : '???'}
+                    {achievement.name}
                   </h3>
+                  <p className={`mt-2 text-[11px] font-bold ${unlocked ? 'text-white/85' : 'text-slate-500'}`}>
+                    {unlocked ? 'Unlocked' : `${achievement.currentProgress}/${achievement.requirement}`}
+                  </p>
 
-                  {/* Rarity Badge */}
+                  <div className={`mt-2 h-2 rounded-full overflow-hidden ${unlocked ? 'bg-white/25' : 'bg-amber-100'}`}>
+                    <div
+                      className={`h-full rounded-full ${unlocked ? 'bg-white' : 'bg-amber-500'}`}
+                      style={{ width: `${cardProgress}%` }}
+                    />
+                  </div>
+
                   <div className={`absolute top-2 right-2 text-xs px-2 py-0.5 rounded-full ${
                     unlocked ? 'bg-white/30' : 'bg-gray-300'
                   }`}>
                     {achievement.rarity}
                   </div>
 
-                  {/* Sparkle effect for legendary */}
+                  {!unlocked && (
+                    <Lock className="absolute bottom-3 right-3 text-amber-500" size={18} />
+                  )}
+
                   {unlocked && achievement.rarity === 'legendary' && (
                     <Sparkles className="absolute -top-1 -right-1 text-yellow-200" size={20} />
                   )}
@@ -177,7 +194,6 @@ export const AchievementsPanel: React.FC<AchievementsPanelProps> = ({
                   {selectedAchievement.description}
                 </p>
 
-                {/* Progress */}
                 {!isUnlocked(selectedAchievement.id) && (
                   <div className="bg-gray-100 rounded-lg p-3">
                     <p className="text-sm text-gray-500 mb-2">Progress</p>
@@ -195,8 +211,7 @@ export const AchievementsPanel: React.FC<AchievementsPanelProps> = ({
                   </div>
                 )}
 
-                {/* Unlocked Date */}
-                {isUnlocked(selectedAchievement.id) && selectedAchievement.unlockedAt && (
+                {isUnlocked(selectedAchievement.id) && (
                   <p className="text-sm text-gray-500 flex items-center justify-center gap-1">
                     <Star size={14} className="text-yellow-500 fill-yellow-500" />
                     Unlocked!

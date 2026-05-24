@@ -247,6 +247,7 @@ if (
   !secretCheckSource.includes('functions/.env.kid-genius-world') ||
   !readmeSource.includes('Firebase Functions') ||
   !readmeSource.includes('functions/.env.kid-genius-world') ||
+  !readmeSource.includes('Do not hardcode live Stripe Price IDs') ||
   !readmeSource.includes('npm run qa:secrets')
 ) {
   fail('Secret scanning and Firebase Functions environment documentation must stay wired before launch.');
@@ -292,6 +293,8 @@ if (!cloudflareWorkerSource.includes('STRIPE_SECRET_KEY') || !cloudflareWorkerSo
 const firebaseFunctionsSource = fs.readFileSync(path.join(root, 'functions/index.js'), 'utf8');
 if (
   !firebaseFunctionsSource.includes('getVerifiedFamilyId') ||
+  !firebaseFunctionsSource.includes('getConfiguredPriceId') ||
+  !firebaseFunctionsSource.includes('identifyPlanFromPrice') ||
   !firebaseFunctionsSource.includes('billingCustomers') ||
   !firebaseFunctionsSource.includes('FieldValue.serverTimestamp') ||
   !firebaseFunctionsSource.includes('persistCustomerMapping') ||
@@ -299,6 +302,13 @@ if (
   !firebaseFunctionsSource.includes('Parent account does not match the requested family billing record')
 ) {
   fail('Firebase billing functions must derive family access from verified Firebase auth and persist Stripe customer mappings.');
+}
+if (
+  firebaseFunctionsSource.includes('price_1TU') ||
+  firebaseFunctionsSource.includes("getEnv('STRIPE_PREMIUM_PRICE_ID',") ||
+  firebaseFunctionsSource.includes("getEnv('STRIPE_STARTER_PRICE_ID',")
+) {
+  fail('Firebase billing functions must not hardcode live Stripe Price ID fallbacks.');
 }
 const liveBillingCheckSource = fs.readFileSync(path.join(root, 'scripts/check-live-billing-api.mjs'), 'utf8');
 const liveSiteCheckSource = fs.readFileSync(path.join(root, 'scripts/check-live-site.mjs'), 'utf8');

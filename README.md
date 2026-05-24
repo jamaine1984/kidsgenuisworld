@@ -140,9 +140,11 @@ For production, configure Firebase Functions environment values in `functions/.e
 
 ```bash
 STRIPE_SECRET_KEY=sk_live_or_test_key
-STRIPE_STARTER_PRICE_ID=price_1TU8rvQRAEgZiCW1ZBMSCSq2
-STRIPE_PREMIUM_PRICE_ID=price_1TU8tCQRAEgZiCW1pr5nMlzY
+STRIPE_STARTER_PRICE_ID=price_starter_monthly_subscription_id
+STRIPE_PREMIUM_PRICE_ID=price_premium_monthly_subscription_id
 ```
+
+Do not hardcode live Stripe Price IDs in source files; keep them in ignored local env files and hosted Firebase Functions environment config.
 
 Deploy billing functions:
 

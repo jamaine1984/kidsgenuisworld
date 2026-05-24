@@ -51,6 +51,27 @@ const getStripe = () => {
   return new Stripe(secretKey, { apiVersion: '2025-11-17.clover' });
 };
 
+const getConfiguredPriceId = (plan) => {
+  const envName = plan === 'premium' ? 'STRIPE_PREMIUM_PRICE_ID' : 'STRIPE_STARTER_PRICE_ID';
+  const priceId = getEnv(envName);
+  if (!priceId) {
+    throw publicError(`Stripe ${plan} monthly subscription Price ID is not configured.`, 503);
+  }
+  return priceId;
+};
+
+const identifyPlanFromPrice = (subscription, priceId) => {
+  if (subscription.metadata?.plan === 'premium' || subscription.metadata?.plan === 'starter') {
+    return subscription.metadata.plan;
+  }
+
+  const premiumId = getEnv('STRIPE_PREMIUM_PRICE_ID');
+  const starterId = getEnv('STRIPE_STARTER_PRICE_ID');
+  if (premiumId && priceId === premiumId) return 'premium';
+  if (starterId && priceId === starterId) return 'starter';
+  return 'starter';
+};
+
 const verifyParent = async (req) => {
   const idToken = String(req.body?.idToken || '');
   if (!idToken) {
@@ -168,12 +189,7 @@ export const billingCheckout = onRequest(functionOptions, async (req, res) => {
   try {
     const parent = await verifyParent(req);
     const requestedPlan = req.body?.plan === 'premium' ? 'premium' : 'starter';
-    const priceId = requestedPlan === 'premium'
-      ? getEnv('STRIPE_PREMIUM_PRICE_ID', 'price_1TU8tCQRAEgZiCW1pr5nMlzY')
-      : getEnv('STRIPE_STARTER_PRICE_ID', 'price_1TU8rvQRAEgZiCW1ZBMSCSq2');
-    if (!priceId) {
-      return sendJson(res, 503, { error: `Stripe ${requestedPlan} monthly subscription Price ID is not configured.` });
-    }
+    const priceId = getConfiguredPriceId(requestedPlan);
 
     const stripe = getStripe();
     const familyId = getVerifiedFamilyId(req, parent);
@@ -257,8 +273,7 @@ export const billingAccess = onRequest(functionOptions, async (req, res) => {
     }
 
     const priceId = subscription.items.data[0]?.price?.id || '';
-    const premiumId = getEnv('STRIPE_PREMIUM_PRICE_ID', 'price_1TU8tCQRAEgZiCW1pr5nMlzY');
-    const plan = subscription.metadata?.plan || (priceId === premiumId ? 'premium' : 'starter');
+    const plan = identifyPlanFromPrice(subscription, priceId);
     return sendJson(res, 200, {
       active: true,
       customerId: customer.id,

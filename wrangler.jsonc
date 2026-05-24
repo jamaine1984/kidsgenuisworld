@@ -17,8 +17,8 @@
   "vars": {
     "ELEVENLABS_VOICE_ID": "JBFqnCBsd6RMkjVDRZzb",
     "ELEVENLABS_MODEL_ID": "eleven_flash_v2_5",
-    "STRIPE_STARTER_PRICE_ID": "price_1TU8rvQRAEgZiCW1ZBMSCSq2",
-    "STRIPE_PREMIUM_PRICE_ID": "price_1TU8tCQRAEgZiCW1pr5nMlzY"
+    "STRIPE_STARTER_PRICE_ID": "price_starter_monthly_subscription_id",
+    "STRIPE_PREMIUM_PRICE_ID": "price_premium_monthly_subscription_id"
   },
   // Required before Stripe billing works:
   // wrangler secret put STRIPE_SECRET_KEY

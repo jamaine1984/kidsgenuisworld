@@ -142,24 +142,24 @@ const SUBSCRIPTION_PLANS: Array<{
     id: 'starter',
     label: 'Starter',
     price: '$4.99',
-    badge: 'Best first plan',
-    description: 'Launch access for one family learning at home.',
+    badge: 'Core access',
+    description: 'Full teacher-led launch access for one family learning at home.',
     highlights: [
-      'All current classrooms and games',
-      'Teacher lesson path and exit tickets',
-      'Parent gradebook and local progress',
+      'Full school campus, Story Time, and Game Arcade',
+      'Saved teacher narration and story covers',
+      'Parent dashboard, gradebook, and progress export',
     ],
   },
   {
     id: 'premium',
     label: 'Premium',
     price: '$9.99',
-    badge: 'Supporter tier',
-    description: 'Same launch access today, positioned for future premium expansions.',
+    badge: 'Build with us',
+    description: 'Optional higher-support plan for families who want to help grow the curriculum library faster.',
     highlights: [
-      'Everything in Starter',
-      'Supports faster curriculum and media expansion',
-      'Intended tier for future premium content',
+      'Full app access with the same child-safe learning rooms',
+      'Best choice for families using multiple child profiles',
+      'Helps fund new static voices, books, and lesson packs',
     ],
   },
 ];
@@ -2526,9 +2526,9 @@ const App: React.FC = () => {
                 </div>
 
                 <div className="mt-4 rounded-2xl border border-indigo-200 bg-white/80 p-3">
-                  <p className="text-xs font-black uppercase tracking-[0.14em] text-indigo-700">Launch plan note</p>
+                  <p className="text-xs font-black uppercase tracking-[0.14em] text-indigo-700">Transparent launch pricing</p>
                   <p className="mt-1 text-sm font-bold text-indigo-950">
-                    Both plans unlock the same learning app access today. Premium is the support tier for families who want to back faster curriculum, books, and media expansion.
+                    The child app access is the same in both launch plans. Premium is optional and supports faster books, voices, and lesson production; no child-facing feature is hidden behind surprise upsells.
                   </p>
                 </div>
 

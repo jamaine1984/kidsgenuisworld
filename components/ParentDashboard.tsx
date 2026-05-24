@@ -2472,7 +2472,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                     <p className="mt-1 text-xs text-emerald-800">
                       {billingSummary.active
                         ? 'Stripe access is connected to this Firebase parent account.'
-                        : 'Choose the $4.99 or $9.99 monthly plan in Stripe checkout.'}
+                        : 'Choose Starter or Premium in parent-only Stripe checkout.'}
                     </p>
                   </div>
                   <div
@@ -2510,29 +2510,49 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                     )}
                   </div>
                   {!billingSummary.active && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      <button
-                        onClick={() => runBillingAction(
-                          () => onStartStripeCheckout?.('starter') || Promise.resolve(),
-                          'Stripe $4.99 checkout could not be opened.'
-                        )}
-                        disabled={isBillingBusy}
-                        className="py-3 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700 disabled:bg-gray-200 disabled:text-gray-500 transition flex items-center justify-center gap-2"
-                      >
-                        <CreditCard size={18} />
-                        Start $4.99/mo
-                      </button>
-                      <button
-                        onClick={() => runBillingAction(
-                          () => onStartStripeCheckout?.('premium') || Promise.resolve(),
-                          'Stripe $9.99 checkout could not be opened.'
-                        )}
-                        disabled={isBillingBusy}
-                        className="py-3 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 disabled:bg-gray-200 disabled:text-gray-500 transition flex items-center justify-center gap-2"
-                      >
-                        <CreditCard size={18} />
-                        Start $9.99/mo
-                      </button>
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div className="rounded-xl border border-emerald-100 bg-white p-3">
+                          <p className="text-xs font-black uppercase tracking-[0.12em] text-emerald-700">Starter</p>
+                          <p className="mt-1 text-lg font-black text-slate-950">$4.99/mo</p>
+                          <p className="mt-1 text-xs font-bold text-slate-600">Full school campus, games, saved media, and parent progress tools.</p>
+                        </div>
+                        <div className="rounded-xl border border-indigo-100 bg-indigo-50 p-3">
+                          <p className="text-xs font-black uppercase tracking-[0.12em] text-indigo-700">Premium</p>
+                          <p className="mt-1 text-lg font-black text-slate-950">$9.99/mo</p>
+                          <p className="mt-1 text-xs font-bold text-slate-600">Same child-safe access, optional support for faster books, voices, and lesson production.</p>
+                        </div>
+                      </div>
+                      <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                        <p className="text-xs font-black uppercase tracking-[0.12em] text-slate-600">Plan clarity</p>
+                        <p className="mt-1 text-xs font-bold text-slate-700">
+                          Premium helps fund curriculum and media growth. No child-facing learning room is hidden behind a surprise upsell at launch.
+                        </p>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <button
+                          onClick={() => runBillingAction(
+                            () => onStartStripeCheckout?.('starter') || Promise.resolve(),
+                            'Stripe $4.99 checkout could not be opened.'
+                          )}
+                          disabled={isBillingBusy}
+                          className="py-3 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700 disabled:bg-gray-200 disabled:text-gray-500 transition flex items-center justify-center gap-2"
+                        >
+                          <CreditCard size={18} />
+                          Start $4.99/mo
+                        </button>
+                        <button
+                          onClick={() => runBillingAction(
+                            () => onStartStripeCheckout?.('premium') || Promise.resolve(),
+                            'Stripe $9.99 checkout could not be opened.'
+                          )}
+                          disabled={isBillingBusy}
+                          className="py-3 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 disabled:bg-gray-200 disabled:text-gray-500 transition flex items-center justify-center gap-2"
+                        >
+                          <CreditCard size={18} />
+                          Start $9.99/mo
+                        </button>
+                      </div>
                     </div>
                   )}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">

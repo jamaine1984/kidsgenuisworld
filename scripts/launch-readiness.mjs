@@ -162,6 +162,16 @@ if (!parentSource.includes('Firebase cloud progress sync') || !firebaseProgressS
 if (!parentSource.includes('Family Subscription') || !stripeBillingSource.includes('getCurrentParentIdToken') || !firebaseFunctionsSource.includes('STRIPE_SECRET_KEY') || !firebaseFunctionsSource.includes('STRIPE_STARTER_PRICE_ID') || !firebaseFunctionsSource.includes('STRIPE_PREMIUM_PRICE_ID') || !firebaseFunctionsSource.includes('verifyIdToken')) {
   fail('Stripe subscription controls must be parent-only and backed by Firebase Functions verified auth.');
 }
+if (
+  !firebaseFunctionsSource.includes('getVerifiedFamilyId') ||
+  !firebaseFunctionsSource.includes('billingCustomers') ||
+  !firebaseFunctionsSource.includes('FieldValue.serverTimestamp') ||
+  !firebaseFunctionsSource.includes('persistCustomerMapping') ||
+  !firebaseFunctionsSource.includes("invoker: 'public'") ||
+  !firebaseFunctionsSource.includes('Parent account does not match the requested family billing record')
+) {
+  fail('Firebase billing functions must derive family access from verified Firebase auth and persist Stripe customer mappings.');
+}
 if (!firebaseJsonSource.includes('/api/billing/checkout') || !firebaseJsonSource.includes('billingCheckout') || !firebaseJsonSource.includes('billingAccess')) {
   fail('Firebase Hosting must rewrite billing API routes to Firebase Functions.');
 }

@@ -262,6 +262,17 @@ if (!stripeBillingSource.includes('getCurrentParentIdToken') || !stripeBillingSo
 if (!cloudflareWorkerSource.includes('STRIPE_SECRET_KEY') || !cloudflareWorkerSource.includes('STRIPE_STARTER_PRICE_ID') || !cloudflareWorkerSource.includes('STRIPE_PREMIUM_PRICE_ID') || !cloudflareWorkerSource.includes('accounts:lookup') || !cloudflareWorkerSource.includes('/api/billing/checkout')) {
   fail('Cloudflare Worker must create Stripe billing sessions behind verified Firebase parent auth.');
 }
+const firebaseFunctionsSource = fs.readFileSync(path.join(root, 'functions/index.js'), 'utf8');
+if (
+  !firebaseFunctionsSource.includes('getVerifiedFamilyId') ||
+  !firebaseFunctionsSource.includes('billingCustomers') ||
+  !firebaseFunctionsSource.includes('FieldValue.serverTimestamp') ||
+  !firebaseFunctionsSource.includes('persistCustomerMapping') ||
+  !firebaseFunctionsSource.includes("invoker: 'public'") ||
+  !firebaseFunctionsSource.includes('Parent account does not match the requested family billing record')
+) {
+  fail('Firebase billing functions must derive family access from verified Firebase auth and persist Stripe customer mappings.');
+}
 if (!parentDashboardSource.includes('Family Subscription') || !parentDashboardSource.includes('Start $4.99/mo') || !parentDashboardSource.includes('Start $9.99/mo') || !parentDashboardSource.includes('Manage Billing')) {
   fail('Parent dashboard must expose parent-only Stripe subscription controls.');
 }

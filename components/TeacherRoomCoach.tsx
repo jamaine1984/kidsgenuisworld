@@ -1,8 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { BookOpen, CheckCircle2, ChevronDown, ChevronUp, GraduationCap, Volume2 } from 'lucide-react';
+import { BookOpen, CheckCircle2, ChevronDown, ChevronUp, GraduationCap, Lightbulb, Volume2 } from 'lucide-react';
 import { UserProgress } from '../types';
 import type { CurriculumUnit } from '../services/curriculum';
-import { AI_TEACHER, MASTERED_PRACTICE_TARGET, SCHOOL_LESSON_PHASES, getCampusRoom, getTeacherScript } from '../services/schoolMode';
+import {
+  AI_TEACHER,
+  MASTERED_PRACTICE_TARGET,
+  SCHOOL_LESSON_PHASES,
+  getCampusRoom,
+  getTeacherHelpLadder,
+  getTeacherScript,
+} from '../services/schoolMode';
 import { speakAsync } from '../services/audioService';
 
 interface TeacherRoomCoachProps {
@@ -23,7 +30,10 @@ export const TeacherRoomCoach: React.FC<TeacherRoomCoachProps> = ({
       ? window.matchMedia('(max-width: 640px)').matches
       : false
   ));
+  const [helpStepIndex, setHelpStepIndex] = useState(0);
   const script = getTeacherScript(unit, progress);
+  const helpLadder = getTeacherHelpLadder(unit);
+  const activeHelp = helpLadder[Math.min(helpStepIndex, helpLadder.length - 1)];
   const room = getCampusRoom(unit.room);
   const safePracticeCount = Math.min(practiceCount, MASTERED_PRACTICE_TARGET);
   const activePhaseIndex = safePracticeCount <= 0
@@ -47,12 +57,28 @@ export const TeacherRoomCoach: React.FC<TeacherRoomCoachProps> = ({
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, [unit.id]);
 
+  useEffect(() => {
+    setHelpStepIndex(0);
+  }, [unit.id]);
+
   const readTeacherPrompt = async () => {
     try {
       await speakAsync(script.greeting, 0.9, 1.1, 'gentle');
     } catch {
       // Static voice may not be generated yet. The visible script still guides the lesson.
     }
+  };
+
+  const readHelpPrompt = async () => {
+    try {
+      await speakAsync(`${AI_TEACHER.name} help. ${activeHelp.prompt}`, 0.88, 1.05, 'gentle');
+    } catch {
+      // Static voice may not be generated yet. The visible help ladder still guides the lesson.
+    }
+  };
+
+  const showNextHelpStep = () => {
+    setHelpStepIndex(current => Math.min(current + 1, helpLadder.length - 1));
   };
 
   if (isCollapsed) {
@@ -72,7 +98,7 @@ export const TeacherRoomCoach: React.FC<TeacherRoomCoachProps> = ({
               </p>
               <p className="truncate text-sm font-black text-slate-900">{unit.title}</p>
               <p className="text-[11px] font-bold text-indigo-700">
-                {safePracticeCount}/{MASTERED_PRACTICE_TARGET} mastery · Now: {activePhase.label}
+                {safePracticeCount}/{MASTERED_PRACTICE_TARGET} mastery - Now: {activePhase.label}
               </p>
             </div>
             <button
@@ -88,6 +114,13 @@ export const TeacherRoomCoach: React.FC<TeacherRoomCoachProps> = ({
               className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-900 shadow"
             >
               <Volume2 size={17} />
+            </button>
+            <button
+              onClick={showNextHelpStep}
+              aria-label="Show next teacher help step"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-900 shadow"
+            >
+              <Lightbulb size={17} />
             </button>
             <button
               onClick={() => setIsCollapsed(false)}
@@ -106,7 +139,7 @@ export const TeacherRoomCoach: React.FC<TeacherRoomCoachProps> = ({
     <div className="pointer-events-none fixed left-3 right-3 top-3 z-30 mx-auto max-w-4xl">
       <div
         data-testid="teacher-room-coach"
-        className="pointer-events-auto rounded-[24px] border-4 border-white/80 bg-white/95 p-3 shadow-2xl backdrop-blur"
+        className="pointer-events-none rounded-[24px] border-4 border-white/80 bg-white/95 p-3 shadow-2xl backdrop-blur"
       >
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="flex min-w-0 items-start gap-3">
@@ -122,29 +155,37 @@ export const TeacherRoomCoach: React.FC<TeacherRoomCoachProps> = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-4 gap-2 md:w-[360px] md:grid-cols-3">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-5 md:w-[440px] md:grid-cols-4">
             <div className="rounded-2xl bg-indigo-50 px-3 py-2 text-center">
               <p className="text-lg font-black text-indigo-800">{safePracticeCount}/{MASTERED_PRACTICE_TARGET}</p>
               <p className="text-[10px] font-black uppercase tracking-[0.12em] text-indigo-500">mastery</p>
             </div>
             <button
               onClick={onOpenLessonBoard}
-              className="inline-flex items-center justify-center gap-1 rounded-2xl bg-slate-950 px-3 py-2 text-xs font-black text-white shadow hover:bg-indigo-700"
+              className="pointer-events-auto inline-flex items-center justify-center gap-1 rounded-2xl bg-slate-950 px-3 py-2 text-xs font-black text-white shadow hover:bg-indigo-700"
             >
               <BookOpen size={15} />
               Board
             </button>
             <button
               onClick={readTeacherPrompt}
-              className="inline-flex items-center justify-center gap-1 rounded-2xl bg-emerald-100 px-3 py-2 text-xs font-black text-emerald-900 shadow hover:bg-emerald-200"
+              className="pointer-events-auto inline-flex items-center justify-center gap-1 rounded-2xl bg-emerald-100 px-3 py-2 text-xs font-black text-emerald-900 shadow hover:bg-emerald-200"
             >
               <Volume2 size={15} />
               Listen
             </button>
             <button
+              onClick={showNextHelpStep}
+              aria-label="Show next teacher help step"
+              className="pointer-events-auto inline-flex items-center justify-center gap-1 rounded-2xl bg-amber-100 px-3 py-2 text-xs font-black text-amber-900 shadow hover:bg-amber-200"
+            >
+              <Lightbulb size={15} />
+              Help
+            </button>
+            <button
               onClick={() => setIsCollapsed(true)}
               aria-label="Collapse teacher coach"
-              className="inline-flex items-center justify-center gap-1 rounded-2xl bg-indigo-50 px-3 py-2 text-xs font-black text-indigo-800 shadow hover:bg-indigo-100 md:hidden"
+              className="pointer-events-auto inline-flex items-center justify-center gap-1 rounded-2xl bg-indigo-50 px-3 py-2 text-xs font-black text-indigo-800 shadow hover:bg-indigo-100 md:hidden"
             >
               <ChevronUp size={15} />
               Hide
@@ -152,10 +193,10 @@ export const TeacherRoomCoach: React.FC<TeacherRoomCoachProps> = ({
           </div>
         </div>
 
-        <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
+        <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_1fr_1fr_auto]">
           <div
             data-testid="teacher-lesson-path"
-            className="rounded-2xl border border-indigo-100 bg-white px-3 py-2 sm:col-span-3"
+            className="rounded-2xl border border-indigo-100 bg-white px-3 py-2 sm:col-span-4"
           >
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
@@ -185,6 +226,39 @@ export const TeacherRoomCoach: React.FC<TeacherRoomCoachProps> = ({
                   </div>
                 );
               })}
+            </div>
+          </div>
+
+          <div
+            data-testid="teacher-help-ladder"
+            className="rounded-2xl border border-amber-100 bg-amber-50 px-3 py-2"
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <p className="text-[10px] font-black uppercase tracking-[0.14em] text-amber-700">Teacher help ladder</p>
+                <p className="mt-1 line-clamp-2 text-xs font-black text-amber-950">{activeHelp.label}: {activeHelp.prompt}</p>
+                <p className="mt-1 line-clamp-2 text-[11px] font-bold text-amber-900">{activeHelp.parentMeaning}</p>
+              </div>
+              <span className="shrink-0 rounded-full bg-white px-2 py-1 text-[10px] font-black text-amber-900 shadow">
+                {helpStepIndex + 1}/{helpLadder.length}
+              </span>
+            </div>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              <button
+                onClick={readHelpPrompt}
+                className="pointer-events-auto inline-flex shrink-0 items-center justify-center gap-1 rounded-2xl bg-white px-2.5 py-1.5 text-[11px] font-black text-amber-900 shadow hover:bg-amber-100"
+              >
+                <Volume2 size={15} />
+                Read help
+              </button>
+              <button
+                onClick={showNextHelpStep}
+                aria-label="Show next teacher help step"
+                className="pointer-events-auto inline-flex shrink-0 items-center justify-center gap-1 rounded-2xl bg-amber-500 px-2.5 py-1.5 text-[11px] font-black text-white shadow hover:bg-amber-600"
+              >
+                <Lightbulb size={14} />
+                Next help
+              </button>
             </div>
           </div>
 

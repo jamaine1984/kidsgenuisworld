@@ -68,7 +68,9 @@ for (const file of requiredFiles) {
 const appSource = fs.readFileSync(path.join(root, 'App.tsx'), 'utf8');
 const parentDashboardSource = fs.readFileSync(path.join(root, 'components/ParentDashboard.tsx'), 'utf8');
 const worldMapSource = fs.readFileSync(path.join(root, 'components/WorldMap.tsx'), 'utf8');
+const teacherRoomCoachSource = fs.readFileSync(path.join(root, 'components/TeacherRoomCoach.tsx'), 'utf8');
 const curriculumSource = fs.readFileSync(path.join(root, 'services/curriculum.ts'), 'utf8');
+const schoolModeSource = fs.readFileSync(path.join(root, 'services/schoolMode.ts'), 'utf8');
 const typesSource = fs.readFileSync(path.join(root, 'types.ts'), 'utf8');
 const audioServiceSource = fs.readFileSync(path.join(root, 'services/audioService.ts'), 'utf8');
 const mediaApiSource = fs.readFileSync(path.join(root, 'services/mediaApi.ts'), 'utf8');
@@ -132,6 +134,7 @@ const sourceFilesToScan = [
   'components/ReadingRoom.tsx',
   'components/ScienceRoom.tsx',
   'components/StoryBook.tsx',
+  'components/TeacherRoomCoach.tsx',
   'components/WorldMap.tsx',
   'services/audioService.ts',
   'services/curriculum.ts',
@@ -379,14 +382,19 @@ if (!voiceCacheSource.includes('getTeacherVoiceTexts') || !voiceCacheSource.incl
   fail('Static human voice cache must include AI homeroom teacher scripts and lesson phases.');
 }
 if (
-  !fs.readFileSync(path.join(root, 'services/schoolMode.ts'), 'utf8').includes('whyItMatters') ||
+  !schoolModeSource.includes('whyItMatters') ||
+  !schoolModeSource.includes('TEACHER_HELP_LADDER') ||
+  !schoolModeSource.includes('getTeacherHelpLadder') ||
   !worldMapSource.includes('Proof to finish') ||
   !worldMapSource.includes('Class reward') ||
   !worldMapSource.includes('period.proof') ||
   !parentDashboardSource.includes('Required proof') ||
-  !parentDashboardSource.includes('period.whyItMatters')
+  !parentDashboardSource.includes('period.whyItMatters') ||
+  !teacherRoomCoachSource.includes('teacher-help-ladder') ||
+  !teacherRoomCoachSource.includes('Show next teacher help step') ||
+  !parentDashboardSource.includes('parent-teacher-help-ladder')
 ) {
-  fail('School day plan must show required proof, rewards, and parent rationale for each class period.');
+  fail('School day plan must show required proof, rewards, parent rationale, and teacher help ladder support.');
 }
 const voiceWarmScript = fs.readFileSync(path.join(root, 'scripts/warm-voice-cache.mjs'), 'utf8');
 const voiceStaticScript = fs.readFileSync(path.join(root, 'scripts/export-static-voice-cache.mjs'), 'utf8');

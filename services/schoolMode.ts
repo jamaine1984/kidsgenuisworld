@@ -44,6 +44,33 @@ export const SCHOOL_LESSON_PHASES = [
   },
 ] as const;
 
+export const TEACHER_HELP_LADDER = [
+  {
+    id: 'hint',
+    label: 'Hint',
+    studentAction: 'Look for the clue word, picture, sound, or pattern.',
+    parentMeaning: 'The first support nudges attention without giving away the answer.',
+  },
+  {
+    id: 'model',
+    label: 'Model',
+    studentAction: 'Watch Ms. Nova work one similar example.',
+    parentMeaning: 'The teacher shows the strategy before asking the child to try again.',
+  },
+  {
+    id: 'together',
+    label: 'Try Together',
+    studentAction: 'Do the next step with teacher clues.',
+    parentMeaning: 'Guided practice reduces frustration while keeping the child active.',
+  },
+  {
+    id: 'teach-back',
+    label: 'Teach Back',
+    studentAction: 'Explain the strategy in your own words.',
+    parentMeaning: 'The final support checks understanding instead of only checking correctness.',
+  },
+] as const;
+
 export interface SchoolCampusRoom {
   classroomName: string;
   shortName: string;
@@ -123,6 +150,13 @@ export interface StudentPassportSummary {
   teacherConferenceQuestion: string;
   parentFollowUp: string;
   nextStampTarget: string;
+}
+
+export interface TeacherHelpStep {
+  id: string;
+  label: string;
+  prompt: string;
+  parentMeaning: string;
 }
 
 export const SCHOOL_ASSIGNMENT_ROOMS = [
@@ -269,6 +303,25 @@ export const getTeacherScript = (unit: CurriculumUnit, progress: UserProgress) =
     voiceStatus: `${AI_TEACHER.voicePack} is prepared as static lesson copy for ${campusRoom.classroomName}.`,
     masteryLabel: mastery.label,
   };
+};
+
+export const getTeacherHelpLadder = (unit: CurriculumUnit): TeacherHelpStep[] => {
+  const campusRoom = getCampusRoom(unit.room);
+  const practice = unit.practiceActivities || [];
+  const checks = unit.endOfLessonChecks || [];
+
+  return TEACHER_HELP_LADDER.map((step, index) => ({
+    id: step.id,
+    label: step.label,
+    prompt: index === 0
+      ? `Hint: ${practice[0] || `look for the key clue in ${campusRoom.subject}.`}`
+      : index === 1
+        ? `Model: ${practice[1] || `${AI_TEACHER.name} works one similar example and names the strategy.`}`
+        : index === 2
+          ? `Try together: ${practice[2] || 'take the next step with teacher clues, then check it.'}`
+          : `Teach back: ${checks[0] || unit.successCheck}`,
+    parentMeaning: step.parentMeaning,
+  }));
 };
 
 export const getTeacherAssignmentCards = (progress: UserProgress): TeacherAssignmentCard[] => {

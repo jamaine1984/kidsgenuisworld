@@ -26,6 +26,7 @@ import {
   getCampusRoom,
   getSchoolDayPlan,
   getStudentPassportSummary,
+  getTeacherHelpLadder,
   getTeacherScript,
   getTeacherAssignmentCards,
   getTeacherGradebookRows,
@@ -272,6 +273,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
   const schoolDay = getSchoolDayPlan(progress);
   const studentPassport = getStudentPassportSummary(progress);
   const missionTeacherScript = getTeacherScript(schoolDay.mission, progress);
+  const teacherHelpLadder = getTeacherHelpLadder(schoolDay.mission);
   const teacherNotes = buildTeacherNotesFromJournal(progress);
   const teacherAssignments = getTeacherAssignmentCards(progress);
   const teacherGradebookRows = getTeacherGradebookRows(progress);
@@ -1072,6 +1074,34 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                       {note.nextStep && (
                         <p className="mt-2 rounded-lg bg-white/10 px-2 py-1 text-xs font-bold text-slate-100">Next: {note.nextStep}</p>
                       )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div
+                data-testid="parent-teacher-help-ladder"
+                className="mt-4 rounded-xl bg-amber-300/15 border border-amber-200/25 p-3"
+              >
+                <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-[0.14em] text-amber-100">Teacher help ladder</p>
+                    <h4 className="mt-1 text-lg font-black text-white">How {AI_TEACHER.name} helps when learning gets hard</h4>
+                    <p className="mt-1 max-w-3xl text-sm font-semibold text-amber-50">
+                      When a child gets stuck, {AI_TEACHER.name} moves through hint, model, try together, then teach-back proof before the lesson counts as secure.
+                    </p>
+                  </div>
+                  <div className="rounded-xl bg-white px-4 py-2 text-center text-slate-950">
+                    <p className="text-xl font-black">{teacherHelpLadder.length}</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-500">support steps</p>
+                  </div>
+                </div>
+                <div className="mt-3 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-2">
+                  {teacherHelpLadder.map((step, index) => (
+                    <div key={step.id} className="rounded-lg bg-white/10 border border-white/10 p-3">
+                      <p className="text-[10px] font-black uppercase tracking-[0.12em] text-amber-100">Step {index + 1}</p>
+                      <p className="mt-1 text-sm font-black text-white">{step.label}</p>
+                      <p className="mt-1 line-clamp-3 text-xs font-semibold text-amber-50">{step.prompt}</p>
+                      <p className="mt-2 line-clamp-3 text-[11px] font-semibold text-slate-200">{step.parentMeaning}</p>
                     </div>
                   ))}
                 </div>

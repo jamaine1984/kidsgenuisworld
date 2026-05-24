@@ -116,6 +116,8 @@ test('math room completion creates reward and parent-visible journal proof', asy
   await expect(page.getByTestId('teacher-room-coach')).toContainText('Exit ticket');
   await expect(page.getByTestId('teacher-lesson-path')).toContainText('Lesson path');
   await expect(page.getByTestId('teacher-lesson-path')).toContainText('Now');
+  await expect(page.getByTestId('teacher-help-ladder')).toContainText('Teacher help ladder');
+  await expect(page.getByTestId('teacher-help-ladder')).toContainText('Hint');
   await expect(page.getByTestId('math-question')).toBeVisible();
 
   for (let round = 0; round < 3; round += 1) {
@@ -141,6 +143,8 @@ test('math room completion creates reward and parent-visible journal proof', asy
   await expect(page.getByTestId('parent-school-day-attendance')).toContainText('periods complete');
   await expect(page.getByTestId('parent-school-day-attendance')).toContainText('Required proof');
   await expect(page.getByTestId('parent-school-day-attendance')).toContainText('Reward:');
+  await expect(page.getByTestId('parent-teacher-help-ladder')).toContainText('Teacher help ladder');
+  await expect(page.getByTestId('parent-teacher-help-ladder')).toContainText('Teach Back');
   await expect(page.getByTestId('parent-teacher-assignments')).toContainText('Teacher assignment cards');
   await expect(page.getByTestId('parent-teacher-assignments')).toContainText('Mastery rubric');
   await page.getByRole('button', { name: /Gradebook/i }).click();
@@ -163,9 +167,12 @@ test('teacher coach starts compact on phone and expands on demand', async ({ pag
 
   await expect(page.getByTestId('teacher-room-coach-compact')).toContainText('Ms. Nova');
   await expect(page.getByTestId('teacher-room-coach-compact')).toContainText('mastery');
+  await page.getByLabel('Show next teacher help step').click();
+  await page.getByLabel('Show next teacher help step').click();
   await page.getByLabel('Expand teacher coach').click();
   await expect(page.getByTestId('teacher-room-coach')).toContainText('Guided practice');
   await expect(page.getByTestId('teacher-lesson-path')).toContainText('Lesson path');
+  await expect(page.getByTestId('teacher-help-ladder')).toContainText('Try Together');
   await expect(page.getByTestId('teacher-room-coach')).toContainText('Exit ticket');
   await page.getByLabel('Collapse teacher coach').click();
   await expect(page.getByTestId('teacher-room-coach-compact')).toBeVisible();

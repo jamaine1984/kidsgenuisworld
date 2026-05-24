@@ -287,6 +287,13 @@ if (
 if (!stripeBillingSource.includes('getCurrentParentIdToken') || !stripeBillingSource.includes('/api/billing/checkout') || !stripeBillingSource.includes('/api/billing/portal')) {
   fail('Stripe billing must require Firebase parent auth before checkout or portal access.');
 }
+if (
+  !readmeSource.includes('https://kid-genius-world.com/api/billing/webhook') ||
+  !readmeSource.includes('STRIPE_WEBHOOK_SECRET') ||
+  !secretCheckSource.includes('Stripe webhook signing secret')
+) {
+  fail('Stripe webhook endpoint, signing-secret documentation, and secret scanning must stay wired.');
+}
 if (!cloudflareWorkerSource.includes('STRIPE_SECRET_KEY') || !cloudflareWorkerSource.includes('STRIPE_STARTER_PRICE_ID') || !cloudflareWorkerSource.includes('STRIPE_PREMIUM_PRICE_ID') || !cloudflareWorkerSource.includes('accounts:lookup') || !cloudflareWorkerSource.includes('/api/billing/checkout')) {
   fail('Cloudflare Worker must create Stripe billing sessions behind verified Firebase parent auth.');
 }
@@ -295,7 +302,15 @@ if (
   !firebaseFunctionsSource.includes('getVerifiedFamilyId') ||
   !firebaseFunctionsSource.includes('getConfiguredPriceId') ||
   !firebaseFunctionsSource.includes('identifyPlanFromPrice') ||
+  !firebaseFunctionsSource.includes('verifyStripeWebhookEvent') ||
+  !firebaseFunctionsSource.includes('handleStripeBillingEvent') ||
+  !firebaseFunctionsSource.includes('STRIPE_WEBHOOK_SECRET') ||
+  !firebaseFunctionsSource.includes('stripe.webhooks.constructEvent') ||
+  !firebaseFunctionsSource.includes('checkout.session.completed') ||
+  !firebaseFunctionsSource.includes('invoice.payment_failed') ||
   !firebaseFunctionsSource.includes('billingCustomers') ||
+  !firebaseFunctionsSource.includes('stripeEvents') ||
+  !firebaseFunctionsSource.includes('billingAccessActive') ||
   !firebaseFunctionsSource.includes('FieldValue.serverTimestamp') ||
   !firebaseFunctionsSource.includes('persistCustomerMapping') ||
   !firebaseFunctionsSource.includes("invoker: 'public'") ||
@@ -323,6 +338,8 @@ if (
   !liveSiteCheckSource.includes('Blog index has too few article links') ||
   !liveBillingCheckSource.includes('/api/billing/access') ||
   !liveBillingCheckSource.includes('Parent sign-in token is required.') ||
+  !liveBillingCheckSource.includes('/api/billing/webhook') ||
+  !liveBillingCheckSource.includes('Stripe webhook signature is required.') ||
   !liveBillingCheckSource.includes('CORS preflight') ||
   !packageJson.scripts?.['firebase:deploy:functions'] ||
   !packageJson.scripts?.['firebase:deploy:hosting']?.includes('qa:production-live') ||
@@ -332,6 +349,9 @@ if (
 }
 if (!parentDashboardSource.includes('Family Subscription') || !parentDashboardSource.includes('Start $4.99/mo') || !parentDashboardSource.includes('Start $9.99/mo') || !parentDashboardSource.includes('Manage Billing')) {
   fail('Parent dashboard must expose parent-only Stripe subscription controls.');
+}
+if (!firebaseJsonSource.includes('/api/billing/webhook') || !firebaseJsonSource.includes('billingWebhook')) {
+  fail('Firebase Hosting must rewrite signed Stripe webhooks to Firebase Functions.');
 }
 if (
   !appSource.includes('access-gate-billing-status') ||

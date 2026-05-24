@@ -89,6 +89,13 @@
         }
       },
       {
+        "source": "/api/billing/webhook",
+        "function": {
+          "functionId": "billingWebhook",
+          "region": "us-central1"
+        }
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }

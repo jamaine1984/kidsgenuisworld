@@ -72,6 +72,231 @@ const identifyPlanFromPrice = (subscription, priceId) => {
   return 'starter';
 };
 
+const stripeObjectId = (value) => (typeof value === 'string' ? value : value?.id || '');
+
+const timestampToMillis = (value) => (typeof value === 'number' ? value * 1000 : null);
+
+const removeUndefined = (record) => Object.fromEntries(
+  Object.entries(record).filter(([, value]) => value !== undefined)
+);
+
+const subscriptionAllowsAccess = (status) => ['trialing', 'active', 'past_due'].includes(status);
+
+const getMetadataValue = (key, ...objects) => {
+  for (const object of objects) {
+    const metadataSources = [
+      object?.metadata,
+      object?.subscription_details?.metadata,
+      object?.parent?.subscription_details?.metadata,
+    ];
+    for (const metadata of metadataSources) {
+      const value = metadata?.[key];
+      if (typeof value === 'string' && value.trim()) return value;
+    }
+  }
+  return '';
+};
+
+const getFirebaseUidFromStripeObjects = (...objects) => (
+  getMetadataValue('firebase_uid', ...objects)
+  || objects.find((object) => typeof object?.client_reference_id === 'string')?.client_reference_id
+  || ''
+);
+
+const getSubscriptionPriceId = (subscription) => (
+  subscription?.items?.data?.[0]?.price?.id
+  || stripeObjectId(subscription?.plan)
+  || ''
+);
+
+const getInvoiceSubscriptionId = (invoice) => (
+  stripeObjectId(invoice?.subscription)
+  || stripeObjectId(invoice?.subscription_details?.subscription)
+  || stripeObjectId(invoice?.parent?.subscription_details?.subscription)
+);
+
+const retrieveStripeCustomer = async (stripe, customerId) => {
+  if (!customerId) return null;
+  try {
+    const customer = await stripe.customers.retrieve(customerId);
+    return customer?.deleted ? null : customer;
+  } catch (error) {
+    console.warn('Stripe webhook customer lookup failed', { customerId, message: error.message });
+    return null;
+  }
+};
+
+const retrieveStripeSubscription = async (stripe, subscriptionId) => {
+  if (!subscriptionId) return null;
+  try {
+    return stripe.subscriptions.retrieve(subscriptionId, { expand: ['items.data.price'] });
+  } catch (error) {
+    console.warn('Stripe webhook subscription lookup failed', { subscriptionId, message: error.message });
+    return null;
+  }
+};
+
+const findBillingDocumentByCustomerId = async (customerId) => {
+  if (!customerId) return null;
+  const snapshot = await getFirestore()
+    .collection('billingCustomers')
+    .where('customerId', '==', customerId)
+    .limit(1)
+    .get();
+  const document = snapshot.docs[0];
+  return document ? { id: document.id, ...document.data() } : null;
+};
+
+const resolveWebhookParentContext = async (stripe, { checkoutSession, subscription, invoice }) => {
+  const customerId = stripeObjectId(subscription?.customer)
+    || stripeObjectId(checkoutSession?.customer)
+    || stripeObjectId(invoice?.customer);
+  const storedBilling = await findBillingDocumentByCustomerId(customerId);
+  const customer = await retrieveStripeCustomer(stripe, customerId);
+  const parentUid = getFirebaseUidFromStripeObjects(subscription, checkoutSession, invoice, customer)
+    || storedBilling?.parentUid
+    || storedBilling?.id
+    || '';
+  const familyId = getMetadataValue('family_id', subscription, checkoutSession, invoice, customer)
+    || storedBilling?.familyId
+    || (parentUid ? buildFamilyId(parentUid) : '');
+  const parentEmail = checkoutSession?.customer_details?.email
+    || checkoutSession?.customer_email
+    || invoice?.customer_email
+    || customer?.email
+    || storedBilling?.parentEmail
+    || '';
+
+  return {
+    customerId,
+    familyId,
+    parentEmail,
+    parentUid,
+  };
+};
+
+const persistStripeEventRecord = async (parentUid, event, objectId) => {
+  if (!parentUid || !event?.id) return;
+  await getFirestore()
+    .collection('billingCustomers')
+    .doc(parentUid)
+    .collection('stripeEvents')
+    .doc(event.id)
+    .set(removeUndefined({
+      eventId: event.id,
+      eventType: event.type,
+      livemode: event.livemode,
+      objectId,
+      receivedAt: FieldValue.serverTimestamp(),
+      stripeCreatedAt: timestampToMillis(event.created),
+    }), { merge: true });
+};
+
+const persistBillingSnapshot = async (stripe, event, { checkoutSession = null, subscription = null, invoice = null }) => {
+  const subscriptionId = stripeObjectId(subscription?.id)
+    || stripeObjectId(checkoutSession?.subscription)
+    || getInvoiceSubscriptionId(invoice);
+  const resolvedSubscription = subscription || await retrieveStripeSubscription(stripe, subscriptionId);
+  const context = await resolveWebhookParentContext(stripe, {
+    checkoutSession,
+    subscription: resolvedSubscription,
+    invoice,
+  });
+
+  if (!context.parentUid) {
+    console.warn('Stripe webhook skipped because no Firebase parent uid was found', {
+      eventId: event.id,
+      eventType: event.type,
+      customerId: context.customerId,
+      subscriptionId,
+    });
+    return { handled: true, updated: false, reason: 'missing_parent_uid' };
+  }
+
+  const priceId = getSubscriptionPriceId(resolvedSubscription);
+  const plan = resolvedSubscription
+    ? identifyPlanFromPrice(resolvedSubscription, priceId)
+    : getMetadataValue('plan', checkoutSession, invoice) || undefined;
+  const subscriptionStatus = resolvedSubscription?.status || undefined;
+  const billingAccessActive = subscriptionStatus ? subscriptionAllowsAccess(subscriptionStatus) : undefined;
+  const objectId = event.data?.object?.id || subscriptionId || context.customerId;
+
+  await getBillingCustomerRef({ uid: context.parentUid }).set(removeUndefined({
+    app: 'kid-genius-world',
+    billingAccessActive,
+    cancelAtPeriodEnd: resolvedSubscription?.cancel_at_period_end,
+    canceledAt: timestampToMillis(resolvedSubscription?.canceled_at),
+    currentPeriodEndsAt: timestampToMillis(resolvedSubscription?.current_period_end),
+    customerId: context.customerId,
+    familyId: context.familyId,
+    lastInvoiceAmountDue: typeof invoice?.amount_due === 'number' ? invoice.amount_due : undefined,
+    lastInvoiceAmountPaid: typeof invoice?.amount_paid === 'number' ? invoice.amount_paid : undefined,
+    lastInvoiceCurrency: invoice?.currency,
+    lastInvoiceId: invoice?.id,
+    lastInvoicePaid: typeof invoice?.paid === 'boolean' ? invoice.paid : undefined,
+    lastInvoiceStatus: invoice?.status,
+    lastStripeEventAt: timestampToMillis(event.created),
+    lastStripeEventId: event.id,
+    lastStripeEventType: event.type,
+    parentEmail: context.parentEmail,
+    parentUid: context.parentUid,
+    plan,
+    priceId,
+    subscriptionId: resolvedSubscription?.id || subscriptionId,
+    subscriptionStatus,
+    trialEndsAt: timestampToMillis(resolvedSubscription?.trial_end),
+    updatedAt: FieldValue.serverTimestamp(),
+  }), { merge: true });
+
+  await persistStripeEventRecord(context.parentUid, event, objectId);
+  return { handled: true, updated: true };
+};
+
+const verifyStripeWebhookEvent = (stripe, req) => {
+  const signature = req.get('stripe-signature') || '';
+  if (!signature) {
+    throw publicError('Stripe webhook signature is required.', 400);
+  }
+
+  const endpointSecret = getEnv('STRIPE_WEBHOOK_SECRET');
+  if (!endpointSecret) {
+    throw publicError('Stripe webhook secret is not configured.', 503);
+  }
+
+  if (!req.rawBody) {
+    throw publicError('Stripe webhook raw body is unavailable.', 400);
+  }
+
+  try {
+    return stripe.webhooks.constructEvent(req.rawBody, signature, endpointSecret);
+  } catch (error) {
+    console.warn('Stripe webhook signature verification failed', { message: error.message });
+    throw publicError('Stripe webhook signature could not be verified.', 400);
+  }
+};
+
+const handleStripeBillingEvent = async (stripe, event) => {
+  const stripeObject = event.data?.object;
+
+  switch (event.type) {
+    case 'checkout.session.completed':
+      return persistBillingSnapshot(stripe, event, { checkoutSession: stripeObject });
+    case 'customer.subscription.created':
+    case 'customer.subscription.updated':
+    case 'customer.subscription.deleted':
+    case 'customer.subscription.trial_will_end':
+      return persistBillingSnapshot(stripe, event, { subscription: stripeObject });
+    case 'invoice.finalized':
+    case 'invoice.paid':
+    case 'invoice.payment_succeeded':
+    case 'invoice.payment_failed':
+      return persistBillingSnapshot(stripe, event, { invoice: stripeObject });
+    default:
+      console.info('Stripe billing webhook ignored event type', { eventType: event.type, eventId: event.id });
+      return { handled: false, updated: false };
+  }
+};
+
 const verifyParent = async (req) => {
   const idToken = String(req.body?.idToken || '');
   if (!idToken) {
@@ -285,5 +510,18 @@ export const billingAccess = onRequest(functionOptions, async (req, res) => {
     });
   } catch (error) {
     return sendError(res, error, 'Billing access could not be verified.');
+  }
+});
+
+export const billingWebhook = onRequest(functionOptions, async (req, res) => {
+  if (req.method !== 'POST') return sendJson(res, 405, { error: 'Method Not Allowed' });
+
+  try {
+    const stripe = getStripe();
+    const event = verifyStripeWebhookEvent(stripe, req);
+    const result = await handleStripeBillingEvent(stripe, event);
+    return sendJson(res, 200, { received: true, ...result });
+  } catch (error) {
+    return sendError(res, error, 'Stripe webhook could not be processed.');
   }
 });

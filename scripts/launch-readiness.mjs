@@ -188,10 +188,25 @@ if (!parentSource.includes('Family Subscription') || !stripeBillingSource.includ
   fail('Stripe subscription controls must be parent-only and backed by Firebase Functions verified auth.');
 }
 if (
+  !readmeSource.includes('https://kid-genius-world.com/api/billing/webhook') ||
+  !readmeSource.includes('STRIPE_WEBHOOK_SECRET') ||
+  !secretCheckSource.includes('Stripe webhook signing secret')
+) {
+  fail('Stripe webhook endpoint, signing-secret documentation, and secret scanning must stay wired.');
+}
+if (
   !firebaseFunctionsSource.includes('getVerifiedFamilyId') ||
   !firebaseFunctionsSource.includes('getConfiguredPriceId') ||
   !firebaseFunctionsSource.includes('identifyPlanFromPrice') ||
+  !firebaseFunctionsSource.includes('verifyStripeWebhookEvent') ||
+  !firebaseFunctionsSource.includes('handleStripeBillingEvent') ||
+  !firebaseFunctionsSource.includes('STRIPE_WEBHOOK_SECRET') ||
+  !firebaseFunctionsSource.includes('stripe.webhooks.constructEvent') ||
+  !firebaseFunctionsSource.includes('checkout.session.completed') ||
+  !firebaseFunctionsSource.includes('invoice.payment_failed') ||
   !firebaseFunctionsSource.includes('billingCustomers') ||
+  !firebaseFunctionsSource.includes('stripeEvents') ||
+  !firebaseFunctionsSource.includes('billingAccessActive') ||
   !firebaseFunctionsSource.includes('FieldValue.serverTimestamp') ||
   !firebaseFunctionsSource.includes('persistCustomerMapping') ||
   !firebaseFunctionsSource.includes("invoker: 'public'") ||
@@ -219,6 +234,8 @@ if (
   !liveSiteCheckSource.includes('Blog index has too few article links') ||
   !liveBillingCheckSource.includes('/api/billing/access') ||
   !liveBillingCheckSource.includes('Parent sign-in token is required.') ||
+  !liveBillingCheckSource.includes('/api/billing/webhook') ||
+  !liveBillingCheckSource.includes('Stripe webhook signature is required.') ||
   !liveBillingCheckSource.includes('CORS preflight') ||
   !packageJson.scripts?.['firebase:deploy:functions'] ||
   !packageJson.scripts?.['firebase:deploy:hosting']?.includes('qa:production-live') ||
@@ -226,7 +243,7 @@ if (
 ) {
   fail('Live production site, billing API, and Firebase deploy smoke scripts must stay available.');
 }
-if (!firebaseJsonSource.includes('/api/billing/checkout') || !firebaseJsonSource.includes('billingCheckout') || !firebaseJsonSource.includes('billingAccess')) {
+if (!firebaseJsonSource.includes('/api/billing/checkout') || !firebaseJsonSource.includes('billingCheckout') || !firebaseJsonSource.includes('billingAccess') || !firebaseJsonSource.includes('/api/billing/webhook') || !firebaseJsonSource.includes('billingWebhook')) {
   fail('Firebase Hosting must rewrite billing API routes to Firebase Functions.');
 }
 if (stripeBillingSource.includes('VITE_MEDIA_API_BASE_URL')) {

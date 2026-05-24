@@ -42,6 +42,7 @@ const firebasePrivateKeyPattern = new RegExp([
 
 const secretPatterns = [
   ['Stripe secret key', /\bsk_(?:live|test)_[A-Za-z0-9]{16,}\b/],
+  ['Stripe webhook signing secret', /\bwhsec_[A-Za-z0-9]{20,}\b/],
   ['OpenAI secret key', /\bsk-(?:proj-)?[A-Za-z0-9_-]{24,}\b/],
   ['OpenRouter secret key', /\bsk-or-[A-Za-z0-9_-]{20,}\b/],
   ['ElevenLabs API key shape', /\b[a-f0-9]{64}\b/i],

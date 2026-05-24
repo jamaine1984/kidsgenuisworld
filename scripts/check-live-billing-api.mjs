@@ -5,6 +5,7 @@ const endpoints = [
   '/api/billing/checkout',
   '/api/billing/portal',
 ];
+const webhookEndpoint = '/api/billing/webhook';
 
 const fail = (message) => {
   console.error(`Live billing API check failed: ${message}`);
@@ -50,4 +51,19 @@ if (preflight.status !== 204) {
 expectHeader(preflight.headers, 'access-control-allow-methods', 'POST');
 expectHeader(preflight.headers, 'access-control-allow-headers', 'Content-Type');
 
-console.log(`Live billing API check passed for ${baseUrl}: ${endpoints.length} protected endpoints and CORS preflight verified.`);
+const unsignedWebhook = await fetch(`${baseUrl}${webhookEndpoint}`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ type: 'customer.subscription.updated' }),
+});
+const unsignedWebhookBody = await unsignedWebhook.json().catch(() => null);
+
+if (unsignedWebhook.status !== 400) {
+  fail(`${webhookEndpoint} should reject unsigned Stripe events with 400, got ${unsignedWebhook.status}.`);
+}
+if (!unsignedWebhookBody || unsignedWebhookBody.error !== 'Stripe webhook signature is required.') {
+  fail(`${webhookEndpoint} should return the missing Stripe signature JSON error.`);
+}
+expectHeader(unsignedWebhook.headers, 'content-type', 'application/json');
+
+console.log(`Live billing API check passed for ${baseUrl}: ${endpoints.length} protected endpoints, signed webhook rejection, and CORS preflight verified.`);

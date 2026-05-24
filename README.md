@@ -142,9 +142,12 @@ For production, configure Firebase Functions environment values in `functions/.e
 STRIPE_SECRET_KEY=sk_live_or_test_key
 STRIPE_STARTER_PRICE_ID=price_starter_monthly_subscription_id
 STRIPE_PREMIUM_PRICE_ID=price_premium_monthly_subscription_id
+STRIPE_WEBHOOK_SECRET=whsec_stripe_webhook_signing_secret
 ```
 
 Do not hardcode live Stripe Price IDs in source files; keep them in ignored local env files and hosted Firebase Functions environment config.
+
+Register the production Stripe webhook endpoint at `https://kid-genius-world.com/api/billing/webhook` after the function deploy. Send these events: `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `customer.subscription.trial_will_end`, `invoice.finalized`, `invoice.paid`, `invoice.payment_succeeded`, and `invoice.payment_failed`. Copy the endpoint signing secret into `STRIPE_WEBHOOK_SECRET` before relying on webhook billing records.
 
 Deploy billing functions:
 
@@ -160,7 +163,7 @@ Firebase Hosting should leave the browser-side billing base blank so the app use
 VITE_BILLING_API_BASE_URL=
 ```
 
-Firebase Functions verify the signed-in Firebase parent token before creating Stripe Checkout or Billing Portal sessions. Firestore `billingCustomers/{uid}` records are server-only and denied to browser clients by `firestore.rules`.
+Firebase Functions verify the signed-in Firebase parent token before creating Stripe Checkout or Billing Portal sessions. The signed Stripe webhook stores durable subscription, trial, invoice, cancellation, and payment-failure snapshots in Firestore. Firestore `billingCustomers/{uid}` records are server-only and denied to browser clients by `firestore.rules`.
 
 ## Human Voice Cache
 
@@ -208,6 +211,7 @@ Private keys must stay in `.env.local` for development or hosted environment sec
 - `STRIPE_SECRET_KEY`: Firebase Functions Stripe secret key. Keep it in `functions/.env.kid-genius-world` locally and hosted Firebase secret/environment config for production deploys.
 - `STRIPE_STARTER_PRICE_ID`: Firebase Functions recurring Stripe Price ID for the `$4.99/month` plan.
 - `STRIPE_PREMIUM_PRICE_ID`: Firebase Functions recurring Stripe Price ID for the `$9.99/month` plan.
+- `STRIPE_WEBHOOK_SECRET`: Stripe webhook endpoint signing secret for `https://kid-genius-world.com/api/billing/webhook`.
 - `FIREBASE_WEB_API_KEY`: legacy Cloudflare Worker billing value. Not needed for the current Firebase Functions billing path.
 
 Run `npm run qa:secrets` before every deploy. It scans tracked text files for Stripe, OpenAI/OpenRouter, ElevenLabs, Google API key, private-key, and Firebase service-account key shapes, and confirms ignored local secret files stay ignored by Git.

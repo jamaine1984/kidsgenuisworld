@@ -148,8 +148,16 @@ if (!cloudflareWorkerSource.includes('MEDIA_CACHE') || !cloudflareWorkerSource.i
 if (!firebaseJsonSource.includes('"public": "dist"') || !firebaseJsonSource.includes('"destination": "/index.html"')) {
   fail('Firebase Hosting must serve the Vite dist build with SPA rewrites.');
 }
-if (!firestoreRulesSource.includes('isFamilyParent') || !firestoreRulesSource.includes('allow read, write: if false')) {
-  fail('Firestore rules must enforce parent-owned access and deny by default.');
+if (
+  !firestoreRulesSource.includes('isFamilyParent') ||
+  !firestoreRulesSource.includes('familyPayloadIsSafe') ||
+  !firestoreRulesSource.includes('parentListUnchanged') ||
+  !firestoreRulesSource.includes('match /billingCustomers/{parentUid}') ||
+  !firestoreRulesSource.includes('allow read, write: if false') ||
+  !firestoreRulesSource.includes('stripeCustomerId') ||
+  !firestoreRulesSource.includes('billingAccessActive')
+) {
+  fail('Firestore rules must enforce parent-owned access, server-only billing records, and deny by default.');
 }
 if (!firebaseClientSource.includes('VITE_FIREBASE_API_KEY') || !firebaseClientSource.includes('getFirebaseServices')) {
   fail('Firebase Web SDK config must be env-driven and initialized behind a helper.');

@@ -256,8 +256,16 @@ if (!firebaseProgressStoreSource.includes('families') || !firebaseProgressStoreS
 if (!firebaseProgressStoreSource.includes('ensureFamilyDocument') || !firebaseProgressStoreSource.includes('cloudSyncConsent')) {
   fail('Firebase progress sync must create a parent-owned family consent record before child progress writes.');
 }
-if (!firestoreRulesSource.includes('isFamilyParent') || !firestoreRulesSource.includes('allow read, write: if false')) {
-  fail('Firestore rules must enforce parent-owned access and deny unknown collections.');
+if (
+  !firestoreRulesSource.includes('isFamilyParent') ||
+  !firestoreRulesSource.includes('familyPayloadIsSafe') ||
+  !firestoreRulesSource.includes('parentListUnchanged') ||
+  !firestoreRulesSource.includes('match /billingCustomers/{parentUid}') ||
+  !firestoreRulesSource.includes('allow read, write: if false') ||
+  !firestoreRulesSource.includes('stripeCustomerId') ||
+  !firestoreRulesSource.includes('billingAccessActive')
+) {
+  fail('Firestore rules must enforce parent-owned access, server-only billing records, and deny unknown collections.');
 }
 if (!stripeBillingSource.includes('getCurrentParentIdToken') || !stripeBillingSource.includes('/api/billing/checkout') || !stripeBillingSource.includes('/api/billing/portal')) {
   fail('Stripe billing must require Firebase parent auth before checkout or portal access.');

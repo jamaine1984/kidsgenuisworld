@@ -12,6 +12,30 @@ service cloud.firestore {
         && request.auth.uid in get(/databases/$(database)/documents/families/$(familyId)).data.parentUids;
     }
 
+    function familyPayloadIsSafe() {
+      return request.resource.data.parentUids is list
+        && request.auth.uid in request.resource.data.parentUids
+        && request.resource.data.parentUids.size() <= 2
+        && !request.resource.data.keys().hasAny([
+          'stripeCustomerId',
+          'stripeSubscriptionId',
+          'stripeStatus',
+          'billingAccessActive',
+          'trialEndsAt',
+          'currentPeriodEndsAt',
+          'plan',
+          'paymentMethod',
+          'card',
+          'email',
+          'phone',
+          'address'
+        ]);
+    }
+
+    function parentListUnchanged() {
+      return request.resource.data.parentUids == resource.data.parentUids;
+    }
+
     function childPayloadIsSafe() {
       return !request.resource.data.keys().hasAny([
         'email',
@@ -23,12 +47,10 @@ service cloud.firestore {
     }
 
     match /families/{familyId} {
-      allow create: if signedIn()
-        && request.auth.uid in request.resource.data.parentUids
-        && request.resource.data.parentUids is list
-        && request.resource.data.parentUids.size() <= 2;
+      allow create: if signedIn() && familyPayloadIsSafe();
 
-      allow read, update, delete: if isFamilyParent(familyId);
+      allow read, delete: if isFamilyParent(familyId);
+      allow update: if isFamilyParent(familyId) && familyPayloadIsSafe() && parentListUnchanged();
 
       match /children/{childId} {
         allow read: if isFamilyParent(familyId);
@@ -47,6 +69,10 @@ service cloud.firestore {
       match /parentExports/{exportId} {
         allow read, write: if isFamilyParent(familyId);
       }
+    }
+
+    match /billingCustomers/{parentUid} {
+      allow read, write: if false;
     }
 
     match /{document=**} {

@@ -358,6 +358,11 @@ if (
   !parentDashboardSource.includes('parent-billing-status-card') ||
   !appSource.includes('Trial active') ||
   !parentDashboardSource.includes('Subscription active') ||
+  !stripeBillingSource.includes('lastStripeEventAt') ||
+  !appSource.includes('lastInvoiceStatus') ||
+  !parentDashboardSource.includes('Stripe webhook:') ||
+  !parentDashboardSource.includes('Latest invoice:') ||
+  !firebaseFunctionsSource.includes('getBillingSnapshotSummary') ||
   !parentDashboardSource.includes('Manage Billing in Stripe') ||
   !parentDashboardSource.includes('Refresh Stripe Status') ||
   !appSource.includes('handleRefreshBillingAccess')

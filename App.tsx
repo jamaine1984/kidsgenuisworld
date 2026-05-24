@@ -99,6 +99,14 @@ interface FamilyAccessRecord {
   trialStartedAt?: number;
   trialEndsAt?: number;
   currentPeriodEndsAt?: number;
+  cancelAtPeriodEnd?: boolean;
+  lastInvoiceAmountDue?: number;
+  lastInvoiceAmountPaid?: number;
+  lastInvoiceCurrency?: string;
+  lastInvoicePaid?: boolean;
+  lastInvoiceStatus?: string;
+  lastStripeEventAt?: number;
+  lastStripeEventType?: string;
   checkoutCompletedAt?: number;
   verifiedByBillingApi?: boolean;
   checkedAt?: number;
@@ -542,6 +550,14 @@ const App: React.FC = () => {
       trialStartedAt: access.trialEndsAt ? access.trialEndsAt - BILLING_TRIAL_MS : undefined,
       trialEndsAt: access.trialEndsAt || undefined,
       currentPeriodEndsAt: access.currentPeriodEndsAt || undefined,
+      cancelAtPeriodEnd: access.cancelAtPeriodEnd,
+      lastInvoiceAmountDue: access.lastInvoiceAmountDue,
+      lastInvoiceAmountPaid: access.lastInvoiceAmountPaid,
+      lastInvoiceCurrency: access.lastInvoiceCurrency,
+      lastInvoicePaid: access.lastInvoicePaid,
+      lastInvoiceStatus: access.lastInvoiceStatus,
+      lastStripeEventAt: access.lastStripeEventAt,
+      lastStripeEventType: access.lastStripeEventType,
       checkoutCompletedAt: now,
       verifiedByBillingApi: true,
       checkedAt: now,

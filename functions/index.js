@@ -390,6 +390,22 @@ const persistCustomerMapping = async (stripe, parent, familyId, customer) => {
   return updatedCustomer;
 };
 
+const getStoredBillingSnapshot = async (parent) => {
+  const snapshot = await getBillingCustomerRef(parent).get();
+  return snapshot.data() || {};
+};
+
+const getBillingSnapshotSummary = (storedBilling) => removeUndefined({
+  cancelAtPeriodEnd: storedBilling.cancelAtPeriodEnd,
+  lastInvoiceAmountDue: storedBilling.lastInvoiceAmountDue,
+  lastInvoiceAmountPaid: storedBilling.lastInvoiceAmountPaid,
+  lastInvoiceCurrency: storedBilling.lastInvoiceCurrency,
+  lastInvoicePaid: storedBilling.lastInvoicePaid,
+  lastInvoiceStatus: storedBilling.lastInvoiceStatus,
+  lastStripeEventAt: storedBilling.lastStripeEventAt,
+  lastStripeEventType: storedBilling.lastStripeEventType,
+});
+
 const findOrCreateCustomer = async (stripe, parent, familyId) => {
   const existing = await findExistingCustomer(stripe, parent);
   if (existing?.id) {
@@ -483,6 +499,8 @@ export const billingAccess = onRequest(functionOptions, async (req, res) => {
       return sendJson(res, 200, { active: false, status: 'none' });
     }
     await persistCustomerMapping(stripe, parent, familyId, customer);
+    const storedBilling = await getStoredBillingSnapshot(parent);
+    const billingSnapshotSummary = getBillingSnapshotSummary(storedBilling);
 
     const subscriptions = await stripe.subscriptions.list({
       customer: customer.id,
@@ -494,7 +512,12 @@ export const billingAccess = onRequest(functionOptions, async (req, res) => {
       ['trialing', 'active', 'past_due'].includes(item.status)
     );
     if (!subscription) {
-      return sendJson(res, 200, { active: false, status: 'none', customerId: customer.id });
+      return sendJson(res, 200, {
+        active: false,
+        status: 'none',
+        customerId: customer.id,
+        ...billingSnapshotSummary,
+      });
     }
 
     const priceId = subscription.items.data[0]?.price?.id || '';
@@ -507,6 +530,7 @@ export const billingAccess = onRequest(functionOptions, async (req, res) => {
       plan,
       trialEndsAt: subscription.trial_end ? subscription.trial_end * 1000 : null,
       currentPeriodEndsAt: subscription.current_period_end ? subscription.current_period_end * 1000 : null,
+      ...billingSnapshotSummary,
     });
   } catch (error) {
     return sendError(res, error, 'Billing access could not be verified.');

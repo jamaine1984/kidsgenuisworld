@@ -36,6 +36,14 @@ interface BillingAccessSummary {
   stripeStatus?: string;
   trialEndsAt?: number;
   currentPeriodEndsAt?: number;
+  cancelAtPeriodEnd?: boolean;
+  lastInvoiceAmountDue?: number;
+  lastInvoiceAmountPaid?: number;
+  lastInvoiceCurrency?: string;
+  lastInvoicePaid?: boolean;
+  lastInvoiceStatus?: string;
+  lastStripeEventAt?: number;
+  lastStripeEventType?: string;
   checkedAt?: number;
   verifiedByBillingApi?: boolean;
 }
@@ -76,6 +84,18 @@ const formatBillingDate = (timestamp?: number) => {
   return new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(timestamp));
 };
 
+const formatBillingMoney = (amount?: number, currency?: string) => {
+  if (typeof amount !== 'number') return '';
+  return new Intl.NumberFormat(undefined, {
+    style: 'currency',
+    currency: currency || 'USD',
+  }).format(amount / 100);
+};
+
+const formatStripeEventType = (eventType?: string) => (
+  eventType ? eventType.replaceAll('.', ' ') : ''
+);
+
 const getDashboardBillingSummary = (billingAccess?: BillingAccessSummary) => {
   const planLabel = billingAccess?.plan === 'premium'
     ? 'Premium $9.99/mo'
@@ -92,8 +112,27 @@ const getDashboardBillingSummary = (billingAccess?: BillingAccessSummary) => {
       detail: 'Choose a parent-approved plan to start the 3-day Stripe trial.',
       dateLabel: 'Not started',
       checkedLabel: '',
+      webhookLabel: '',
+      invoiceLabel: '',
+      cancelLabel: '',
     };
   }
+
+  const webhookLabel = billingAccess.lastStripeEventAt
+    ? `Stripe webhook: ${formatStripeEventType(billingAccess.lastStripeEventType)} on ${formatBillingDate(billingAccess.lastStripeEventAt)}`
+    : '';
+  const invoiceAmount = formatBillingMoney(
+    typeof billingAccess.lastInvoiceAmountPaid === 'number'
+      ? billingAccess.lastInvoiceAmountPaid
+      : billingAccess.lastInvoiceAmountDue,
+    billingAccess.lastInvoiceCurrency
+  );
+  const invoiceLabel = billingAccess.lastInvoiceStatus
+    ? `Latest invoice: ${billingAccess.lastInvoiceStatus}${invoiceAmount ? ` (${invoiceAmount})` : ''}`
+    : '';
+  const cancelLabel = billingAccess.cancelAtPeriodEnd
+    ? 'Cancellation is scheduled at the end of the billing period.'
+    : '';
 
   if (billingAccess.stripeStatus === 'trialing') {
     return {
@@ -106,6 +145,9 @@ const getDashboardBillingSummary = (billingAccess?: BillingAccessSummary) => {
         : 'Trial access is active for this family.',
       dateLabel: billingAccess.trialEndsAt ? `Trial ends ${formatBillingDate(billingAccess.trialEndsAt)}` : 'Trial end pending',
       checkedLabel: billingAccess.checkedAt ? `Verified ${formatBillingDate(billingAccess.checkedAt)}` : '',
+      webhookLabel,
+      invoiceLabel,
+      cancelLabel,
     };
   }
 
@@ -118,6 +160,9 @@ const getDashboardBillingSummary = (billingAccess?: BillingAccessSummary) => {
       detail: 'Stripe marked this subscription past due. Use Manage Billing to update payment.',
       dateLabel: billingAccess.currentPeriodEndsAt ? `Period ends ${formatBillingDate(billingAccess.currentPeriodEndsAt)}` : 'Billing date pending',
       checkedLabel: billingAccess.checkedAt ? `Verified ${formatBillingDate(billingAccess.checkedAt)}` : '',
+      webhookLabel,
+      invoiceLabel,
+      cancelLabel,
     };
   }
 
@@ -131,6 +176,9 @@ const getDashboardBillingSummary = (billingAccess?: BillingAccessSummary) => {
       : 'Stripe access is verified for this family.',
     dateLabel: billingAccess.currentPeriodEndsAt ? `Renews ${formatBillingDate(billingAccess.currentPeriodEndsAt)}` : 'Billing period verified',
     checkedLabel: billingAccess.checkedAt ? `Verified ${formatBillingDate(billingAccess.checkedAt)}` : '',
+    webhookLabel,
+    invoiceLabel,
+    cancelLabel,
   };
 };
 
@@ -2330,6 +2378,13 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                     </div>
                     {billingSummary.checkedLabel && (
                       <p className="mt-2 text-xs font-bold text-slate-600">{billingSummary.checkedLabel}</p>
+                    )}
+                    {(billingSummary.webhookLabel || billingSummary.invoiceLabel || billingSummary.cancelLabel) && (
+                      <div className="mt-3 space-y-1 border-t border-white/80 pt-3 text-xs font-bold text-slate-700">
+                        {billingSummary.webhookLabel && <p>{billingSummary.webhookLabel}</p>}
+                        {billingSummary.invoiceLabel && <p>{billingSummary.invoiceLabel}</p>}
+                        {billingSummary.cancelLabel && <p className="text-amber-800">{billingSummary.cancelLabel}</p>}
+                      </div>
                     )}
                   </div>
                   {!billingSummary.active && (

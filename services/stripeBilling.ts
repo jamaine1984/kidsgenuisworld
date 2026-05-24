@@ -60,6 +60,14 @@ export const getStripeBillingAccess = async (cloudSession: ParentCloudSession) =
     plan?: 'starter' | 'premium';
     trialEndsAt?: number | null;
     currentPeriodEndsAt?: number | null;
+    cancelAtPeriodEnd?: boolean;
+    lastInvoiceAmountDue?: number;
+    lastInvoiceAmountPaid?: number;
+    lastInvoiceCurrency?: string;
+    lastInvoicePaid?: boolean;
+    lastInvoiceStatus?: string;
+    lastStripeEventAt?: number;
+    lastStripeEventType?: string;
     error?: string;
   };
 
@@ -73,6 +81,14 @@ export const getStripeBillingAccess = async (cloudSession: ParentCloudSession) =
     plan: result.plan,
     trialEndsAt: result.trialEndsAt || null,
     currentPeriodEndsAt: result.currentPeriodEndsAt || null,
+    cancelAtPeriodEnd: Boolean(result.cancelAtPeriodEnd),
+    lastInvoiceAmountDue: result.lastInvoiceAmountDue,
+    lastInvoiceAmountPaid: result.lastInvoiceAmountPaid,
+    lastInvoiceCurrency: result.lastInvoiceCurrency,
+    lastInvoicePaid: result.lastInvoicePaid,
+    lastInvoiceStatus: result.lastInvoiceStatus,
+    lastStripeEventAt: result.lastStripeEventAt,
+    lastStripeEventType: result.lastStripeEventType,
   };
 };
 

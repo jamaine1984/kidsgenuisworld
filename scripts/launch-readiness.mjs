@@ -257,6 +257,11 @@ if (
   !parentSource.includes('parent-billing-status-card') ||
   !appSource.includes('Trial active') ||
   !parentSource.includes('Subscription active') ||
+  !stripeBillingSource.includes('lastStripeEventAt') ||
+  !appSource.includes('lastInvoiceStatus') ||
+  !parentSource.includes('Stripe webhook:') ||
+  !parentSource.includes('Latest invoice:') ||
+  !firebaseFunctionsSource.includes('getBillingSnapshotSummary') ||
   !parentSource.includes('Manage Billing in Stripe') ||
   !parentSource.includes('Refresh Stripe Status') ||
   !appSource.includes('handleRefreshBillingAccess')

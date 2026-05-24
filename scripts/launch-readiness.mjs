@@ -174,16 +174,24 @@ if (
   fail('Firebase billing functions must derive family access from verified Firebase auth and persist Stripe customer mappings.');
 }
 const liveBillingCheckSource = read('scripts/check-live-billing-api.mjs');
+const liveSiteCheckSource = read('scripts/check-live-site.mjs');
 const functionsDeployScriptSource = read('scripts/deploy-firebase-functions.mjs');
 if (
+  !packageJson.scripts?.['qa:site-live'] ||
   !packageJson.scripts?.['qa:billing-live'] ||
+  !packageJson.scripts?.['qa:production-live'] ||
+  !liveSiteCheckSource.includes('checkWwwRedirect') ||
+  !liveSiteCheckSource.includes('/manifest.webmanifest') ||
+  !liveSiteCheckSource.includes('/sitemap.xml') ||
+  !liveSiteCheckSource.includes('Blog index has too few article links') ||
   !liveBillingCheckSource.includes('/api/billing/access') ||
   !liveBillingCheckSource.includes('Parent sign-in token is required.') ||
   !liveBillingCheckSource.includes('CORS preflight') ||
   !packageJson.scripts?.['firebase:deploy:functions'] ||
+  !packageJson.scripts?.['firebase:deploy:hosting']?.includes('qa:production-live') ||
   !functionsDeployScriptSource.includes('FUNCTIONS_DISCOVERY_TIMEOUT')
 ) {
-  fail('Live billing API and Firebase Functions deploy smoke scripts must stay available.');
+  fail('Live production site, billing API, and Firebase deploy smoke scripts must stay available.');
 }
 if (!firebaseJsonSource.includes('/api/billing/checkout') || !firebaseJsonSource.includes('billingCheckout') || !firebaseJsonSource.includes('billingAccess')) {
   fail('Firebase Hosting must rewrite billing API routes to Firebase Functions.');

@@ -24,6 +24,7 @@ const requiredFiles = [
   'services/stripeBilling.ts',
   'components/InstallAppButton.tsx',
   'scripts/check-elevenlabs-key.mjs',
+  'scripts/check-live-site.mjs',
   'scripts/check-live-billing-api.mjs',
   'scripts/deploy-firebase-functions.mjs',
   'scripts/warm-voice-cache.mjs',
@@ -276,16 +277,24 @@ if (
   fail('Firebase billing functions must derive family access from verified Firebase auth and persist Stripe customer mappings.');
 }
 const liveBillingCheckSource = fs.readFileSync(path.join(root, 'scripts/check-live-billing-api.mjs'), 'utf8');
+const liveSiteCheckSource = fs.readFileSync(path.join(root, 'scripts/check-live-site.mjs'), 'utf8');
 const functionsDeployScriptSource = fs.readFileSync(path.join(root, 'scripts/deploy-firebase-functions.mjs'), 'utf8');
 if (
+  !packageJson.scripts?.['qa:site-live'] ||
   !packageJson.scripts?.['qa:billing-live'] ||
+  !packageJson.scripts?.['qa:production-live'] ||
+  !liveSiteCheckSource.includes('checkWwwRedirect') ||
+  !liveSiteCheckSource.includes('/manifest.webmanifest') ||
+  !liveSiteCheckSource.includes('/sitemap.xml') ||
+  !liveSiteCheckSource.includes('Blog index has too few article links') ||
   !liveBillingCheckSource.includes('/api/billing/access') ||
   !liveBillingCheckSource.includes('Parent sign-in token is required.') ||
   !liveBillingCheckSource.includes('CORS preflight') ||
   !packageJson.scripts?.['firebase:deploy:functions'] ||
+  !packageJson.scripts?.['firebase:deploy:hosting']?.includes('qa:production-live') ||
   !functionsDeployScriptSource.includes('FUNCTIONS_DISCOVERY_TIMEOUT')
 ) {
-  fail('Live billing API and Firebase Functions deploy smoke scripts must stay available.');
+  fail('Live production site, billing API, and Firebase deploy smoke scripts must stay available.');
 }
 if (!parentDashboardSource.includes('Family Subscription') || !parentDashboardSource.includes('Start $4.99/mo') || !parentDashboardSource.includes('Start $9.99/mo') || !parentDashboardSource.includes('Manage Billing')) {
   fail('Parent dashboard must expose parent-only Stripe subscription controls.');

@@ -23,6 +23,7 @@ const requiredFiles = [
   'services/firebaseProgressStore.ts',
   'services/stripeBilling.ts',
   'components/InstallAppButton.tsx',
+  'scripts/check-secrets.mjs',
   'scripts/check-elevenlabs-key.mjs',
   'scripts/check-live-site.mjs',
   'scripts/check-live-billing-api.mjs',
@@ -94,6 +95,8 @@ const artRoomSource = fs.readFileSync(path.join(root, 'components/ArtRoom.tsx'),
 const puzzleRoomSource = fs.readFileSync(path.join(root, 'components/PuzzleRoom.tsx'), 'utf8');
 const musicRoomSource = fs.readFileSync(path.join(root, 'components/MusicRoom.tsx'), 'utf8');
 const packageJson = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
+const readmeSource = fs.readFileSync(path.join(root, 'README.md'), 'utf8');
+const secretCheckSource = fs.readFileSync(path.join(root, 'scripts/check-secrets.mjs'), 'utf8');
 const htmlSource = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const indexSource = fs.readFileSync(path.join(root, 'index.tsx'), 'utf8');
 const pwaManifest = JSON.parse(fs.readFileSync(path.join(root, 'public/manifest.webmanifest'), 'utf8'));
@@ -234,6 +237,19 @@ if (!audioServiceSource.includes('kidGeniusAllowExternalVoice') || !voiceCacheSo
 }
 if (!packageJson.dependencies?.firebase || !packageJson.devDependencies?.['firebase-tools']) {
   fail('Firebase Web SDK and Firebase CLI dependencies must be present for web-only Firebase deployment.');
+}
+if (
+  !packageJson.scripts?.qa?.includes('qa:secrets') ||
+  !packageJson.scripts?.['qa:secrets'] ||
+  !secretCheckSource.includes('git') ||
+  !secretCheckSource.includes('Stripe secret key') ||
+  !secretCheckSource.includes('ElevenLabs API key shape') ||
+  !secretCheckSource.includes('functions/.env.kid-genius-world') ||
+  !readmeSource.includes('Firebase Functions') ||
+  !readmeSource.includes('functions/.env.kid-genius-world') ||
+  !readmeSource.includes('npm run qa:secrets')
+) {
+  fail('Secret scanning and Firebase Functions environment documentation must stay wired before launch.');
 }
 if (!firebaseJsonSource.includes('"public": "dist"') || !firebaseJsonSource.includes('"firestore"')) {
   fail('Firebase Hosting must serve the Vite dist folder and include Firestore config.');

@@ -117,6 +117,8 @@ const stripeBillingSource = read('services/stripeBilling.ts');
 const firebaseFunctionsSource = read('functions/index.js');
 const blogIndexSource = read('public/blog/index.html');
 const packageJson = JSON.parse(read('package.json'));
+const readmeSource = read('README.md');
+const secretCheckSource = read('scripts/check-secrets.mjs');
 
 if (!appSource.includes("setLegalView('privacy')") || !appSource.includes("setLegalView('terms')") || !appSource.includes("setLegalView('support')")) {
   fail('Privacy, terms, and parent support links are not reachable from the app.');
@@ -135,6 +137,19 @@ if (
 }
 if (!parentSource.includes('Privacy Controls') || !parentSource.includes('Parent PIN')) {
   fail('Parent privacy controls and PIN gate must be present before launch.');
+}
+if (
+  !packageJson.scripts?.qa?.includes('qa:secrets') ||
+  !packageJson.scripts?.['qa:secrets'] ||
+  !secretCheckSource.includes('git') ||
+  !secretCheckSource.includes('Stripe secret key') ||
+  !secretCheckSource.includes('ElevenLabs API key shape') ||
+  !secretCheckSource.includes('functions/.env.kid-genius-world') ||
+  !readmeSource.includes('Firebase Functions') ||
+  !readmeSource.includes('functions/.env.kid-genius-world') ||
+  !readmeSource.includes('npm run qa:secrets')
+) {
+  fail('Secret scanning and Firebase Functions environment documentation must stay wired before launch.');
 }
 if (!audioSource.includes('kidGeniusAllowExternalVoice') || !storySource.includes('/story-covers/${story.id}.png')) {
   fail('Saved voice and static cover features must be wired before launch.');

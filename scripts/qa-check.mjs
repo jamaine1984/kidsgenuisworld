@@ -608,7 +608,18 @@ if (!worldMapSource.includes('Review Quest') || !worldMapSource.includes('Start 
 if (!worldMapSource.includes('Review due') || !worldMapSource.includes('lastPracticedAtByUnit') || !parentDashboardSource.includes('due now') || !parentDashboardSource.includes('Practiced today')) {
   fail('Spaced review timing must use journal history for due and last-practiced signals.');
 }
-if (!worldMapSource.includes('Learning Passport') || !worldMapSource.includes('Passport Stamp Collection') || !worldMapSource.includes('reflection stamps')) {
+if (
+  !worldMapSource.includes('Learning Passport') ||
+  !worldMapSource.includes('Passport Stamp Collection') ||
+  !worldMapSource.includes('reflection stamps') ||
+  !worldMapSource.includes('student-passport-conference') ||
+  !worldMapSource.includes('Teacher conference question') ||
+  !worldMapSource.includes('Next stamp target') ||
+  !parentDashboardSource.includes('parent-student-passport') ||
+  !parentDashboardSource.includes('Student Learning Passport') ||
+  !parentDashboardSource.includes('Parent follow-up') ||
+  !fs.readFileSync(path.join(root, 'services/schoolMode.ts'), 'utf8').includes('getStudentPassportSummary')
+) {
   fail('Kid-facing learning passport evidence is missing from the world map.');
 }
 if (!worldMapSource.includes('At-home idea') || !worldMapSource.includes('Review in') || !worldMapSource.includes('Story Time')) {

@@ -112,6 +112,19 @@ export interface NextSchoolStep {
   isSchoolDayComplete: boolean;
 }
 
+export interface StudentPassportSummary {
+  attendanceLabel: string;
+  evidenceCount: number;
+  reflectionCount: number;
+  masteryCount: number;
+  roomCount: number;
+  latestProofLabel: string;
+  latestProofDetail: string;
+  teacherConferenceQuestion: string;
+  parentFollowUp: string;
+  nextStampTarget: string;
+}
+
 export const SCHOOL_ASSIGNMENT_ROOMS = [
   RoomType.MATH,
   RoomType.READING,
@@ -570,6 +583,51 @@ export const getNextSchoolStep = (progress: UserProgress): NextSchoolStep => {
     room: nextPeriod.room,
     unitId: nextPeriod.unitId,
     isSchoolDayComplete,
+  };
+};
+
+export const getStudentPassportSummary = (progress: UserProgress): StudentPassportSummary => {
+  const schoolDay = getSchoolDayPlan(progress);
+  const recentEntries = [...(progress.learningJournal || [])].sort((a, b) => b.createdAt - a.createdAt);
+  const todayEntries = recentEntries.filter(entry => isToday(entry.createdAt));
+  const latestProof = recentEntries[0];
+  const roomCount = new Set(recentEntries.map(entry => entry.room)).size;
+  const reflectionCount = recentEntries.filter(entry => Boolean(entry.childReflection)).length;
+  const masteryCount = recentEntries.filter(entry => entry.mastered).length;
+  const nextStep = getNextSchoolStep(progress);
+  const nextReadyAssignment = getTeacherAssignmentCards(progress).find(card => card.status !== 'done');
+  const childName = progress.childName || 'learner';
+
+  return {
+    attendanceLabel: todayEntries.length > 0
+      ? `${childName} has ${todayEntries.length} saved proof item${todayEntries.length === 1 ? '' : 's'} today.`
+      : schoolDay.attendanceSummary,
+    evidenceCount: recentEntries.length,
+    reflectionCount,
+    masteryCount,
+    roomCount,
+    latestProofLabel: latestProof
+      ? `${getCampusRoom(latestProof.room).classroomName}: ${latestProof.unitTitle}`
+      : 'First proof item is ready',
+    latestProofDetail: latestProof
+      ? latestProof.childReflection
+        ? 'A student reflection is saved below for this proof item.'
+        : latestProof.teacherNote || latestProof.successCheck || 'Practice proof was saved for parent review.'
+      : `${AI_TEACHER.name} will save the first teacher note after a lesson reflection.`,
+    teacherConferenceQuestion: latestProof?.childReflection
+      ? 'Can you teach me the strategy you saved in your reflection?'
+      : nextStep.proof
+        ? `Can you show me this proof: ${nextStep.proof}`
+        : 'Can you teach one strategy from today in your own words?',
+    parentFollowUp: latestProof?.parentActivity
+      || nextReadyAssignment?.parentNote
+      || schoolDay.mission.parentActivity
+      || 'Ask the child to teach one idea, then try one quick real-world example together.',
+    nextStampTarget: nextReadyAssignment
+      ? `${nextReadyAssignment.classroomName}: ${nextReadyAssignment.title}`
+      : nextStep.isSchoolDayComplete
+        ? 'Review a favorite class or explain today to a grown-up.'
+        : `${getCampusRoom(nextStep.room).classroomName}: ${nextStep.title}`,
   };
 };
 

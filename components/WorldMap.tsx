@@ -13,6 +13,7 @@ import {
   getCampusRoom,
   getNextSchoolStep,
   getSchoolDayPlan,
+  getStudentPassportSummary,
   getTeacherScript,
   getTeacherAssignmentCards,
 } from '../services/schoolMode';
@@ -46,6 +47,7 @@ export const WorldMap: React.FC<WorldMapProps> = ({
   const teacherAssignments = getTeacherAssignmentCards(progress);
   const missionTeacherScript = getTeacherScript(mission, progress);
   const nextSchoolStep = getNextSchoolStep(progress);
+  const studentPassport = getStudentPassportSummary(progress);
   const weeklyPlan = getWeeklyLearningPlan(progress);
   const unitPracticeCounts = progress.unitPracticeCounts || {};
   const completedUnitIds = new Set(progress.completedUnitIds || []);
@@ -800,6 +802,43 @@ export const WorldMap: React.FC<WorldMapProps> = ({
             </div>
           </div>
           <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+            <div
+              data-testid="student-passport-conference"
+              className="rounded-2xl border border-indigo-100 bg-white/90 p-3 shadow-sm sm:col-span-2 lg:col-span-4"
+            >
+              <div className="grid gap-3 lg:grid-cols-[0.9fr_1.1fr]">
+                <div>
+                  <p className="text-[11px] font-black uppercase tracking-[0.12em] text-indigo-600">Teacher conference question</p>
+                  <p className="mt-1 text-sm font-black text-slate-900">{studentPassport.teacherConferenceQuestion}</p>
+                  <p className="mt-2 text-xs font-semibold text-slate-600">{studentPassport.attendanceLabel}</p>
+                </div>
+                <div className="grid gap-2 sm:grid-cols-3">
+                  <div className="rounded-xl bg-emerald-50 px-2 py-2">
+                    <p className="text-lg font-black text-emerald-700">{studentPassport.evidenceCount}</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.1em] text-emerald-800">proof saved</p>
+                  </div>
+                  <div className="rounded-xl bg-violet-50 px-2 py-2">
+                    <p className="text-lg font-black text-violet-700">{studentPassport.reflectionCount}</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.1em] text-violet-800">reflections</p>
+                  </div>
+                  <div className="rounded-xl bg-amber-50 px-2 py-2">
+                    <p className="text-lg font-black text-amber-700">{studentPassport.masteryCount}</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.1em] text-amber-800">mastered</p>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-3 grid gap-2 md:grid-cols-2">
+                <div className="rounded-xl bg-slate-50 px-3 py-2">
+                  <p className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-500">Latest proof</p>
+                  <p className="mt-1 text-xs font-bold text-slate-800">{studentPassport.latestProofLabel}</p>
+                  <p className="mt-1 line-clamp-2 text-xs font-semibold text-slate-600">{studentPassport.latestProofDetail}</p>
+                </div>
+                <div className="rounded-xl bg-indigo-50 px-3 py-2">
+                  <p className="text-[10px] font-black uppercase tracking-[0.12em] text-indigo-600">Next stamp target</p>
+                  <p className="mt-1 text-xs font-bold text-indigo-950">{studentPassport.nextStampTarget}</p>
+                </div>
+              </div>
+            </div>
             {passportStamps.length > 0 ? (
               passportStamps.map(stamp => (
                 <div key={stamp.id} className="rounded-2xl bg-white/85 border border-white p-3 shadow-sm">

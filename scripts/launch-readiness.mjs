@@ -189,13 +189,20 @@ if (!parentSource.includes('Family Subscription') || !stripeBillingSource.includ
 }
 if (
   !read('services/schoolMode.ts').includes('whyItMatters') ||
+  !read('services/schoolMode.ts').includes('getStudentPassportSummary') ||
   !read('components/WorldMap.tsx').includes('Proof to finish') ||
   !read('components/WorldMap.tsx').includes('Class reward') ||
   !read('components/WorldMap.tsx').includes('period.proof') ||
+  !read('components/WorldMap.tsx').includes('student-passport-conference') ||
+  !read('components/WorldMap.tsx').includes('Teacher conference question') ||
+  !read('components/WorldMap.tsx').includes('Next stamp target') ||
   !parentSource.includes('Required proof') ||
-  !parentSource.includes('period.whyItMatters')
+  !parentSource.includes('period.whyItMatters') ||
+  !parentSource.includes('parent-student-passport') ||
+  !parentSource.includes('Student Learning Passport') ||
+  !parentSource.includes('Parent follow-up')
 ) {
-  fail('School day plan must show required proof, rewards, and parent rationale for each class period.');
+  fail('School day plan and learning passport must show proof, rewards, conference questions, and parent rationale.');
 }
 if (
   !readmeSource.includes('https://kid-genius-world.com/api/billing/webhook') ||

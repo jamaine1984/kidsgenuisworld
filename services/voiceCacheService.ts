@@ -4,8 +4,10 @@ import { VOCABULARY as LANGUAGE_VOCABULARY, LANGUAGE_INFO } from '../components/
 import { SCIENCE_EXPERIMENTS } from '../components/ScienceRoom';
 import { GEOGRAPHY_QUESTIONS } from '../components/GeographyRoom';
 import { CHALLENGES } from '../components/CodingRoom';
-import { AccessibilitySettings } from '../types';
+import { AccessibilitySettings, GradeLevel, createDefaultProgress } from '../types';
+import { getUnitsForGrade } from './curriculum';
 import { getStaticVoiceManifestUrl } from './mediaApi';
+import { AI_TEACHER, SCHOOL_LESSON_PHASES, getTeacherScript } from './schoolMode';
 
 interface VoiceWarmupResult {
   requested: number;
@@ -95,6 +97,56 @@ const sanitizeGeographyPrompt = (text: string) =>
 const uniqueTexts = (texts: string[]) =>
   Array.from(new Set(texts.map(normalizeSpeechText).filter(Boolean)));
 
+const gradeByLevel: Record<number, GradeLevel> = {
+  1: GradeLevel.PRE_K,
+  2: GradeLevel.KINDERGARTEN,
+  3: GradeLevel.FIRST_GRADE,
+  4: GradeLevel.SECOND_GRADE,
+  5: GradeLevel.THIRD_GRADE,
+  6: GradeLevel.FOURTH_GRADE,
+  7: GradeLevel.FIFTH_GRADE,
+};
+
+const getTeacherVoiceTexts = (clampedLevel: number) => {
+  const teacherProgress = createDefaultProgress('learner');
+  const lessonPhaseTexts = SCHOOL_LESSON_PHASES.flatMap(phase => [
+    phase.label,
+    phase.studentAction,
+  ]);
+
+  const teacherLessonTexts = Array.from({ length: clampedLevel }, (_, index) => index + 1)
+    .flatMap(level => {
+      const currentGrade = gradeByLevel[level] || GradeLevel.FIFTH_GRADE;
+      const progressForGrade = {
+        ...teacherProgress,
+        currentLevel: level,
+        currentGrade,
+      };
+
+      return getUnitsForGrade(currentGrade).flatMap(unit => {
+        const script = getTeacherScript(unit, progressForGrade);
+        return [
+          script.greeting,
+          script.objective,
+          script.teach,
+          script.example,
+          script.guided,
+          script.independent,
+          script.exitTicket,
+          script.parentNote,
+          script.voiceStatus,
+        ];
+      });
+    });
+
+  return [
+    `${AI_TEACHER.name} opens the day, teaches the lesson path, checks the exit ticket, and saves parent-visible progress.`,
+    `I am ${AI_TEACHER.name}, your ${AI_TEACHER.title}.`,
+    ...lessonPhaseTexts,
+    ...teacherLessonTexts,
+  ];
+};
+
 export const getVoiceCacheTexts = (level: number): string[] => {
   const clampedLevel = Math.min(Math.max(level, 1), 7);
 
@@ -175,6 +227,7 @@ export const getVoiceCacheTexts = (level: number): string[] => {
     ...languageTexts,
     ...codingTexts,
     ...storyTexts,
+    ...getTeacherVoiceTexts(clampedLevel),
   ]);
 };
 

@@ -374,6 +374,10 @@ export interface LearningJournalEntry {
   parentActivity?: string;
   practiceCount: number;
   mastered: boolean;
+  lessonPhase?: string;
+  exitTicket?: string;
+  teacherNote?: string;
+  teacherNextStep?: string;
   childReflection?: string;
   childReflectionAt?: number;
 }

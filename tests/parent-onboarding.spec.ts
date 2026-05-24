@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { resetApp } from './helpers';
+import { completeParentSetup, resetApp } from './helpers';
 
 test('parent setup requires launch checkpoints before child access', async ({ page }) => {
   await resetApp(page);
@@ -25,4 +25,22 @@ test('parent setup requires launch checkpoints before child access', async ({ pa
 
   const receipt = await page.evaluate(() => window.localStorage.getItem('kidGeniusParentConsentReceipt'));
   expect(receipt).toContain('policiesReviewed');
+});
+
+test('parent access gate explains trial plans before paid sections unlock', async ({ page }) => {
+  await resetApp(page);
+  await completeParentSetup(page);
+  await page.getByRole('button', { name: /Kindergarten/i }).click();
+  await page.getByRole('button', { name: /Puppy/i }).click();
+  await page.getByPlaceholder('Enter a name...').fill('Buddy');
+  await page.getByRole('button', { name: /Let's Go/i }).click();
+  await expect(page.getByTestId('daily-mission-card')).toBeVisible();
+
+  await page.getByTestId('room-card-MATH').click();
+  await expect(page.getByTestId('parent-access-gate')).toContainText('Start the 3-day parent-approved trial');
+  await expect(page.getByTestId('parent-access-gate')).toContainText('What unlocks after trial starts');
+  await expect(page.getByTestId('parent-access-gate')).toContainText('Launch plan note');
+  await expect(page.getByTestId('parent-access-gate')).toContainText('Stripe handles payment details');
+  await expect(page.getByRole('button', { name: 'Choose Starter plan' })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Choose Premium plan' })).toBeDisabled();
 });

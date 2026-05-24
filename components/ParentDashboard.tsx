@@ -3,7 +3,7 @@ import {
   ArrowLeft, BarChart3, Clock, Target, TrendingUp,
   Star, Award, Brain, Calendar, CheckCircle2, ChevronRight, Lock,
   Settings, Shield, Volume2, Eye, Type, BookOpen, Map, Printer, Download, Gamepad2,
-  Cloud, CreditCard, LogIn, LogOut
+  Cloud, CreditCard, LogIn, LogOut, ClipboardList
 } from 'lucide-react';
 import {
   UserProgress,
@@ -18,6 +18,27 @@ import {
 } from '../types';
 import { getCurrentGradeUnits, getRoadmapRecommendations, getUnitReadiness, getUnitsForGrade, getWeeklyLearningPlan, type CurriculumUnit } from '../services/curriculum';
 import type { ParentCloudSession } from '../services/firebaseParentAuth';
+import {
+  AI_TEACHER,
+  MASTERED_PRACTICE_TARGET,
+  SCHOOL_LESSON_PHASES,
+  buildTeacherNotesFromJournal,
+  getCampusRoom,
+  getSchoolDayPlan,
+  getTeacherScript,
+  getTeacherAssignmentCards,
+  getTeacherGradebookRows,
+} from '../services/schoolMode';
+
+interface BillingAccessSummary {
+  billingAccessActive?: boolean;
+  plan?: 'starter' | 'premium';
+  stripeStatus?: string;
+  trialEndsAt?: number;
+  currentPeriodEndsAt?: number;
+  checkedAt?: number;
+  verifiedByBillingApi?: boolean;
+}
 
 interface ParentDashboardProps {
   progress: UserProgress;
@@ -43,8 +64,75 @@ interface ParentDashboardProps {
   onSyncProgressToCloud?: () => Promise<void>;
   onStartStripeCheckout?: (plan: 'starter' | 'premium') => Promise<void>;
   onOpenStripeBillingPortal?: () => Promise<void>;
+  onRefreshBillingAccess?: () => Promise<void>;
   billingStatus?: string;
+  billingAccess?: BillingAccessSummary;
 }
+
+type ParentDashboardTab = 'overview' | 'gradebook' | 'skills' | 'curriculum' | 'settings';
+
+const formatBillingDate = (timestamp?: number) => {
+  if (!timestamp) return '';
+  return new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(timestamp));
+};
+
+const getDashboardBillingSummary = (billingAccess?: BillingAccessSummary) => {
+  const planLabel = billingAccess?.plan === 'premium'
+    ? 'Premium $9.99/mo'
+    : billingAccess?.plan === 'starter'
+      ? 'Starter $4.99/mo'
+      : 'No plan selected';
+
+  if (!billingAccess?.billingAccessActive) {
+    return {
+      active: false,
+      tone: 'warning' as const,
+      statusLabel: 'No active trial or subscription',
+      planLabel,
+      detail: 'Choose a parent-approved plan to start the 3-day Stripe trial.',
+      dateLabel: 'Not started',
+      checkedLabel: '',
+    };
+  }
+
+  if (billingAccess.stripeStatus === 'trialing') {
+    return {
+      active: true,
+      tone: 'success' as const,
+      statusLabel: 'Trial active',
+      planLabel,
+      detail: billingAccess.trialEndsAt
+        ? `Trial access is active until ${formatBillingDate(billingAccess.trialEndsAt)}.`
+        : 'Trial access is active for this family.',
+      dateLabel: billingAccess.trialEndsAt ? `Trial ends ${formatBillingDate(billingAccess.trialEndsAt)}` : 'Trial end pending',
+      checkedLabel: billingAccess.checkedAt ? `Verified ${formatBillingDate(billingAccess.checkedAt)}` : '',
+    };
+  }
+
+  if (billingAccess.stripeStatus === 'past_due') {
+    return {
+      active: true,
+      tone: 'warning' as const,
+      statusLabel: 'Payment needs attention',
+      planLabel,
+      detail: 'Stripe marked this subscription past due. Use Manage Billing to update payment.',
+      dateLabel: billingAccess.currentPeriodEndsAt ? `Period ends ${formatBillingDate(billingAccess.currentPeriodEndsAt)}` : 'Billing date pending',
+      checkedLabel: billingAccess.checkedAt ? `Verified ${formatBillingDate(billingAccess.checkedAt)}` : '',
+    };
+  }
+
+  return {
+    active: true,
+    tone: 'success' as const,
+    statusLabel: billingAccess.stripeStatus === 'active' ? 'Subscription active' : 'Access active',
+    planLabel,
+    detail: billingAccess.currentPeriodEndsAt
+      ? `Current billing period runs through ${formatBillingDate(billingAccess.currentPeriodEndsAt)}.`
+      : 'Stripe access is verified for this family.',
+    dateLabel: billingAccess.currentPeriodEndsAt ? `Renews ${formatBillingDate(billingAccess.currentPeriodEndsAt)}` : 'Billing period verified',
+    checkedLabel: billingAccess.checkedAt ? `Verified ${formatBillingDate(billingAccess.checkedAt)}` : '',
+  };
+};
 
 export const ParentDashboard: React.FC<ParentDashboardProps> = ({
   progress,
@@ -76,9 +164,11 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
   onSyncProgressToCloud,
   onStartStripeCheckout,
   onOpenStripeBillingPortal,
+  onRefreshBillingAccess,
   billingStatus = '',
+  billingAccess,
 }) => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'skills' | 'curriculum' | 'settings'>('overview');
+  const [activeTab, setActiveTab] = useState<ParentDashboardTab>('overview');
   const [isWarmingVoiceCache, setIsWarmingVoiceCache] = useState(false);
   const [voiceCacheSummary, setVoiceCacheSummary] = useState<string>('');
   const [voiceCacheTone, setVoiceCacheTone] = useState<'info' | 'success' | 'warning' | 'error'>('info');
@@ -130,6 +220,27 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
   const curriculumUnits = getUnitsForGrade(progress.currentGrade);
   const currentGradeUnits = getCurrentGradeUnits(progress.currentGrade);
   const weeklyPlan = getWeeklyLearningPlan(progress);
+  const schoolDay = getSchoolDayPlan(progress);
+  const missionTeacherScript = getTeacherScript(schoolDay.mission, progress);
+  const teacherNotes = buildTeacherNotesFromJournal(progress);
+  const teacherAssignments = getTeacherAssignmentCards(progress);
+  const teacherGradebookRows = getTeacherGradebookRows(progress);
+  const gradebookMasteredCount = teacherGradebookRows.filter(row => row.status === 'done').length;
+  const gradebookInProgressCount = teacherGradebookRows.filter(row => row.status === 'in-progress').length;
+  const gradebookNotStartedCount = teacherGradebookRows.filter(row => row.status === 'ready').length;
+  const billingSummary = getDashboardBillingSummary(billingAccess);
+  const getSchoolPeriodClasses = (status: (typeof schoolDay.periods)[number]['status']) => {
+    if (status === 'done') return 'border-emerald-300/40 bg-emerald-400/15';
+    if (status === 'in-progress') return 'border-sky-300/40 bg-sky-400/15';
+    if (status === 'due') return 'border-amber-300/40 bg-amber-400/15';
+    return 'border-white/10 bg-white/[0.08]';
+  };
+  const getSchoolPeriodLabel = (status: (typeof schoolDay.periods)[number]['status']) => {
+    if (status === 'done') return 'Done';
+    if (status === 'in-progress') return 'In progress';
+    if (status === 'due') return 'Due';
+    return 'Ready';
+  };
   const roadmapRecommendations = getRoadmapRecommendations(progress);
   const hasParentPin = parentPin.trim().length > 0;
   const privacy = progress.privacy || DEFAULT_PRIVACY_SETTINGS;
@@ -698,16 +809,17 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
       </div>
 
       {/* Tabs */}
-        <div className="grid grid-cols-4 bg-white border-b sticky top-[140px] sm:top-[120px] z-10">
+        <div className="grid grid-cols-5 bg-white border-b sticky top-[140px] sm:top-[120px] z-10">
         {[
           { id: 'overview', label: 'Overview', icon: <BarChart3 size={18} /> },
+          { id: 'gradebook', label: 'Gradebook', icon: <ClipboardList size={18} /> },
           { id: 'skills', label: 'Skills', icon: <Brain size={18} /> },
           { id: 'curriculum', label: 'Roadmap', icon: <Map size={18} /> },
           { id: 'settings', label: 'Settings', icon: <Settings size={18} /> },
         ].map(tab => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id as 'overview' | 'skills' | 'curriculum' | 'settings')}
+            onClick={() => setActiveTab(tab.id as ParentDashboardTab)}
             className={`py-3 px-2 flex items-center justify-center gap-2 font-semibold transition text-sm sm:text-base ${
               activeTab === tab.id
                 ? 'text-indigo-600 border-b-2 border-indigo-600'
@@ -794,6 +906,125 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                     </p>
                     <p className="font-semibold text-gray-800 mt-1">{requirement.label}</p>
                     <p className="text-sm text-gray-600">{requirement.detail}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-slate-950 rounded-xl p-4 shadow-sm text-white">
+              <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+                <div>
+                  <p className="text-xs font-black uppercase tracking-[0.16em] text-sky-200">Teacher Mission Control</p>
+                  <h3 className="text-xl font-black mt-1">{AI_TEACHER.name}'s school-day plan</h3>
+                  <p className="text-sm text-slate-300 mt-1 max-w-2xl">
+                    Parents can see the teacher objective, lesson phase, mastery gate, and exit-ticket proof before the child moves ahead.
+                  </p>
+                </div>
+                <div className="rounded-xl bg-white/10 border border-white/15 px-4 py-3">
+                  <p className="text-2xl font-black">{schoolDay.mastery.practiceCount}/{MASTERED_PRACTICE_TARGET}</p>
+                  <p className="text-xs text-slate-300">current mission mastery gate</p>
+                </div>
+              </div>
+              <div
+                data-testid="parent-school-day-attendance"
+                className="mt-4 rounded-xl bg-white/10 border border-white/15 p-3"
+              >
+                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-[0.14em] text-emerald-200">School-day attendance</p>
+                    <p className="mt-1 text-sm font-semibold text-slate-200">{schoolDay.attendanceSummary}</p>
+                  </div>
+                  <div className="rounded-xl bg-white px-4 py-2 text-center text-slate-950">
+                    <p className="text-xl font-black">{schoolDay.completedPeriods}/{schoolDay.totalPeriods}</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-500">periods complete</p>
+                  </div>
+                </div>
+                <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/10">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-emerald-300 via-sky-300 to-indigo-300"
+                    style={{ width: `${schoolDay.schoolDayPercent}%` }}
+                  />
+                </div>
+                <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2">
+                  {schoolDay.periods.map(period => (
+                    <div key={period.id} className={`rounded-lg border p-2 ${getSchoolPeriodClasses(period.status)}`}>
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="text-[10px] font-black uppercase tracking-[0.12em] text-sky-100">{getSchoolPeriodLabel(period.status)}</p>
+                          <p className="mt-1 text-sm font-black text-white">{period.label}</p>
+                        </div>
+                        <span className="rounded-full bg-white/10 px-2 py-1 text-[10px] font-black text-slate-100">{period.actionLabel}</span>
+                      </div>
+                      <p className="mt-1 line-clamp-2 text-xs font-semibold text-slate-300">{period.detail}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div
+                data-testid="parent-teacher-assignments"
+                className="mt-4 rounded-xl bg-white/10 border border-white/15 p-3"
+              >
+                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-[0.14em] text-indigo-200">Teacher assignment cards</p>
+                    <p className="mt-1 text-sm font-semibold text-slate-200">
+                      Every classroom has a real assigned lesson, example, parent note, and mastery rubric.
+                    </p>
+                  </div>
+                  <div className="rounded-xl bg-white px-4 py-2 text-center text-slate-950">
+                    <p className="text-xl font-black">{teacherAssignments.length}</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-500">assignments</p>
+                  </div>
+                </div>
+                <div className="mt-3 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-2">
+                  {teacherAssignments.map(card => (
+                    <div key={card.unitId} className={`rounded-lg border p-2 ${getSchoolPeriodClasses(card.status)}`}>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="text-[10px] font-black uppercase tracking-[0.12em] text-sky-100">{card.statusLabel}</p>
+                          <p className="mt-1 line-clamp-2 text-sm font-black text-white">{card.classroomName}</p>
+                        </div>
+                        <span className="rounded-full bg-white/10 px-2 py-1 text-[10px] font-black text-slate-100">{card.practiceCount}/{MASTERED_PRACTICE_TARGET}</span>
+                      </div>
+                      <p className="mt-2 line-clamp-2 text-xs font-black text-slate-100">{card.title}</p>
+                      <p className="mt-1 line-clamp-2 text-xs font-semibold text-slate-300">{card.objective}</p>
+                      <div className="mt-2 rounded-lg bg-white/10 p-2">
+                        <p className="text-[10px] font-black uppercase tracking-[0.12em] text-indigo-100">Mastery rubric</p>
+                        <p className="mt-1 line-clamp-2 text-xs font-semibold text-white">{card.masteryRubric}</p>
+                      </div>
+                      <p className="mt-2 line-clamp-2 text-[11px] font-semibold text-slate-300">Parent note: {card.parentNote}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="mt-4 grid grid-cols-1 lg:grid-cols-[0.85fr_1.15fr] gap-3">
+                <div className="rounded-xl bg-white/10 border border-white/15 p-3">
+                  <p className="text-xs font-black uppercase tracking-[0.14em] text-sky-200">Today in {getCampusRoom(schoolDay.mission.room).classroomName}</p>
+                  <h4 className="mt-1 text-lg font-black">{schoolDay.mission.title}</h4>
+                  <p className="mt-1 text-sm font-semibold text-slate-300">{missionTeacherScript.objective}</p>
+                  <div className="mt-3 rounded-lg bg-emerald-400/15 border border-emerald-300/30 p-3">
+                    <p className="text-xs font-black uppercase tracking-[0.12em] text-emerald-200">Exit ticket</p>
+                    <p className="mt-1 text-sm font-bold text-white">{missionTeacherScript.exitTicket}</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {teacherNotes.slice(0, 4).map(note => (
+                    <div key={`${note.label}-${note.value}`} className="rounded-xl bg-white/[0.08] border border-white/10 p-3">
+                      <p className="text-xs font-black uppercase tracking-[0.12em] text-sky-200">{note.label}</p>
+                      <p className="mt-1 text-sm font-black text-white">{note.value}</p>
+                      <p className="mt-1 text-xs font-semibold text-slate-300">{note.detail}</p>
+                      {note.nextStep && (
+                        <p className="mt-2 rounded-lg bg-white/10 px-2 py-1 text-xs font-bold text-slate-100">Next: {note.nextStep}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="mt-4 grid grid-cols-1 sm:grid-cols-5 gap-2">
+                {SCHOOL_LESSON_PHASES.map(phase => (
+                  <div key={phase.id} className="rounded-lg bg-white/[0.08] border border-white/10 p-2">
+                    <p className="text-xs font-black text-white">{phase.label}</p>
+                    <p className="mt-1 text-[11px] text-slate-300">{phase.parentMeaning}</p>
                   </div>
                 ))}
               </div>
@@ -1042,6 +1273,17 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                         </span>
                       </div>
                       <p className="text-sm text-gray-600 mt-2">{entry.objective}</p>
+                      {entry.teacherNote && (
+                        <div className="mt-3 rounded-lg bg-indigo-50 border border-indigo-100 p-2">
+                          <p className="text-xs font-black uppercase tracking-[0.12em] text-indigo-700">
+                            {AI_TEACHER.name} note
+                          </p>
+                          <p className="text-sm font-bold text-indigo-950 mt-1">{entry.teacherNote}</p>
+                          {entry.teacherNextStep && (
+                            <p className="mt-1 text-xs font-semibold text-indigo-800">Next step: {entry.teacherNextStep}</p>
+                          )}
+                        </div>
+                      )}
                       {entry.childReflection && (
                         <div className="mt-3 rounded-lg bg-emerald-100 border border-emerald-200 p-2">
                           <p className="text-xs font-black uppercase tracking-[0.12em] text-emerald-700">
@@ -1056,7 +1298,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                             <CheckCircle2 size={14} className="text-emerald-500" />
                             Success check
                           </p>
-                          <p className="text-gray-600 mt-1">{entry.successCheck || 'Ask the child to teach back one idea.'}</p>
+                          <p className="text-gray-600 mt-1">{entry.exitTicket || entry.successCheck || 'Ask the child to teach back one idea.'}</p>
                         </div>
                         <div className="rounded-lg bg-white border border-gray-100 p-2">
                           <p className="font-black text-gray-700 flex items-center gap-1">
@@ -1184,6 +1426,104 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 </p>
                 <p className="text-gray-500">badges earned</p>
               </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'gradebook' && (
+          <div className="space-y-4" data-testid="teacher-gradebook">
+            <div className="rounded-xl bg-slate-950 p-4 text-white shadow-sm">
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                <div>
+                  <p className="text-xs font-black uppercase tracking-[0.16em] text-sky-200">Teacher Gradebook</p>
+                  <h3 className="mt-1 text-xl font-black">{AI_TEACHER.name}'s classroom mastery record</h3>
+                  <p className="mt-2 max-w-3xl text-sm font-semibold text-slate-300">
+                    Track every assigned classroom lesson, attempts, mastery state, last practice date, and the next action a parent can take.
+                  </p>
+                </div>
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  <div className="rounded-xl border border-emerald-300/30 bg-emerald-400/15 px-3 py-2">
+                    <p className="text-xl font-black">{gradebookMasteredCount}</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.12em] text-emerald-200">mastered</p>
+                  </div>
+                  <div className="rounded-xl border border-sky-300/30 bg-sky-400/15 px-3 py-2">
+                    <p className="text-xl font-black">{gradebookInProgressCount}</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.12em] text-sky-200">active</p>
+                  </div>
+                  <div className="rounded-xl border border-white/15 bg-white/10 px-3 py-2">
+                    <p className="text-xl font-black">{gradebookNotStartedCount}</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-300">assigned</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
+              {teacherGradebookRows.map(row => (
+                <div key={row.unitId} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0">
+                      <p className="text-xs font-black uppercase tracking-[0.14em] text-indigo-600">{row.classroomName}</p>
+                      <h4 className="mt-1 text-lg font-black text-slate-900">{row.title}</h4>
+                      <p className="mt-1 text-sm font-semibold text-slate-600">{row.objective}</p>
+                    </div>
+                    <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-black ${
+                      row.status === 'done'
+                        ? 'bg-emerald-100 text-emerald-700'
+                        : row.status === 'in-progress'
+                          ? 'bg-sky-100 text-sky-700'
+                          : 'bg-slate-100 text-slate-700'
+                    }`}>
+                      {row.statusLabel}
+                    </span>
+                  </div>
+
+                  <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    <div className="rounded-lg bg-slate-50 p-2">
+                      <p className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-500">Attempts</p>
+                      <p className="mt-1 text-lg font-black text-slate-900">{row.attempts}/{MASTERED_PRACTICE_TARGET}</p>
+                    </div>
+                    <div className="rounded-lg bg-slate-50 p-2">
+                      <p className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-500">Last practiced</p>
+                      <p className="mt-1 text-sm font-black text-slate-900">{row.lastPracticedLabel}</p>
+                    </div>
+                    <div className="rounded-lg bg-slate-50 p-2">
+                      <p className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-500">Evidence</p>
+                      <p className="mt-1 text-lg font-black text-slate-900">{row.evidenceCount}</p>
+                    </div>
+                    <div className="rounded-lg bg-slate-50 p-2">
+                      <p className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-500">Reflections</p>
+                      <p className="mt-1 text-lg font-black text-slate-900">{row.reflectionCount}</p>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 grid grid-cols-1 gap-2 lg:grid-cols-2">
+                    <div className="rounded-lg border border-indigo-100 bg-indigo-50 p-3">
+                      <p className="text-xs font-black uppercase tracking-[0.12em] text-indigo-700">Mastery rubric</p>
+                      <p className="mt-1 text-sm font-bold text-indigo-950">{row.masteryRubric}</p>
+                    </div>
+                    <div className="rounded-lg border border-emerald-100 bg-emerald-50 p-3">
+                      <p className="text-xs font-black uppercase tracking-[0.12em] text-emerald-700">Recommended next action</p>
+                      <p className="mt-1 text-sm font-bold text-emerald-950">{row.nextAction}</p>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 rounded-lg border border-amber-100 bg-amber-50 p-3">
+                    <p className="text-xs font-black uppercase tracking-[0.12em] text-amber-700">Parent note</p>
+                    <p className="mt-1 text-sm font-bold text-amber-950">{row.parentNote}</p>
+                  </div>
+
+                  {row.standardsFocus.length > 0 && (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {row.standardsFocus.slice(0, 3).map(standard => (
+                        <span key={`${row.unitId}-${standard}`} className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-black text-slate-600">
+                          {standard}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         )}
@@ -1959,33 +2299,77 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                   <div className="rounded-xl bg-emerald-50 border border-emerald-100 p-3">
                     <p className="text-xs font-black uppercase tracking-[0.12em] text-emerald-700">Billing parent</p>
                     <p className="mt-1 text-sm font-bold text-emerald-950 break-words">{cloudSession.email || 'Signed-in parent account'}</p>
-                    <p className="mt-1 text-xs text-emerald-800">Choose the $4.99 or $9.99 monthly plan in Stripe checkout.</p>
+                    <p className="mt-1 text-xs text-emerald-800">
+                      {billingSummary.active
+                        ? 'Stripe access is connected to this Firebase parent account.'
+                        : 'Choose the $4.99 or $9.99 monthly plan in Stripe checkout.'}
+                    </p>
                   </div>
+                  <div
+                    data-testid="parent-billing-status-card"
+                    className={`rounded-xl border p-3 ${
+                      billingSummary.tone === 'success'
+                        ? 'border-emerald-100 bg-emerald-50'
+                        : 'border-amber-100 bg-amber-50'
+                    }`}
+                  >
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                      <div>
+                        <p className={`text-xs font-black uppercase tracking-[0.12em] ${
+                          billingSummary.tone === 'success' ? 'text-emerald-700' : 'text-amber-700'
+                        }`}>
+                          Parent subscription status
+                        </p>
+                        <p className="mt-1 text-lg font-black text-slate-950">{billingSummary.statusLabel}</p>
+                        <p className="mt-1 text-sm font-bold text-slate-700">{billingSummary.detail}</p>
+                      </div>
+                      <div className="rounded-xl bg-white px-3 py-2 text-center shadow-sm">
+                        <p className="text-sm font-black text-slate-950">{billingSummary.planLabel}</p>
+                        <p className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-500">{billingSummary.dateLabel}</p>
+                      </div>
+                    </div>
+                    {billingSummary.checkedLabel && (
+                      <p className="mt-2 text-xs font-bold text-slate-600">{billingSummary.checkedLabel}</p>
+                    )}
+                  </div>
+                  {!billingSummary.active && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <button
+                        onClick={() => runBillingAction(
+                          () => onStartStripeCheckout?.('starter') || Promise.resolve(),
+                          'Stripe $4.99 checkout could not be opened.'
+                        )}
+                        disabled={isBillingBusy}
+                        className="py-3 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700 disabled:bg-gray-200 disabled:text-gray-500 transition flex items-center justify-center gap-2"
+                      >
+                        <CreditCard size={18} />
+                        Start $4.99/mo
+                      </button>
+                      <button
+                        onClick={() => runBillingAction(
+                          () => onStartStripeCheckout?.('premium') || Promise.resolve(),
+                          'Stripe $9.99 checkout could not be opened.'
+                        )}
+                        disabled={isBillingBusy}
+                        className="py-3 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 disabled:bg-gray-200 disabled:text-gray-500 transition flex items-center justify-center gap-2"
+                      >
+                        <CreditCard size={18} />
+                        Start $9.99/mo
+                      </button>
+                    </div>
+                  )}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <button
                       onClick={() => runBillingAction(
-                        () => onStartStripeCheckout?.('starter') || Promise.resolve(),
-                        'Stripe $4.99 checkout could not be opened.'
+                        () => onRefreshBillingAccess?.() || Promise.resolve(),
+                        'Stripe status could not be refreshed.'
                       )}
                       disabled={isBillingBusy}
-                      className="py-3 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700 disabled:bg-gray-200 disabled:text-gray-500 transition flex items-center justify-center gap-2"
+                      className="py-3 rounded-lg bg-white text-emerald-700 font-semibold hover:bg-emerald-50 disabled:bg-gray-200 disabled:text-gray-500 transition flex items-center justify-center gap-2 border border-emerald-100"
                     >
                       <CreditCard size={18} />
-                      Start $4.99/mo
+                      Refresh Stripe Status
                     </button>
-                    <button
-                      onClick={() => runBillingAction(
-                        () => onStartStripeCheckout?.('premium') || Promise.resolve(),
-                        'Stripe $9.99 checkout could not be opened.'
-                      )}
-                      disabled={isBillingBusy}
-                      className="py-3 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 disabled:bg-gray-200 disabled:text-gray-500 transition flex items-center justify-center gap-2"
-                    >
-                      <CreditCard size={18} />
-                      Start $9.99/mo
-                    </button>
-                  </div>
-                  <div className="grid grid-cols-1">
                     <button
                       onClick={() => runBillingAction(
                         () => onOpenStripeBillingPortal?.() || Promise.resolve(),
@@ -1994,7 +2378,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                       disabled={isBillingBusy}
                       className="py-3 rounded-lg bg-slate-100 text-slate-700 font-semibold hover:bg-slate-200 disabled:bg-gray-200 disabled:text-gray-500 transition flex items-center justify-center gap-2"
                     >
-                      Manage Billing
+                      {billingSummary.active ? 'Manage Billing in Stripe' : 'Manage Billing'}
                     </button>
                   </div>
                 </div>

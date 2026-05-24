@@ -7,6 +7,7 @@ import { AchievementsPanel, AchievementUnlockToast } from './components/Achievem
 import { ParentDashboard } from './components/ParentDashboard';
 import { LegalInfo, type LegalPageType } from './components/LegalInfo';
 import { InstallAppButton } from './components/InstallAppButton';
+import { TeacherRoomCoach } from './components/TeacherRoomCoach';
 import { getUnitsForGrade } from './services/curriculum';
 import {
   RoomType,
@@ -21,6 +22,7 @@ import {
   AccessibilitySettings,
   PrivacySettings,
   DailyStats,
+  LearningJournalEntry,
   ChildProfile,
   createDefaultProgress,
   DEFAULT_LEARNING_PROFILE,
@@ -28,7 +30,7 @@ import {
   DEFAULT_PRIVACY_SETTINGS,
   DEFAULT_ARCADE_PROGRESS
 } from './types';
-import { resumeAudioContext, playSuccess, speak, stopSpeaking, setNarrationContext, setSpeechPreferences } from './services/audioService';
+import { resumeAudioContext, playSuccess, speak, speakAsync, stopSpeaking, setNarrationContext, setSpeechPreferences } from './services/audioService';
 import { updateSkillMetrics, updateLearningProfile, getEncouragingMessage } from './services/adaptiveLearning';
 import {
   createParentAccount,
@@ -41,6 +43,15 @@ import {
 } from './services/firebaseParentAuth';
 import { syncProgressToFirebase } from './services/firebaseProgressStore';
 import { createStripeCheckoutUrl, getStripeBillingAccess, openStripeBillingPortal } from './services/stripeBilling';
+import {
+  AI_TEACHER,
+  MASTERED_PRACTICE_TARGET,
+  SCHOOL_LESSON_PHASES,
+  buildTeacherJournalNote,
+  buildTeacherNextStep,
+  getCampusRoom,
+  getTeacherScript,
+} from './services/schoolMode';
 import { BookOpen, CheckCircle2, Lightbulb, LockKeyhole, MessageCircle, Play, ShieldCheck, Sparkles, Target, X } from 'lucide-react';
 
 const MathRoom = lazy(() => import('./components/MathRoom').then(module => ({ default: module.MathRoom })));
@@ -84,8 +95,10 @@ interface FamilyAccessRecord {
   familyId: string;
   billingAccessActive: boolean;
   plan?: 'starter' | 'premium';
+  stripeStatus?: string;
   trialStartedAt?: number;
   trialEndsAt?: number;
+  currentPeriodEndsAt?: number;
   checkoutCompletedAt?: number;
   verifiedByBillingApi?: boolean;
   checkedAt?: number;
@@ -94,6 +107,53 @@ interface FamilyAccessRecord {
 type PaidAccessAction =
   | { type: 'room'; room: RoomType; unitId?: string }
   | { type: 'arcade' };
+
+const ACCESS_GATE_UNLOCKS = [
+  'Teacher-led rooms, stories, games, and review quests',
+  'Parent dashboard with gradebook, journal proof, and progress',
+  'Installable web app access on phones, tablets, and computers',
+  'Firebase parent account access for the family subscription',
+];
+
+const ACCESS_GATE_TRUST_POINTS = [
+  'Stripe handles payment details; kids never see card entry.',
+  'The parent account controls trial access and billing status.',
+  'Progress sync remains parent-controlled in Privacy Settings.',
+];
+
+const SUBSCRIPTION_PLANS: Array<{
+  id: 'starter' | 'premium';
+  label: string;
+  price: string;
+  badge: string;
+  description: string;
+  highlights: string[];
+}> = [
+  {
+    id: 'starter',
+    label: 'Starter',
+    price: '$4.99',
+    badge: 'Best first plan',
+    description: 'Launch access for one family learning at home.',
+    highlights: [
+      'All current classrooms and games',
+      'Teacher lesson path and exit tickets',
+      'Parent gradebook and local progress',
+    ],
+  },
+  {
+    id: 'premium',
+    label: 'Premium',
+    price: '$9.99',
+    badge: 'Supporter tier',
+    description: 'Same launch access today, positioned for future premium expansions.',
+    highlights: [
+      'Everything in Starter',
+      'Supports faster curriculum and media expansion',
+      'Intended tier for future premium content',
+    ],
+  },
+];
 
 const gradeToLevel: { [key in GradeLevel]: number } = {
   [GradeLevel.PRE_K]: 1,
@@ -352,6 +412,58 @@ const formatTrialEndDate = (timestamp?: number) => {
   return new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric' }).format(new Date(timestamp));
 };
 
+const formatBillingDate = (timestamp?: number) => {
+  if (!timestamp) return '';
+  return new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(timestamp));
+};
+
+const getBillingAccessSummary = (access?: FamilyAccessRecord | null) => {
+  const planLabel = access?.plan === 'premium' ? 'Premium $9.99/mo' : access?.plan === 'starter' ? 'Starter $4.99/mo' : 'Plan not selected';
+  if (!access?.billingAccessActive) {
+    return {
+      tone: 'warning' as const,
+      statusLabel: 'Trial not active yet',
+      planLabel,
+      detail: 'Sign in with a parent account and choose a plan to unlock learning sections.',
+      dateLabel: 'No active billing period',
+      checkedLabel: '',
+    };
+  }
+
+  if (access.stripeStatus === 'trialing') {
+    return {
+      tone: 'success' as const,
+      statusLabel: 'Trial active',
+      planLabel,
+      detail: `The 3-day trial is active${access.trialEndsAt ? ` until ${formatBillingDate(access.trialEndsAt)}` : ''}.`,
+      dateLabel: access.trialEndsAt ? `Trial ends ${formatBillingDate(access.trialEndsAt)}` : 'Trial end date pending',
+      checkedLabel: access.checkedAt ? `Verified ${formatBillingDate(access.checkedAt)}` : '',
+    };
+  }
+
+  if (access.stripeStatus === 'past_due') {
+    return {
+      tone: 'warning' as const,
+      statusLabel: 'Payment needs attention',
+      planLabel,
+      detail: 'Learning access is still open for now, but the parent should update billing in Stripe.',
+      dateLabel: access.currentPeriodEndsAt ? `Current period ends ${formatBillingDate(access.currentPeriodEndsAt)}` : 'Billing date pending',
+      checkedLabel: access.checkedAt ? `Verified ${formatBillingDate(access.checkedAt)}` : '',
+    };
+  }
+
+  return {
+    tone: 'success' as const,
+    statusLabel: access.stripeStatus === 'active' ? 'Subscription active' : 'Access active',
+    planLabel,
+    detail: access.currentPeriodEndsAt
+      ? `Current billing period runs through ${formatBillingDate(access.currentPeriodEndsAt)}.`
+      : 'Stripe access is verified for this family.',
+    dateLabel: access.currentPeriodEndsAt ? `Renews ${formatBillingDate(access.currentPeriodEndsAt)}` : 'Billing period verified',
+    checkedLabel: access.checkedAt ? `Verified ${formatBillingDate(access.checkedAt)}` : '',
+  };
+};
+
 const App: React.FC = () => {
   const [hasStarted, setHasStarted] = useState(false);
   const [showGradeSelection, setShowGradeSelection] = useState(false);
@@ -366,6 +478,7 @@ const App: React.FC = () => {
   const [newAchievement, setNewAchievement] = useState<Achievement | null>(null);
   const [activeUnitId, setActiveUnitId] = useState<string | null>(null);
   const [showMissionFocus, setShowMissionFocus] = useState(false);
+  const [showLessonIntro, setShowLessonIntro] = useState(false);
   const [learningReflection, setLearningReflection] = useState<LearningReflection | null>(null);
   const [parentOnboarded, setParentOnboarded] = useState(() => localStorage.getItem('kidGeniusParentOnboarded') === 'true');
   const [legalView, setLegalView] = useState<LegalPageType | null>(null);
@@ -403,6 +516,7 @@ const App: React.FC = () => {
     const activeProfile = loadedProfiles.find(profile => profile.id === activeId) || loadedProfiles[0];
     return loadProgressForProfile(activeProfile);
   });
+  const billingAccessSummary = getBillingAccessSummary(familyAccess);
 
   const refreshBillingAccess = async (statusPrefix = 'Checking Stripe trial access...') => {
     if (!parentCloudSession.signedIn || !parentCloudSession.familyId) {
@@ -424,8 +538,10 @@ const App: React.FC = () => {
       familyId: parentCloudSession.familyId,
       billingAccessActive: true,
       plan: access.plan,
+      stripeStatus: access.status,
       trialStartedAt: access.trialEndsAt ? access.trialEndsAt - BILLING_TRIAL_MS : undefined,
       trialEndsAt: access.trialEndsAt || undefined,
+      currentPeriodEndsAt: access.currentPeriodEndsAt || undefined,
       checkoutCompletedAt: now,
       verifiedByBillingApi: true,
       checkedAt: now,
@@ -901,11 +1017,40 @@ const App: React.FC = () => {
   const handleOpenStripeBillingPortal = async () => {
     if (!parentCloudSession.signedIn) {
       setBillingStatus('Sign in with a parent Firebase account before opening billing management.');
+      setAccessGateStatus('Sign in with a parent Firebase account before opening billing management.');
       return;
     }
 
     setBillingStatus('Opening secure Stripe billing portal...');
-    await openStripeBillingPortal(parentCloudSession);
+    setAccessGateStatus('Opening secure Stripe billing portal...');
+    try {
+      await openStripeBillingPortal(parentCloudSession);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Stripe billing portal could not be opened.';
+      setBillingStatus(message);
+      setAccessGateStatus(`Billing management needs attention: ${message}`);
+    }
+  };
+
+  const handleRefreshBillingAccess = async () => {
+    if (!parentCloudSession.signedIn || !parentCloudSession.familyId) {
+      setBillingStatus('Sign in with a parent Firebase account before refreshing Stripe status.');
+      setAccessGateStatus('Sign in with a parent Firebase account before refreshing Stripe status.');
+      return;
+    }
+
+    try {
+      const access = await refreshBillingAccess('Refreshing Stripe trial and subscription status...');
+      setAccessGateStatus(
+        access
+          ? 'Stripe access is verified. You can continue learning.'
+          : 'No active Stripe trial or subscription is attached to this parent account yet.'
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Stripe status could not be refreshed.';
+      setBillingStatus(message);
+      setAccessGateStatus(`Stripe status needs attention: ${message}`);
+    }
   };
 
   const hasPaidAccess = () => {
@@ -1104,10 +1249,37 @@ const App: React.FC = () => {
     speak(`Welcome to Kid Genius World! ${pet.name} is excited to learn with you!`);
   };
 
+  const resolveUnitForRoom = (room: RoomType, requestedUnitId?: string) => {
+    const currentGradeUnits = getUnitsForGrade(progress.currentGrade);
+    const requestedUnit = requestedUnitId
+      ? currentGradeUnits.find(unit => unit.id === requestedUnitId)
+      : undefined;
+
+    if (requestedUnit) return requestedUnit;
+
+    const completedUnitIds = new Set(progress.completedUnitIds || []);
+    const unitPracticeCounts = progress.unitPracticeCounts || {};
+    return currentGradeUnits
+      .filter(unit => unit.room === room)
+      .sort((first, second) => {
+        const firstCompleted = completedUnitIds.has(first.id) ? 1 : 0;
+        const secondCompleted = completedUnitIds.has(second.id) ? 1 : 0;
+        if (firstCompleted !== secondCompleted) return firstCompleted - secondCompleted;
+
+        const firstPractice = unitPracticeCounts[first.id] || 0;
+        const secondPractice = unitPracticeCounts[second.id] || 0;
+        if (firstPractice !== secondPractice) return firstPractice - secondPractice;
+
+        return first.reviewCycleDays - second.reviewCycleDays;
+      })[0];
+  };
+
   const enterRoomUnlocked = (room: RoomType, unitId?: string) => {
     stopSpeaking();
-    setActiveUnitId(unitId || null);
+    const resolvedUnit = resolveUnitForRoom(room, unitId);
+    setActiveUnitId(resolvedUnit?.id || null);
     setShowMissionFocus(false);
+    setShowLessonIntro(Boolean(resolvedUnit && room !== RoomType.HUB));
     setProgress(prev => ({
       ...prev,
       dailyStats: updateDailyStats(prev.dailyStats, { roomsVisited: [room] }),
@@ -1132,6 +1304,7 @@ const App: React.FC = () => {
     setCurrentRoom(RoomType.HUB);
     setActiveUnitId(null);
     setShowMissionFocus(false);
+    setShowLessonIntro(false);
     setShowDashboard(false);
     setShowParentDashboard(false);
     setShowGameArcade(false);
@@ -1163,7 +1336,7 @@ const App: React.FC = () => {
       ? getUnitsForGrade(progress.currentGrade).find(unit => unit.id === activeUnitId)
       : undefined;
     const currentPracticeCount = activeUnitId ? (progress.unitPracticeCounts?.[activeUnitId] || 0) : 0;
-    const nextPracticeCount = activeUnitId ? Math.min(currentPracticeCount + 1, 3) : 1;
+    const nextPracticeCount = activeUnitId ? Math.min(currentPracticeCount + 1, MASTERED_PRACTICE_TARGET) : 1;
     const reflectionRoom = roomOverride || currentRoom;
     const roomLabel = roomReflectionLabels[reflectionRoom] || (subject ? subject.replace(/^\w/, letter => letter.toUpperCase()) : 'Learning');
 
@@ -1174,7 +1347,7 @@ const App: React.FC = () => {
       parentActivity: reflectionOverride.parentActivity || activeUnit?.parentActivity,
       successCheck: reflectionOverride.successCheck || activeUnit?.successCheck,
       practiceCount: nextPracticeCount,
-      mastered: Boolean(activeUnitId && nextPracticeCount >= 3),
+      mastered: Boolean(activeUnitId && nextPracticeCount >= MASTERED_PRACTICE_TARGET),
     };
   };
 
@@ -1215,7 +1388,7 @@ const App: React.FC = () => {
       if (activeUnitId) {
         nextUnitPracticeCounts[activeUnitId] = (nextUnitPracticeCounts[activeUnitId] || 0) + 1;
       }
-      const practicedActiveUnitToMastery = activeUnitId && nextUnitPracticeCounts[activeUnitId] >= 3;
+      const practicedActiveUnitToMastery = activeUnitId && nextUnitPracticeCounts[activeUnitId] >= MASTERED_PRACTICE_TARGET;
       const nextCompletedUnitIds = practicedActiveUnitToMastery
         ? Array.from(new Set([...(prev.completedUnitIds || []), activeUnitId]))
         : (prev.completedUnitIds || []);
@@ -1226,8 +1399,8 @@ const App: React.FC = () => {
       const journalUnit = activeUnitId
         ? getUnitsForGrade(prev.currentGrade).find(unit => unit.id === activeUnitId)
         : undefined;
-      const journalPracticeCount = activeUnitId ? Math.min(nextUnitPracticeCounts[activeUnitId] || 1, 3) : 1;
-      const journalEntry = {
+      const journalPracticeCount = activeUnitId ? Math.min(nextUnitPracticeCounts[activeUnitId] || 1, MASTERED_PRACTICE_TARGET) : 1;
+      const journalEntry: LearningJournalEntry = {
         id: journalEntryId,
         createdAt: journalCreatedAt,
         room: journalRoom,
@@ -1238,8 +1411,12 @@ const App: React.FC = () => {
         successCheck: reflectionOverride.successCheck || journalUnit?.successCheck,
         parentActivity: reflectionOverride.parentActivity || journalUnit?.parentActivity,
         practiceCount: journalPracticeCount,
-        mastered: Boolean(activeUnitId && journalPracticeCount >= 3),
+        mastered: Boolean(activeUnitId && journalPracticeCount >= MASTERED_PRACTICE_TARGET),
       };
+      journalEntry.lessonPhase = 'Exit Ticket';
+      journalEntry.exitTicket = journalEntry.successCheck || 'Teach back the strategy in your own words.';
+      journalEntry.teacherNote = buildTeacherJournalNote(journalEntry);
+      journalEntry.teacherNextStep = buildTeacherNextStep(journalEntry);
       const nextLearningJournal = [journalEntry, ...(prev.learningJournal || [])].slice(0, 25);
 
       if (earnedNewSticker) {
@@ -1893,13 +2070,151 @@ const App: React.FC = () => {
         onSyncProgressToCloud={handleSyncProgressToCloud}
         onStartStripeCheckout={handleStartStripeCheckout}
         onOpenStripeBillingPortal={handleOpenStripeBillingPortal}
+        onRefreshBillingAccess={handleRefreshBillingAccess}
         billingStatus={billingStatus}
+        billingAccess={familyAccess || undefined}
       />
     );
   }
 
+  const selectedReflectionChoice = learningReflection?.journalEntryId
+    ? progress.learningJournal?.find(entry => entry.id === learningReflection.journalEntryId)?.childReflection
+    : undefined;
+  const activeUnit = activeUnitId
+    ? getUnitsForGrade(progress.currentGrade).find(unit => unit.id === activeUnitId)
+    : undefined;
+  const activeUnitPracticeCount = activeUnitId ? Math.min(progress.unitPracticeCounts?.[activeUnitId] || 0, MASTERED_PRACTICE_TARGET) : 0;
+  const activeUnitEndChecks = activeUnit?.endOfLessonChecks?.slice(0, 5) || [];
+  const activeTeacherScript = activeUnit ? getTeacherScript(activeUnit, progress) : undefined;
+  const activeSchoolLessonSteps = activeTeacherScript ? [
+    { phase: SCHOOL_LESSON_PHASES[0], prompt: activeTeacherScript.teach },
+    { phase: SCHOOL_LESSON_PHASES[1], prompt: activeTeacherScript.example },
+    { phase: SCHOOL_LESSON_PHASES[2], prompt: activeTeacherScript.guided },
+    { phase: SCHOOL_LESSON_PHASES[3], prompt: activeTeacherScript.independent },
+    { phase: SCHOOL_LESSON_PHASES[4], prompt: activeTeacherScript.exitTicket },
+  ] : [];
+  const showActiveMissionFocus = Boolean(activeUnit && currentRoom !== RoomType.HUB && !showLessonIntro && !showDashboard && !showParentDashboard);
+
+  const handleStartTeacherLesson = () => {
+    setShowLessonIntro(false);
+    if (activeTeacherScript) {
+      void speakAsync(activeTeacherScript.greeting, 0.9, 1.1, 'gentle');
+    }
+  };
+
+  const renderTeacherLessonStart = () => {
+    if (!activeUnit || !activeTeacherScript) return null;
+    const campusRoom = getCampusRoom(activeUnit.room);
+    const safePracticeCount = Math.min(activeUnitPracticeCount, MASTERED_PRACTICE_TARGET);
+
+    return (
+      <div
+        data-testid="teacher-lesson-start"
+        className="h-full w-full overflow-y-auto bg-[radial-gradient(circle_at_top,#fff7ad_0%,#a8dcff_34%,#81d8bd_68%,#77cf71_100%)] p-4 kid-scroll"
+      >
+        <div className="mx-auto flex min-h-full max-w-6xl items-center">
+          <div className="grid w-full overflow-hidden rounded-[32px] border-4 border-white/80 bg-white shadow-2xl lg:grid-cols-[0.92fr_1.08fr]">
+            <div className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-indigo-950 to-sky-800 p-6 text-white">
+              <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-white/15 blur-3xl" />
+              <div className="absolute bottom-0 right-0 h-40 w-56 rounded-tl-[80px] bg-white/10" />
+              <div className="relative">
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-sky-200">Teacher-led lesson start</p>
+                <h1 className="mt-2 text-3xl font-black leading-tight sm:text-4xl">{activeUnit.title}</h1>
+                <p className="mt-3 text-sm font-semibold leading-relaxed text-slate-200">
+                  {activeTeacherScript.greeting}
+                </p>
+
+                <div className="mt-5 flex items-center gap-3 rounded-3xl border border-white/15 bg-white/10 p-3">
+                  <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-3xl bg-white text-2xl font-black text-indigo-700 shadow-lg">
+                    MN
+                  </div>
+                  <div>
+                    <p className="text-lg font-black">{AI_TEACHER.name}</p>
+                    <p className="text-sm font-semibold text-white/80">{campusRoom.classroomName}</p>
+                    <p className="mt-1 text-xs font-bold text-sky-100">{AI_TEACHER.voicePack}</p>
+                  </div>
+                </div>
+
+                <div className="mt-5 grid grid-cols-2 gap-3">
+                  <div className="rounded-2xl border border-white/15 bg-white/10 p-3 text-center">
+                    <p className="text-2xl font-black">{safePracticeCount}/{MASTERED_PRACTICE_TARGET}</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.12em] text-sky-200">mastery rounds</p>
+                  </div>
+                  <div className="rounded-2xl border border-white/15 bg-white/10 p-3 text-center">
+                    <p className="text-2xl font-black">{activeSchoolLessonSteps.length}</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.12em] text-sky-200">lesson phases</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-5">
+              <div className="rounded-[24px] border border-indigo-100 bg-indigo-50 p-4">
+                <p className="text-xs font-black uppercase tracking-[0.16em] text-indigo-600">Learning target</p>
+                <h2 className="mt-1 text-2xl font-black text-slate-950">{activeTeacherScript.objective}</h2>
+                <p className="mt-2 text-sm font-semibold text-indigo-900">{campusRoom.teacherAction}</p>
+              </div>
+
+              <div className="mt-4 grid gap-2 sm:grid-cols-5">
+                {activeSchoolLessonSteps.map((step, index) => (
+                  <div key={`${activeUnit.id}-intro-${step.phase.id}`} className="rounded-2xl bg-slate-50 p-3">
+                    <p className="text-[10px] font-black uppercase tracking-[0.14em] text-indigo-600">
+                      {index + 1}. {step.phase.label}
+                    </p>
+                    <p className="mt-1 line-clamp-4 text-xs font-bold text-slate-700">{step.prompt}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-4 grid gap-3 md:grid-cols-[1fr_1fr]">
+                <div className="rounded-[22px] border border-emerald-100 bg-emerald-50 p-4">
+                  <p className="text-xs font-black uppercase tracking-[0.14em] text-emerald-700">Exit ticket</p>
+                  <p className="mt-1 text-sm font-black text-emerald-950">{activeTeacherScript.exitTicket}</p>
+                </div>
+                <div className="rounded-[22px] border border-amber-100 bg-amber-50 p-4">
+                  <p className="text-xs font-black uppercase tracking-[0.14em] text-amber-700">Parent proof</p>
+                  <p className="mt-1 text-sm font-black text-amber-950">{activeTeacherScript.parentNote}</p>
+                </div>
+              </div>
+
+              <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+                <button
+                  onClick={() => {
+                    if (activeTeacherScript) speak(activeTeacherScript.greeting, 0.9, 1.1);
+                  }}
+                  className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-slate-100 px-5 py-4 text-sm font-black text-slate-800 shadow hover:bg-slate-200"
+                >
+                  <MessageCircle size={20} />
+                  Listen to Ms. Nova
+                </button>
+                <button
+                  onClick={handleStartTeacherLesson}
+                  className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-5 py-4 text-sm font-black text-white shadow-lg hover:bg-indigo-700"
+                >
+                  <Play size={20} />
+                  Start guided practice
+                </button>
+              </div>
+
+              <button
+                onClick={handleBack}
+                className="mt-3 w-full rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-600 hover:bg-slate-50"
+              >
+                Back to school map
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // Main Game View
   const renderView = () => {
+    if (currentRoom !== RoomType.HUB && showLessonIntro && activeUnit) {
+      return renderTeacherLessonStart();
+    }
+
     switch (currentRoom) {
       case RoomType.MATH:
         return <MathRoom level={progress.currentLevel} onBack={handleBack} onReward={handleMathReward} />;
@@ -1943,17 +2258,6 @@ const App: React.FC = () => {
     }
   };
 
-  const selectedReflectionChoice = learningReflection?.journalEntryId
-    ? progress.learningJournal?.find(entry => entry.id === learningReflection.journalEntryId)?.childReflection
-    : undefined;
-  const activeUnit = activeUnitId
-    ? getUnitsForGrade(progress.currentGrade).find(unit => unit.id === activeUnitId)
-    : undefined;
-  const activeUnitPracticeCount = activeUnitId ? Math.min(progress.unitPracticeCounts?.[activeUnitId] || 0, 3) : 0;
-  const activeUnitPracticeActivities = activeUnit?.practiceActivities?.slice(0, 5) || [];
-  const activeUnitEndChecks = activeUnit?.endOfLessonChecks?.slice(0, 5) || [];
-  const showActiveMissionFocus = Boolean(activeUnit && currentRoom !== RoomType.HUB && !showDashboard && !showParentDashboard);
-
   return (
     <div className={`w-screen h-screen overflow-hidden bg-sky-100 relative ${getAccessibilityClasses()}`}>
       <Suspense fallback={
@@ -1966,27 +2270,40 @@ const App: React.FC = () => {
       }>
         {renderView()}
       </Suspense>
-      <Guide room={currentRoom} trigger={guideTrigger} />
+      {!showLessonIntro && <Guide room={currentRoom} trigger={guideTrigger} />}
 
       {showActiveMissionFocus && activeUnit && (
-        <div className="fixed bottom-4 left-4 right-4 z-30 mx-auto max-w-5xl">
+        <TeacherRoomCoach
+          unit={activeUnit}
+          progress={progress}
+          practiceCount={activeUnitPracticeCount}
+          onOpenLessonBoard={() => setShowMissionFocus(true)}
+        />
+      )}
+
+      {showActiveMissionFocus && activeUnit && (
+        <div className="fixed bottom-4 left-4 right-20 z-30 mx-auto max-w-5xl sm:right-4">
           {showMissionFocus ? (
             <div className="max-h-[78vh] overflow-y-auto rounded-[24px] border-4 border-white bg-white/95 p-4 shadow-2xl backdrop-blur">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-xs font-black uppercase tracking-[0.16em] text-indigo-600">Mission Focus</p>
+                  <p className="text-xs font-black uppercase tracking-[0.16em] text-indigo-600">{AI_TEACHER.name} Lesson Board</p>
                   <h3 className="mt-1 text-lg font-black text-slate-900">{activeUnit.title}</h3>
-                  <p className="mt-1 text-sm font-semibold text-slate-700">{activeUnit.objective}</p>
-                  {activeUnitPracticeActivities.length > 0 && (
+                  <p className="mt-1 text-sm font-semibold text-slate-700">{activeTeacherScript?.greeting || activeUnit.objective}</p>
+                  {activeSchoolLessonSteps.length > 0 && (
                     <>
-                      <p className="mt-3 text-xs font-black uppercase tracking-[0.14em] text-indigo-600">5-step lesson path</p>
+                      <p className="mt-3 text-xs font-black uppercase tracking-[0.14em] text-indigo-600">Teach to exit ticket path</p>
                       <div className="mt-2 grid gap-2 sm:grid-cols-2 xl:grid-cols-5">
-                        {activeUnitPracticeActivities.map((activity, index) => (
-                          <div key={`${activeUnit.id}-focus-activity-${index}`} className="rounded-2xl bg-indigo-50 px-3 py-2 text-xs font-bold text-indigo-900">
-                            <p className="text-[10px] font-black uppercase tracking-[0.12em] text-indigo-500">Step {index + 1}</p>
-                            <p className="mt-1">{activity}</p>
+                        {activeSchoolLessonSteps.map((step, index) => (
+                          <div key={`${activeUnit.id}-school-phase-${step.phase.id}`} className="rounded-2xl bg-indigo-50 px-3 py-2 text-xs font-bold text-indigo-900">
+                            <p className="text-[10px] font-black uppercase tracking-[0.12em] text-indigo-500">{index + 1}. {step.phase.label}</p>
+                            <p className="mt-1">{step.prompt}</p>
                           </div>
                         ))}
+                      </div>
+                      <div className="mt-3 rounded-2xl border border-sky-100 bg-sky-50 px-3 py-2">
+                        <p className="text-xs font-black text-sky-800">Teacher voice status</p>
+                        <p className="mt-1 text-xs font-bold text-sky-900">{activeTeacherScript?.voiceStatus}</p>
                       </div>
                     </>
                   )}
@@ -2001,12 +2318,13 @@ const App: React.FC = () => {
               </div>
               <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-[0.8fr_1.2fr]">
                 <div className="rounded-2xl bg-indigo-50 px-3 py-2">
-                  <p className="text-xs font-black text-indigo-700">Practice progress</p>
-                  <p className="text-xl font-black text-indigo-900">{activeUnitPracticeCount}/3</p>
+                  <p className="text-xs font-black text-indigo-700">Mastery gate</p>
+                  <p className="text-xl font-black text-indigo-900">{activeUnitPracticeCount}/{MASTERED_PRACTICE_TARGET}</p>
+                  <p className="mt-1 text-xs font-bold text-indigo-700">{activeTeacherScript?.masteryLabel}</p>
                 </div>
                 <div className="rounded-2xl bg-emerald-50 px-3 py-2">
-                  <p className="text-xs font-black text-emerald-700">Success check</p>
-                  <p className="text-sm font-bold text-emerald-900">{activeUnit.successCheck}</p>
+                  <p className="text-xs font-black text-emerald-700">Exit ticket</p>
+                  <p className="text-sm font-bold text-emerald-900">{activeTeacherScript?.exitTicket || activeUnit.successCheck}</p>
                   {activeUnitEndChecks.length > 0 && (
                     <div className="mt-2">
                       <p className="text-[10px] font-black uppercase tracking-[0.12em] text-emerald-700">Exit checks</p>
@@ -2028,8 +2346,8 @@ const App: React.FC = () => {
               className="inline-flex max-w-full items-center gap-2 rounded-full border-4 border-white bg-indigo-600 px-4 py-3 text-left font-black text-white shadow-xl hover:bg-indigo-700"
             >
               <Target size={20} className="shrink-0" />
-              <span className="truncate">Mission Focus: {activeUnit.title}</span>
-              <span className="shrink-0 rounded-full bg-white/20 px-2 py-1 text-xs">{activeUnitPracticeCount}/3</span>
+              <span className="truncate">{AI_TEACHER.name} Lesson: {activeUnit.title}</span>
+              <span className="shrink-0 rounded-full bg-white/20 px-2 py-1 text-xs">{activeUnitPracticeCount}/{MASTERED_PRACTICE_TARGET}</span>
             </button>
           )}
         </div>
@@ -2037,7 +2355,10 @@ const App: React.FC = () => {
 
       {showAccessGate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-2xl rounded-[28px] border-4 border-white bg-white p-5 shadow-2xl">
+          <div
+            data-testid="parent-access-gate"
+            className="max-h-[92vh] w-full max-w-5xl overflow-y-auto rounded-[28px] border-4 border-white bg-white p-5 shadow-2xl kid-scroll"
+          >
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-700">
@@ -2045,9 +2366,9 @@ const App: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-xs font-black uppercase tracking-[0.18em] text-indigo-600">Parent Access</p>
-                  <h2 className="text-xl font-black text-slate-900">Start learning with a parent-approved trial</h2>
+                  <h2 className="text-xl font-black text-slate-900">Start the 3-day parent-approved trial</h2>
                   <p className="mt-1 text-sm font-semibold text-slate-600">
-                    Kids can explore after a parent signs in and starts a 3-day free Stripe trial.
+                    A parent account is required before Stripe opens, so billing and learning access stay adult-controlled.
                   </p>
                 </div>
               </div>
@@ -2060,106 +2381,213 @@ const App: React.FC = () => {
               </button>
             </div>
 
-            <div className="mt-5 grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
-              <div className="rounded-[24px] bg-slate-50 p-4">
-                <div className="flex items-center gap-2 text-slate-800">
-                  <ShieldCheck size={20} className="text-emerald-600" />
-                  <p className="font-black">Step 1: Parent sign in</p>
-                </div>
+            <div className="mt-4 grid gap-2 sm:grid-cols-3">
+              <div className="rounded-2xl border border-emerald-100 bg-emerald-50 px-3 py-2">
+                <p className="text-[10px] font-black uppercase tracking-[0.14em] text-emerald-700">Step 1</p>
+                <p className="mt-1 text-sm font-black text-emerald-950">Parent signs in</p>
+              </div>
+              <div className="rounded-2xl border border-indigo-100 bg-indigo-50 px-3 py-2">
+                <p className="text-[10px] font-black uppercase tracking-[0.14em] text-indigo-700">Step 2</p>
+                <p className="mt-1 text-sm font-black text-indigo-950">Choose a monthly plan</p>
+              </div>
+              <div className="rounded-2xl border border-amber-100 bg-amber-50 px-3 py-2">
+                <p className="text-[10px] font-black uppercase tracking-[0.14em] text-amber-700">Step 3</p>
+                <p className="mt-1 text-sm font-black text-amber-950">Trial unlocks learning</p>
+              </div>
+            </div>
 
-                {parentCloudSession.signedIn ? (
-                  <div className="mt-4 rounded-2xl bg-emerald-50 p-4">
-                    <p className="font-black text-emerald-800">Signed in</p>
-                    <p className="mt-1 text-sm font-semibold text-emerald-900">{parentCloudSession.email}</p>
-                    {familyAccess?.billingAccessActive && (
-                      <p className="mt-2 text-xs font-bold text-emerald-700">
-                        Trial/subscription access is active for this family.
-                      </p>
-                    )}
+            <div className="mt-5 grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
+              <div className="space-y-4">
+                <div className="rounded-[24px] bg-slate-50 p-4">
+                  <div className="flex items-center gap-2 text-slate-800">
+                    <ShieldCheck size={20} className="text-emerald-600" />
+                    <p className="font-black">Parent sign in</p>
                   </div>
-                ) : (
-                  <div className="mt-4 space-y-3">
-                    <input
-                      type="email"
-                      value={accessEmail}
-                      onChange={event => setAccessEmail(event.target.value)}
-                      placeholder="Parent email"
-                      className="w-full rounded-2xl border-2 border-slate-200 px-4 py-3 text-sm font-bold outline-none focus:border-indigo-400"
-                    />
-                    <input
-                      type="password"
-                      value={accessPassword}
-                      onChange={event => setAccessPassword(event.target.value)}
-                      placeholder="Password"
-                      className="w-full rounded-2xl border-2 border-slate-200 px-4 py-3 text-sm font-bold outline-none focus:border-indigo-400"
-                    />
-                    <div className="grid gap-2 sm:grid-cols-2">
+
+                  {parentCloudSession.signedIn ? (
+                    <div className="mt-4 rounded-2xl bg-emerald-50 p-4">
+                      <p className="font-black text-emerald-800">Signed in</p>
+                      <p className="mt-1 text-sm font-semibold text-emerald-900">{parentCloudSession.email}</p>
                       <button
-                        onClick={handleAccessCreateParentAccount}
-                        disabled={accessBusy}
-                        className="rounded-2xl bg-indigo-600 px-4 py-3 text-sm font-black text-white shadow-lg hover:bg-indigo-700 disabled:opacity-60"
+                        onClick={handleRefreshBillingAccess}
+                        className="mt-3 w-full rounded-2xl bg-white px-4 py-3 text-sm font-black text-emerald-800 shadow-sm ring-1 ring-emerald-200 hover:bg-emerald-100"
                       >
-                        Create Account
+                        Refresh Stripe Status
                       </button>
+                      {familyAccess?.billingAccessActive && (
+                        <div
+                          data-testid="access-gate-billing-status"
+                          className="mt-3 rounded-2xl border border-emerald-200 bg-white p-3"
+                        >
+                          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                            <div>
+                              <p className="text-xs font-black uppercase tracking-[0.14em] text-emerald-700">Billing status</p>
+                              <p className="mt-1 text-lg font-black text-emerald-950">{billingAccessSummary.statusLabel}</p>
+                              <p className="mt-1 text-sm font-bold text-emerald-900">{billingAccessSummary.detail}</p>
+                            </div>
+                            <div className="rounded-2xl bg-emerald-100 px-3 py-2 text-center">
+                              <p className="text-sm font-black text-emerald-950">{billingAccessSummary.planLabel}</p>
+                              <p className="text-[10px] font-black uppercase tracking-[0.12em] text-emerald-700">{billingAccessSummary.dateLabel}</p>
+                            </div>
+                          </div>
+                          {billingAccessSummary.checkedLabel && (
+                            <p className="mt-2 text-xs font-bold text-emerald-700">{billingAccessSummary.checkedLabel}</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="mt-4 space-y-3">
+                      <input
+                        type="email"
+                        value={accessEmail}
+                        onChange={event => setAccessEmail(event.target.value)}
+                        placeholder="Parent email"
+                        className="w-full rounded-2xl border-2 border-slate-200 px-4 py-3 text-sm font-bold outline-none focus:border-indigo-400"
+                      />
+                      <input
+                        type="password"
+                        value={accessPassword}
+                        onChange={event => setAccessPassword(event.target.value)}
+                        placeholder="Password"
+                        className="w-full rounded-2xl border-2 border-slate-200 px-4 py-3 text-sm font-bold outline-none focus:border-indigo-400"
+                      />
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        <button
+                          onClick={handleAccessCreateParentAccount}
+                          disabled={accessBusy}
+                          className="rounded-2xl bg-indigo-600 px-4 py-3 text-sm font-black text-white shadow-lg hover:bg-indigo-700 disabled:opacity-60"
+                        >
+                          Create Account
+                        </button>
+                        <button
+                          onClick={handleAccessSignInParentAccount}
+                          disabled={accessBusy}
+                          className="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-black text-white shadow-lg hover:bg-slate-800 disabled:opacity-60"
+                        >
+                          Sign In
+                        </button>
+                      </div>
                       <button
-                        onClick={handleAccessSignInParentAccount}
+                        onClick={handleAccessSignInWithGoogle}
                         disabled={accessBusy}
-                        className="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-black text-white shadow-lg hover:bg-slate-800 disabled:opacity-60"
+                        className="w-full rounded-2xl border-2 border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-800 hover:bg-slate-50 disabled:opacity-60"
                       >
-                        Sign In
+                        Continue with Google
                       </button>
                     </div>
-                    <button
-                      onClick={handleAccessSignInWithGoogle}
-                      disabled={accessBusy}
-                      className="w-full rounded-2xl border-2 border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-800 hover:bg-slate-50 disabled:opacity-60"
-                    >
-                      Continue with Google
-                    </button>
+                  )}
+                </div>
+
+                <div className="rounded-[24px] border border-slate-100 bg-white p-4 shadow-sm">
+                  <div className="flex items-center gap-2 text-slate-800">
+                    <CheckCircle2 size={20} className="text-indigo-600" />
+                    <p className="font-black">What unlocks after trial starts</p>
                   </div>
-                )}
+                  <div className="mt-3 grid gap-2">
+                    {ACCESS_GATE_UNLOCKS.map(item => (
+                      <div key={item} className="flex items-start gap-2 rounded-2xl bg-slate-50 px-3 py-2">
+                        <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-emerald-600" />
+                        <p className="text-sm font-bold text-slate-700">{item}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
 
               <div className="rounded-[24px] bg-indigo-50 p-4">
-                <div className="flex items-center gap-2 text-indigo-900">
-                  <Sparkles size={20} />
-                  <p className="font-black">Step 2: Pick the trial plan</p>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 text-indigo-900">
+                      <Sparkles size={20} />
+                      <p className="font-black">Choose the trial plan</p>
+                    </div>
+                    <p className="mt-2 text-sm font-semibold text-indigo-900">
+                      Stripe starts a 3-day free trial now. The monthly plan begins after the trial unless the parent cancels in Stripe.
+                    </p>
+                  </div>
+                  <div className="rounded-2xl bg-white px-3 py-2 text-center shadow-sm">
+                    <p className="text-lg font-black text-indigo-700">3 days</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.12em] text-indigo-500">free trial</p>
+                  </div>
                 </div>
-                <p className="mt-2 text-sm font-semibold text-indigo-900">
-                  Stripe starts a 3-day free trial now. The monthly plan begins after the trial unless the parent cancels.
-                </p>
-                <p className="mt-2 text-xs font-bold text-indigo-800">
+
+                <div className="mt-4 grid gap-3 md:grid-cols-2">
+                  {SUBSCRIPTION_PLANS.map(plan => {
+                    const isPremium = plan.id === 'premium';
+                    return (
+                      <button
+                        key={plan.id}
+                        onClick={() => handleStartStripeCheckout(plan.id)}
+                        disabled={!parentCloudSession.signedIn}
+                        aria-label={`Choose ${plan.label} plan`}
+                        className={`rounded-[22px] p-4 text-left shadow-lg ring-2 transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60 ${
+                          isPremium
+                            ? 'bg-slate-950 text-white ring-indigo-200 hover:ring-indigo-400'
+                            : 'bg-white text-slate-900 ring-indigo-100 hover:ring-indigo-300'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <p className={`text-xs font-black uppercase tracking-[0.14em] ${isPremium ? 'text-sky-200' : 'text-indigo-600'}`}>{plan.label}</p>
+                            <p className="mt-1 text-3xl font-black">{plan.price}</p>
+                            <p className={`text-xs font-bold ${isPremium ? 'text-slate-300' : 'text-slate-500'}`}>per month after 3 days</p>
+                          </div>
+                          <span className={`rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-[0.1em] ${
+                            isPremium ? 'bg-sky-200 text-slate-950' : 'bg-indigo-100 text-indigo-700'
+                          }`}>
+                            {plan.badge}
+                          </span>
+                        </div>
+                        <p className={`mt-3 text-sm font-bold ${isPremium ? 'text-slate-200' : 'text-slate-700'}`}>{plan.description}</p>
+                        <div className="mt-3 space-y-2">
+                          {plan.highlights.map(item => (
+                            <div key={item} className="flex items-start gap-2">
+                              <CheckCircle2 size={15} className={`mt-0.5 shrink-0 ${isPremium ? 'text-emerald-200' : 'text-emerald-600'}`} />
+                              <p className={`text-xs font-bold ${isPremium ? 'text-slate-200' : 'text-slate-700'}`}>{item}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="mt-4 rounded-2xl border border-indigo-200 bg-white/80 p-3">
+                  <p className="text-xs font-black uppercase tracking-[0.14em] text-indigo-700">Launch plan note</p>
+                  <p className="mt-1 text-sm font-bold text-indigo-950">
+                    Both plans unlock the same learning app access today. Premium is the support tier for families who want to back faster curriculum, books, and media expansion.
+                  </p>
+                </div>
+
+                <div className="mt-4 grid gap-2">
+                  {ACCESS_GATE_TRUST_POINTS.map(point => (
+                    <div key={point} className="flex items-start gap-2 rounded-2xl bg-white/80 px-3 py-2">
+                      <ShieldCheck size={16} className="mt-0.5 shrink-0 text-emerald-600" />
+                      <p className="text-xs font-bold text-indigo-950">{point}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <p className="mt-3 text-xs font-bold text-indigo-800">
                   Need help? Parent support: crateshipstudios@gmail.com
                 </p>
 
-                <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                  <button
-                    onClick={() => handleStartStripeCheckout('starter')}
-                    disabled={!parentCloudSession.signedIn}
-                    className="rounded-[22px] bg-white p-4 text-left shadow-lg ring-2 ring-indigo-100 hover:ring-indigo-300 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    <p className="text-xs font-black uppercase tracking-[0.14em] text-indigo-600">Starter</p>
-                    <p className="mt-1 text-2xl font-black text-slate-900">$4.99</p>
-                    <p className="text-xs font-bold text-slate-500">per month after 3 days</p>
-                  </button>
-                  <button
-                    onClick={() => handleStartStripeCheckout('premium')}
-                    disabled={!parentCloudSession.signedIn}
-                    className="rounded-[22px] bg-slate-900 p-4 text-left text-white shadow-lg ring-2 ring-indigo-200 hover:ring-indigo-400 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    <p className="text-xs font-black uppercase tracking-[0.14em] text-sky-200">Premium</p>
-                    <p className="mt-1 text-2xl font-black">$9.99</p>
-                    <p className="text-xs font-bold text-slate-300">per month after 3 days</p>
-                  </button>
-                </div>
-
                 {familyAccess?.billingAccessActive && (
-                  <button
-                    onClick={continueAfterAccess}
-                    className="mt-4 w-full rounded-2xl bg-emerald-600 px-4 py-3 font-black text-white shadow-lg hover:bg-emerald-700"
-                  >
-                    Continue to Learning
-                  </button>
+                  <div className="mt-4 space-y-2">
+                    <button
+                      onClick={continueAfterAccess}
+                      className="w-full rounded-2xl bg-emerald-600 px-4 py-3 font-black text-white shadow-lg hover:bg-emerald-700"
+                    >
+                      Continue to Learning
+                    </button>
+                    <button
+                      onClick={handleOpenStripeBillingPortal}
+                      className="w-full rounded-2xl bg-white px-4 py-3 font-black text-slate-700 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50"
+                    >
+                      Manage Billing in Stripe
+                    </button>
+                  </div>
                 )}
 
                 {stripeCheckoutUrl && (

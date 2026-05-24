@@ -265,11 +265,25 @@ if (!cloudflareWorkerSource.includes('STRIPE_SECRET_KEY') || !cloudflareWorkerSo
 if (!parentDashboardSource.includes('Family Subscription') || !parentDashboardSource.includes('Start $4.99/mo') || !parentDashboardSource.includes('Start $9.99/mo') || !parentDashboardSource.includes('Manage Billing')) {
   fail('Parent dashboard must expose parent-only Stripe subscription controls.');
 }
+if (
+  !appSource.includes('access-gate-billing-status') ||
+  !parentDashboardSource.includes('parent-billing-status-card') ||
+  !appSource.includes('Trial active') ||
+  !parentDashboardSource.includes('Subscription active') ||
+  !parentDashboardSource.includes('Manage Billing in Stripe') ||
+  !parentDashboardSource.includes('Refresh Stripe Status') ||
+  !appSource.includes('handleRefreshBillingAccess')
+) {
+  fail('Parent billing UI must show explicit trial/subscription status after Stripe checkout.');
+}
 if (audioServiceSource.includes('new SpeechSynthesisUtterance') || audioServiceSource.includes('window.speechSynthesis.speak(')) {
   fail('Kid-facing narration should use cached human voice audio, not browser speech synthesis.');
 }
 if (!voiceCacheSource.includes('Welcome back to Kid Genius World!') || !fs.readFileSync(path.join(root, 'server/production-server.mjs'), 'utf8').includes('slice(0, 500)')) {
   fail('Human voice cache must include app greetings and support larger pre-cache batches.');
+}
+if (!voiceCacheSource.includes('getTeacherVoiceTexts') || !voiceCacheSource.includes('getTeacherScript') || !voiceCacheSource.includes('SCHOOL_LESSON_PHASES')) {
+  fail('Static human voice cache must include AI homeroom teacher scripts and lesson phases.');
 }
 const voiceWarmScript = fs.readFileSync(path.join(root, 'scripts/warm-voice-cache.mjs'), 'utf8');
 const voiceStaticScript = fs.readFileSync(path.join(root, 'scripts/export-static-voice-cache.mjs'), 'utf8');
@@ -473,11 +487,11 @@ if (!parentDashboardSource.includes('Parent Learning Report') || !parentDashboar
 if (!appSource.includes('Learning Reflection') || !appSource.includes('Explain what you learned') || !appSource.includes('Teach it back') || !appSource.includes('practice rounds')) {
   fail('Reward flow needs a kid-facing learning reflection after practice.');
 }
-if (!appSource.includes('Mission Focus') || !appSource.includes('showMissionFocus') || !appSource.includes('Practice progress') || !appSource.includes('Success check')) {
-  fail('Active lesson mission focus is missing inside room practice.');
+if (!appSource.includes('Lesson Board') || !appSource.includes('showMissionFocus') || !appSource.includes('Mastery gate') || !appSource.includes('Exit ticket')) {
+  fail('Active lesson teacher board is missing inside room practice.');
 }
-if (!appSource.includes('5-step lesson path') || !appSource.includes('Exit checks') || !appSource.includes('activeUnit?.practiceActivities?.slice(0, 5)') || !appSource.includes('activeUnit?.endOfLessonChecks?.slice(0, 5)') || !appSource.includes('max-w-5xl')) {
-  fail('Active room mission focus must expose the full five-step lesson path.');
+if (!appSource.includes('Teach to exit ticket path') || !appSource.includes('Exit checks') || !appSource.includes('SCHOOL_LESSON_PHASES') || !appSource.includes('activeUnit?.endOfLessonChecks?.slice(0, 5)') || !appSource.includes('max-w-5xl')) {
+  fail('Active room teacher board must expose the full teach, example, guided, independent, exit-ticket path.');
 }
 if (!typesSource.includes('LearningJournalEntry') || !typesSource.includes('childReflection') || !appSource.includes('learningJournal') || !appSource.includes('recordLearningReflectionChoice') || !parentDashboardSource.includes('Learning Journal') || !parentDashboardSource.includes('Recent proof of practice') || !parentDashboardSource.includes('Child reflection')) {
   fail('Parent evidence trail learning journal is missing.');

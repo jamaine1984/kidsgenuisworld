@@ -36,3 +36,10 @@ export async function completeKidSetup(page: Page) {
   await page.getByRole('button', { name: /Let's Go/i }).click();
   await expect(page.getByTestId('daily-mission-card')).toBeVisible();
 }
+
+export async function startTeacherLesson(page: Page) {
+  await expect(page.getByTestId('teacher-lesson-start')).toContainText('Teacher-led lesson start');
+  await expect(page.getByTestId('teacher-lesson-start')).toContainText('Learning target');
+  await expect(page.getByTestId('teacher-lesson-start')).toContainText('Exit ticket');
+  await page.getByRole('button', { name: /Start guided practice/i }).click();
+}

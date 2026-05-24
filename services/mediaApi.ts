@@ -1,4 +1,4 @@
-const configuredMediaBaseUrl = import.meta.env.VITE_MEDIA_API_BASE_URL || '';
+const configuredMediaBaseUrl = import.meta.env?.VITE_MEDIA_API_BASE_URL || '';
 
 export const getMediaApiUrl = (path: string) => {
   if (!configuredMediaBaseUrl) {

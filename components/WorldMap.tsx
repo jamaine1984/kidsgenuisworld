@@ -6,6 +6,16 @@ import {
 } from 'lucide-react';
 import { playPop } from '../services/audioService';
 import { getDailyMission, getUnitsForGrade, getWeeklyLearningPlan, type CurriculumUnit } from '../services/curriculum';
+import {
+  AI_TEACHER,
+  MASTERED_PRACTICE_TARGET,
+  SCHOOL_LESSON_PHASES,
+  getCampusRoom,
+  getNextSchoolStep,
+  getSchoolDayPlan,
+  getTeacherScript,
+  getTeacherAssignmentCards,
+} from '../services/schoolMode';
 
 interface WorldMapProps {
   onEnterRoom: (room: RoomType, unitId?: string) => void;
@@ -32,6 +42,10 @@ export const WorldMap: React.FC<WorldMapProps> = ({
   const [showReviewQuest, setShowReviewQuest] = useState(false);
   const [focusStep, setFocusStep] = useState(0);
   const mission = getDailyMission(progress);
+  const schoolDay = getSchoolDayPlan(progress);
+  const teacherAssignments = getTeacherAssignmentCards(progress);
+  const missionTeacherScript = getTeacherScript(mission, progress);
+  const nextSchoolStep = getNextSchoolStep(progress);
   const weeklyPlan = getWeeklyLearningPlan(progress);
   const unitPracticeCounts = progress.unitPracticeCounts || {};
   const completedUnitIds = new Set(progress.completedUnitIds || []);
@@ -231,8 +245,20 @@ export const WorldMap: React.FC<WorldMapProps> = ({
     'Drink water and tell a grown-up one thing you learned today.',
     `Try the at-home idea: ${mission.parentActivity}`,
   ];
+  const getPeriodStatusClasses = (status: (typeof schoolDay.periods)[number]['status']) => {
+    if (status === 'done') return 'border-emerald-200 bg-emerald-50 text-emerald-900';
+    if (status === 'in-progress') return 'border-indigo-200 bg-indigo-50 text-indigo-900';
+    if (status === 'due') return 'border-amber-200 bg-amber-50 text-amber-900';
+    return 'border-slate-100 bg-white text-slate-900';
+  };
+  const getPeriodStatusLabel = (status: (typeof schoolDay.periods)[number]['status']) => {
+    if (status === 'done') return 'Done';
+    if (status === 'in-progress') return 'In progress';
+    if (status === 'due') return 'Due';
+    return 'Ready';
+  };
 
-  const rooms: Array<{ type: RoomType; name: string; emoji: string; color: string; featured?: boolean }> = [
+  const roomsBase: Array<{ type: RoomType; name: string; emoji: string; color: string; featured?: boolean }> = [
     { type: RoomType.MATH, name: 'Math Mountain', emoji: '🔢', color: 'from-indigo-500 to-blue-600' },
     { type: RoomType.READING, name: 'Reading River', emoji: '📚', color: 'from-orange-500 to-amber-500' },
     { type: RoomType.SCIENCE, name: 'Science Springs', emoji: '🔬', color: 'from-emerald-500 to-teal-500' },
@@ -244,6 +270,10 @@ export const WorldMap: React.FC<WorldMapProps> = ({
     { type: RoomType.PUZZLE, name: 'Puzzle Pier', emoji: '🧩', color: 'from-teal-500 to-cyan-500' },
     { type: RoomType.STORYBOOK, name: 'Story Treehouse', emoji: '📖', color: 'from-amber-500 to-yellow-500' },
   ];
+  const rooms = roomsBase.map(room => ({
+    ...room,
+    name: getCampusRoom(room.type).classroomName,
+  }));
 
   const roomScores: Record<RoomType, number> = {
     [RoomType.HUB]: 0,
@@ -271,6 +301,20 @@ export const WorldMap: React.FC<WorldMapProps> = ({
     [RoomType.LANGUAGE]: { land: 'lanterns', action: 'Say new words', detail: 'Spanish, French, Mandarin', glow: 'bg-rose-200/30', scene: 'language' },
     [RoomType.PUZZLE]: { land: 'pier', action: 'Solve challenges', detail: 'Memory, logic, strategy', glow: 'bg-teal-200/30', scene: 'puzzle' },
     [RoomType.STORYBOOK]: { land: 'treehouse', action: 'Read adventures', detail: 'Stories, morals, comprehension', glow: 'bg-yellow-200/30', scene: 'storybook' },
+  };
+  const schoolRoomDetails = {
+    ...roomDetails,
+    [RoomType.HUB]: { ...roomDetails[RoomType.HUB], action: 'Homeroom', detail: 'Start the school day with a teacher-led mission.' },
+    [RoomType.MATH]: { ...roomDetails[RoomType.MATH], action: 'Teacher-led math', detail: getCampusRoom(RoomType.MATH).detail },
+    [RoomType.READING]: { ...roomDetails[RoomType.READING], action: 'Teacher-led reading', detail: getCampusRoom(RoomType.READING).detail },
+    [RoomType.SCIENCE]: { ...roomDetails[RoomType.SCIENCE], action: 'Science lesson', detail: getCampusRoom(RoomType.SCIENCE).detail },
+    [RoomType.GEOGRAPHY]: { ...roomDetails[RoomType.GEOGRAPHY], action: 'World studies', detail: getCampusRoom(RoomType.GEOGRAPHY).detail },
+    [RoomType.CODING]: { ...roomDetails[RoomType.CODING], action: 'Coding lesson', detail: getCampusRoom(RoomType.CODING).detail },
+    [RoomType.ART]: { ...roomDetails[RoomType.ART], action: 'Studio lesson', detail: getCampusRoom(RoomType.ART).detail },
+    [RoomType.MUSIC]: { ...roomDetails[RoomType.MUSIC], action: 'Music lesson', detail: getCampusRoom(RoomType.MUSIC).detail },
+    [RoomType.LANGUAGE]: { ...roomDetails[RoomType.LANGUAGE], action: 'Language lesson', detail: getCampusRoom(RoomType.LANGUAGE).detail },
+    [RoomType.PUZZLE]: { ...roomDetails[RoomType.PUZZLE], action: 'Strategy lesson', detail: getCampusRoom(RoomType.PUZZLE).detail },
+    [RoomType.STORYBOOK]: { ...roomDetails[RoomType.STORYBOOK], action: 'Library lesson', detail: getCampusRoom(RoomType.STORYBOOK).detail },
   };
 
   const renderRoomScene = (room: RoomType) => {
@@ -459,6 +503,239 @@ export const WorldMap: React.FC<WorldMapProps> = ({
       </div>
 
       <div className="relative z-10 px-4 mt-2 max-w-6xl mx-auto">
+        <div
+          data-testid="ai-homeroom-card"
+          className="mb-4 overflow-hidden rounded-[30px] border-4 border-white/70 bg-slate-950 text-white shadow-2xl"
+        >
+          <div className="grid gap-0 lg:grid-cols-[0.95fr_1.25fr]">
+            <div className="relative overflow-hidden bg-gradient-to-br from-indigo-700 via-sky-700 to-emerald-500 p-5">
+              <div className="absolute -right-12 -top-12 h-36 w-36 rounded-full bg-white/20 blur-2xl" />
+              <div className="absolute bottom-0 right-0 h-28 w-44 rounded-tl-[60px] bg-white/10" />
+              <div className="relative">
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-sky-100">AI Homeroom</p>
+                <h2 className="mt-1 text-3xl font-black leading-tight">{AI_TEACHER.school}</h2>
+                <p className="mt-2 max-w-md text-sm font-semibold text-white/85">
+                  {AI_TEACHER.name} opens the day, teaches the lesson path, checks the exit ticket, and saves parent-visible progress.
+                </p>
+                <div className="mt-5 flex items-center gap-3">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-3xl border-2 border-white/40 bg-white text-2xl font-black text-indigo-700 shadow-lg">
+                    MN
+                  </div>
+                  <div>
+                    <p className="text-lg font-black">{AI_TEACHER.name}</p>
+                    <p className="text-sm font-semibold text-white/80">{AI_TEACHER.title}</p>
+                    <p className="mt-1 text-xs font-bold text-sky-100">{AI_TEACHER.voicePack}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => { playPop(); onEnterRoom(schoolDay.mission.room, schoolDay.mission.id); }}
+                  className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-white px-5 py-3 text-sm font-black text-slate-950 shadow-lg transition hover:-translate-y-0.5 hover:bg-sky-50"
+                >
+                  <PlayCircle size={20} />
+                  Start Homeroom Lesson
+                </button>
+              </div>
+            </div>
+
+            <div className="bg-white p-5 text-slate-900">
+              <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                <div>
+                  <p className="text-xs font-black uppercase tracking-[0.16em] text-indigo-600">Today's teacher plan</p>
+                  <h3 className="mt-1 text-2xl font-black">{schoolDay.mission.title}</h3>
+                  <p className="mt-1 text-sm font-semibold text-slate-600">{missionTeacherScript.objective}</p>
+                </div>
+                <div className="rounded-2xl bg-indigo-50 px-4 py-3 text-center">
+                  <p className="text-2xl font-black text-indigo-700">{schoolDay.mastery.practiceCount}/{MASTERED_PRACTICE_TARGET}</p>
+                  <p className="text-[11px] font-black uppercase tracking-[0.12em] text-indigo-500">mastery gate</p>
+                </div>
+              </div>
+              <div className="mt-4 grid gap-2 md:grid-cols-4">
+                {schoolDay.schedule.map(item => (
+                  <button
+                    key={`${item.time}-${item.label}`}
+                    onClick={() => { playPop(); onEnterRoom(item.room === RoomType.HUB ? schoolDay.mission.room : item.room, schoolDay.mission.id); }}
+                    className="rounded-2xl border border-slate-100 bg-slate-50 p-3 text-left transition hover:border-indigo-200 hover:bg-indigo-50"
+                  >
+                    <p className="text-[10px] font-black uppercase tracking-[0.14em] text-indigo-500">{item.time}</p>
+                    <p className="mt-1 text-sm font-black text-slate-900">{item.label}</p>
+                    <p className="mt-1 line-clamp-2 text-xs font-semibold text-slate-600">{item.detail}</p>
+                  </button>
+                ))}
+              </div>
+              <div className="mt-4 grid gap-2 sm:grid-cols-5">
+                {SCHOOL_LESSON_PHASES.map(phase => (
+                  <div key={phase.id} className="rounded-2xl bg-sky-50 p-3">
+                    <p className="text-xs font-black text-sky-800">{phase.label}</p>
+                    <p className="mt-1 text-[11px] font-semibold text-slate-600">{phase.studentAction}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 rounded-2xl border border-emerald-100 bg-emerald-50 p-3">
+                <p className="text-xs font-black uppercase tracking-[0.14em] text-emerald-700">Teacher exit ticket</p>
+                <p className="mt-1 text-sm font-bold text-emerald-950">{missionTeacherScript.exitTicket}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div
+          data-testid="next-class-pass"
+          className="mb-4 overflow-hidden rounded-[28px] border-4 border-white/70 bg-white/95 shadow-xl"
+        >
+          <div className="grid gap-0 lg:grid-cols-[0.8fr_1.2fr]">
+            <div className="bg-gradient-to-br from-slate-950 via-indigo-950 to-sky-800 p-5 text-white">
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-sky-200">Next Class Pass</p>
+              <h2 className="mt-1 text-3xl font-black leading-tight">{nextSchoolStep.title}</h2>
+              <p className="mt-2 text-sm font-semibold text-slate-200">{nextSchoolStep.detail}</p>
+              <div className="mt-5 grid grid-cols-2 gap-2 text-center">
+                <div className="rounded-2xl border border-white/15 bg-white/10 p-3">
+                  <p className="text-2xl font-black">{nextSchoolStep.stepNumber}/{nextSchoolStep.totalSteps}</p>
+                  <p className="text-[10px] font-black uppercase tracking-[0.12em] text-sky-200">class step</p>
+                </div>
+                <div className="rounded-2xl border border-white/15 bg-white/10 p-3">
+                  <p className="text-2xl font-black">{schoolDay.schoolDayPercent}%</p>
+                  <p className="text-[10px] font-black uppercase tracking-[0.12em] text-sky-200">school day</p>
+                </div>
+              </div>
+            </div>
+            <div className="p-5">
+              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div className="min-w-0">
+                  <p className="text-xs font-black uppercase tracking-[0.16em] text-indigo-600">Ms. Nova says</p>
+                  <p className="mt-2 text-lg font-black leading-snug text-slate-900">{nextSchoolStep.teacherPrompt}</p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-800">
+                      <CheckCircle2 size={13} />
+                      {nextSchoolStep.progressLabel}
+                    </span>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-sky-100 px-3 py-1 text-xs font-black text-sky-800">
+                      <MapPin size={13} />
+                      {getCampusRoom(nextSchoolStep.room).classroomName}
+                    </span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => { playPop(); onEnterRoom(nextSchoolStep.room, nextSchoolStep.unitId); }}
+                  className="shrink-0 rounded-2xl bg-indigo-600 px-5 py-4 text-sm font-black text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-indigo-700"
+                >
+                  <span className="inline-flex items-center gap-2">
+                    <PlayCircle size={20} />
+                    {nextSchoolStep.actionLabel}
+                  </span>
+                </button>
+              </div>
+              <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-emerald-400 via-sky-400 to-indigo-500"
+                  style={{ width: `${schoolDay.schoolDayPercent}%` }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div
+          data-testid="school-day-tracker"
+          className="mb-4 rounded-[28px] border-4 border-white/70 bg-white/95 p-4 shadow-xl"
+        >
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">School Day Tracker</p>
+              <h2 className="mt-1 text-2xl font-black text-slate-900">Today&apos;s class periods</h2>
+              <p className="mt-1 text-sm font-semibold text-slate-600">{schoolDay.attendanceSummary}</p>
+            </div>
+            <div className="rounded-2xl bg-slate-950 px-4 py-3 text-center text-white">
+              <p className="text-2xl font-black">{schoolDay.completedPeriods}/{schoolDay.totalPeriods}</p>
+              <p className="text-[11px] font-black uppercase tracking-[0.12em] text-sky-200">periods complete</p>
+            </div>
+          </div>
+          <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-emerald-400 via-sky-400 to-indigo-500"
+              style={{ width: `${schoolDay.schoolDayPercent}%` }}
+            />
+          </div>
+          <div className="mt-4 grid gap-2 md:grid-cols-3">
+            {schoolDay.periods.map(period => {
+              const isActivePeriod = period.id === nextSchoolStep.period.id && !nextSchoolStep.isSchoolDayComplete;
+              return (
+                <button
+                  key={period.id}
+                  onClick={() => { playPop(); onEnterRoom(period.room, period.unitId); }}
+                  className={`rounded-2xl border p-3 text-left transition hover:-translate-y-0.5 hover:shadow-md ${getPeriodStatusClasses(period.status)} ${isActivePeriod ? 'ring-4 ring-indigo-200' : ''}`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-[0.14em] opacity-70">
+                        {isActivePeriod ? 'Now' : getPeriodStatusLabel(period.status)}
+                      </p>
+                      <p className="mt-1 text-sm font-black">{period.label}</p>
+                    </div>
+                    <span className="shrink-0 rounded-full bg-white/80 px-2 py-1 text-[10px] font-black">{period.actionLabel}</span>
+                  </div>
+                  <p className="mt-2 line-clamp-2 text-xs font-semibold opacity-80">{period.detail}</p>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div
+          data-testid="teacher-assignment-cards"
+          className="mb-4 rounded-[28px] border-4 border-white/70 bg-white/95 p-4 shadow-xl"
+        >
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-indigo-600">Teacher Assignment Cards</p>
+              <h2 className="mt-1 text-2xl font-black text-slate-900">Ms. Nova assigned every classroom</h2>
+              <p className="mt-1 text-sm font-semibold text-slate-600">
+                Each card has the objective, one worked-example cue, a mastery rubric, and a parent practice note.
+              </p>
+            </div>
+            <div className="rounded-2xl bg-indigo-50 px-4 py-3 text-center">
+              <p className="text-2xl font-black text-indigo-700">{teacherAssignments.length}</p>
+              <p className="text-[11px] font-black uppercase tracking-[0.12em] text-indigo-500">class assignments</p>
+            </div>
+          </div>
+          <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+            {teacherAssignments.map(card => (
+              <button
+                key={card.unitId}
+                onClick={() => { playPop(); onEnterRoom(card.room, card.unitId); }}
+                className={`flex min-h-[260px] flex-col rounded-2xl border p-3 text-left transition hover:-translate-y-0.5 hover:shadow-lg ${getPeriodStatusClasses(card.status)}`}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-black uppercase tracking-[0.14em] opacity-70">{card.statusLabel}</p>
+                    <h3 className="mt-1 line-clamp-2 text-base font-black">{card.classroomName}</h3>
+                  </div>
+                  <span className="shrink-0 rounded-full bg-white/80 px-2 py-1 text-[10px] font-black">{card.actionLabel}</span>
+                </div>
+                <p className="mt-2 line-clamp-2 text-sm font-black">{card.title}</p>
+                <p className="mt-2 line-clamp-3 text-xs font-semibold opacity-80">{card.objective}</p>
+                <div className="mt-3 rounded-xl bg-white/70 p-2">
+                  <p className="text-[10px] font-black uppercase tracking-[0.12em] opacity-70">Example</p>
+                  <p className="mt-1 line-clamp-2 text-xs font-bold">{card.example}</p>
+                </div>
+                <div className="mt-2 rounded-xl bg-white/70 p-2">
+                  <p className="text-[10px] font-black uppercase tracking-[0.12em] opacity-70">Mastery rubric</p>
+                  <p className="mt-1 line-clamp-2 text-xs font-bold">{card.masteryRubric}</p>
+                </div>
+                <div className="mt-auto pt-3">
+                  <p className="line-clamp-2 text-[11px] font-semibold opacity-80">Parent note: {card.parentNote}</p>
+                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/70">
+                    <div
+                      className="h-full rounded-full bg-slate-950/80"
+                      style={{ width: `${Math.round((Math.min(card.practiceCount, MASTERED_PRACTICE_TARGET) / MASTERED_PRACTICE_TARGET) * 100)}%` }}
+                    />
+                  </div>
+                  <p className="mt-1 text-[10px] font-black opacity-70">{Math.min(card.practiceCount, MASTERED_PRACTICE_TARGET)}/{MASTERED_PRACTICE_TARGET} practice rounds</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="mb-4 bg-white/90 rounded-[24px] p-4 shadow-lg border-4 border-white/60">
           <p className="text-xs uppercase tracking-[0.18em] text-emerald-700 font-black mb-3">Next Grade Checklist</p>
           <div className="grid grid-cols-3 gap-2">
@@ -529,14 +806,14 @@ export const WorldMap: React.FC<WorldMapProps> = ({
         <div className="mb-4 rounded-[28px] border-4 border-white/60 bg-white/92 p-4 shadow-xl backdrop-blur-sm">
           <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-xs uppercase tracking-[0.18em] text-sky-700 font-black">Explore Learning Rooms</p>
-              <h2 className="text-2xl font-black text-slate-900">Choose a room to start learning</h2>
+              <p className="text-xs uppercase tracking-[0.18em] text-sky-700 font-black">School Campus</p>
+              <h2 className="text-2xl font-black text-slate-900">Choose a classroom for the next lesson</h2>
             </div>
-            <p className="text-sm font-bold text-slate-600">Daily mission and weekly review are below the rooms.</p>
+            <p className="text-sm font-bold text-slate-600">Homeroom, daily mission, and weekly review keep every room teacher-led.</p>
           </div>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
             {rooms.map((room) => {
-              const details = roomDetails[room.type];
+              const details = schoolRoomDetails[room.type];
               const nextUnit = nextUnitByRoom[room.type];
               return (
                 <button
@@ -741,11 +1018,11 @@ export const WorldMap: React.FC<WorldMapProps> = ({
 
       <div className="relative z-10 p-4 pb-10">
         <div className="max-w-6xl mx-auto mb-3">
-          <p className="text-sky-900 font-black bg-white/70 rounded-full px-5 py-2 inline-block shadow">Explore Learning Rooms</p>
+          <p className="text-sky-900 font-black bg-white/70 rounded-full px-5 py-2 inline-block shadow">Genius World School Campus</p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 max-w-6xl mx-auto w-full">
           {rooms.map((room) => {
-            const details = roomDetails[room.type];
+            const details = schoolRoomDetails[room.type];
             const isVisited = visitedRooms.has(room.type);
             const isMissionRoom = mission.room === room.type;
             const score = roomScores[room.type] || 0;

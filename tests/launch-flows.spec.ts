@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { completeKidSetup, PARENT_PIN, resetApp } from './helpers';
+import { completeKidSetup, PARENT_PIN, resetApp, startTeacherLesson } from './helpers';
 
 test.beforeEach(async ({ page }) => {
   await resetApp(page);
@@ -29,6 +29,11 @@ test('parent dashboard gate protects tabs and privacy receipt', async ({ page })
   await page.getByRole('button', { name: 'Unlock Parent Dashboard' }).click();
   await expect(page.getByRole('heading', { name: 'Parent Dashboard' })).toBeVisible();
   await expect(page.getByText('Parent Learning Report')).toBeVisible();
+
+  await page.getByRole('button', { name: /Gradebook/i }).click();
+  await expect(page.getByTestId('teacher-gradebook')).toContainText('Teacher Gradebook');
+  await expect(page.getByTestId('teacher-gradebook')).toContainText('Recommended next action');
+  await expect(page.getByTestId('teacher-gradebook')).toContainText('Last practiced');
 
   await page.getByRole('button', { name: /Skills/i }).click();
   await expect(page.getByText('Math Skills')).toBeVisible();
@@ -73,6 +78,19 @@ test('parent dashboard exposes Firebase cloud sync as parent opt-in', async ({ p
 test('world review quest and arcade are reachable on tablet', async ({ page }) => {
   await completeKidSetup(page);
 
+  await expect(page.getByTestId('ai-homeroom-card')).toContainText('AI Homeroom');
+  await expect(page.getByTestId('ai-homeroom-card')).toContainText('Ms. Nova');
+  await expect(page.getByTestId('next-class-pass')).toContainText('Next Class Pass');
+  await expect(page.getByTestId('next-class-pass')).toContainText('Ms. Nova says');
+  await expect(page.getByTestId('next-class-pass')).toContainText('school day');
+  await expect(page.getByTestId('school-day-tracker')).toContainText('School Day Tracker');
+  await expect(page.getByTestId('school-day-tracker')).toContainText('periods complete');
+  await expect(page.getByTestId('school-day-tracker')).toContainText('Now');
+  await expect(page.getByTestId('teacher-assignment-cards')).toContainText('Teacher Assignment Cards');
+  await expect(page.getByTestId('teacher-assignment-cards')).toContainText('Mastery rubric');
+  await expect(page.getByText('School Campus', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Math Classroom/i }).first()).toBeVisible();
+
   await page.getByRole('button', { name: /Review Quest/i }).click();
   await expect(page.getByRole('heading', { name: 'Explain it again' })).toBeVisible();
   await expect(page.getByText('Quick review helps learning stick')).toBeVisible();
@@ -88,6 +106,11 @@ test('world review quest and arcade are reachable on tablet', async ({ page }) =
 test('math room completion creates reward and parent-visible journal proof', async ({ page }) => {
   await completeKidSetup(page);
   await page.getByTestId('room-card-MATH').click();
+  await startTeacherLesson(page);
+  await expect(page.getByTestId('teacher-room-coach')).toContainText('Ms. Nova is teaching');
+  await expect(page.getByTestId('teacher-room-coach')).toContainText('Exit ticket');
+  await expect(page.getByTestId('teacher-lesson-path')).toContainText('Lesson path');
+  await expect(page.getByTestId('teacher-lesson-path')).toContainText('Now');
   await expect(page.getByTestId('math-question')).toBeVisible();
 
   for (let round = 0; round < 3; round += 1) {
@@ -108,13 +131,40 @@ test('math room completion creates reward and parent-visible journal proof', asy
   await page.getByTitle('Settings').click();
   await page.getByLabel('Parent PIN').fill(PARENT_PIN);
   await page.getByRole('button', { name: 'Unlock Parent Dashboard' }).click();
+  await expect(page.getByText('Teacher Mission Control')).toBeVisible();
+  await expect(page.getByTestId('parent-school-day-attendance')).toContainText('School-day attendance');
+  await expect(page.getByTestId('parent-school-day-attendance')).toContainText('periods complete');
+  await expect(page.getByTestId('parent-teacher-assignments')).toContainText('Teacher assignment cards');
+  await expect(page.getByTestId('parent-teacher-assignments')).toContainText('Mastery rubric');
+  await page.getByRole('button', { name: /Gradebook/i }).click();
+  await expect(page.getByTestId('teacher-gradebook')).toContainText('Attempts');
+  await expect(page.getByTestId('teacher-gradebook')).toContainText('Today');
+  await page.getByRole('button', { name: /Overview/i }).click();
   await expect(page.getByText('Learning Journal')).toBeVisible();
+  await expect(page.getByText('Ms. Nova note')).toBeVisible();
   await expect(page.getByText('Teach it back')).toBeVisible();
+});
+
+test('teacher coach starts compact on phone and expands on demand', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await completeKidSetup(page);
+  await page.getByTestId('room-card-MATH').click();
+  await startTeacherLesson(page);
+
+  await expect(page.getByTestId('teacher-room-coach-compact')).toContainText('Ms. Nova');
+  await expect(page.getByTestId('teacher-room-coach-compact')).toContainText('mastery');
+  await page.getByLabel('Expand teacher coach').click();
+  await expect(page.getByTestId('teacher-room-coach')).toContainText('Guided practice');
+  await expect(page.getByTestId('teacher-lesson-path')).toContainText('Lesson path');
+  await expect(page.getByTestId('teacher-room-coach')).toContainText('Exit ticket');
+  await page.getByLabel('Collapse teacher coach').click();
+  await expect(page.getByTestId('teacher-room-coach-compact')).toBeVisible();
 });
 
 test('reading room completion creates reward and parent-visible journal proof', async ({ page }) => {
   await completeKidSetup(page);
   await page.getByTestId('room-card-READING').click();
+  await startTeacherLesson(page);
   await expect(page.getByText('Reading Coach')).toBeVisible();
 
   for (let round = 0; round < 4; round += 1) {
@@ -169,6 +219,7 @@ test('arcade completion creates reward and parent-visible journal proof', async 
 test('story time completion creates reward and parent-visible journal proof', async ({ page }) => {
   await completeKidSetup(page);
   await page.getByTestId('room-card-STORYBOOK').click();
+  await startTeacherLesson(page);
   await expect(page.getByText('Story Library')).toBeVisible();
   await page.getByRole('button', { name: /Pip and the Puddle/i }).click();
   await expect(page.getByRole('heading', { name: 'Pip and the Puddle' })).toBeVisible();

@@ -37,6 +37,8 @@ interface BillingAccessSummary {
   billingAccessActive?: boolean;
   plan?: 'starter' | 'premium';
   stripeStatus?: string;
+  accessSource?: 'stripe' | 'owner_comped';
+  comped?: boolean;
   trialEndsAt?: number;
   currentPeriodEndsAt?: number;
   cancelAtPeriodEnd?: boolean;
@@ -115,6 +117,21 @@ const getDashboardBillingSummary = (billingAccess?: BillingAccessSummary) => {
       detail: 'Choose a parent-approved plan to start the 3-day Stripe trial.',
       dateLabel: 'Not started',
       checkedLabel: '',
+      webhookLabel: '',
+      invoiceLabel: '',
+      cancelLabel: '',
+    };
+  }
+
+  if (billingAccess.accessSource === 'owner_comped' || billingAccess.comped || billingAccess.stripeStatus === 'owner_comped') {
+    return {
+      active: true,
+      tone: 'success' as const,
+      statusLabel: 'Owner access active',
+      planLabel: 'Owner access',
+      detail: 'Unlimited access is enabled for this parent account.',
+      dateLabel: 'No Stripe payment required',
+      checkedLabel: billingAccess.checkedAt ? `Verified ${formatBillingDate(billingAccess.checkedAt)}` : '',
       webhookLabel: '',
       invoiceLabel: '',
       cancelLabel: '',
@@ -283,6 +300,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
   const gradebookInProgressCount = teacherGradebookRows.filter(row => row.status === 'in-progress').length;
   const gradebookNotStartedCount = teacherGradebookRows.filter(row => row.status === 'ready').length;
   const billingSummary = getDashboardBillingSummary(billingAccess);
+  const isOwnerCompedBilling = billingAccess?.accessSource === 'owner_comped' || billingAccess?.comped;
   const getSchoolPeriodClasses = (status: (typeof schoolDay.periods)[number]['status']) => {
     if (status === 'done') return 'border-emerald-300/40 bg-emerald-400/15';
     if (status === 'in-progress') return 'border-sky-300/40 bg-sky-400/15';
@@ -2176,10 +2194,21 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 Child Profiles
               </h3>
               <p className="text-sm text-gray-600 mb-3">
-                Keep separate progress for each child. Firebase sync can save the active child profile after parent approval.
+                Keep separate progress for each child. You can create unlimited local child profiles, then sync the active child after parent approval.
               </p>
 
-              <div className="space-y-2 mb-4">
+              <div className="mb-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="rounded-xl border border-indigo-100 bg-indigo-50 p-3">
+                  <p className="text-xs font-black uppercase tracking-[0.12em] text-indigo-700">Profiles on this device</p>
+                  <p className="mt-1 text-2xl font-black text-indigo-950">{profiles.length}</p>
+                </div>
+                <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-3">
+                  <p className="text-xs font-black uppercase tracking-[0.12em] text-emerald-700">Profile limit</p>
+                  <p className="mt-1 text-sm font-black text-emerald-950">No profile limit in the app.</p>
+                </div>
+              </div>
+
+              <div className="space-y-2 mb-4" data-testid="child-profile-switcher">
                 {profiles.map(profile => (
                   <button
                     key={profile.id}
@@ -2471,7 +2500,9 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                     <p className="mt-1 text-sm font-bold text-emerald-950 break-words">{cloudSession.email || 'Signed-in parent account'}</p>
                     <p className="mt-1 text-xs text-emerald-800">
                       {billingSummary.active
-                        ? 'Stripe access is connected to this Firebase parent account.'
+                        ? isOwnerCompedBilling
+                          ? 'Owner access is connected to this Firebase parent account.'
+                          : 'Stripe access is connected to this Firebase parent account.'
                         : 'Choose Starter or Premium in parent-only Stripe checkout.'}
                     </p>
                   </div>
@@ -2572,10 +2603,10 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                         () => onOpenStripeBillingPortal?.() || Promise.resolve(),
                         'Stripe billing portal could not be opened.'
                       )}
-                      disabled={isBillingBusy}
+                      disabled={isBillingBusy || isOwnerCompedBilling}
                       className="py-3 rounded-lg bg-slate-100 text-slate-700 font-semibold hover:bg-slate-200 disabled:bg-gray-200 disabled:text-gray-500 transition flex items-center justify-center gap-2"
                     >
-                      {billingSummary.active ? 'Manage Billing in Stripe' : 'Manage Billing'}
+                      {isOwnerCompedBilling ? 'No Stripe Billing Needed' : billingSummary.active ? 'Manage Billing in Stripe' : 'Manage Billing'}
                     </button>
                   </div>
                 </div>

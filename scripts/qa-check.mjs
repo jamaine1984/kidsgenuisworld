@@ -24,6 +24,8 @@ const requiredFiles = [
   'services/firebaseParentAuth.ts',
   'services/firebaseProgressStore.ts',
   'services/stripeBilling.ts',
+  'functions/index.js',
+  'functions/.env.example',
   'components/InstallAppButton.tsx',
   'scripts/check-secrets.mjs',
   'scripts/check-elevenlabs-key.mjs',
@@ -331,6 +333,7 @@ if (!cloudflareWorkerSource.includes('STRIPE_SECRET_KEY') || !cloudflareWorkerSo
   fail('Cloudflare Worker must create Stripe billing sessions behind verified Firebase parent auth.');
 }
 const firebaseFunctionsSource = fs.readFileSync(path.join(root, 'functions/index.js'), 'utf8');
+const functionsEnvExampleSource = fs.readFileSync(path.join(root, 'functions/.env.example'), 'utf8');
 if (
   !firebaseFunctionsSource.includes('getVerifiedFamilyId') ||
   !firebaseFunctionsSource.includes('getConfiguredPriceId') ||
@@ -350,6 +353,26 @@ if (
   !firebaseFunctionsSource.includes('Parent account does not match the requested family billing record')
 ) {
   fail('Firebase billing functions must derive family access from verified Firebase auth and persist Stripe customer mappings.');
+}
+if (
+  !firebaseFunctionsSource.includes('DEFAULT_COMPED_PARENT_EMAILS') ||
+  !firebaseFunctionsSource.includes('korikes2021@gmail.com') ||
+  !firebaseFunctionsSource.includes('koikes2021@gmail.com') ||
+  !firebaseFunctionsSource.includes('owner_comped') ||
+  !firebaseFunctionsSource.includes('persistCompedBillingSnapshot') ||
+  !stripeBillingSource.includes('accessSource') ||
+  !stripeBillingSource.includes('comped') ||
+  !appSource.includes('OWNER_STARTER_PROFILES') ||
+  !appSource.includes('buildOwnerFamilyAccessRecord') ||
+  !appSource.includes('verifiedOwnerEmail') ||
+  !appSource.includes('owner-profile-1') ||
+  !appSource.includes('owner-profile-2') ||
+  !appSource.includes('owner-profile-3') ||
+  !parentDashboardSource.includes('Unlimited access is enabled') ||
+  !parentDashboardSource.includes('No profile limit in the app') ||
+  !functionsEnvExampleSource.includes('COMPED_PARENT_EMAILS')
+) {
+  fail('Owner comped access and starter child profile seeding must stay wired for the launch owner account.');
 }
 if (
   firebaseFunctionsSource.includes('price_1TU') ||

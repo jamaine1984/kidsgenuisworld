@@ -81,6 +81,34 @@ const removeUndefined = (record) => Object.fromEntries(
 );
 
 const subscriptionAllowsAccess = (status) => ['trialing', 'active', 'past_due'].includes(status);
+const normalizeEmail = (email = '') => String(email).trim().toLowerCase();
+const DEFAULT_COMPED_PARENT_EMAILS = ['korikes2021@gmail.com', 'koikes2021@gmail.com'];
+
+const getCompedParentEmails = () => {
+  const configuredEmails = getEnv('COMPED_PARENT_EMAILS')
+    .split(',')
+    .map(normalizeEmail)
+    .filter(Boolean);
+  return new Set([...DEFAULT_COMPED_PARENT_EMAILS, ...configuredEmails]);
+};
+
+const isCompedParent = (parent) => getCompedParentEmails().has(normalizeEmail(parent.email));
+
+const getCompedAccessPayload = (parent, familyId) => ({
+  active: true,
+  status: 'owner_comped',
+  plan: 'premium',
+  accessSource: 'owner_comped',
+  billingAccessActive: true,
+  comped: true,
+  customerId: '',
+  subscriptionId: '',
+  trialEndsAt: null,
+  currentPeriodEndsAt: null,
+  cancelAtPeriodEnd: false,
+  parentEmail: parent.email,
+  familyId,
+});
 
 const getMetadataValue = (key, ...objects) => {
   for (const object of objects) {
@@ -341,6 +369,23 @@ const safeReturnUrl = (req, value) => {
 
 const getBillingCustomerRef = (parent) => getFirestore().collection('billingCustomers').doc(parent.uid);
 
+const persistCompedBillingSnapshot = async (parent, familyId) => {
+  await getBillingCustomerRef(parent).set({
+    app: 'kid-genius-world',
+    accessSource: 'owner_comped',
+    billingAccessActive: true,
+    comped: true,
+    customerId: '',
+    familyId,
+    parentEmail: parent.email,
+    parentUid: parent.uid,
+    plan: 'premium',
+    subscriptionId: '',
+    subscriptionStatus: 'owner_comped',
+    updatedAt: FieldValue.serverTimestamp(),
+  }, { merge: true });
+};
+
 const getStoredCustomer = async (stripe, parent) => {
   const snapshot = await getBillingCustomerRef(parent).get();
   const customerId = snapshot.data()?.customerId;
@@ -429,13 +474,21 @@ export const billingCheckout = onRequest(functionOptions, async (req, res) => {
 
   try {
     const parent = await verifyParent(req);
+    const familyId = getVerifiedFamilyId(req, parent);
+    const returnUrl = safeReturnUrl(req, req.body?.returnUrl);
+    if (isCompedParent(parent)) {
+      await persistCompedBillingSnapshot(parent, familyId);
+      return sendJson(res, 200, {
+        url: `${returnUrl}/?billing=success`,
+        ...getCompedAccessPayload(parent, familyId),
+      });
+    }
+
     const requestedPlan = req.body?.plan === 'premium' ? 'premium' : 'starter';
     const priceId = getConfiguredPriceId(requestedPlan);
 
     const stripe = getStripe();
-    const familyId = getVerifiedFamilyId(req, parent);
     const customer = await findOrCreateCustomer(stripe, parent, familyId);
-    const returnUrl = safeReturnUrl(req, req.body?.returnUrl);
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       customer: customer.id,
@@ -472,8 +525,16 @@ export const billingPortal = onRequest(functionOptions, async (req, res) => {
 
   try {
     const parent = await verifyParent(req);
-    const stripe = getStripe();
     const familyId = getVerifiedFamilyId(req, parent);
+    if (isCompedParent(parent)) {
+      await persistCompedBillingSnapshot(parent, familyId);
+      return sendJson(res, 200, {
+        url: safeReturnUrl(req, req.body?.returnUrl),
+        ...getCompedAccessPayload(parent, familyId),
+      });
+    }
+
+    const stripe = getStripe();
     const customer = await findOrCreateCustomer(stripe, parent, familyId);
     const session = await stripe.billingPortal.sessions.create({
       customer: customer.id,
@@ -492,8 +553,13 @@ export const billingAccess = onRequest(functionOptions, async (req, res) => {
 
   try {
     const parent = await verifyParent(req);
-    const stripe = getStripe();
     const familyId = getVerifiedFamilyId(req, parent);
+    if (isCompedParent(parent)) {
+      await persistCompedBillingSnapshot(parent, familyId);
+      return sendJson(res, 200, getCompedAccessPayload(parent, familyId));
+    }
+
+    const stripe = getStripe();
     const customer = await findExistingCustomer(stripe, parent);
     if (!customer?.id) {
       return sendJson(res, 200, { active: false, status: 'none' });

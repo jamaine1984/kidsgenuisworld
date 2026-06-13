@@ -119,6 +119,7 @@ const blogIndexSource = read('public/blog/index.html');
 const packageJson = JSON.parse(read('package.json'));
 const readmeSource = read('README.md');
 const secretCheckSource = read('scripts/check-secrets.mjs');
+const functionsEnvExampleSource = read('functions/.env.example');
 
 if (!appSource.includes("setLegalView('privacy')") || !appSource.includes("setLegalView('terms')") || !appSource.includes("setLegalView('support')")) {
   fail('Privacy, terms, and parent support links are not reachable from the app.');
@@ -236,6 +237,21 @@ if (
   !firebaseFunctionsSource.includes('Parent account does not match the requested family billing record')
 ) {
   fail('Firebase billing functions must derive family access from verified Firebase auth and persist Stripe customer mappings.');
+}
+if (
+  !firebaseFunctionsSource.includes('DEFAULT_COMPED_PARENT_EMAILS') ||
+  !firebaseFunctionsSource.includes('korikes2021@gmail.com') ||
+  !firebaseFunctionsSource.includes('koikes2021@gmail.com') ||
+  !firebaseFunctionsSource.includes('owner_comped') ||
+  !firebaseFunctionsSource.includes('persistCompedBillingSnapshot') ||
+  !stripeBillingSource.includes('accessSource') ||
+  !appSource.includes('OWNER_STARTER_PROFILES') ||
+  !appSource.includes('buildOwnerFamilyAccessRecord') ||
+  !appSource.includes('verifiedOwnerEmail') ||
+  !parentSource.includes('No profile limit in the app') ||
+  !functionsEnvExampleSource.includes('COMPED_PARENT_EMAILS')
+) {
+  fail('Owner comped access and starter child profile seeding must stay launch-ready.');
 }
 if (
   firebaseFunctionsSource.includes('price_1TU') ||

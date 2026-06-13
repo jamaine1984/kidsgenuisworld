@@ -58,6 +58,9 @@ export const getStripeBillingAccess = async (cloudSession: ParentCloudSession) =
     active?: boolean;
     status?: string;
     plan?: 'starter' | 'premium';
+    accessSource?: 'stripe' | 'owner_comped';
+    billingAccessActive?: boolean;
+    comped?: boolean;
     trialEndsAt?: number | null;
     currentPeriodEndsAt?: number | null;
     cancelAtPeriodEnd?: boolean;
@@ -79,6 +82,9 @@ export const getStripeBillingAccess = async (cloudSession: ParentCloudSession) =
     active: Boolean(result.active),
     status: result.status || 'none',
     plan: result.plan,
+    accessSource: result.accessSource,
+    billingAccessActive: Boolean(result.billingAccessActive),
+    comped: Boolean(result.comped),
     trialEndsAt: result.trialEndsAt || null,
     currentPeriodEndsAt: result.currentPeriodEndsAt || null,
     cancelAtPeriodEnd: Boolean(result.cancelAtPeriodEnd),

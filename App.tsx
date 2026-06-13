@@ -73,6 +73,32 @@ const FAMILY_ACCESS_KEY_PREFIX = 'kidGeniusFamilyAccess';
 const DEV_ACCESS_OVERRIDE_KEY = 'kidGeniusDevAccessOverride';
 const BILLING_TRIAL_DAYS = 3;
 const BILLING_TRIAL_MS = BILLING_TRIAL_DAYS * 24 * 60 * 60 * 1000;
+const OWNER_PROFILE_EMAILS = ['korikes2021@gmail.com', 'koikes2021@gmail.com'];
+const OWNER_STARTER_PROFILES: Array<Pick<ChildProfile, 'id' | 'name' | 'grade'>> = [
+  { id: 'owner-profile-1', name: 'Genius Kid 1', grade: GradeLevel.KINDERGARTEN },
+  { id: 'owner-profile-2', name: 'Genius Kid 2', grade: GradeLevel.SECOND_GRADE },
+  { id: 'owner-profile-3', name: 'Genius Kid 3', grade: GradeLevel.FOURTH_GRADE },
+];
+
+const normalizeParentEmail = (email?: string | null) => String(email || '').trim().toLowerCase();
+const isOwnerParentEmail = (email?: string | null) => OWNER_PROFILE_EMAILS.includes(normalizeParentEmail(email));
+
+const ensureOwnerStarterProfiles = (profiles: ChildProfile[]): ChildProfile[] => {
+  const now = Date.now();
+  const existingById = new Map(profiles.map(profile => [profile.id, profile]));
+  const ownerProfileIds = new Set(OWNER_STARTER_PROFILES.map(profile => profile.id));
+  const starterProfiles = OWNER_STARTER_PROFILES.map(seed => (
+    existingById.get(seed.id) || {
+      ...seed,
+      createdAt: now,
+      lastActiveAt: now,
+    }
+  ));
+  const otherProfiles = profiles.filter(profile => !ownerProfileIds.has(profile.id));
+  return [...starterProfiles, ...otherProfiles];
+};
+const hasOwnerStarterProfiles = (profiles: ChildProfile[]) =>
+  OWNER_STARTER_PROFILES.every(seed => profiles.some(profile => profile.id === seed.id));
 
 interface LearningReflection {
   roomLabel: string;
@@ -97,6 +123,8 @@ interface FamilyAccessRecord {
   billingAccessActive: boolean;
   plan?: 'starter' | 'premium';
   stripeStatus?: string;
+  accessSource?: 'stripe' | 'owner_comped';
+  comped?: boolean;
   trialStartedAt?: number;
   trialEndsAt?: number;
   currentPeriodEndsAt?: number;
@@ -110,6 +138,7 @@ interface FamilyAccessRecord {
   lastStripeEventType?: string;
   checkoutCompletedAt?: number;
   verifiedByBillingApi?: boolean;
+  verifiedOwnerEmail?: boolean;
   checkedAt?: number;
 }
 
@@ -413,6 +442,20 @@ const clearFamilyAccess = (familyId?: string | null) => {
   if (familyId) localStorage.removeItem(getFamilyAccessKey(familyId));
 };
 
+const buildOwnerFamilyAccessRecord = (familyId: string): FamilyAccessRecord => {
+  const now = Date.now();
+  return {
+    familyId,
+    billingAccessActive: true,
+    plan: 'premium',
+    stripeStatus: 'owner_comped',
+    accessSource: 'owner_comped',
+    comped: true,
+    verifiedOwnerEmail: true,
+    checkedAt: now,
+  };
+};
+
 const hasDevAccessOverride = () =>
   Boolean(import.meta.env.DEV && localStorage.getItem(DEV_ACCESS_OVERRIDE_KEY) === 'true');
 
@@ -428,6 +471,17 @@ const formatBillingDate = (timestamp?: number) => {
 
 const getBillingAccessSummary = (access?: FamilyAccessRecord | null) => {
   const planLabel = access?.plan === 'premium' ? 'Premium $9.99/mo' : access?.plan === 'starter' ? 'Starter $4.99/mo' : 'Plan not selected';
+  if (access?.accessSource === 'owner_comped' || access?.comped || access?.stripeStatus === 'owner_comped') {
+    return {
+      tone: 'success' as const,
+      statusLabel: 'Owner access active',
+      planLabel: 'Owner access',
+      detail: 'This parent account has unlimited Kid Genius World access.',
+      dateLabel: 'No Stripe payment required',
+      checkedLabel: access.checkedAt ? `Verified ${formatBillingDate(access.checkedAt)}` : '',
+    };
+  }
+
   if (!access?.billingAccessActive) {
     return {
       tone: 'warning' as const,
@@ -534,6 +588,14 @@ const App: React.FC = () => {
     }
 
     setBillingStatus(statusPrefix);
+    if (isOwnerParentEmail(parentCloudSession.email)) {
+      const nextAccess = buildOwnerFamilyAccessRecord(parentCloudSession.familyId);
+      saveFamilyAccess(nextAccess);
+      setFamilyAccess(nextAccess);
+      setBillingStatus('Owner access verified. No Stripe payment is required for this parent account.');
+      return nextAccess;
+    }
+
     const access = await getStripeBillingAccess(parentCloudSession);
     if (!access.active) {
       clearFamilyAccess(parentCloudSession.familyId);
@@ -548,6 +610,8 @@ const App: React.FC = () => {
       billingAccessActive: true,
       plan: access.plan,
       stripeStatus: access.status,
+      accessSource: access.accessSource,
+      comped: access.comped,
       trialStartedAt: access.trialEndsAt ? access.trialEndsAt - BILLING_TRIAL_MS : undefined,
       trialEndsAt: access.trialEndsAt || undefined,
       currentPeriodEndsAt: access.currentPeriodEndsAt || undefined,
@@ -565,6 +629,11 @@ const App: React.FC = () => {
     };
     saveFamilyAccess(nextAccess);
     setFamilyAccess(nextAccess);
+    if (access.accessSource === 'owner_comped' || access.comped || access.status === 'owner_comped') {
+      setBillingStatus('Owner access verified. No Stripe payment is required for this parent account.');
+      return nextAccess;
+    }
+
     const trialCopy = access.status === 'trialing' && access.trialEndsAt
       ? ` 3-day trial ends ${formatTrialEndDate(access.trialEndsAt)}.`
       : '';
@@ -622,14 +691,42 @@ const App: React.FC = () => {
   useEffect(() => subscribeParentCloudSession(setParentCloudSession), []);
 
   useEffect(() => {
+    if (!isOwnerParentEmail(parentCloudSession.email)) {
+      return;
+    }
+
+    setProfiles(prevProfiles => {
+      if (hasOwnerStarterProfiles(prevProfiles)) {
+        return prevProfiles;
+      }
+      return ensureOwnerStarterProfiles(prevProfiles);
+    });
+  }, [parentCloudSession.email]);
+
+  useEffect(() => {
+    if (profiles.some(profile => profile.id === activeProfileId)) {
+      return;
+    }
+    const fallbackProfile = profiles[0];
+    if (!fallbackProfile) {
+      return;
+    }
+    setActiveProfileId(fallbackProfile.id);
+    setProgress(loadProgressForProfile(fallbackProfile));
+  }, [profiles, activeProfileId]);
+
+  useEffect(() => {
     const savedAccess = loadFamilyAccess(parentCloudSession.familyId);
     setFamilyAccess(savedAccess);
     if (parentCloudSession.signedIn && parentCloudSession.familyId) {
-      refreshBillingAccess('Checking Stripe trial access...').catch(error => {
-        setBillingStatus(error instanceof Error ? error.message : 'Stripe trial access could not be checked.');
+      const statusPrefix = isOwnerParentEmail(parentCloudSession.email)
+        ? 'Checking owner access...'
+        : 'Checking Stripe trial access...';
+      refreshBillingAccess(statusPrefix).catch(error => {
+        setBillingStatus(error instanceof Error ? error.message : 'Parent account access could not be checked.');
       });
     }
-  }, [parentCloudSession.signedIn, parentCloudSession.familyId]);
+  }, [parentCloudSession.signedIn, parentCloudSession.familyId, parentCloudSession.email]);
 
   useEffect(() => {
     const billingResult = new URLSearchParams(window.location.search).get('billing');
@@ -1010,7 +1107,9 @@ const App: React.FC = () => {
     try {
       const access = await refreshBillingAccess('Refreshing Stripe trial and subscription status...');
       setAccessGateStatus(
-        access
+        access?.accessSource === 'owner_comped' || access?.comped
+          ? 'Owner access is verified. You can continue learning with no Stripe payment required.'
+          : access
           ? 'Stripe access is verified. You can continue learning.'
           : 'No active Stripe trial or subscription is attached to this parent account yet.'
       );
@@ -1028,7 +1127,11 @@ const App: React.FC = () => {
       parentCloudSession.familyId &&
       familyAccess?.familyId === parentCloudSession.familyId &&
       familyAccess.billingAccessActive &&
-      (familyAccess.verifiedByBillingApi || Boolean(familyAccess.checkoutCompletedAt))
+      (
+        familyAccess.verifiedByBillingApi ||
+        familyAccess.verifiedOwnerEmail ||
+        Boolean(familyAccess.checkoutCompletedAt)
+      )
     );
   };
 
@@ -1056,7 +1159,7 @@ const App: React.FC = () => {
       return;
     }
 
-    setAccessGateStatus('Choose a monthly plan to start the 3-day free trial before this section opens.');
+    setAccessGateStatus('Checking parent account access. If no owner access, trial, or subscription is active, choose a monthly plan to open this section.');
   };
 
   const continueAfterAccess = () => {
@@ -1065,7 +1168,7 @@ const App: React.FC = () => {
       return;
     }
     if (!hasPaidAccess()) {
-      setAccessGateStatus('Choose a plan to start the 3-day trial before this section opens.');
+      setAccessGateStatus('Refresh parent account access or choose a plan to start the 3-day trial before this section opens.');
       return;
     }
     const action = pendingAccessAction;
@@ -1083,7 +1186,11 @@ const App: React.FC = () => {
     setAccessGateStatus('Creating parent account...');
     try {
       await createParentAccount(accessEmail.trim(), accessPassword);
-      setAccessGateStatus('Parent account created. Choose a plan to start the 3-day free trial.');
+      setAccessGateStatus(
+        isOwnerParentEmail(accessEmail)
+          ? 'Parent account created. Checking owner access...'
+          : 'Parent account created. Choose a plan to start the 3-day free trial.'
+      );
     } catch (error) {
       setAccessGateStatus(error instanceof Error ? error.message : 'Parent account could not be created.');
     } finally {
@@ -1100,7 +1207,11 @@ const App: React.FC = () => {
     setAccessGateStatus('Signing in parent...');
     try {
       await signInParentAccount(accessEmail.trim(), accessPassword);
-      setAccessGateStatus('Parent signed in. Choose a plan to start the 3-day free trial.');
+      setAccessGateStatus(
+        isOwnerParentEmail(accessEmail)
+          ? 'Parent signed in. Checking owner access...'
+          : 'Parent signed in. Choose a plan to start the 3-day free trial.'
+      );
     } catch (error) {
       setAccessGateStatus(error instanceof Error ? error.message : 'Parent sign-in failed.');
     } finally {
@@ -1113,7 +1224,7 @@ const App: React.FC = () => {
     setAccessGateStatus('Opening Google sign-in...');
     try {
       await signInParentWithGoogle();
-      setAccessGateStatus('Parent signed in with Google. Choose a plan to start the 3-day free trial.');
+      setAccessGateStatus('Parent signed in with Google. Checking account access...');
     } catch (error) {
       setAccessGateStatus(error instanceof Error ? error.message : 'Google sign-in failed.');
     } finally {

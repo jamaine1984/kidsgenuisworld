@@ -425,8 +425,8 @@ if (
 ) {
   fail('Parent billing UI must show explicit trial/subscription status after Stripe checkout.');
 }
-if (audioServiceSource.includes('new SpeechSynthesisUtterance') || audioServiceSource.includes('window.speechSynthesis.speak(')) {
-  fail('Kid-facing narration should use cached human voice audio, not browser speech synthesis.');
+if (!audioServiceSource.includes('playBrowserVoiceSpeech') || !audioServiceSource.includes('window.speechSynthesis.speak(utterance)')) {
+  fail('Kid-facing narration must fall back to a free device browser voice when saved voice audio is unavailable.');
 }
 if (!voiceCacheSource.includes('Welcome back to Kid Genius World!') || !fs.readFileSync(path.join(root, 'server/production-server.mjs'), 'utf8').includes('slice(0, 500)')) {
   fail('Human voice cache must include app greetings and support larger pre-cache batches.');
@@ -534,8 +534,15 @@ if (
 if (!audioServiceSource.includes('speechRunId') || !audioServiceSource.includes('stopActiveSpeechPlayback') || !audioServiceSource.includes('queueRunId === speechRunId')) {
   fail('Narration overlap guard is missing from audioService.');
 }
-if (!audioServiceSource.includes('playStaticVoiceSpeech(text)') || !audioServiceSource.includes('hasStaticVoiceCache()') || !audioServiceSource.includes('getStaticVoiceManifestUrl()') || !audioServiceSource.includes('kidgenius:narration-status')) {
-  fail('Kid-facing voice mode must use static saved MP3 files instead of runtime TTS APIs.');
+if (
+  !audioServiceSource.includes('playStaticVoiceSpeech(text)') ||
+  !audioServiceSource.includes('playBrowserVoiceSpeech') ||
+  !audioServiceSource.includes('new SpeechSynthesisUtterance') ||
+  !audioServiceSource.includes('hasStaticVoiceCache()') ||
+  !audioServiceSource.includes('getStaticVoiceManifestUrl()') ||
+  !audioServiceSource.includes('kidgenius:narration-status')
+) {
+  fail('Kid-facing voice mode must use static saved MP3 files first and a browser voice fallback instead of runtime TTS APIs.');
 }
 if (!mediaApiSource.includes('VITE_MEDIA_API_BASE_URL') || !mediaApiSource.includes('getStaticMediaUrl') || !mediaApiSource.includes('getStaticVoiceManifestUrl') || !audioServiceSource.includes('getStaticVoiceManifestUrl()') || !voiceCacheSource.includes('getStaticVoiceManifestUrl()')) {
   fail('Firebase-hosted builds must route static MP3 files through a configured media base URL while loading the static manifest from the app origin.');

@@ -99,7 +99,8 @@ export const LegalInfo: React.FC<LegalInfoProps> = ({ type, onBack }) => {
                 <p>
                   We do not sell child personal information and do not run behavioral advertising in the child learning area.
                   We use service providers only to operate the app, including Firebase for parent authentication/cloud data,
-                  Firebase Hosting for the web app, Stripe for billing, and saved static media hosting for voice and images.
+                  Firebase Hosting for the web app, Stripe for billing, saved static media hosting for voice and images,
+                  and the device browser's built-in voice when a saved narration file is unavailable.
                 </p>
               </section>
               <section>

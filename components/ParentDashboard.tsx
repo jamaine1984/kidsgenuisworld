@@ -2310,7 +2310,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 Privacy Controls
               </h3>
               <p className="text-sm text-gray-600 mb-4">
-                Keep media features parent-approved. Voice and covers play from saved static files; the child app does not generate media with live APIs.
+                Keep media features parent-approved. Voice uses saved static files first and the device browser voice as a no-API fallback; the child app does not generate media with live APIs.
               </p>
               {[
                 {
@@ -2321,7 +2321,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 {
                   key: 'allowExternalVoice',
                   title: 'Saved voice narration',
-                  description: 'Plays pre-generated human lesson audio from the static voice cache. Spoken narration stays off when this is off.',
+                  description: 'Plays pre-generated human lesson audio from the static voice cache. If unavailable, lessons use the free device browser voice so kids still hear guidance.',
                 },
                 {
                   key: 'allowGeneratedStoryCovers',

@@ -121,6 +121,11 @@ test('math room completion creates reward and parent-visible journal proof', asy
   await expect(page.getByTestId('teacher-help-ladder')).toContainText('Teacher help ladder');
   await expect(page.getByTestId('teacher-help-ladder')).toContainText('Hint');
   await expect(page.getByTestId('math-question')).toBeVisible();
+  await expect(page.getByTestId('guide-bubble')).toBeHidden();
+  await page.getByLabel('Open guide message').click();
+  await expect(page.getByTestId('guide-bubble')).toContainText(/one problem|Count carefully/i);
+  await page.getByLabel('Minimize guide message').click();
+  await expect(page.getByTestId('guide-bubble')).toBeHidden();
 
   for (let round = 0; round < 3; round += 1) {
     const question = (await page.getByTestId('math-question').innerText()).trim();
@@ -180,6 +185,29 @@ test('teacher coach starts compact on phone and expands on demand', async ({ pag
   await expect(page.getByTestId('teacher-room-coach')).toContainText('Exit ticket');
   await page.getByLabel('Collapse teacher coach').click();
   await expect(page.getByTestId('teacher-room-coach-compact')).toBeVisible();
+});
+
+test('browser voice fallback speaks when saved voice is off', async ({ page }) => {
+  await page.evaluate(() => {
+    (window as any).__kidGeniusSpeechCount = 0;
+    window.speechSynthesis.cancel = () => undefined;
+    window.speechSynthesis.speak = (utterance: SpeechSynthesisUtterance) => {
+      (window as any).__kidGeniusSpeechCount += 1;
+      window.setTimeout(() => {
+        utterance.onend?.(new Event('end') as SpeechSynthesisEvent);
+      }, 0);
+    };
+  });
+  await completeKidSetup(page);
+  await page.evaluate(() => {
+    window.localStorage.setItem('kidGeniusAllowExternalVoice', 'false');
+    (window as any).__kidGeniusSpeechCount = 0;
+  });
+
+  await page.getByTestId('room-card-MATH').click();
+  await startTeacherLesson(page);
+
+  await expect.poll(async () => page.evaluate(() => (window as any).__kidGeniusSpeechCount || 0)).toBeGreaterThan(0);
 });
 
 test('reading room completion creates reward and parent-visible journal proof', async ({ page }) => {

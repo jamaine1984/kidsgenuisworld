@@ -2364,9 +2364,8 @@ const App: React.FC = () => {
         />
       )}
 
-      {showActiveMissionFocus && activeUnit && (
-        <div className="fixed bottom-4 left-4 right-20 z-30 mx-auto max-w-5xl sm:right-4">
-          {showMissionFocus ? (
+      {showActiveMissionFocus && activeUnit && showMissionFocus && (
+        <div className="fixed bottom-4 left-4 right-4 z-40 mx-auto max-w-5xl">
             <div className="max-h-[78vh] overflow-y-auto rounded-[24px] border-4 border-white bg-white/95 p-4 shadow-2xl backdrop-blur">
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -2423,16 +2422,6 @@ const App: React.FC = () => {
                 </div>
               </div>
             </div>
-          ) : (
-            <button
-              onClick={() => setShowMissionFocus(true)}
-              className="inline-flex max-w-full items-center gap-2 rounded-full border-4 border-white bg-indigo-600 px-4 py-3 text-left font-black text-white shadow-xl hover:bg-indigo-700"
-            >
-              <Target size={20} className="shrink-0" />
-              <span className="truncate">{AI_TEACHER.name} Lesson: {activeUnit.title}</span>
-              <span className="shrink-0 rounded-full bg-white/20 px-2 py-1 text-xs">{activeUnitPracticeCount}/{MASTERED_PRACTICE_TARGET}</span>
-            </button>
-          )}
         </div>
       )}
 

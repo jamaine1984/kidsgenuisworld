@@ -153,8 +153,13 @@ if (
 ) {
   fail('Secret scanning and Firebase Functions environment documentation must stay wired before launch.');
 }
-if (!audioSource.includes('kidGeniusAllowExternalVoice') || !storySource.includes('/story-covers/${story.id}.png')) {
-  fail('Saved voice and static cover features must be wired before launch.');
+if (
+  !audioSource.includes('kidGeniusAllowExternalVoice') ||
+  !audioSource.includes('playBrowserVoiceSpeech') ||
+  !audioSource.includes('window.speechSynthesis.speak(utterance)') ||
+  !storySource.includes('/story-covers/${story.id}.png')
+) {
+  fail('Saved voice, browser voice fallback, and static cover features must be wired before launch.');
 }
 if (audioSource.includes('/api/tts') || storySource.includes('/api/story-cover') || storySource.includes('fetch(')) {
   fail('Child-facing media must load from static files, not runtime generation APIs.');

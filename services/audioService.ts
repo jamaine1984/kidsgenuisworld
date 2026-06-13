@@ -43,8 +43,8 @@ export const resumeAudioContext = async () => {
 
 // ============================================
 // TEXT-TO-SPEECH
-// Static human voice MP3 cache.
-// Browser speech and runtime TTS APIs are intentionally not used for lessons.
+// Static human voice MP3 cache first, free browser voice fallback second.
+// Runtime TTS API calls are intentionally not used for lessons.
 // ============================================
 
 // Check if running in iOS native wrapper
@@ -150,6 +150,85 @@ const getStaticVoiceCandidates = async (text: string) => {
   }));
 };
 
+const pickBrowserVoice = () => {
+  if (!hasWebSpeech()) return null;
+  const voices = window.speechSynthesis.getVoices();
+  const englishVoices = voices.filter(voice => voice.lang.toLowerCase().startsWith('en'));
+  return (
+    englishVoices.find(voice => voice.localService && /female|samantha|zira|aria|jenny|natural/i.test(voice.name))
+    || englishVoices.find(voice => voice.localService)
+    || englishVoices.find(voice => /female|samantha|zira|aria|jenny|natural/i.test(voice.name))
+    || englishVoices[0]
+    || voices[0]
+    || null
+  );
+};
+
+const getBrowserVoiceRate = (requestedRate: number) => {
+  const styleRateMap: Record<NarrationStyle, number> = {
+    gentle: 0.82,
+    energetic: 0.9,
+    phonics: 0.72,
+    story: 0.72,
+  };
+  const ageRateMap = {
+    early: 0.78,
+    elementary: 0.84,
+    older: 0.9,
+  };
+  const styleRate = styleRateMap[speechPreferences.narrationStyle];
+  const ageRate = ageRateMap[speechPreferences.ageGroup];
+  return Math.max(0.58, Math.min(0.94, requestedRate * speechPreferences.speechRate * styleRate * ageRate));
+};
+
+const playBrowserVoiceSpeech = (text: string, rate: number, pitch: number): Promise<void> => {
+  return new Promise((resolve) => {
+    if (!hasWebSpeech()) {
+      notifyNarrationStatus('error', 'This browser does not have a built-in voice available.');
+      resolve();
+      return;
+    }
+
+    const normalizedText = normalizeSpeechText(text);
+    if (!normalizedText) {
+      resolve();
+      return;
+    }
+
+    const utterance = new SpeechSynthesisUtterance(normalizedText);
+    const selectedVoice = pickBrowserVoice();
+    if (selectedVoice) {
+      utterance.voice = selectedVoice;
+    }
+    utterance.rate = getBrowserVoiceRate(rate);
+    utterance.pitch = Math.max(0.85, Math.min(1.2, pitch));
+    utterance.volume = 1;
+
+    let finished = false;
+    let timeout: number | undefined;
+    const cleanup = () => {
+      if (finished) return;
+      finished = true;
+      if (timeout) window.clearTimeout(timeout);
+      resolve();
+    };
+    timeout = window.setTimeout(() => {
+      notifyNarrationStatus('error', 'The browser voice took too long. Tap the listen button again.');
+      cleanup();
+    }, Math.min(18_000, Math.max(4_000, normalizedText.length * 90)));
+
+    utterance.onend = cleanup;
+    utterance.onerror = () => {
+      notifyNarrationStatus('error', 'The browser voice could not play. Tap the listen button again.');
+      cleanup();
+    };
+
+    stopActiveSpeechPlayback();
+    window.speechSynthesis.speak(utterance);
+    notifyNarrationStatus('ready', 'Teacher narration is playing with this device voice.');
+  });
+};
+
 export const setSpeechPreferences = (preferences: Partial<SpeechPreferences>) => {
   speechPreferences = {
     ...speechPreferences,
@@ -178,7 +257,7 @@ const playStaticVoiceSpeech = async (text: string): Promise<void> => {
   stopActiveSpeechPlayback();
   currentAudio = audio;
 
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const cleanup = () => {
       if (currentAudio === audio) {
         currentAudio = null;
@@ -189,13 +268,19 @@ const playStaticVoiceSpeech = async (text: string): Promise<void> => {
     audio.onended = cleanup;
     audio.onerror = () => {
       notifyNarrationStatus('error', 'This teacher voice line is not in the static voice cache yet.');
-      cleanup();
+      if (currentAudio === audio) {
+        currentAudio = null;
+      }
+      reject(new Error('Static voice file could not be played.'));
     };
     void audio.play().then(() => {
       notifyNarrationStatus('ready', 'Teacher narration is playing.');
     }).catch(() => {
-      notifyNarrationStatus('error', 'The browser blocked audio playback. Tap the listen button again.');
-      cleanup();
+      notifyNarrationStatus('error', 'The saved voice file could not play. Using this device voice instead.');
+      if (currentAudio === audio) {
+        currentAudio = null;
+      }
+      reject(new Error('Static voice playback was blocked.'));
     });
   });
 };
@@ -279,11 +364,13 @@ const speakAndWait = (text: string, rate: number, pitch: number, runId: number):
     if (hasStaticVoiceCache()) {
       playStaticVoiceSpeech(text)
         .then(resolve)
-        .catch(() => resolve());
-    } else {
-      notifyNarrationStatus('blocked', 'Teacher narration is off. A parent can enable External voice narration in Privacy Controls.');
-      resolve();
+        .catch(() => {
+          void playBrowserVoiceSpeech(text, rate, pitch).then(resolve);
+        });
+      return;
     }
+
+    void playBrowserVoiceSpeech(text, rate, pitch).then(resolve);
   });
 };
 

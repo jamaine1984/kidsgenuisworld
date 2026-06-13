@@ -185,7 +185,7 @@ export const TeacherRoomCoach: React.FC<TeacherRoomCoachProps> = ({
             <button
               onClick={() => setIsCollapsed(true)}
               aria-label="Collapse teacher coach"
-              className="pointer-events-auto inline-flex items-center justify-center gap-1 rounded-2xl bg-indigo-50 px-3 py-2 text-xs font-black text-indigo-800 shadow hover:bg-indigo-100 md:hidden"
+              className="pointer-events-auto inline-flex items-center justify-center gap-1 rounded-2xl bg-indigo-50 px-3 py-2 text-xs font-black text-indigo-800 shadow hover:bg-indigo-100"
             >
               <ChevronUp size={15} />
               Hide

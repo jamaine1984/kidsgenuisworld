@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { speak, speakQuestion, speakCorrect, speakWrong, playSuccess, playWrongBuzzer, speakAsync } from '../services/audioService';
+import { speakCorrect, speakWrong, playSuccess, playWrongBuzzer, speakAsync, speakMultipleChoiceQuestion } from '../services/audioService';
 import { MathProblem } from '../types';
 import { Star, ArrowLeft, Volume2, RefreshCw, Calculator } from 'lucide-react';
 
@@ -122,6 +122,67 @@ const generateMathProblem = (level: number): MathProblem => {
     }
   };
 
+  const setEarlyWordProblem = () => {
+    const templates = [
+      () => {
+        a = Math.floor(Math.random() * 5) + 2;
+        b = Math.floor(Math.random() * 4) + 1;
+        operation = 'addition';
+        context = 'word-problem';
+        answer = a + b;
+        question = `Lena has ${a} crayons. She gets ${b} more crayons. How many crayons does she have now?`;
+        explanation = `${a} crayons plus ${b} more crayons equals ${answer} crayons.`;
+      },
+      () => {
+        a = Math.floor(Math.random() * 5) + 5;
+        b = Math.floor(Math.random() * 3) + 1;
+        operation = 'subtraction';
+        context = 'word-problem';
+        answer = a - b;
+        question = `A boy starts with ${a} apples. He eats ${b} apples. How many apples are left?`;
+        explanation = `Start with ${a} apples and take away ${b}. There are ${answer} apples left.`;
+      },
+      () => {
+        a = Math.floor(Math.random() * 4) + 3;
+        b = Math.floor(Math.random() * 3) + 2;
+        operation = 'addition';
+        context = 'word-problem';
+        answer = a + b;
+        question = `There are ${a} ducks in the pond. ${b} more ducks swim over. How many ducks are in the pond?`;
+        explanation = `${a} ducks and ${b} more ducks make ${answer} ducks.`;
+      },
+      () => {
+        a = Math.floor(Math.random() * 6) + 4;
+        b = Math.floor(Math.random() * 3) + 1;
+        operation = 'subtraction';
+        context = 'word-problem';
+        answer = a - b;
+        question = `There are ${a} blocks on the rug. A student puts away ${b} blocks. How many blocks stay on the rug?`;
+        explanation = `${a} blocks minus ${b} blocks leaves ${answer} blocks.`;
+      },
+      () => {
+        const tenFrame = 10;
+        a = Math.floor(Math.random() * 6) + 2;
+        b = tenFrame - a;
+        operation = 'addition';
+        context = 'equation';
+        answer = tenFrame;
+        question = `${a} + ${b} = ?`;
+        explanation = `${a} and ${b} make a full ten frame of ${tenFrame}.`;
+      },
+      () => {
+        a = Math.floor(Math.random() * 7) + 3;
+        b = Math.floor(Math.random() * 3) + 1;
+        operation = 'subtraction';
+        context = 'equation';
+        answer = a - b;
+        question = `${a} - ${b} = ?`;
+        explanation = `Picture ${a} counters. Cross out ${b}. ${answer} counters are left.`;
+      },
+    ];
+    templates[Math.floor(Math.random() * templates.length)]();
+  };
+
   const setMeasurementProblem = () => {
     const firstLength = Math.floor(Math.random() * 18) + 8;
     const secondLength = Math.floor(Math.random() * 10) + 3;
@@ -185,18 +246,24 @@ const generateMathProblem = (level: number): MathProblem => {
   const pick = (actions: Array<() => void>) => actions[Math.floor(Math.random() * actions.length)]();
 
   if (level <= 1) {
-    setEquation(Math.floor(Math.random() * 3) + 1, Math.floor(Math.random() * 3) + 1, 'addition');
+    pick([
+      () => setEquation(Math.floor(Math.random() * 4) + 1, Math.floor(Math.random() * 4) + 1, 'addition'),
+      setEarlyWordProblem,
+    ]);
   } else if (level === 2) {
-    if (Math.random() > 0.5) {
-      setEquation(Math.floor(Math.random() * 6) + 1, Math.floor(Math.random() * 5) + 1, 'addition');
-    } else {
-      const startValue = Math.floor(Math.random() * 6) + 5;
-      setEquation(startValue, Math.floor(Math.random() * startValue), 'subtraction');
-    }
+    pick([
+      () => setEquation(Math.floor(Math.random() * 8) + 1, Math.floor(Math.random() * 6) + 1, 'addition'),
+      () => {
+        const startValue = Math.floor(Math.random() * 8) + 5;
+        setEquation(startValue, Math.floor(Math.random() * Math.max(1, startValue - 1)) + 1, 'subtraction');
+      },
+      setEarlyWordProblem,
+    ]);
   } else if (level === 3) {
     pick([
       () => setEquation(Math.floor(Math.random() * 10) + 1, Math.floor(Math.random() * 10) + 1, 'addition'),
       () => setEquation(Math.floor(Math.random() * 10) + 10, Math.floor(Math.random() * 10), 'subtraction'),
+      setEarlyWordProblem,
       setWordProblem,
     ]);
   } else if (level === 4) {
@@ -294,11 +361,11 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, level }) =
     if (currentProblem.operation === 'division') return 'Teacher says: Think about sharing into equal groups.';
     return 'Teacher says: Read the problem carefully and solve one step at a time.';
   }, []);
-  const speakMathQuestion = useCallback((text: string) => {
+  const speakMathQuestion = useCallback((currentProblem: MathProblem) => {
     if (isSpeaking) return;
     setIsSpeaking(true);
 
-    const spokenText = text
+    const spokenText = currentProblem.question
       .replace(/\+/g, 'plus')
       .replace(/-/g, 'minus')
       .replace(/×/g, 'times')
@@ -306,8 +373,8 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, level }) =
       .replace(/=/g, 'equals')
       .replace(/\?/g, '');
 
-    speakQuestion(`What is ${spokenText}?`);
-    setTimeout(() => setIsSpeaking(false), 2000);
+    void speakMultipleChoiceQuestion(`What is ${spokenText}?`, currentProblem.options, 'Listen again.')
+      .finally(() => setIsSpeaking(false));
   }, [isSpeaking]);
 
   const teachProblem = useCallback(async (currentProblem: MathProblem) => {
@@ -319,7 +386,7 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, level }) =
       .replace(/-/g, 'minus')
       .replace(/=/g, 'equals')
       .replace(/\?/g, '');
-    await speakAsync(`Your turn. What is ${spokenText}?`, 0.86, 1.08);
+    await speakMultipleChoiceQuestion(`Your turn. What is ${spokenText}?`, currentProblem.options, 'Ms. Nova will read every answer choice.');
     setIsSpeaking(false);
   }, [buildCoachTip, buildTeacherIntro]);
   const loadProblem = useCallback(() => {
@@ -388,14 +455,31 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, level }) =
     const secondCount = Math.min(numbers[1] || 0, 12);
     const firstLabel = numbers[0] && numbers[0] > 12 ? `${numbers[0]} total` : `${numbers[0] || 0}`;
     const secondLabel = numbers[1] && numbers[1] > 12 ? `${numbers[1]} total` : `${numbers[1] || 0}`;
+    const isTakeAway = problem.operation === 'subtraction' || (
+      problem.context === 'word-problem' && /left|eat|eats|uses|puts away|take away|minus|cuts off/i.test(problem.question)
+    );
+    const visibleFirstCount = Math.max(firstCount, 1);
 
     return (
       <div className="mb-8 grid grid-cols-1 gap-3 rounded-[28px] bg-gradient-to-r from-sky-50 to-indigo-50 p-4 text-left sm:grid-cols-[1fr_auto_1fr]">
         <div className="rounded-2xl bg-white p-3 shadow-sm">
-          <p className="mb-2 text-xs font-black uppercase tracking-[0.18em] text-sky-600">First number</p>
-          <div className="flex flex-wrap gap-1.5">
-            {[...Array(Math.max(firstCount, 1))].map((_, index) => (
-              <span key={index} className="h-6 w-6 rounded-lg bg-sky-400 shadow-sm" />
+          <p className="mb-2 text-xs font-black uppercase tracking-[0.18em] text-sky-600">
+            {isTakeAway ? 'Start with' : 'First number'}
+          </p>
+          <div className="flex flex-wrap gap-1.5" aria-label={isTakeAway ? 'Starting group with crossed-out counters for take away' : 'First number counters'}>
+            {[...Array(visibleFirstCount)].map((_, index) => (
+              <span
+                key={index}
+                className={`relative h-7 w-7 rounded-lg shadow-sm ${
+                  isTakeAway && index >= Math.max(0, visibleFirstCount - secondCount)
+                    ? 'bg-rose-200 opacity-80'
+                    : 'bg-sky-400'
+                }`}
+              >
+                {isTakeAway && index >= Math.max(0, visibleFirstCount - secondCount) && (
+                  <span className="absolute left-1/2 top-1/2 h-0.5 w-8 -translate-x-1/2 -translate-y-1/2 rotate-45 rounded-full bg-rose-700" />
+                )}
+              </span>
             ))}
           </div>
           <p className="mt-2 text-sm font-black text-sky-900">{firstLabel}</p>
@@ -404,14 +488,24 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, level }) =
           <span className="rounded-full bg-indigo-600 px-4 py-2 text-sm font-black uppercase tracking-[0.14em] text-white shadow-lg">{operation}</span>
         </div>
         <div className="rounded-2xl bg-white p-3 shadow-sm">
-          <p className="mb-2 text-xs font-black uppercase tracking-[0.18em] text-violet-600">Second number</p>
+          <p className="mb-2 text-xs font-black uppercase tracking-[0.18em] text-violet-600">
+            {isTakeAway ? 'Take away' : 'Second number'}
+          </p>
           <div className="flex flex-wrap gap-1.5">
             {[...Array(Math.max(secondCount, 1))].map((_, index) => (
-              <span key={index} className="h-6 w-6 rounded-lg bg-violet-400 shadow-sm" />
+              <span key={index} className={`h-7 w-7 rounded-lg shadow-sm ${isTakeAway ? 'bg-rose-400' : 'bg-violet-400'}`} />
             ))}
           </div>
           <p className="mt-2 text-sm font-black text-violet-900">{secondLabel}</p>
         </div>
+        {isTakeAway && (
+          <div className="rounded-2xl bg-emerald-50 p-3 text-center shadow-sm sm:col-span-3">
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">Picture model</p>
+            <p className="mt-1 text-sm font-bold text-emerald-900">
+              Cross out {numbers[1] || 0}. Count what is not crossed out to find what is left.
+            </p>
+          </div>
+        )}
       </div>
     );
   };
@@ -473,7 +567,7 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, level }) =
                 Flash Card
             </div>
             <button
-                onClick={() => speakMathQuestion(problem.question)}
+                onClick={() => speakMathQuestion(problem)}
                 disabled={isSpeaking}
                 className={`absolute top-6 right-6 p-3 rounded-full transition-all ${isSpeaking ? 'bg-yellow-400 scale-110 ring-4 ring-yellow-200' : 'bg-indigo-100 hover:bg-indigo-200'}`}
             >

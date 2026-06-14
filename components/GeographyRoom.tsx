@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, Globe2, MapPin, Star, Plane, Volume2 } from 'lucide-react';
 import { GeographyQuestion } from '../types';
-import { speak, speakAsync, speakCorrect, speakWrong, speakQuestion, playSuccess, playWrongBuzzer } from '../services/audioService';
+import { speakAsync, speakCorrect, speakWrong, playSuccess, playWrongBuzzer, speakMultipleChoiceQuestion } from '../services/audioService';
 
 interface GeographyRoomProps {
   level: number; // 1-7 corresponds to grade levels
@@ -80,6 +80,36 @@ export const GEOGRAPHY_QUESTIONS: (GeographyQuestion & { gradeLevel: number })[]
   { gradeLevel: 7, type: 'landmark', question: 'Where is Machu Picchu?', answer: 'Peru', options: ['Peru', 'Mexico', 'Chile', 'Colombia'], funFact: 'Machu Picchu was built by the Inca civilization in the Andes Mountains.' },
   { gradeLevel: 7, type: 'map', question: 'Which map measurement tells how far east or west a place is from the Prime Meridian?', answer: 'Longitude', options: ['Longitude', 'Latitude', 'Elevation', 'Population'], funFact: 'Longitude lines run from the North Pole to the South Pole.' },
   { gradeLevel: 7, type: 'climate', question: 'Which word describes the usual weather pattern of a place over many years?', answer: 'Climate', options: ['Climate', 'Address', 'Border', 'Landmark'], funFact: 'Climate is different from daily weather because it describes long-term patterns.' },
+  { gradeLevel: 2, type: 'map', question: 'What does a blue area usually show on a map?', answer: 'Water', options: ['Water', 'Fire', 'A school desk', 'A shoe'], funFact: 'Maps often use blue for oceans, lakes, and rivers.' },
+  { gradeLevel: 2, type: 'nature', question: 'What landform is higher than a hill?', answer: 'Mountain', options: ['Mountain', 'Beach', 'River', 'Island'], funFact: 'Mountains can be snowy, rocky, forested, or volcanic.' },
+  { gradeLevel: 2, type: 'map', question: 'Which direction is opposite of north?', answer: 'South', options: ['South', 'Circle', 'Lunch', 'Purple'], funFact: 'North, south, east, and west are cardinal directions.' },
+  { gradeLevel: 2, type: 'country', question: 'What do we call the place where you live?', answer: 'Home', options: ['Home', 'Ocean', 'Moon', 'Cloud'], funFact: 'Geography starts with familiar places like home, school, and neighborhood.' },
+  { gradeLevel: 2, type: 'nature', question: 'Where does a river usually flow?', answer: 'Across land toward lower places', options: ['Across land toward lower places', 'Inside a backpack', 'Up into a lunchbox', 'Only in the sky'], funFact: 'Water flows downhill because of gravity.' },
+  { gradeLevel: 2, type: 'flag', question: 'What can flags use to show meaning?', answer: 'Colors and symbols', options: ['Colors and symbols', 'Only smells', 'Only sounds', 'Only snacks'], funFact: 'Flag colors and symbols often connect to a country history or values.' },
+  { gradeLevel: 2, type: 'continent', question: 'What is a continent?', answer: 'A very large area of land', options: ['A very large area of land', 'A tiny toy', 'A kind of lunch', 'A weather tool'], funFact: 'Earth has seven continents.' },
+  { gradeLevel: 2, type: 'landmark', question: 'What is a landmark?', answer: 'A place people can recognize', options: ['A place people can recognize', 'A hidden pencil', 'A quiet sound', 'A small snack'], funFact: 'Landmarks can help people describe where they are.' },
+  { gradeLevel: 2, type: 'nature', question: 'Which place is next to the ocean and often has sand?', answer: 'Beach', options: ['Beach', 'Mountain peak', 'Cave wall', 'City roof'], funFact: 'Beaches can be sandy, rocky, or covered in shells.' },
+  { gradeLevel: 2, type: 'map', question: 'What can a dotted line on a map show?', answer: 'A path or route', options: ['A path or route', 'A sandwich', 'A song', 'A pencil case'], funFact: 'Map symbols help readers understand places quickly.' },
+  { gradeLevel: 3, type: 'map', question: 'What does a scale on a map help you figure out?', answer: 'Distance', options: ['Distance', 'Taste', 'Volume of music', 'Temperature of soup'], funFact: 'A map scale connects map distance to real distance.' },
+  { gradeLevel: 3, type: 'country', question: 'Which country is south of the United States?', answer: 'Mexico', options: ['Mexico', 'Canada', 'Iceland', 'Norway'], funFact: 'Mexico is part of North America.' },
+  { gradeLevel: 3, type: 'nature', question: 'What is a valley?', answer: 'Low land between hills or mountains', options: ['Low land between hills or mountains', 'Water around all sides', 'A flag symbol', 'A capital city'], funFact: 'Rivers often run through valleys.' },
+  { gradeLevel: 3, type: 'continent', question: 'Which continent is south of Europe and across the Mediterranean Sea?', answer: 'Africa', options: ['Africa', 'Australia', 'Antarctica', 'North America'], funFact: 'Africa has deserts, rainforests, savannas, mountains, and many countries.' },
+  { gradeLevel: 3, type: 'landmark', question: 'Where is Mount Rushmore?', answer: 'United States', options: ['United States', 'Japan', 'Brazil', 'France'], funFact: 'Mount Rushmore is in South Dakota.' },
+  { gradeLevel: 3, type: 'map', question: 'What does east mean on many maps?', answer: 'Toward the right side', options: ['Toward the right side', 'Always underwater', 'A kind of food', 'A mountain color'], funFact: 'On many maps, north is up and east is right.' },
+  { gradeLevel: 3, type: 'climate', question: 'What climate word means wet or having lots of moisture in the air?', answer: 'Humid', options: ['Humid', 'Arid', 'Frozen', 'Rocky'], funFact: 'Humid air can feel sticky because it has lots of water vapor.' },
+  { gradeLevel: 3, type: 'nature', question: 'What is a lake?', answer: 'Water surrounded by land', options: ['Water surrounded by land', 'Land surrounded by water', 'A city street', 'A flag color'], funFact: 'Lakes can be tiny or very large.' },
+  { gradeLevel: 3, type: 'flag', question: 'What country has a maple leaf on its flag?', answer: 'Canada', options: ['Canada', 'Italy', 'Egypt', 'India'], funFact: 'The maple leaf is a well-known symbol of Canada.' },
+  { gradeLevel: 3, type: 'country', question: 'Which country is famous for the Amazon rainforest?', answer: 'Brazil', options: ['Brazil', 'Canada', 'Germany', 'Japan'], funFact: 'The Amazon rainforest spreads across several South American countries.' },
+  { gradeLevel: 4, type: 'capital', question: 'What is the capital of Canada?', answer: 'Ottawa', options: ['Ottawa', 'Toronto', 'Vancouver', 'Montreal'], funFact: 'Ottawa is in the province of Ontario.' },
+  { gradeLevel: 4, type: 'capital', question: 'What is the capital of Mexico?', answer: 'Mexico City', options: ['Mexico City', 'Cancun', 'Tijuana', 'Monterrey'], funFact: 'Mexico City is one of the largest cities in North America.' },
+  { gradeLevel: 4, type: 'map', question: 'Which line divides Earth into Eastern and Western Hemispheres?', answer: 'Prime Meridian', options: ['Prime Meridian', 'Equator', 'Coastline', 'Trail'], funFact: 'The Prime Meridian is used to measure longitude.' },
+  { gradeLevel: 4, type: 'nature', question: 'What is a peninsula?', answer: 'Land almost surrounded by water', options: ['Land almost surrounded by water', 'Water surrounded by land', 'A mountain chain', 'A capital city'], funFact: 'Florida is a peninsula.' },
+  { gradeLevel: 4, type: 'climate', question: 'Which climate word means mild, not too hot or too cold?', answer: 'Temperate', options: ['Temperate', 'Arid', 'Polar', 'Tropical'], funFact: 'Temperate places often have four seasons.' },
+  { gradeLevel: 4, type: 'continent', question: 'Which continent is mostly around the South Pole?', answer: 'Antarctica', options: ['Antarctica', 'Asia', 'Europe', 'Africa'], funFact: 'Antarctica is very cold and covered by ice.' },
+  { gradeLevel: 4, type: 'landmark', question: 'Where is Chichen Itza?', answer: 'Mexico', options: ['Mexico', 'Canada', 'Spain', 'China'], funFact: 'Chichen Itza is an ancient Maya site.' },
+  { gradeLevel: 4, type: 'country', question: 'Which country has the city Toronto?', answer: 'Canada', options: ['Canada', 'Brazil', 'France', 'Egypt'], funFact: 'Toronto is one of Canada largest cities.' },
+  { gradeLevel: 4, type: 'nature', question: 'What is an archipelago?', answer: 'A group of islands', options: ['A group of islands', 'A single mountain', 'A city road', 'A desert storm'], funFact: 'Japan and Indonesia are island countries with many islands.' },
+  { gradeLevel: 4, type: 'map', question: 'What do latitude lines measure?', answer: 'How far north or south a place is', options: ['How far north or south a place is', 'How heavy a rock is', 'How loud a city is', 'How old a flag is'], funFact: 'Latitude lines run east and west around Earth.' },
 ];
 
 export const GeographyRoom: React.FC<GeographyRoomProps> = ({ level, onBack, onReward }) => {
@@ -93,6 +123,7 @@ export const GeographyRoom: React.FC<GeographyRoomProps> = ({ level, onBack, onR
   const [score, setScore] = useState(0);
   const [countriesLearned, setCountriesLearned] = useState<Set<string>>(new Set());
   const [coachTip, setCoachTip] = useState('');
+  const recentQuestionKeys = useRef<string[]>([]);
 
   const geographyTip = useMemo(() => {
     if (level <= 2) return 'Use pictures, flags, and what feels familiar.';
@@ -107,7 +138,10 @@ export const GeographyRoom: React.FC<GeographyRoomProps> = ({ level, onBack, onR
   }, [level]);
 
   const getNewQuestion = () => {
-    const randomQ = availableQuestions[Math.floor(Math.random() * availableQuestions.length)];
+    const freshPool = availableQuestions.filter(item => !recentQuestionKeys.current.includes(item.question));
+    const pool = freshPool.length > 0 ? freshPool : availableQuestions;
+    const randomQ = pool[Math.floor(Math.random() * pool.length)];
+    recentQuestionKeys.current = [randomQ.question, ...recentQuestionKeys.current].slice(0, Math.min(8, availableQuestions.length - 1));
     const shuffledOptions = [...randomQ.options].sort(() => Math.random() - 0.5);
     const cleanQuestion = randomQ.question;
     setQuestion({ ...randomQ, options: shuffledOptions });
@@ -117,7 +151,7 @@ export const GeographyRoom: React.FC<GeographyRoomProps> = ({ level, onBack, onR
 
     void (async () => {
       await speakAsync(teacherIntro, 0.88, 1.03);
-      await speakAsync(`${geographyTip} ${cleanQuestion}`, 0.86, 1.02);
+      await speakMultipleChoiceQuestion(cleanQuestion, shuffledOptions, `${geographyTip} Ms. Nova will read the choices.`);
     })();
   };
 
@@ -131,7 +165,7 @@ export const GeographyRoom: React.FC<GeographyRoomProps> = ({ level, onBack, onR
 
   const readQuestionAloud = () => {
     if (question) {
-      speakQuestion(question.question);
+      void speakMultipleChoiceQuestion(question.question, question.options, 'Listen again.');
     }
   };
 

@@ -668,6 +668,20 @@ for (const gradeLevel of [1, 2, 3, 4, 5, 6, 7]) {
     fail(`Coding room has too few challenges for level ${gradeLevel}: found ${challengeCount}, expected at least 5.`);
   }
 }
+for (const gradeLevel of [2, 3, 4]) {
+  const scienceCount = (scienceRoomSource.match(new RegExp(`gradeLevel: ${gradeLevel}`, 'g')) || []).length;
+  const geographyCount = (geographyRoomSource.match(new RegExp(`gradeLevel: ${gradeLevel}`, 'g')) || []).length;
+  const codingCount = (codingRoomSource.match(new RegExp(`gradeLevel: ${gradeLevel}`, 'g')) || []).length;
+  if (scienceCount < 12) fail(`Science room needs deeper K-2 depth for level ${gradeLevel}: found ${scienceCount}, expected at least 12.`);
+  if (geographyCount < 12) fail(`Geography room needs deeper K-2 depth for level ${gradeLevel}: found ${geographyCount}, expected at least 12.`);
+  if (codingCount < 8) fail(`Coding room needs deeper K-2 challenge depth for level ${gradeLevel}: found ${codingCount}, expected at least 8.`);
+}
+if (!audioServiceSource.includes('speakMultipleChoiceQuestion') || !mathRoomSource.includes('speakMultipleChoiceQuestion') || !scienceRoomSource.includes('speakMultipleChoiceQuestion') || !geographyRoomSource.includes('speakMultipleChoiceQuestion') || !readingRoomSource.includes('speakMultipleChoiceQuestion')) {
+  fail('Question rooms must read multiple-choice answers aloud with A/B/C/D choice narration.');
+}
+if (!curriculumSource.includes('daySeed') || !curriculumSource.includes('dailyPool') || !codingRoomSource.includes('dailyChallengeIndex')) {
+  fail('Daily school missions and coding periods must rotate by date instead of always starting the same.');
+}
 for (const gradeLevel of [1, 2, 3, 4, 5, 6, 7]) {
   const geographyCount = (geographyRoomSource.match(new RegExp(`gradeLevel: ${gradeLevel}`, 'g')) || []).length;
   if (geographyCount < 8) {
@@ -818,6 +832,9 @@ for (const arcadePassportMarker of ['Arcade Passport', 'Badge Trail', 'Balanced 
 if (!mathRoomSource.includes('renderMathManipulatives') || !mathRoomSource.includes('First number') || !readingRoomSource.includes('Word Stage') || !readingRoomSource.includes('modeSteps')) {
   fail('Core Math and Reading rooms need richer kid-facing visual learning props.');
 }
+if (!mathRoomSource.includes('Picture model') || !mathRoomSource.includes('Take away') || !mathRoomSource.includes('setEarlyWordProblem')) {
+  fail('Math room needs visual take-away models and deeper early-grade story problems.');
+}
 if (!mathRoomSource.includes('Mission Type') || !mathRoomSource.includes('setMoneyProblem') || !mathRoomSource.includes('setTimeProblem') || !mathRoomSource.includes('setFractionProblem') || !mathRoomSource.includes('setGeometryProblem')) {
   fail('Math room needs grade-paced word, money, time, fraction, and geometry missions.');
 }
@@ -836,7 +853,7 @@ if (!scienceRoomSource.includes('Junior Lab Bench') || !scienceRoomSource.includ
 if (!geographyRoomSource.includes("type: 'map'") || !geographyRoomSource.includes("type: 'climate'") || !geographyRoomSource.includes('Compass rose') || !geographyRoomSource.includes('Longitude')) {
   fail('Geography room needs grade-paced map skills and climate questions.');
 }
-if (!codingRoomSource.includes('Robot Command Center') || !codingRoomSource.includes('Plan') || !languageRoomSource.includes('Word Passport') || !languageRoomSource.includes('Listen, Say, Match')) {
+if (!codingRoomSource.includes('Robot Command Center') || !codingRoomSource.includes('Step Coach') || !codingRoomSource.includes('Read plan') || !languageRoomSource.includes('Word Passport') || !languageRoomSource.includes('Listen, Say, Match')) {
   fail('Coding and Language rooms need destination-style visual learning props.');
 }
 if (!languageRoomSource.includes('availableWords') || !languageRoomSource.includes('gradeLevel: 7') || !languageRoomSource.includes('CATEGORY_LABELS') || !languageRoomSource.includes('I need help')) {

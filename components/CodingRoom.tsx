@@ -601,6 +601,144 @@ export const CHALLENGES: Challenge[] = [
     gradeLevel: 7,
     category: 'advanced'
   },
+  {
+    id: 'c36',
+    name: 'Kindergarten Turn Practice',
+    story: 'Robot practices one turn before walking to the star.',
+    grid: [
+      [{ type: 'start' }, { type: 'empty' }],
+      [{ type: 'empty' }, { type: 'goal' }],
+    ],
+    startPos: { x: 0, y: 0, direction: 'down' },
+    goalPos: { x: 1, y: 1 },
+    maxBlocks: 4,
+    hint: 'Move down, turn left, then move.',
+    gradeLevel: 2,
+    category: 'turns'
+  },
+  {
+    id: 'c37',
+    name: 'Kindergarten Side Step',
+    story: 'Robot is facing up, but the star is to the side.',
+    grid: [
+      [{ type: 'start' }, { type: 'goal' }],
+    ],
+    startPos: { x: 0, y: 0, direction: 'up' },
+    goalPos: { x: 1, y: 0 },
+    maxBlocks: 3,
+    hint: 'Turn right first, then move.',
+    gradeLevel: 2,
+    category: 'turns'
+  },
+  {
+    id: 'c38',
+    name: 'Kindergarten Down Path',
+    story: 'Robot walks down the classroom rug to the star.',
+    grid: [
+      [{ type: 'start' }],
+      [{ type: 'empty' }],
+      [{ type: 'empty' }],
+      [{ type: 'goal' }],
+    ],
+    startPos: { x: 0, y: 0, direction: 'down' },
+    goalPos: { x: 0, y: 3 },
+    maxBlocks: 4,
+    hint: 'Move forward three times.',
+    gradeLevel: 2,
+    category: 'basic'
+  },
+  {
+    id: 'c39',
+    name: 'First Grade Hallway',
+    story: 'Robot needs to go around a hallway corner without bumping the wall.',
+    grid: [
+      [{ type: 'start' }, { type: 'empty' }, { type: 'goal' }],
+      [{ type: 'obstacle' }, { type: 'empty' }, { type: 'obstacle' }],
+    ],
+    startPos: { x: 0, y: 0, direction: 'right' },
+    goalPos: { x: 2, y: 0 },
+    maxBlocks: 6,
+    hint: 'Move right, go around the middle, then come back to the star.',
+    gradeLevel: 3,
+    category: 'maze'
+  },
+  {
+    id: 'c40',
+    name: 'First Grade Garden Gate',
+    story: 'Robot opens the garden gate by following the clear squares.',
+    grid: [
+      [{ type: 'start' }, { type: 'empty' }, { type: 'empty' }],
+      [{ type: 'obstacle' }, { type: 'obstacle' }, { type: 'empty' }],
+      [{ type: 'goal' }, { type: 'empty' }, { type: 'empty' }],
+    ],
+    startPos: { x: 0, y: 0, direction: 'right' },
+    goalPos: { x: 0, y: 2 },
+    maxBlocks: 8,
+    hint: 'Go across first, then down, then back left.',
+    gradeLevel: 3,
+    category: 'maze'
+  },
+  {
+    id: 'c41',
+    name: 'First Grade Careful Turn',
+    story: 'Robot must turn only when the path changes.',
+    grid: [
+      [{ type: 'start' }, { type: 'empty' }],
+      [{ type: 'empty' }, { type: 'empty' }],
+      [{ type: 'empty' }, { type: 'goal' }],
+    ],
+    startPos: { x: 0, y: 0, direction: 'right' },
+    goalPos: { x: 1, y: 2 },
+    maxBlocks: 5,
+    hint: 'Move right, turn right, then move down two times.',
+    gradeLevel: 3,
+    category: 'turns'
+  },
+  {
+    id: 'c42',
+    name: 'Second Grade Repeat Row',
+    story: 'Robot uses repeat to cross a long classroom row.',
+    grid: [
+      [{ type: 'start' }, { type: 'empty' }, { type: 'empty' }, { type: 'empty' }, { type: 'goal' }],
+    ],
+    startPos: { x: 0, y: 0, direction: 'right' },
+    goalPos: { x: 4, y: 0 },
+    maxBlocks: 3,
+    hint: 'Use Move Forward, then Repeat 2x, and add one more move if needed.',
+    gradeLevel: 4,
+    category: 'loops'
+  },
+  {
+    id: 'c43',
+    name: 'Second Grade Stair Steps',
+    story: 'Robot follows a stair-step path and checks each turn.',
+    grid: [
+      [{ type: 'start' }, { type: 'empty' }, { type: 'obstacle' }],
+      [{ type: 'obstacle' }, { type: 'empty' }, { type: 'empty' }],
+      [{ type: 'obstacle' }, { type: 'obstacle' }, { type: 'goal' }],
+    ],
+    startPos: { x: 0, y: 0, direction: 'right' },
+    goalPos: { x: 2, y: 2 },
+    maxBlocks: 7,
+    hint: 'Move, turn, move, turn, and keep following the open stair path.',
+    gradeLevel: 4,
+    category: 'loops'
+  },
+  {
+    id: 'c44',
+    name: 'Second Grade Debug Loop',
+    story: 'Robot should not run into the rock, so the plan needs a careful turn.',
+    grid: [
+      [{ type: 'start' }, { type: 'empty' }, { type: 'obstacle' }, { type: 'goal' }],
+      [{ type: 'empty' }, { type: 'empty' }, { type: 'empty' }, { type: 'empty' }],
+    ],
+    startPos: { x: 0, y: 0, direction: 'right' },
+    goalPos: { x: 3, y: 0 },
+    maxBlocks: 8,
+    hint: 'Go around the obstacle below, then return to the top row.',
+    gradeLevel: 4,
+    category: 'loops'
+  },
 ];
 
 const AVAILABLE_BLOCKS: CodeBlock[] = [
@@ -613,9 +751,14 @@ const AVAILABLE_BLOCKS: CodeBlock[] = [
 export const CodingRoom: React.FC<CodingRoomProps> = ({ level, onBack, onReward }) => {
   // Filter challenges by grade level
   const availableChallenges = CHALLENGES.filter(c => c.gradeLevel <= level);
+  const dailyChallengeIndex = useMemo(() => {
+    const dayKey = new Date().toISOString().slice(0, 10);
+    const seed = [...dayKey].reduce((total, char) => total + char.charCodeAt(0), 0);
+    return seed % Math.max(availableChallenges.length, 1);
+  }, [availableChallenges.length]);
 
-  const [currentChallengeIndex, setCurrentChallengeIndex] = useState(0);
-  const [challenge, setChallenge] = useState<Challenge>(availableChallenges[0]);
+  const [currentChallengeIndex, setCurrentChallengeIndex] = useState(dailyChallengeIndex);
+  const [challenge, setChallenge] = useState<Challenge>(availableChallenges[dailyChallengeIndex] || availableChallenges[0]);
   const [code, setCode] = useState<CodeBlock[]>([]);
   const [isRunning, setIsRunning] = useState(false);
   const [robotPos, setRobotPos] = useState<Position>(availableChallenges[0].startPos);
@@ -636,6 +779,29 @@ export const CodingRoom: React.FC<CodingRoomProps> = ({ level, onBack, onReward 
     if (level <= 4) return 'Teacher says: Think about which way the robot is facing before each move.';
     return 'Teacher says: Plan the full path first, then build the code carefully.';
   }, [level]);
+
+  const stepCoach = useMemo(() => {
+    const horizontal = challenge.goalPos.x - robotPos.x;
+    const vertical = challenge.goalPos.y - robotPos.y;
+    const axisHint = Math.abs(horizontal) >= Math.abs(vertical)
+      ? horizontal > 0 ? 'The goal is more to the right.' : horizontal < 0 ? 'The goal is more to the left.' : 'The robot is lined up sideways.'
+      : vertical > 0 ? 'The goal is lower on the board.' : vertical < 0 ? 'The goal is higher on the board.' : 'The robot is lined up up-and-down.';
+    const obstacleWarning = challenge.grid.flat().some(cell => cell.type === 'obstacle')
+      ? 'Check for blocked squares before pressing run.'
+      : 'This path is open, so focus on order.';
+    const nextBlockHint = code.length === 0
+      ? 'Start with one move or one turn, then test the path in your mind.'
+      : code.length >= challenge.maxBlocks
+        ? 'The code tray is full. Remove a block if the plan is not right.'
+        : 'Add the next block only after you can say what it will do.';
+
+    return {
+      axisHint,
+      obstacleWarning,
+      nextBlockHint,
+      facing: `Robot is facing ${robotPos.direction}.`,
+    };
+  }, [challenge, code.length, robotPos]);
 
   useEffect(() => {
     const startLesson = async () => {
@@ -673,6 +839,7 @@ export const CodingRoom: React.FC<CodingRoomProps> = ({ level, onBack, onReward 
   const addBlock = (block: CodeBlock) => {
     if (code.length < challenge.maxBlocks) {
       setCode([...code, { ...block, id: `${block.id}-${Date.now()}` }]);
+      void speakAsync(`${block.label}. ${block.type === 'move' ? 'The robot will step forward.' : block.type === 'repeat' ? 'Repeat uses the block before it again.' : `The robot will ${block.label.toLowerCase()}.`}`, 0.82, 1.02);
     }
   };
 
@@ -682,6 +849,13 @@ export const CodingRoom: React.FC<CodingRoomProps> = ({ level, onBack, onReward 
 
   const speakHint = () => {
     void speakAsync(`Teacher hint. ${challenge.hint}`, 0.84, 1.02);
+  };
+
+  const speakCodePlan = () => {
+    const codeText = code.length
+      ? code.map((block, index) => `Step ${index + 1}: ${block.label}`).join('. ')
+      : 'No blocks are in the code tray yet.';
+    void speakAsync(`${challenge.story} ${stepCoach.facing} ${stepCoach.axisHint} ${stepCoach.obstacleWarning} ${codeText}`, 0.82, 1.02);
   };
 
   const runCode = async () => {
@@ -779,6 +953,16 @@ export const CodingRoom: React.FC<CodingRoomProps> = ({ level, onBack, onReward 
     setCode([]);
   };
 
+  useEffect(() => {
+    const nextChallengeForDay = availableChallenges[dailyChallengeIndex] || availableChallenges[0];
+    setCurrentChallengeIndex(dailyChallengeIndex);
+    setChallenge(nextChallengeForDay);
+    setRobotPos({ ...nextChallengeForDay.startPos });
+    setPath([]);
+    setWon(false);
+    setCode([]);
+  }, [dailyChallengeIndex, level]);
+
   const getDirectionRotation = (direction: string) => {
     switch (direction) {
       case 'up': return 'rotate-0';
@@ -838,18 +1022,35 @@ export const CodingRoom: React.FC<CodingRoomProps> = ({ level, onBack, onReward 
             <p className="text-gray-600">{challenge.story}</p>
             <p className="text-sm text-indigo-900 font-semibold mt-2">Coach Tip: {coachTip}</p>
             <p className="text-indigo-600 mt-2 font-medium">💡 {challenge.hint}</p>
-            <div className="mt-4 grid grid-cols-3 gap-2 rounded-2xl bg-gradient-to-r from-indigo-50 via-white to-pink-50 p-3 ring-1 ring-indigo-100">
-              <div className="col-span-3 text-xs font-black uppercase tracking-[0.22em] text-indigo-600 sm:col-span-1">Robot Command Center</div>
-              {[
-                ['Plan', 'Find the path'],
-                ['Build', 'Tap blocks'],
-                ['Run', 'Test robot'],
-              ].map(([title, copy]) => (
-                <div key={title} className="rounded-xl bg-white p-2 text-center shadow-sm">
-                  <div className="text-sm font-black text-slate-800">{title}</div>
-                  <div className="text-xs font-semibold text-slate-500">{copy}</div>
+            <div className="mt-4 rounded-2xl bg-gradient-to-r from-indigo-50 via-white to-pink-50 p-3 ring-1 ring-indigo-100">
+              <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <div className="text-xs font-black uppercase tracking-[0.22em] text-indigo-600">Step Coach</div>
+                  <div className="mt-1 text-sm font-bold text-slate-700">{stepCoach.facing} {stepCoach.axisHint}</div>
+                  <div className="mt-1 text-xs font-semibold text-slate-500">{stepCoach.obstacleWarning}</div>
+                  <div className="mt-1 text-xs font-black text-indigo-700">{stepCoach.nextBlockHint}</div>
                 </div>
-              ))}
+                <button
+                  onClick={speakCodePlan}
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-indigo-600 px-4 py-2 text-xs font-black text-white shadow hover:bg-indigo-700"
+                >
+                  <Volume2 size={14} />
+                  Read plan
+                </button>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <div className="col-span-3 text-xs font-black uppercase tracking-[0.22em] text-indigo-600 sm:col-span-1">Robot Command Center</div>
+                {[
+                  ['Plan', 'Find the path'],
+                  ['Build', 'Tap blocks'],
+                  ['Run', 'Test robot'],
+                ].map(([title, copy]) => (
+                  <div key={title} className="rounded-xl bg-white p-2 text-center shadow-sm">
+                    <div className="text-sm font-black text-slate-800">{title}</div>
+                    <div className="text-xs font-semibold text-slate-500">{copy}</div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 

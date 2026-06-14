@@ -775,6 +775,7 @@ export const getDailyMission = (progress: UserProgress): CurriculumUnit => {
   const units = getUnitsForGrade(progress.currentGrade);
   const currentGradeUnits = units.filter((unit) => unit.grade === progress.currentGrade);
   const candidateUnits = currentGradeUnits.length > 0 ? currentGradeUnits : units;
+  const daySeed = new Date().toISOString().slice(0, 10).split('').reduce((total, char) => total + char.charCodeAt(0), 0);
   const visitedRooms = new Set(progress.gradeRoomVisits?.[String(progress.currentLevel)] || []);
   const roomScores: Record<string, number> = {
     [RoomType.MATH]: progress.mathScore,
@@ -789,7 +790,14 @@ export const getDailyMission = (progress: UserProgress): CurriculumUnit => {
     [RoomType.PUZZLE]: visitedRooms.has(RoomType.PUZZLE) ? 1 : 0,
   };
 
-  return [...candidateUnits].sort((a, b) => (roomScores[a.room] || 0) - (roomScores[b.room] || 0))[0] || CURRICULUM_UNITS[0];
+  const sorted = [...candidateUnits].sort((a, b) => {
+    const scoreDelta = (roomScores[a.room] || 0) - (roomScores[b.room] || 0);
+    if (scoreDelta !== 0) return scoreDelta;
+    return a.reviewCycleDays - b.reviewCycleDays;
+  });
+  const lowestScore = roomScores[sorted[0]?.room] || 0;
+  const dailyPool = sorted.filter(unit => (roomScores[unit.room] || 0) === lowestScore).slice(0, Math.min(12, sorted.length));
+  return dailyPool[daySeed % Math.max(dailyPool.length, 1)] || sorted[0] || CURRICULUM_UNITS[0];
 };
 
 export const getRoomPracticeScore = (progress: UserProgress, room: RoomType): number => {
@@ -827,6 +835,7 @@ export const getUnitReadiness = (
 
 export const getWeeklyLearningPlan = (progress: UserProgress): WeeklyPlanItem[] => {
   const dayLabels = ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5'];
+  const daySeed = new Date().toISOString().slice(0, 10).split('').reduce((total, char) => total + char.charCodeAt(0), 0);
   const currentGradeUnits = getCurrentGradeUnits(progress.currentGrade);
   const readinessRank: Record<UnitReadiness, number> = {
     'needs-practice': 0,
@@ -855,7 +864,7 @@ export const getWeeklyLearningPlan = (progress: UserProgress): WeeklyPlanItem[] 
   ];
 
   return dayLabels.map((day, index) => {
-    const unit = balancedUnits[index % Math.max(balancedUnits.length, 1)] || CURRICULUM_UNITS[0];
+    const unit = balancedUnits[(index + daySeed) % Math.max(balancedUnits.length, 1)] || CURRICULUM_UNITS[0];
     return {
       day,
       unit,

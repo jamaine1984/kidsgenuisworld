@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, FlaskConical, Lightbulb, Star, Sparkles, Volume2, X, Check } from 'lucide-react';
 import { ScienceExperiment } from '../types';
-import { speak, speakAsync, speakCorrect, speakWrong, speakQuestion, playSuccess, playWrongBuzzer } from '../services/audioService';
+import { speakAsync, speakCorrect, speakWrong, playSuccess, playWrongBuzzer, speakMultipleChoiceQuestion } from '../services/audioService';
 
 interface ScienceRoomProps {
   level: number; // 1-7 corresponds to grade levels
@@ -420,6 +420,36 @@ export const SCIENCE_EXPERIMENTS: (ScienceExperiment & { gradeLevel: number })[]
     funFact: 'A solution can look clear even when something is dissolved in it.',
     category: 'chemistry', icon: 'solution'
   },
+  { id: 'k7', gradeLevel: 2, title: 'Sink or Float Test', question: 'Which object would probably sink in water?', hypothesis: ['Metal spoon', 'Feather', 'Cork', 'Leaf'], correctAnswer: 0, explanation: 'A metal spoon is heavy for its size, so it usually sinks.', funFact: 'Scientists compare objects by testing them in the same water.', category: 'physics', icon: 'spoon' },
+  { id: 'k8', gradeLevel: 2, title: 'Plant Needs', question: 'What helps a seed start growing?', hypothesis: ['Water', 'A blanket', 'A pencil', 'A shoe'], correctAnswer: 0, explanation: 'Seeds need water to begin sprouting.', funFact: 'A sprout is a young plant just starting to grow.', category: 'biology', icon: 'seed' },
+  { id: 'k9', gradeLevel: 2, title: 'Animal Coverings', question: 'Which animal covering helps a bird fly?', hypothesis: ['Feathers', 'Shell', 'Scales', 'Fur'], correctAnswer: 0, explanation: 'Bird feathers help with flying and staying warm.', funFact: 'Feathers can be light, strong, and waterproof.', category: 'biology', icon: 'feather' },
+  { id: 'k10', gradeLevel: 2, title: 'Shadow Clue', question: 'What makes a shadow?', hypothesis: ['An object blocking light', 'A loud sound', 'A cold snack', 'A soft pillow'], correctAnswer: 0, explanation: 'A shadow forms when something blocks light.', funFact: 'Your shadow can look longer when the sun is low.', category: 'physics', icon: 'shadow' },
+  { id: 'k11', gradeLevel: 2, title: 'Weather Tool', question: 'What tool tells temperature?', hypothesis: ['Thermometer', 'Map', 'Paintbrush', 'Drum'], correctAnswer: 0, explanation: 'A thermometer measures how hot or cold something is.', funFact: 'Weather scientists use tools to collect data.', category: 'nature', icon: 'thermometer' },
+  { id: 'k12', gradeLevel: 2, title: 'Day Sky', question: 'What do we usually see in the sky during the day?', hypothesis: ['Sun', 'Flashlight', 'Backpack', 'Pencil'], correctAnswer: 0, explanation: 'The sun lights the day sky.', funFact: 'The sun is the closest star to Earth.', category: 'space', icon: 'sun' },
+  { id: 'k13', gradeLevel: 2, title: 'Material Match', question: 'Which material is usually soft?', hypothesis: ['Cotton', 'Brick', 'Rock', 'Coin'], correctAnswer: 0, explanation: 'Cotton is usually soft and bendable.', funFact: 'Engineers choose materials based on what they need them to do.', category: 'chemistry', icon: 'cotton' },
+  { id: 'k14', gradeLevel: 2, title: 'Baby Animal', question: 'What is a baby frog called?', hypothesis: ['Tadpole', 'Cub', 'Calf', 'Chick'], correctAnswer: 0, explanation: 'A baby frog is called a tadpole.', funFact: 'Tadpoles change as they grow into frogs.', category: 'biology', icon: 'tadpole' },
+  { id: 'k15', gradeLevel: 2, title: 'Healthy Body', question: 'What does your body need every day?', hypothesis: ['Water', 'Only candy', 'No sleep', 'Only toys'], correctAnswer: 0, explanation: 'Your body needs water every day to stay healthy.', funFact: 'Water helps move nutrients through your body.', category: 'biology', icon: 'water-drop' },
+  { id: 'k16', gradeLevel: 2, title: 'Magnet Try', question: 'Which object might a magnet pick up?', hypothesis: ['Paper clip', 'Banana', 'Wood block', 'Rubber ball'], correctAnswer: 0, explanation: 'A paper clip is usually made of steel, and magnets attract some metals.', funFact: 'Magnets can pull without touching.', category: 'physics', icon: 'magnet' },
+  { id: '1g7', gradeLevel: 3, title: 'Life Cycle', question: 'What comes after a caterpillar in the butterfly life cycle?', hypothesis: ['Chrysalis', 'Rock', 'Cloud', 'Fish'], correctAnswer: 0, explanation: 'A caterpillar forms a chrysalis before becoming a butterfly.', funFact: 'This kind of big body change is called metamorphosis.', category: 'biology', icon: 'butterfly' },
+  { id: '1g8', gradeLevel: 3, title: 'Sound Vibrations', question: 'What causes sound?', hypothesis: ['Vibrations', 'Stillness', 'Darkness', 'Smell'], correctAnswer: 0, explanation: 'Sound starts when something vibrates.', funFact: 'Your vocal cords vibrate when you talk.', category: 'physics', icon: 'sound-wave' },
+  { id: '1g9', gradeLevel: 3, title: 'Weather Data', question: 'If the sky is gray and drops are falling, what weather is happening?', hypothesis: ['Rain', 'Snow only', 'Sunny', 'Windless'], correctAnswer: 0, explanation: 'Gray clouds with falling drops usually mean rain.', funFact: 'Weather observations help us make predictions.', category: 'nature', icon: 'rain-cloud' },
+  { id: '1g10', gradeLevel: 3, title: 'Animal Habitat', question: 'Which habitat is best for a fish?', hypothesis: ['Pond', 'Desert sand', 'Tree branch', 'Sidewalk'], correctAnswer: 0, explanation: 'A fish needs water, so a pond is a good habitat.', funFact: 'A habitat gives living things what they need to survive.', category: 'biology', icon: 'pond' },
+  { id: '1g11', gradeLevel: 3, title: 'Light Source', question: 'Which object makes its own light?', hypothesis: ['Lamp', 'Mirror', 'Book', 'Chair'], correctAnswer: 0, explanation: 'A lamp is a light source because it makes light.', funFact: 'A mirror reflects light but does not make its own.', category: 'physics', icon: 'lamp' },
+  { id: '1g12', gradeLevel: 3, title: 'Matter Sort', question: 'Which one is a liquid?', hypothesis: ['Juice', 'Rock', 'Pencil', 'Toy car'], correctAnswer: 0, explanation: 'Juice is a liquid because it flows and takes the shape of its container.', funFact: 'Matter can be solid, liquid, or gas.', category: 'chemistry', icon: 'juice' },
+  { id: '1g13', gradeLevel: 3, title: 'Needs of Animals', question: 'What do animals need to survive?', hypothesis: ['Food, water, and shelter', 'Only games', 'Only rocks', 'Only music'], correctAnswer: 0, explanation: 'Animals need food, water, shelter, and space.', funFact: 'Different animals meet their needs in different habitats.', category: 'biology', icon: 'shelter' },
+  { id: '1g14', gradeLevel: 3, title: 'Force Change', question: 'What can a push do to a ball?', hypothesis: ['Make it move', 'Make it invisible', 'Turn it into water', 'Stop time'], correctAnswer: 0, explanation: 'A push can make a ball start moving or change direction.', funFact: 'Forces can change motion.', category: 'physics', icon: 'ball' },
+  { id: '1g15', gradeLevel: 3, title: 'Earth Materials', question: 'Which material comes from Earth?', hypothesis: ['Soil', 'Cartoon', 'Song', 'Number'], correctAnswer: 0, explanation: 'Soil is an Earth material made from tiny rock pieces and living matter.', funFact: 'Plants grow in soil because it can hold water and nutrients.', category: 'nature', icon: 'soil' },
+  { id: '1g16', gradeLevel: 3, title: 'Body System', question: 'Which body part helps you breathe?', hypothesis: ['Lungs', 'Knee', 'Hair', 'Elbow'], correctAnswer: 0, explanation: 'Your lungs help your body take in oxygen.', funFact: 'Your chest moves when your lungs fill with air.', category: 'biology', icon: 'lungs' },
+  { id: '2g7', gradeLevel: 4, title: 'Erosion', question: 'What can slowly move sand or soil from one place to another?', hypothesis: ['Wind and water', 'A quiet book', 'A pencil mark', 'A shadow'], correctAnswer: 0, explanation: 'Wind and water can move Earth materials. That is part of erosion.', funFact: 'Erosion can shape beaches, rivers, and canyons.', category: 'nature', icon: 'erosion' },
+  { id: '2g8', gradeLevel: 4, title: 'Pollination', question: 'What can bees help flowers do?', hypothesis: ['Make seeds', 'Turn into rocks', 'Freeze water', 'Make thunder'], correctAnswer: 0, explanation: 'Bees can move pollen, which helps some plants make seeds.', funFact: 'Pollinators are important for many fruits and flowers.', category: 'biology', icon: 'bee' },
+  { id: '2g9', gradeLevel: 4, title: 'Magnetic Poles', question: 'What can happen when two magnet poles are the same?', hypothesis: ['They push apart', 'They become water', 'They disappear', 'They make leaves'], correctAnswer: 0, explanation: 'Like poles on magnets repel, or push apart.', funFact: 'Opposite magnet poles attract each other.', category: 'physics', icon: 'poles' },
+  { id: '2g10', gradeLevel: 4, title: 'Cloud Types', question: 'What are clouds made of?', hypothesis: ['Tiny water droplets or ice crystals', 'Cotton candy', 'Smoke only', 'Paper pieces'], correctAnswer: 0, explanation: 'Clouds are made of tiny drops of water or ice crystals in the air.', funFact: 'Different cloud shapes can give clues about weather.', category: 'nature', icon: 'cloud' },
+  { id: '2g11', gradeLevel: 4, title: 'Food Chain', question: 'In a simple food chain, what do rabbits eat?', hypothesis: ['Plants', 'Rocks', 'Sunlight directly', 'Metal'], correctAnswer: 0, explanation: 'Rabbits eat plants, so they are plant-eating animals.', funFact: 'Energy moves through a food chain from one living thing to another.', category: 'biology', icon: 'rabbit' },
+  { id: '2g12', gradeLevel: 4, title: 'Reversible Change', question: 'Which change can usually be reversed by warming?', hypothesis: ['Ice melting', 'Paper burning', 'Egg cooking', 'Wood rotting'], correctAnswer: 0, explanation: 'Ice can melt back into liquid water when it warms.', funFact: 'Some changes can be reversed, and some cannot.', category: 'chemistry', icon: 'ice' },
+  { id: '2g13', gradeLevel: 4, title: 'Simple Circuit', question: 'What does a simple circuit need to light a bulb?', hypothesis: ['A complete path', 'A broken wire only', 'No battery', 'A paper cup'], correctAnswer: 0, explanation: 'Electricity needs a complete path to flow through the bulb.', funFact: 'A switch opens and closes a circuit.', category: 'physics', icon: 'circuit' },
+  { id: '2g14', gradeLevel: 4, title: 'Compare Properties', question: 'Which property tells how heavy something is?', hypothesis: ['Weight', 'Color', 'Shape only', 'Sound'], correctAnswer: 0, explanation: 'Weight tells how heavy something is.', funFact: 'Scientists compare properties like size, weight, texture, and color.', category: 'chemistry', icon: 'scale' },
+  { id: '2g15', gradeLevel: 4, title: 'Earth Rotation', question: 'What causes day and night?', hypothesis: ['Earth rotating', 'The moon sleeping', 'Clouds painting the sky', 'Mountains moving'], correctAnswer: 0, explanation: 'Day and night happen because Earth rotates, or spins.', funFact: 'Earth takes about 24 hours to rotate once.', category: 'space', icon: 'earth-spin' },
+  { id: '2g16', gradeLevel: 4, title: 'Engineering Test', question: 'Why do engineers test a design?', hypothesis: ['To see what works and improve it', 'To avoid learning', 'To make all ideas disappear', 'To stop asking questions'], correctAnswer: 0, explanation: 'Engineers test designs so they can find problems and improve them.', funFact: 'Testing and improving is called iteration.', category: 'physics', icon: 'engineer' },
 ];
 
 export const ScienceRoom: React.FC<ScienceRoomProps> = ({ level, onBack, onReward }) => {
@@ -433,6 +463,7 @@ export const ScienceRoom: React.FC<ScienceRoomProps> = ({ level, onBack, onRewar
   const [showFunFact, setShowFunFact] = useState(false);
   const [score, setScore] = useState(0);
   const [coachTip, setCoachTip] = useState('');
+  const recentExperimentIds = useRef<string[]>([]);
 
   const scienceTip = useMemo(() => {
     if (level <= 2) return 'Look at the choices and think about the real world.';
@@ -447,7 +478,10 @@ export const ScienceRoom: React.FC<ScienceRoomProps> = ({ level, onBack, onRewar
   }, [level]);
 
   const getNewExperiment = () => {
-    const randomExp = availableExperiments[Math.floor(Math.random() * availableExperiments.length)];
+    const freshPool = availableExperiments.filter(exp => !recentExperimentIds.current.includes(exp.id));
+    const pool = freshPool.length > 0 ? freshPool : availableExperiments;
+    const randomExp = pool[Math.floor(Math.random() * pool.length)];
+    recentExperimentIds.current = [randomExp.id, ...recentExperimentIds.current].slice(0, Math.min(8, availableExperiments.length - 1));
     setExperiment(randomExp);
     setSelectedAnswer(null);
     setShowResult(false);
@@ -456,7 +490,7 @@ export const ScienceRoom: React.FC<ScienceRoomProps> = ({ level, onBack, onRewar
 
     void (async () => {
       await speakAsync(teacherIntro, 0.88, 1.03);
-      await speakAsync(`${scienceTip} ${randomExp.question}`, 0.86, 1.02);
+      await speakMultipleChoiceQuestion(randomExp.question, randomExp.hypothesis, `${scienceTip} Ms. Nova will read the choices.`);
     })();
   };
 
@@ -470,7 +504,7 @@ export const ScienceRoom: React.FC<ScienceRoomProps> = ({ level, onBack, onRewar
 
   const readQuestionAloud = () => {
     if (experiment) {
-      speakQuestion(experiment.question);
+      void speakMultipleChoiceQuestion(experiment.question, experiment.hypothesis, 'Listen again.');
     }
   };
 

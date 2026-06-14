@@ -128,8 +128,7 @@ test('math room completion creates reward and parent-visible journal proof', asy
   await expect(page.getByTestId('guide-bubble')).toBeHidden();
 
   for (let round = 0; round < 3; round += 1) {
-    const question = (await page.getByTestId('math-question').innerText()).trim();
-    solveMathQuestion(question);
+    await expect(page.getByTestId('math-question')).toBeVisible();
     await page.locator('[data-testid="math-answer-option"][data-math-correct="true"]').click();
     if (round < 2) {
       await expect(page.getByTestId('math-answer-option').first()).toBeEnabled({ timeout: 5_000 });
@@ -290,14 +289,3 @@ test('story time completion creates reward and parent-visible journal proof', as
   await expect(page.getByText('Learning Journal')).toBeVisible();
   await expect(page.getByText('Teach it back')).toBeVisible();
 });
-
-function solveMathQuestion(question: string) {
-  const equation = question.match(/^(\d+)\s*([+-])\s*(\d+)\s*=/);
-  if (!equation) {
-    throw new Error(`Unsupported math question in browser QA: ${question}`);
-  }
-
-  const left = Number(equation[1]);
-  const right = Number(equation[3]);
-  return equation[2] === '+' ? left + right : left - right;
-}

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, Check, Star, Type, Image as ImageIcon, Volume2, Mic2, Sparkles, Book, Ear, X } from 'lucide-react';
-import { playSuccess, playWrongBuzzer, playPop, speak, speakAsync, speakCorrect, speakWrong, speakQuestion } from '../services/audioService';
+import { playSuccess, playWrongBuzzer, playPop, speak, speakAsync, speakCorrect, speakWrong, speakQuestion, speakMultipleChoiceQuestion } from '../services/audioService';
 
 interface ReadingRoomProps {
   onBack: () => void;
@@ -227,7 +227,7 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
   const narratePassageRound = useCallback(async (passage: ReadingPassage) => {
     await speakAsync('Teacher says: Read the passage first. Listen for the important details.', 0.88, 1.04);
     await speakAsync(`${passage.title}. ${passage.passage}`, 0.86, 1.02);
-    await speakAsync(passage.question, 0.86, 1.02);
+    await speakMultipleChoiceQuestion(passage.question, passage.options, 'Now listen to every answer choice.');
   }, []);
 
   const nextRound = () => {
@@ -361,7 +361,10 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
 
   const speakCurrentWord = () => {
     if (mode === 'COMPREHENSION') {
-      void speakAsync(`${currentPassage.title}. ${currentPassage.passage} ${currentPassage.question}`, 0.86, 1.02);
+      void (async () => {
+        await speakAsync(`${currentPassage.title}. ${currentPassage.passage}`, 0.86, 1.02);
+        await speakMultipleChoiceQuestion(currentPassage.question, currentPassage.options, 'Listen again to the choices.');
+      })();
       return;
     }
     void speakAsync(`Teacher says the word is ${currentWord.word}. ${currentWord.sentence}`, 0.86, 1.02);

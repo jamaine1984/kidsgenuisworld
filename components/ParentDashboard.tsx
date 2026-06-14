@@ -299,6 +299,147 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
   const gradebookMasteredCount = teacherGradebookRows.filter(row => row.status === 'done').length;
   const gradebookInProgressCount = teacherGradebookRows.filter(row => row.status === 'in-progress').length;
   const gradebookNotStartedCount = teacherGradebookRows.filter(row => row.status === 'ready').length;
+  const journalByRoom = (progress.learningJournal || []).reduce((summary, entry) => {
+    const current = summary[entry.room] || { total: 0, mastered: 0, reflected: 0 };
+    summary[entry.room] = {
+      total: current.total + 1,
+      mastered: current.mastered + (entry.mastered ? 1 : 0),
+      reflected: current.reflected + (entry.childReflection ? 1 : 0),
+    };
+    return summary;
+  }, {} as Record<RoomType, { total: number; mastered: number; reflected: number }>);
+  const formatSkillLabel = (skill: string) => skill.replace(/([A-Z])/g, ' $1').replace(/^./, letter => letter.toUpperCase());
+  const getSkillAccuracy = (metrics: SkillMetrics) => (
+    metrics.totalAttempts > 0 ? Math.round((metrics.correctAnswers / metrics.totalAttempts) * 100) : 0
+  );
+  const buildSkillStatus = (mastery: number, attempts: number, evidenceCount: number, score: number) => {
+    if (mastery >= 80 || score >= 10) return 'Strong';
+    if (mastery >= 50 || attempts >= 5 || evidenceCount >= 3) return 'Growing';
+    if (attempts > 0 || evidenceCount > 0 || score > 0) return 'Needs practice';
+    return 'Not started';
+  };
+  const getSkillStatusClasses = (status: string) => {
+    if (status === 'Strong') return 'bg-emerald-50 text-emerald-700 border-emerald-100';
+    if (status === 'Growing') return 'bg-sky-50 text-sky-700 border-sky-100';
+    if (status === 'Needs practice') return 'bg-amber-50 text-amber-700 border-amber-100';
+    return 'bg-slate-50 text-slate-600 border-slate-100';
+  };
+  const skillStrandReports = [
+    {
+      subject: 'Math',
+      strand: 'Addition and number sense',
+      room: RoomType.MATH,
+      metrics: progress.learningProfile.mathSkills.addition,
+      score: progress.mathScore || 0,
+      parentMeaning: 'Can count on, make ten, solve missing addends, and explain number stories.',
+      nextAssignment: 'Ask for one picture model and one spoken strategy before moving on.',
+    },
+    {
+      subject: 'Math',
+      strand: 'Subtraction and comparison',
+      room: RoomType.MATH,
+      metrics: progress.learningProfile.mathSkills.subtraction,
+      score: progress.mathScore || 0,
+      parentMeaning: 'Can take away, compare how many more, and use counters or drawings.',
+      nextAssignment: 'Practice one take-away story and have the child cross out the removed group.',
+    },
+    {
+      subject: 'Math',
+      strand: 'Multiplication, division, and equal groups',
+      room: RoomType.MATH,
+      metrics: progress.learningProfile.mathSkills.multiplication,
+      score: progress.mathScore || 0,
+      parentMeaning: 'Can see arrays, equal groups, skip counting, and fair shares.',
+      nextAssignment: 'Use rows of objects, then ask how many groups and how many in each group.',
+    },
+    {
+      subject: 'Reading',
+      strand: 'Phonics and word building',
+      room: RoomType.READING,
+      metrics: progress.learningProfile.readingSkills.phonics,
+      score: progress.readingScore || 0,
+      parentMeaning: 'Can hear sounds, build words, and blend sounds into fluent reading.',
+      nextAssignment: 'Have the child tap each sound, blend the word, then use it in a sentence.',
+    },
+    {
+      subject: 'Reading',
+      strand: 'Vocabulary and sight words',
+      room: RoomType.READING,
+      metrics: progress.learningProfile.readingSkills.vocabulary,
+      score: progress.readingScore || 0,
+      parentMeaning: 'Can recognize useful words, explain meanings, and connect words to context.',
+      nextAssignment: 'Ask for one new word, one meaning, and one sentence after reading practice.',
+    },
+    {
+      subject: 'Reading',
+      strand: 'Comprehension and evidence',
+      room: RoomType.STORYBOOK,
+      metrics: progress.learningProfile.readingSkills.comprehension,
+      score: (progress.readingScore || 0) + (progress.storybookScore || 0),
+      parentMeaning: 'Can retell, infer, use clues, and explain why an answer is supported.',
+      nextAssignment: 'Ask the child to point to the clue that proves the answer.',
+    },
+    {
+      subject: 'Science',
+      strand: 'Observation, evidence, and fair tests',
+      room: RoomType.SCIENCE,
+      metrics: progress.learningProfile.scienceSkills,
+      score: progress.scienceScore || 0,
+      parentMeaning: 'Can observe, compare properties, make predictions, and explain evidence.',
+      nextAssignment: 'Ask what changed, what stayed the same, and what evidence was seen.',
+    },
+    {
+      subject: 'Geography',
+      strand: 'Maps, places, landforms, and climate',
+      room: RoomType.GEOGRAPHY,
+      metrics: progress.learningProfile.geographySkills,
+      score: progress.geographyScore || 0,
+      parentMeaning: 'Can use map symbols, directions, landmarks, countries, and climate clues.',
+      nextAssignment: 'Ask the child to use one direction word and one map clue.',
+    },
+    {
+      subject: 'Coding',
+      strand: 'Sequencing, loops, and debugging',
+      room: RoomType.CODING,
+      metrics: progress.learningProfile.codingSkills,
+      score: progress.codingScore || 0,
+      parentMeaning: 'Can plan steps, test a route, find a wrong turn, and improve the code.',
+      nextAssignment: 'Have the child trace the commands out loud before pressing run.',
+    },
+    {
+      subject: 'Language',
+      strand: 'World language listening and speaking',
+      room: RoomType.LANGUAGE,
+      metrics: progress.learningProfile.languageSkills,
+      score: progress.languageScore || 0,
+      parentMeaning: 'Can listen, repeat, match translations, and use useful phrases.',
+      nextAssignment: 'Ask for the word, the pronunciation, and one time they could use it.',
+    },
+  ].map(item => {
+    const evidence = journalByRoom[item.room] || { total: 0, mastered: 0, reflected: 0 };
+    const accuracy = getSkillAccuracy(item.metrics);
+    const status = buildSkillStatus(item.metrics.masteryLevel, item.metrics.totalAttempts, evidence.total, item.score);
+    return {
+      ...item,
+      evidence,
+      accuracy,
+      status,
+      priorityScore: (status === 'Not started' ? 0 : status === 'Needs practice' ? 1 : status === 'Growing' ? 2 : 3)
+        + Math.min(evidence.total, 4)
+        + Math.min(item.metrics.totalAttempts, 6) / 2,
+    };
+  });
+  const strandFocusQueue = [...skillStrandReports]
+    .sort((a, b) => {
+      const statusOrder: Record<string, number> = { 'Not started': 0, 'Needs practice': 1, Growing: 2, Strong: 3 };
+      const statusDelta = statusOrder[a.status] - statusOrder[b.status];
+      if (statusDelta !== 0) return statusDelta;
+      return a.evidence.total - b.evidence.total || a.metrics.masteryLevel - b.metrics.masteryLevel;
+    })
+    .slice(0, 4);
+  const strongStrandCount = skillStrandReports.filter(item => item.status === 'Strong').length;
+  const practicedStrandCount = skillStrandReports.filter(item => item.status !== 'Not started').length;
+  const strandEvidenceCount = skillStrandReports.reduce((sum, item) => sum + item.evidence.total, 0);
   const billingSummary = getDashboardBillingSummary(billingAccess);
   const isOwnerCompedBilling = billingAccess?.accessSource === 'owner_comped' || billingAccess?.comped;
   const getSchoolPeriodClasses = (status: (typeof schoolDay.periods)[number]['status']) => {
@@ -1215,6 +1356,46 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                   </div>
                 ))}
               </div>
+              <div className="mt-4 rounded-xl border border-violet-100 bg-violet-50 p-3">
+                <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                  <div>
+                    <p className="text-sm font-black text-violet-900">Skill Strand Report</p>
+                    <p className="mt-1 text-sm font-semibold text-violet-900/80">
+                      Parent strand report across math, reading, science, geography, coding, and language.
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 text-center">
+                    <div className="rounded-lg bg-white px-3 py-2 shadow-sm">
+                      <p className="text-lg font-black text-violet-700">{practicedStrandCount}/{skillStrandReports.length}</p>
+                      <p className="text-[10px] font-black uppercase tracking-[0.1em] text-violet-600">started</p>
+                    </div>
+                    <div className="rounded-lg bg-white px-3 py-2 shadow-sm">
+                      <p className="text-lg font-black text-emerald-700">{strongStrandCount}</p>
+                      <p className="text-[10px] font-black uppercase tracking-[0.1em] text-emerald-600">strong</p>
+                    </div>
+                    <div className="rounded-lg bg-white px-3 py-2 shadow-sm">
+                      <p className="text-lg font-black text-sky-700">{strandEvidenceCount}</p>
+                      <p className="text-[10px] font-black uppercase tracking-[0.1em] text-sky-600">proof</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-3 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-2">
+                  {strandFocusQueue.map(strand => (
+                    <div key={`${strand.subject}-${strand.strand}`} className="rounded-lg bg-white p-3 shadow-sm">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="text-[11px] font-black uppercase tracking-[0.12em] text-violet-600">{strand.subject}</p>
+                          <p className="mt-1 text-sm font-black text-slate-900">{strand.strand}</p>
+                        </div>
+                        <span className={`shrink-0 rounded-full border px-2 py-1 text-[10px] font-black ${getSkillStatusClasses(strand.status)}`}>
+                          {strand.status}
+                        </span>
+                      </div>
+                      <p className="mt-2 text-xs font-semibold text-slate-600">{strand.nextAssignment}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
               <div className="mt-4 rounded-xl bg-emerald-50 border border-emerald-100 p-3">
                 <p className="text-sm font-black text-emerald-800 mb-2">Next parent actions</p>
                 <div className="space-y-2">
@@ -1718,13 +1899,99 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
 
         {activeTab === 'skills' && (
           <div className="space-y-6">
+            <div className="rounded-xl bg-gradient-to-br from-slate-950 via-violet-950 to-indigo-900 p-4 text-white shadow-sm">
+              <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                <div>
+                  <p className="text-xs font-black uppercase tracking-[0.16em] text-violet-200">Skill Strand Report</p>
+                  <h3 className="mt-1 text-xl font-black">What your child is learning by strand</h3>
+                  <p className="mt-1 max-w-3xl text-sm font-semibold text-violet-100">
+                    This turns room activity into parent-readable strands: mastery, attempts, evidence saved, and the next assignment.
+                  </p>
+                </div>
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  <div className="rounded-xl bg-white/10 px-3 py-2">
+                    <p className="text-xl font-black">{practicedStrandCount}</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.12em] text-violet-200">started</p>
+                  </div>
+                  <div className="rounded-xl bg-white/10 px-3 py-2">
+                    <p className="text-xl font-black">{strongStrandCount}</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.12em] text-emerald-200">strong</p>
+                  </div>
+                  <div className="rounded-xl bg-white/10 px-3 py-2">
+                    <p className="text-xl font-black">{strandEvidenceCount}</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.12em] text-sky-200">proof</p>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-3">
+                {skillStrandReports.map(strand => (
+                  <div key={`${strand.subject}-${strand.strand}`} className="rounded-xl border border-white/10 bg-white/[0.08] p-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-[11px] font-black uppercase tracking-[0.14em] text-violet-200">{strand.subject}</p>
+                        <h4 className="mt-1 text-base font-black text-white">{strand.strand}</h4>
+                      </div>
+                      <span className={`shrink-0 rounded-full border px-3 py-1 text-[11px] font-black ${getSkillStatusClasses(strand.status)}`}>
+                        {strand.status}
+                      </span>
+                    </div>
+                    <p className="mt-2 text-sm font-semibold text-violet-50">{strand.parentMeaning}</p>
+                    <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+                      <div className="rounded-lg bg-white/10 p-2">
+                        <p className="text-lg font-black">{strand.metrics.masteryLevel}%</p>
+                        <p className="text-[10px] font-black uppercase tracking-[0.1em] text-violet-200">mastery</p>
+                      </div>
+                      <div className="rounded-lg bg-white/10 p-2">
+                        <p className="text-lg font-black">{strand.metrics.correctAnswers}/{strand.metrics.totalAttempts}</p>
+                        <p className="text-[10px] font-black uppercase tracking-[0.1em] text-violet-200">correct</p>
+                      </div>
+                      <div className="rounded-lg bg-white/10 p-2">
+                        <p className="text-lg font-black">{strand.evidence.total}</p>
+                        <p className="text-[10px] font-black uppercase tracking-[0.1em] text-violet-200">evidence saved</p>
+                      </div>
+                    </div>
+                    <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/10">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-sky-300 to-emerald-300"
+                        style={{ width: `${Math.max(strand.metrics.masteryLevel, strand.evidence.total > 0 ? 20 : 0)}%` }}
+                      />
+                    </div>
+                    <div className="mt-3 rounded-lg bg-white p-3 text-slate-900">
+                      <p className="text-[11px] font-black uppercase tracking-[0.14em] text-violet-700">Next assignment</p>
+                      <p className="mt-1 text-sm font-bold">{strand.nextAssignment}</p>
+                      <p className="mt-1 text-xs font-semibold text-slate-500">
+                        Accuracy: {strand.metrics.totalAttempts > 0 ? `${strand.accuracy}%` : 'starts after first attempt'}.
+                        Reflections saved: {strand.evidence.reflected}.
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-amber-100 bg-white p-4 shadow-sm">
+              <h3 className="mb-3 flex items-center gap-2 font-semibold text-gray-800">
+                <ClipboardList size={20} className="text-amber-600" />
+                Focus Queue
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+                {strandFocusQueue.map(strand => (
+                  <div key={`focus-${strand.subject}-${strand.strand}`} className="rounded-xl bg-amber-50 p-3">
+                    <p className="text-xs font-black uppercase tracking-[0.12em] text-amber-700">{strand.subject}</p>
+                    <p className="mt-1 text-sm font-black text-slate-900">{strand.strand}</p>
+                    <p className="mt-2 text-xs font-semibold text-slate-600">{strand.nextAssignment}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             {/* Math Skills */}
             <div className="bg-white rounded-xl p-4 shadow-sm">
               <h3 className="font-semibold text-gray-700 mb-3">🔢 Math Skills</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {(Object.entries(progress.learningProfile.mathSkills) as Array<[string, SkillMetrics]>).map(([skill, metrics]) => (
                   <div key={skill} className="bg-gray-50 rounded-lg p-3">
-                    <p className="font-medium capitalize text-sm">{skill}</p>
+                    <p className="font-medium text-sm">{formatSkillLabel(skill)}</p>
                     <div className="flex items-end justify-between mt-2">
                       <div>
                         <p className="text-xl font-bold text-indigo-600">{metrics.masteryLevel}%</p>
@@ -1754,7 +2021,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {(Object.entries(progress.learningProfile.readingSkills) as Array<[string, SkillMetrics]>).map(([skill, metrics]) => (
                   <div key={skill} className="bg-gray-50 rounded-lg p-3">
-                    <p className="font-medium capitalize text-sm">{skill.replace(/([A-Z])/g, ' $1')}</p>
+                    <p className="font-medium text-sm">{formatSkillLabel(skill)}</p>
                     <div className="flex items-end justify-between mt-2">
                       <p className="text-xl font-bold text-green-600">{metrics.masteryLevel}%</p>
                       <p className="text-sm text-gray-500">{metrics.totalAttempts} attempts</p>

@@ -1,4 +1,5 @@
 import { GradeLevel, RoomType, UserProgress } from '../types';
+import { MASTERED_PRACTICE_TARGET, SCHOOL_YEAR_PACING } from './learningConstants';
 
 export interface CurriculumUnit {
   id: string;
@@ -641,8 +642,8 @@ const lessonArcPlans = [
     id: 'guided-practice',
     title: 'Guided Practice',
     focus: 'Practice with support',
-    activityPrompt: 'Try two varied examples, compare answers, and explain which strategy helped.',
-    checkPrompt: 'Child completes two examples and explains the strategy used.',
+    activityPrompt: 'Try several varied examples, compare answers, and explain which strategy helped.',
+    checkPrompt: 'Child completes varied examples and explains the strategy used.',
     parentCue: 'Use a real-world example and ask what strategy made the answer easier.',
     masteryCue: 'Needs repeated accurate practice with a spoken strategy explanation.',
     reviewOffset: 1,
@@ -651,8 +652,8 @@ const lessonArcPlans = [
     id: 'independent-practice',
     title: 'Independent Practice',
     focus: 'Build stamina',
-    activityPrompt: 'Complete three mixed examples with less help, pause after each one, and name the clue that guided the answer.',
-    checkPrompt: 'Child completes three mixed examples with fewer prompts and can name the clue or rule used.',
+    activityPrompt: 'Complete a mixed practice set with less help, pause after each one, and name the clue that guided the answer.',
+    checkPrompt: 'Child completes mixed examples with fewer prompts and can name the clue or rule used.',
     parentCue: 'Let your child try first, then ask which clue helped before giving support.',
     masteryCue: 'Needs independent attempts across mixed examples before the mastery check opens.',
     reviewOffset: 2,
@@ -664,7 +665,7 @@ const lessonArcPlans = [
     activityPrompt: 'Solve a fresh challenge, teach the idea back, and choose one mistake to avoid next time.',
     checkPrompt: 'Child applies the skill without guessing and teaches the idea back clearly.',
     parentCue: 'Ask your child to teach the skill back, then give one new example.',
-    masteryCue: 'Counts toward mastery after three successful practice rounds and a clear teach-back.',
+    masteryCue: `Counts toward mastery after ${MASTERED_PRACTICE_TARGET} saved practice rounds and a clear teach-back.`,
     reviewOffset: 2,
   },
   {
@@ -702,7 +703,10 @@ const EVERY_ROOM_CURRICULUM_UNITS: CurriculumUnit[] = gradeExpansionPlans.flatMa
         `Use ${gradePlan.complexity} to practice ${roomPlan.standardsFocus[0].toLowerCase()}.`,
         `Try a second example that mixes ${roomPlan.standardsFocus[1].toLowerCase()} with ${arcPlan.focus.toLowerCase()}.`,
         'Pause for a mistake check: name one clue, rule, or strategy before choosing the answer.',
-        'Finish by saying the strategy out loud before earning the mission stamp.',
+        `Finish one saved practice round toward the ${MASTERED_PRACTICE_TARGET}-round mastery gate.`,
+        `Return later in the week for a new version of the same skill so the answer is not memorized.`,
+        `Explain the idea using ${roomPlan.standardsFocus[2]?.toLowerCase() || 'grade-level'} vocabulary.`,
+        'Teach the strategy back before the lesson moves into spiral review.',
       ],
       endOfLessonChecks: [
         arcPlan.checkPrompt,
@@ -710,9 +714,11 @@ const EVERY_ROOM_CURRICULUM_UNITS: CurriculumUnit[] = gradeExpansionPlans.flatMa
         'Child can handle a mixed example without trying to jump to the next grade.',
         'Child can explain what felt easy and what still needs practice.',
         'Child can try one new example without rushing to the next grade.',
+        'Child can correct one mistake or explain how they would check the answer.',
+        `Child has a next practice target toward ${MASTERED_PRACTICE_TARGET} saved rounds.`,
       ],
       masteryGate: arcPlan.masteryCue,
-      parentExplanation: `${gradePlan.label} ${roomPlan.title} uses a five-step arc: foundation, guided practice, independent practice, mastery check, and spiral review. This lesson is the ${arcPlan.title.toLowerCase()} step, so it should feel like ${arcPlan.focus.toLowerCase()} before the next unit opens.`,
+      parentExplanation: `${gradePlan.label} ${roomPlan.title} uses a ${SCHOOL_YEAR_PACING.weeks}-week school-year rhythm: foundation, guided practice, independent practice, mastery check, spiral review, and reteach when needed. This lesson is the ${arcPlan.title.toLowerCase()} step, so it should feel like ${arcPlan.focus.toLowerCase()} before the next unit opens.`,
     }))
   )
 );
@@ -724,6 +730,9 @@ const enrichCurriculumUnit = (unit: CurriculumUnit): CurriculumUnit => ({
     `Practice with a short example connected to ${unit.standardsFocus[0].toLowerCase()}.`,
     `Try a second example that uses ${unit.standardsFocus[Math.min(1, unit.standardsFocus.length - 1)].toLowerCase()}.`,
     'Pause for a mistake check and say which clue helped.',
+    `Save one round toward the ${MASTERED_PRACTICE_TARGET}-round mastery gate.`,
+    'Try a similar problem later so the skill is practiced on more than one day.',
+    'Explain how this skill connects to a past lesson.',
     'Say the strategy out loud before finishing the lesson.',
   ],
   endOfLessonChecks: unit.endOfLessonChecks || [
@@ -732,9 +741,11 @@ const enrichCurriculumUnit = (unit: CurriculumUnit): CurriculumUnit => ({
     'Child can name one mistake to watch for next time.',
     'Child can explain the idea in their own words.',
     'Child is ready for one more example without guessing.',
+    'Child can try a new version of the skill without rushing.',
+    'Child knows the next review target before moving forward.',
   ],
-  masteryGate: unit.masteryGate || 'Complete three successful practice rounds and explain the idea clearly.',
-  parentExplanation: unit.parentExplanation || `${unit.title} builds ${unit.standardsFocus.slice(0, 2).join(' and ').toLowerCase()} through repeated practice, a teach-back check, and a short at-home connection.`,
+  masteryGate: unit.masteryGate || `Complete ${MASTERED_PRACTICE_TARGET} saved practice rounds and explain the idea clearly.`,
+  parentExplanation: unit.parentExplanation || `${unit.title} builds ${unit.standardsFocus.slice(0, 2).join(' and ').toLowerCase()} through repeated practice, a teach-back check, spiral review, and a short at-home connection.`,
 });
 
 export const CURRICULUM_UNITS: CurriculumUnit[] = [
@@ -802,7 +813,7 @@ export const getRoomPracticeScore = (progress: UserProgress, room: RoomType): nu
 export const getUnitReadiness = (
   progress: UserProgress,
   unit: CurriculumUnit,
-  requiredPractice = 3
+  requiredPractice = MASTERED_PRACTICE_TARGET
 ): UnitReadiness => {
   if (progress.completedUnitIds?.includes(unit.id)) return 'ready';
   const exactPracticeCount = progress.unitPracticeCounts?.[unit.id] || 0;
@@ -874,7 +885,7 @@ export const getRoadmapRecommendations = (progress: UserProgress): string[] => {
     { room: RoomType.SCIENCE, score: progress.scienceScore, label: 'Science explanations' },
     { room: RoomType.GEOGRAPHY, score: progress.geographyScore, label: 'World knowledge' },
     { room: RoomType.CODING, score: progress.codingScore, label: 'Coding logic' },
-  ].filter(item => item.score < 3);
+  ].filter(item => item.score < MASTERED_PRACTICE_TARGET);
 
   if (lowPracticeRooms.length > 0) {
     recommendations.push(`Balance the week with ${lowPracticeRooms[0].label}.`);

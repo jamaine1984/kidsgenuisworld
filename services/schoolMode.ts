@@ -1,7 +1,8 @@
 import { RoomType, UserProgress, type LearningJournalEntry } from '../types';
 import { getDailyMission, getUnitsForGrade, getWeeklyLearningPlan, type CurriculumUnit } from './curriculum';
+import { MASTERED_PRACTICE_TARGET } from './learningConstants';
 
-export const MASTERED_PRACTICE_TARGET = 3;
+export { MASTERED_PRACTICE_TARGET };
 
 export const AI_TEACHER = {
   name: 'Ms. Nova',

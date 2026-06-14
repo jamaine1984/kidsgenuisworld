@@ -2167,7 +2167,7 @@ const App: React.FC = () => {
     ? getUnitsForGrade(progress.currentGrade).find(unit => unit.id === activeUnitId)
     : undefined;
   const activeUnitPracticeCount = activeUnitId ? Math.min(progress.unitPracticeCounts?.[activeUnitId] || 0, MASTERED_PRACTICE_TARGET) : 0;
-  const activeUnitEndChecks = activeUnit?.endOfLessonChecks?.slice(0, 5) || [];
+  const activeUnitEndChecks = activeUnit?.endOfLessonChecks?.slice(0, 7) || [];
   const activeTeacherScript = activeUnit ? getTeacherScript(activeUnit, progress) : undefined;
   const activeSchoolLessonSteps = activeTeacherScript ? [
     { phase: SCHOOL_LESSON_PHASES[0], prompt: activeTeacherScript.teach },
@@ -2729,7 +2729,7 @@ const App: React.FC = () => {
                   <p className="mt-2 text-sm font-semibold text-slate-700">{learningReflection.objective}</p>
                 </div>
                 <div className="rounded-2xl bg-white px-4 py-3 text-center">
-                  <p className="text-2xl font-black text-emerald-700">{learningReflection.practiceCount}/3</p>
+                  <p className="text-2xl font-black text-emerald-700">{learningReflection.practiceCount}/{MASTERED_PRACTICE_TARGET}</p>
                   <p className="text-xs font-bold text-slate-500">practice rounds</p>
                 </div>
               </div>

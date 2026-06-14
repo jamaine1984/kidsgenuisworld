@@ -462,14 +462,14 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
       isDue: daysUntilReview === 0,
     };
   };
-  const getPracticeActivities = (unit: CurriculumUnit) => unit.practiceActivities?.slice(0, 5) || [
+  const getPracticeActivities = (unit: CurriculumUnit) => unit.practiceActivities?.slice(0, 8) || [
     unit.objective,
     `Practice one example connected to ${unit.standardsFocus[0].toLowerCase()}.`,
     `Try a second example using ${unit.standardsFocus[Math.min(1, unit.standardsFocus.length - 1)].toLowerCase()}.`,
     'Pause and name the clue or strategy that helped.',
     'Say the strategy out loud before finishing.',
   ];
-  const getEndChecks = (unit: CurriculumUnit) => unit.endOfLessonChecks?.slice(0, 5) || [
+  const getEndChecks = (unit: CurriculumUnit) => unit.endOfLessonChecks?.slice(0, 7) || [
     unit.successCheck,
     'Child completes one mixed example with less help.',
     'Child names one mistake to watch for next time.',
@@ -1457,7 +1457,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                             ? 'bg-emerald-100 text-emerald-700'
                             : 'bg-amber-100 text-amber-700'
                         }`}>
-                          {entry.mastered ? 'Mastered' : `${Math.min(entry.practiceCount, 3)}/3`}
+                          {entry.mastered ? 'Mastered' : `${Math.min(entry.practiceCount, MASTERED_PRACTICE_TARGET)}/${MASTERED_PRACTICE_TARGET}`}
                         </span>
                       </div>
                       <p className="text-sm text-gray-600 mt-2">{entry.objective}</p>
@@ -1878,7 +1878,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                       </p>
                       <p className="font-bold text-gray-900 mt-1">{unit.title}</p>
                       <p className="text-xs text-gray-500 mt-1">{unit.room}</p>
-                      <p className="text-xs font-bold text-violet-700 mt-2">{Math.min(practiceCount, 3)}/3 practice rounds</p>
+                      <p className="text-xs font-bold text-violet-700 mt-2">{Math.min(practiceCount, MASTERED_PRACTICE_TARGET)}/{MASTERED_PRACTICE_TARGET} practice rounds</p>
                       <p className="text-xs font-bold text-violet-700 mt-2">{reviewTiming.lastLabel}</p>
                       <p className="text-xs text-violet-700 mt-1">{reviewTiming.detail}</p>
                       <p className="text-xs text-gray-600 mt-2">{unit.successCheck}</p>

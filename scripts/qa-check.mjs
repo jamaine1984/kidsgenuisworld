@@ -11,6 +11,7 @@ const requiredFiles = [
   'components/GameArcade.tsx',
   'components/StoryBook.tsx',
   'services/curriculum.ts',
+  'services/learningConstants.ts',
   'services/achievements.ts',
   'services/audioService.ts',
   'services/mediaApi.ts',
@@ -81,6 +82,7 @@ const worldMapSource = fs.readFileSync(path.join(root, 'components/WorldMap.tsx'
 const achievementsPanelSource = fs.readFileSync(path.join(root, 'components/AchievementsPanel.tsx'), 'utf8');
 const teacherRoomCoachSource = fs.readFileSync(path.join(root, 'components/TeacherRoomCoach.tsx'), 'utf8');
 const curriculumSource = fs.readFileSync(path.join(root, 'services/curriculum.ts'), 'utf8');
+const learningConstantsSource = fs.readFileSync(path.join(root, 'services/learningConstants.ts'), 'utf8');
 const achievementServiceSource = fs.readFileSync(path.join(root, 'services/achievements.ts'), 'utf8');
 const schoolModeSource = fs.readFileSync(path.join(root, 'services/schoolMode.ts'), 'utf8');
 const typesSource = fs.readFileSync(path.join(root, 'types.ts'), 'utf8');
@@ -596,7 +598,7 @@ for (const field of ['standardsFocus', 'reviewCycleDays', 'masteryTarget', 'obje
 if (!curriculumSource.includes('Foundation') || !curriculumSource.includes('Guided Practice') || !curriculumSource.includes('Independent Practice') || !curriculumSource.includes('Mastery Check') || !curriculumSource.includes('Spiral Review')) {
   fail('Curriculum needs a five-step foundation, guided, independent, mastery, and spiral-review lesson arc.');
 }
-if (!curriculumSource.includes('five-step arc') || !curriculumSource.includes('without rushing to the next grade') || !worldMapSource.includes('slice(0, 5)') || !parentDashboardSource.includes('slice(0, 5)') || !worldMapSource.includes('xl:grid-cols-5') || !parentDashboardSource.includes('xl:grid-cols-5')) {
+if (!curriculumSource.includes('foundation, guided practice, independent practice, mastery check, spiral review') || !curriculumSource.includes('without rushing to the next grade') || !worldMapSource.includes('slice(0, 8)') || !parentDashboardSource.includes('slice(0, 8)') || !worldMapSource.includes('xl:grid-cols-5') || !parentDashboardSource.includes('xl:grid-cols-5')) {
   fail('Deep lesson practice steps must be visible to kids and parents.');
 }
 const requiredGradeCoverage = [
@@ -639,8 +641,11 @@ if (!typesSource.includes('gradeRoomVisits') || !appSource.includes('hasVisitedE
 if (!typesSource.includes('completedUnitIds') || !appSource.includes('activeUnitId') || !curriculumSource.includes('completedUnitIds?.includes(unit.id)')) {
   fail('Exact curriculum unit completion is not tracked.');
 }
-if (!typesSource.includes('unitPracticeCounts') || !appSource.includes('nextUnitPracticeCounts') || !appSource.includes('>= 3') || !parentDashboardSource.includes('Mission practice')) {
+if (!typesSource.includes('unitPracticeCounts') || !appSource.includes('nextUnitPracticeCounts') || !schoolModeSource.includes('MASTERED_PRACTICE_TARGET') || !learningConstantsSource.includes('MASTERED_PRACTICE_TARGET = 6') || !parentDashboardSource.includes('Mission practice')) {
   fail('Curriculum unit completion must require repeated mission practice and show progress to parents.');
+}
+if (!curriculumSource.includes('SCHOOL_YEAR_PACING') || !curriculumSource.includes('${SCHOOL_YEAR_PACING.weeks}-week school-year rhythm') || !curriculumSource.includes('saved practice rounds')) {
+  fail('Curriculum depth must describe year-long pacing, repeated practice, and saved mastery rounds.');
 }
 if (!curriculumSource.includes('getCurrentGradeUnits') || !curriculumSource.includes('RoomType.ART') || !curriculumSource.includes('RoomType.PUZZLE')) {
   fail('Daily mission and roadmap do not account for every current-grade room.');
@@ -676,7 +681,7 @@ for (const language of ['spanish', 'french', 'mandarin', 'japanese']) {
   }
 }
 for (const [file, marker] of [
-  ['components/ArtRoom.tsx', 'Complete artwork'],
+  ['components/ArtRoom.tsx', 'Teacher-Led Art Lesson'],
   ['components/MusicRoom.tsx', 'Complete music mission'],
   ['components/PuzzleRoom.tsx', 'Puzzle Brain Gym'],
 ]) {
@@ -718,7 +723,7 @@ if (!appSource.includes('Learning Reflection') || !appSource.includes('Explain w
 if (!appSource.includes('Lesson Board') || !appSource.includes('showMissionFocus') || !appSource.includes('Mastery gate') || !appSource.includes('Exit ticket')) {
   fail('Active lesson teacher board is missing inside room practice.');
 }
-if (!appSource.includes('Teach to exit ticket path') || !appSource.includes('Exit checks') || !appSource.includes('SCHOOL_LESSON_PHASES') || !appSource.includes('activeUnit?.endOfLessonChecks?.slice(0, 5)') || !appSource.includes('max-w-5xl')) {
+if (!appSource.includes('Teach to exit ticket path') || !appSource.includes('Exit checks') || !appSource.includes('SCHOOL_LESSON_PHASES') || !appSource.includes('activeUnit?.endOfLessonChecks?.slice(0, 7)') || !appSource.includes('max-w-5xl')) {
   fail('Active room teacher board must expose the full teach, example, guided, independent, exit-ticket path.');
 }
 if (!typesSource.includes('LearningJournalEntry') || !typesSource.includes('childReflection') || !appSource.includes('learningJournal') || !appSource.includes('recordLearningReflectionChoice') || !parentDashboardSource.includes('Learning Journal') || !parentDashboardSource.includes('Recent proof of practice') || !parentDashboardSource.includes('Child reflection')) {
@@ -816,8 +821,14 @@ if (!mathRoomSource.includes('renderMathManipulatives') || !mathRoomSource.inclu
 if (!mathRoomSource.includes('Mission Type') || !mathRoomSource.includes('setMoneyProblem') || !mathRoomSource.includes('setTimeProblem') || !mathRoomSource.includes('setFractionProblem') || !mathRoomSource.includes('setGeometryProblem')) {
   fail('Math room needs grade-paced word, money, time, fraction, and geometry missions.');
 }
+if (!mathRoomSource.includes('setMeasurementProblem') || (mathRoomSource.match(/template ===/g) || []).length < 7) {
+  fail('Math room needs a deeper bank of word-problem and measurement templates.');
+}
 if (!readingRoomSource.includes('READING_PASSAGES') || !readingRoomSource.includes('COMPREHENSION') || !readingRoomSource.includes('Comprehension Quest') || !voiceCacheSource.includes('readingPassageTexts')) {
   fail('Reading room needs grade-paced comprehension passages included in the voice cache.');
+}
+if ((readingRoomSource.match(/id: 'g/g) || []).length < 20 || (readingRoomSource.match(/skill: '/g) || []).length < 30) {
+  fail('Reading room needs a deeper passage bank across grade levels.');
 }
 if (!scienceRoomSource.includes('Junior Lab Bench') || !scienceRoomSource.includes('Observe') || !geographyRoomSource.includes('Travel Passport') || !geographyRoomSource.includes('Map clue')) {
   fail('Science and Geography rooms need destination-style visual learning props.');
@@ -831,8 +842,11 @@ if (!codingRoomSource.includes('Robot Command Center') || !codingRoomSource.incl
 if (!languageRoomSource.includes('availableWords') || !languageRoomSource.includes('gradeLevel: 7') || !languageRoomSource.includes('CATEGORY_LABELS') || !languageRoomSource.includes('I need help')) {
   fail('Language room needs grade-paced vocabulary, phrase practice, and clean category labels.');
 }
-if (!artRoomSource.includes('Creative Studio Mission') || !artRoomSource.includes('Artist Checklist') || !puzzleRoomSource.includes('Puzzle Brain Gym') || !puzzleRoomSource.includes('Find what comes next')) {
+if (!artRoomSource.includes('Creative Studio Mission') || !artRoomSource.includes('Teacher-Led Art Lesson') || !puzzleRoomSource.includes('Puzzle Brain Gym') || !puzzleRoomSource.includes('Find what comes next')) {
   fail('Art and Puzzle rooms need clearer kid-facing mission panels.');
+}
+if (!artRoomSource.includes('lessonSteps') || !artRoomSource.includes('reflectionChoice') || !artRoomSource.includes('vocabulary')) {
+  fail('Art room needs a real lesson path, art vocabulary, and reflection before completion.');
 }
 if (!musicRoomSource.includes('Music Mission Board') || !musicRoomSource.includes('Explore Sound')) {
   fail('Music room needs a clearer kid-facing mission panel.');

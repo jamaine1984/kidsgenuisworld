@@ -49,7 +49,7 @@ const generateMathProblem = (level: number): MathProblem => {
   };
 
   const setWordProblem = () => {
-    const template = Math.floor(Math.random() * 3);
+    const template = Math.floor(Math.random() * 8);
     context = 'word-problem';
     if (template === 0) {
       a = Math.floor(Math.random() * 8) + 4;
@@ -65,14 +65,73 @@ const generateMathProblem = (level: number): MathProblem => {
       answer = a - b;
       question = `Noah has ${a} stickers. He uses ${b} stickers on a card. How many stickers are left?`;
       explanation = `${a} stickers minus ${b} stickers equals ${answer} stickers left.`;
-    } else {
+    } else if (template === 2) {
       a = Math.floor(Math.random() * 4) + 2;
       b = Math.floor(Math.random() * 4) + 2;
       operation = 'multiplication';
       answer = a * b;
       question = `There are ${a} bags with ${b} marbles in each bag. How many marbles are there in all?`;
       explanation = `${a} equal groups of ${b} makes ${answer} marbles.`;
+    } else if (template === 3) {
+      const tens = Math.floor(Math.random() * 7) + 2;
+      const ones = Math.floor(Math.random() * 8) + 1;
+      a = tens;
+      b = ones;
+      operation = 'addition';
+      answer = tens * 10 + ones;
+      question = `A number has ${tens} tens and ${ones} ones. What is the number?`;
+      explanation = `${tens} tens are ${tens * 10}. Add ${ones} ones to make ${answer}.`;
+    } else if (template === 4) {
+      const boxes = Math.floor(Math.random() * 5) + 3;
+      const pencilsPerBox = Math.floor(Math.random() * 6) + 4;
+      const givenAway = Math.floor(Math.random() * 8) + 3;
+      a = boxes;
+      b = pencilsPerBox;
+      operation = 'multiplication';
+      answer = boxes * pencilsPerBox - givenAway;
+      question = `A class has ${boxes} boxes with ${pencilsPerBox} pencils in each box. They give away ${givenAway} pencils. How many pencils are left?`;
+      explanation = `${boxes} groups of ${pencilsPerBox} is ${boxes * pencilsPerBox}. Take away ${givenAway} to get ${answer}.`;
+    } else if (template === 5) {
+      const shelves = Math.floor(Math.random() * 4) + 2;
+      const books = shelves * (Math.floor(Math.random() * 5) + 3);
+      a = shelves;
+      b = books / shelves;
+      operation = 'division';
+      answer = books / shelves;
+      question = `${books} books are shared equally on ${shelves} shelves. How many books go on each shelf?`;
+      explanation = `${books} shared into ${shelves} equal groups gives ${answer} books on each shelf.`;
+    } else if (template === 6) {
+      const rows = Math.floor(Math.random() * 5) + 2;
+      const seats = Math.floor(Math.random() * 6) + 3;
+      a = rows;
+      b = seats;
+      operation = 'multiplication';
+      answer = rows * seats;
+      question = `The school bus has ${rows} rows with ${seats} seats in each row. How many seats are there?`;
+      explanation = `${rows} equal rows of ${seats} seats makes ${answer} seats.`;
+    } else {
+      const start = Math.floor(Math.random() * 35) + 30;
+      const first = Math.floor(Math.random() * 12) + 5;
+      const second = Math.floor(Math.random() * 8) + 3;
+      a = start;
+      b = first + second;
+      operation = 'subtraction';
+      answer = start - first - second;
+      question = `The art shelf has ${start} papers. Students use ${first} papers in the morning and ${second} papers later. How many papers are left?`;
+      explanation = `Start with ${start}, subtract ${first}, then subtract ${second}. That leaves ${answer}.`;
     }
+  };
+
+  const setMeasurementProblem = () => {
+    const firstLength = Math.floor(Math.random() * 18) + 8;
+    const secondLength = Math.floor(Math.random() * 10) + 3;
+    a = firstLength;
+    b = secondLength;
+    operation = 'subtraction';
+    context = 'word-problem';
+    answer = firstLength - secondLength;
+    question = `A ribbon is ${firstLength} inches long. A student cuts off ${secondLength} inches. How many inches are left?`;
+    explanation = `${firstLength} inches minus ${secondLength} inches leaves ${answer} inches.`;
   };
 
   const setMoneyProblem = () => {
@@ -146,6 +205,7 @@ const generateMathProblem = (level: number): MathProblem => {
       () => setEquation(Math.floor(Math.random() * 50) + 50, Math.floor(Math.random() * 50), 'subtraction'),
       () => setEquation(Math.floor(Math.random() * 5) + 1, Math.floor(Math.random() * 5) + 1, 'multiplication'),
       setWordProblem,
+      setMeasurementProblem,
       setMoneyProblem,
       setTimeProblem,
     ]);
@@ -154,6 +214,7 @@ const generateMathProblem = (level: number): MathProblem => {
       () => setEquation(Math.floor(Math.random() * 10) + 1, Math.floor(Math.random() * 10) + 1, 'multiplication'),
       () => setEquation(Math.floor(Math.random() * 9) + 2, Math.floor(Math.random() * 10) + 1, 'division'),
       setWordProblem,
+      setMeasurementProblem,
       setFractionProblem,
       setGeometryProblem,
     ]);
@@ -164,6 +225,7 @@ const generateMathProblem = (level: number): MathProblem => {
       () => setEquation(Math.floor(Math.random() * 12) + 2, Math.floor(Math.random() * 12) + 2, 'multiplication'),
       () => setEquation(Math.floor(Math.random() * 11) + 2, Math.floor(Math.random() * 12) + 2, 'division'),
       setWordProblem,
+      setMeasurementProblem,
       setFractionProblem,
       setGeometryProblem,
     ]);
@@ -438,6 +500,7 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, level }) =
                 <button
                   key={idx}
                   data-testid="math-answer-option"
+                  data-math-correct={opt === problem.answer ? 'true' : 'false'}
                   onClick={() => handleAnswer(opt)}
                   disabled={feedback !== 'idle'}
                   className={`

@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { ArrowLeft, CheckCircle2, Download, Eraser, Palette } from 'lucide-react';
-import { playPop } from '../services/audioService';
+import { ArrowLeft, CheckCircle2, ChevronRight, Download, Eraser, Palette, Target } from 'lucide-react';
+import { playPop, speakAsync } from '../services/audioService';
 
 interface ArtRoomProps {
   onBack: () => void;
@@ -9,13 +9,76 @@ interface ArtRoomProps {
 }
 
 const ART_MISSIONS = [
-  { gradeLevel: 1, title: 'Color Explorer', prompt: 'Draw three big color marks.', minStrokes: 3, focus: 'Name the colors you used.', checks: ['Pick colors', 'Make big strokes', 'Tell about it'] },
-  { gradeLevel: 2, title: 'Shape Builder', prompt: 'Draw a picture with two shapes and two colors.', minStrokes: 4, focus: 'Look for circles, squares, and lines.', checks: ['Use shapes', 'Use colors', 'Finish neatly'] },
-  { gradeLevel: 3, title: 'Story Picture', prompt: 'Draw a picture that shows a character, a place, and one action.', minStrokes: 5, focus: 'Make the picture tell what happened.', checks: ['Character', 'Place', 'Action'] },
-  { gradeLevel: 4, title: 'Pattern Artist', prompt: 'Create a repeating color or shape pattern.', minStrokes: 6, focus: 'Repeat a design so the pattern is easy to spot.', checks: ['Repeat', 'Contrast', 'Explain pattern'] },
-  { gradeLevel: 5, title: 'Science Sketch', prompt: 'Sketch an object from nature and add details you notice.', minStrokes: 7, focus: 'Use careful observation before decorating.', checks: ['Observe', 'Details', 'Label idea'] },
-  { gradeLevel: 6, title: 'Perspective Scene', prompt: 'Draw a scene with foreground, middle ground, and background.', minStrokes: 8, focus: 'Make close things larger and far things smaller.', checks: ['Foreground', 'Middle', 'Background'] },
-  { gradeLevel: 7, title: 'Design Challenge', prompt: 'Create a poster that teaches one idea clearly.', minStrokes: 9, focus: 'Use layout, color, and symbols to communicate.', checks: ['Main idea', 'Useful symbols', 'Clear layout'] },
+  {
+    gradeLevel: 1,
+    title: 'Color Explorer',
+    prompt: 'Create a happy weather picture with three big color marks.',
+    minStrokes: 8,
+    focus: 'Artists choose colors to show feelings.',
+    vocabulary: ['warm color', 'cool color', 'big mark'],
+    lessonSteps: ['Pick one warm color and one cool color.', 'Make sky, ground, or sunshine with big safe strokes.', 'Add one detail that shows how the day feels.', 'Tell which color shows the feeling best.'],
+    checks: ['Three colors', 'Big strokes', 'Feeling color', 'Tell about it'],
+  },
+  {
+    gradeLevel: 2,
+    title: 'Shape Builder',
+    prompt: 'Build a playground picture with shapes, lines, and two colors.',
+    minStrokes: 10,
+    focus: 'Artists combine simple shapes to make real objects.',
+    vocabulary: ['circle', 'rectangle', 'line', 'overlap'],
+    lessonSteps: ['Draw two large shapes first.', 'Connect shapes with lines to make an object.', 'Add a second object using a different shape.', 'Explain which shape helped the picture most.'],
+    checks: ['Two shapes', 'Lines connect', 'Two colors', 'Explain shape'],
+  },
+  {
+    gradeLevel: 3,
+    title: 'Story Picture',
+    prompt: 'Draw a scene that shows a character, a place, and one action.',
+    minStrokes: 12,
+    focus: 'Illustrators make the viewer understand what happened.',
+    vocabulary: ['character', 'setting', 'action', 'detail'],
+    lessonSteps: ['Draw the place first so the story has a setting.', 'Add a character large enough to see.', 'Show one action with a line, pose, or object.', 'Add a detail that helps someone retell the story.'],
+    checks: ['Character', 'Place', 'Action', 'Story detail'],
+  },
+  {
+    gradeLevel: 4,
+    title: 'Pattern Artist',
+    prompt: 'Create a repeating pattern that changes once in an interesting way.',
+    minStrokes: 14,
+    focus: 'Patterns use repetition, contrast, and one planned variation.',
+    vocabulary: ['repeat', 'contrast', 'variation', 'rhythm'],
+    lessonSteps: ['Choose a two-part repeating pattern.', 'Repeat it at least four times.', 'Change one part on purpose to make a focal point.', 'Explain the rule your pattern follows.'],
+    checks: ['Repeat', 'Contrast', 'Variation', 'Pattern rule'],
+  },
+  {
+    gradeLevel: 5,
+    title: 'Science Sketch',
+    prompt: 'Sketch a nature object and add labels for details you notice.',
+    minStrokes: 16,
+    focus: 'Scientific artists observe first, then draw details accurately.',
+    vocabulary: ['observe', 'label', 'texture', 'detail'],
+    lessonSteps: ['Choose a nature object to imagine or observe.', 'Draw the largest shape lightly first.', 'Add texture, small parts, and labels.', 'Explain one detail that came from observation.'],
+    checks: ['Observe', 'Texture', 'Labels', 'Evidence detail'],
+  },
+  {
+    gradeLevel: 6,
+    title: 'Perspective Scene',
+    prompt: 'Draw a scene with foreground, middle ground, and background.',
+    minStrokes: 18,
+    focus: 'Perspective makes near objects larger and far objects smaller.',
+    vocabulary: ['foreground', 'middle ground', 'background', 'scale'],
+    lessonSteps: ['Place one large object near the bottom.', 'Add a middle object that is smaller.', 'Add far objects near the top or horizon.', 'Explain how size shows distance.'],
+    checks: ['Foreground', 'Middle', 'Background', 'Scale choice'],
+  },
+  {
+    gradeLevel: 7,
+    title: 'Design Challenge',
+    prompt: 'Create a poster that teaches one idea clearly.',
+    minStrokes: 20,
+    focus: 'Designers use layout, symbols, and contrast to communicate.',
+    vocabulary: ['layout', 'symbol', 'headline', 'audience'],
+    lessonSteps: ['Choose one clear message for the poster.', 'Make the most important symbol or word largest.', 'Use contrast so the viewer knows where to look first.', 'Explain who the poster is for and what it teaches.'],
+    checks: ['Main idea', 'Useful symbol', 'Clear layout', 'Audience'],
+  },
 ];
 
 export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => {
@@ -25,9 +88,14 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => 
   const [isDrawing, setIsDrawing] = useState(false);
   const [strokeCount, setStrokeCount] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
+  const [activeStep, setActiveStep] = useState(0);
+  const [reflectionChoice, setReflectionChoice] = useState('');
 
   const colors = ['#FF5733', '#FFBD33', '#DBFF33', '#75FF33', '#33FF57', '#33FFBD', '#33DBFF', '#3357FF', '#7533FF', '#FF33BD', '#000000', '#FFFFFF'];
   const mission = ART_MISSIONS[Math.min(Math.max(level, 1), 7) - 1];
+  const hasEnoughDrawing = strokeCount >= mission.minStrokes;
+  const hasFinishedSteps = activeStep >= mission.lessonSteps.length - 1;
+  const canComplete = hasEnoughDrawing && hasFinishedSteps && Boolean(reflectionChoice) && !isComplete;
 
   // Fixed canvas size (A4-ish ratio)
   const CANVAS_WIDTH = 800;
@@ -48,6 +116,10 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => 
         }
     }
   }, []);
+
+  useEffect(() => {
+    void speakAsync(`Welcome to Art Studio. Today we are learning ${mission.title}. ${mission.focus} ${mission.lessonSteps[0]}`, 0.86, 1.03);
+  }, [mission]);
 
   const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
     setIsDrawing(true);
@@ -99,6 +171,8 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => 
       }
       setStrokeCount(0);
       setIsComplete(false);
+      setActiveStep(0);
+      setReflectionChoice('');
   }
 
   const download = () => {
@@ -109,9 +183,16 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => 
   }
 
   const completeArtwork = () => {
-      if (isComplete || strokeCount < mission.minStrokes) return;
+      if (!canComplete) return;
       setIsComplete(true);
+      void speakAsync(`Studio complete. You used ${reflectionChoice.toLowerCase()} and explained your art choice.`, 0.86, 1.02);
       onReward();
+  };
+
+  const advanceLessonStep = () => {
+      const nextStep = Math.min(activeStep + 1, mission.lessonSteps.length - 1);
+      setActiveStep(nextStep);
+      void speakAsync(mission.lessonSteps[nextStep], 0.86, 1.02);
   };
 
   return (
@@ -122,13 +203,13 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => 
         </button>
         <div className="text-center">
           <h1 className="text-2xl font-bold text-pink-700 flex items-center justify-center gap-2"><Palette /> Art Studio</h1>
-          <p className="text-xs font-bold text-pink-700/80">{mission.title}: {mission.prompt}</p>
+          <p className="text-xs font-bold text-pink-700/80">{mission.title}: {mission.focus}</p>
         </div>
         <div className="flex gap-2">
              <button
                 onClick={completeArtwork}
-                disabled={strokeCount < mission.minStrokes || isComplete}
-                className={`p-2 rounded-full shadow-sm ${strokeCount >= mission.minStrokes && !isComplete ? 'bg-emerald-500 text-white hover:bg-emerald-600' : 'bg-white text-gray-300'}`}
+                disabled={!canComplete}
+                className={`p-2 rounded-full shadow-sm ${canComplete ? 'bg-emerald-500 text-white hover:bg-emerald-600' : 'bg-white text-gray-300'}`}
                 title="Complete artwork"
              >
                 <CheckCircle2 />
@@ -144,6 +225,26 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => 
             <div className="rounded-2xl bg-pink-50 px-2 py-3 text-center text-[10px] font-black uppercase tracking-wide text-pink-700 ring-1 ring-pink-100">
               Creative Studio Mission
               <div className="mt-1 text-[9px] normal-case tracking-normal text-pink-500">{mission.title}</div>
+            </div>
+            <div className="w-20 rounded-2xl bg-indigo-50 px-2 py-3 text-left ring-1 ring-indigo-100">
+              <div className="mb-2 flex items-center gap-1 text-[9px] font-black uppercase tracking-wide text-indigo-700">
+                <Target size={12} />
+                Lesson
+              </div>
+              <div className="space-y-1">
+                {mission.lessonSteps.map((step, index) => (
+                  <button
+                    key={step}
+                    onClick={() => {
+                      setActiveStep(index);
+                      void speakAsync(step, 0.86, 1.02);
+                    }}
+                    className={`w-full rounded-xl px-2 py-1 text-left text-[9px] font-bold leading-tight ${activeStep === index ? 'bg-indigo-600 text-white' : 'bg-white text-indigo-800'}`}
+                  >
+                    {index + 1}. {step}
+                  </button>
+                ))}
+              </div>
             </div>
             {colors.map(c => (
                 <button 
@@ -168,14 +269,47 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => 
 
         {/* Canvas Container - SCROLLABLE */}
         <div className="flex-1 bg-white/25 overflow-auto p-8 flex items-start justify-center shadow-inner cursor-crosshair kid-scroll">
-            <div className="absolute top-4 left-32 right-8 z-10 hidden rounded-2xl bg-white/90 p-3 shadow-lg ring-1 ring-pink-100 md:block">
-              <div className="text-xs font-black uppercase tracking-[0.22em] text-pink-600">Artist Checklist</div>
-              <div className="mt-1 flex flex-wrap gap-2 text-xs font-bold text-slate-600">
-                {mission.checks.map(check => (
-                  <span key={check} className="rounded-full bg-pink-50 px-3 py-1">{check}</span>
-                ))}
-                <span className="rounded-full bg-yellow-50 px-3 py-1">{mission.focus}</span>
-                <span className="rounded-full bg-emerald-50 px-3 py-1">{strokeCount}/{mission.minStrokes} strokes</span>
+            <div className="absolute top-4 left-32 right-8 z-10 hidden rounded-2xl bg-white/92 p-3 shadow-lg ring-1 ring-pink-100 md:block">
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                <div className="min-w-0">
+                  <div className="text-xs font-black uppercase tracking-[0.22em] text-pink-600">Teacher-Led Art Lesson</div>
+                  <p className="mt-1 text-sm font-black text-slate-900">{mission.prompt}</p>
+                  <p className="mt-1 text-xs font-bold text-slate-600">Now: {mission.lessonSteps[activeStep]}</p>
+                  <div className="mt-2 flex flex-wrap gap-2 text-xs font-bold text-slate-600">
+                    {mission.vocabulary.map(word => (
+                      <span key={word} className="rounded-full bg-indigo-50 px-3 py-1 text-indigo-700">{word}</span>
+                    ))}
+                    <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700">{strokeCount}/{mission.minStrokes} strokes</span>
+                  </div>
+                </div>
+                <div className="w-full max-w-sm">
+                  <div className="flex flex-wrap gap-2">
+                    {mission.checks.map((check, index) => (
+                      <span key={check} className={`rounded-full px-3 py-1 text-xs font-black ${index <= activeStep ? 'bg-pink-500 text-white' : 'bg-pink-50 text-pink-700'}`}>{check}</span>
+                    ))}
+                  </div>
+                  <div className="mt-3 grid grid-cols-2 gap-2">
+                    {['I used color on purpose', 'I used shapes or lines', 'I added a clear detail', 'I can explain my choice'].map(choice => (
+                      <button
+                        key={choice}
+                        onClick={() => {
+                          setReflectionChoice(choice);
+                          void speakAsync(choice, 0.86, 1.02);
+                        }}
+                        className={`rounded-xl px-3 py-2 text-left text-xs font-black ${reflectionChoice === choice ? 'bg-emerald-500 text-white' : 'bg-emerald-50 text-emerald-800'}`}
+                      >
+                        {choice}
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    onClick={advanceLessonStep}
+                    disabled={hasFinishedSteps}
+                    className={`mt-3 inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-black ${hasFinishedSteps ? 'bg-slate-100 text-slate-400' : 'bg-pink-600 text-white hover:bg-pink-700'}`}
+                  >
+                    Next studio step <ChevronRight size={14} />
+                  </button>
+                </div>
               </div>
             </div>
             <div className="shadow-2xl relative">

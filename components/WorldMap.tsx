@@ -95,14 +95,14 @@ export const WorldMap: React.FC<WorldMapProps> = ({
       isDue: daysUntilReview === 0,
     };
   };
-  const getPracticeActivities = (unit: CurriculumUnit) => unit.practiceActivities?.slice(0, 5) || [
+  const getPracticeActivities = (unit: CurriculumUnit) => unit.practiceActivities?.slice(0, 8) || [
     unit.objective,
     `Practice one example connected to ${unit.standardsFocus[0].toLowerCase()}.`,
     `Try a second example using ${unit.standardsFocus[Math.min(1, unit.standardsFocus.length - 1)].toLowerCase()}.`,
     'Pause and name the clue or strategy that helped.',
     'Say the strategy out loud before finishing.',
   ];
-  const getEndChecks = (unit: CurriculumUnit) => unit.endOfLessonChecks?.slice(0, 5) || [
+  const getEndChecks = (unit: CurriculumUnit) => unit.endOfLessonChecks?.slice(0, 7) || [
     unit.successCheck,
     'Complete one mixed example with less help.',
     'Name one mistake to watch for next time.',
@@ -881,7 +881,7 @@ export const WorldMap: React.FC<WorldMapProps> = ({
                     <CheckCircle2 size={18} className={stamp.childReflection ? 'text-emerald-500' : 'text-amber-500'} />
                   </div>
                   <p className="mt-2 text-xs font-semibold text-slate-600">
-                    {stamp.childReflection ? `Reflection: ${stamp.childReflection}` : `${Math.min(stamp.practiceCount, 3)}/3 practice rounds`}
+                    {stamp.childReflection ? `Reflection: ${stamp.childReflection}` : `${Math.min(stamp.practiceCount, MASTERED_PRACTICE_TARGET)}/${MASTERED_PRACTICE_TARGET} practice rounds`}
                   </p>
                 </div>
               ))
@@ -1117,7 +1117,7 @@ export const WorldMap: React.FC<WorldMapProps> = ({
             const isMissionRoom = mission.room === room.type;
             const score = roomScores[room.type] || 0;
             const nextUnit = nextUnitByRoom[room.type];
-            const nextUnitPractice = nextUnit ? Math.min(unitPracticeCounts[nextUnit.id] || 0, 3) : 0;
+            const nextUnitPractice = nextUnit ? Math.min(unitPracticeCounts[nextUnit.id] || 0, MASTERED_PRACTICE_TARGET) : 0;
 
             return (
               <button
@@ -1166,7 +1166,7 @@ export const WorldMap: React.FC<WorldMapProps> = ({
                         <div className="mt-2 rounded-xl bg-slate-50 p-2">
                           <div className="flex items-center justify-between gap-2">
                             <p className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-500">Next lesson</p>
-                            <p className="text-[10px] font-black text-emerald-700">{nextUnitPractice}/3</p>
+                            <p className="text-[10px] font-black text-emerald-700">{nextUnitPractice}/{MASTERED_PRACTICE_TARGET}</p>
                           </div>
                           <p className="mt-1 text-xs font-black text-slate-800">{nextUnit.title}</p>
                           <p className="mt-1 line-clamp-2 text-[11px] font-semibold text-slate-500">
@@ -1302,7 +1302,7 @@ export const WorldMap: React.FC<WorldMapProps> = ({
                         <p className="mt-1 text-sm font-semibold text-slate-600">{item.unit.successCheck}</p>
                       </div>
                       <div className="rounded-2xl bg-white px-4 py-3 text-center">
-                        <p className="text-xl font-black text-violet-700">{Math.min(practiceCount, 3)}/3</p>
+                        <p className="text-xl font-black text-violet-700">{Math.min(practiceCount, MASTERED_PRACTICE_TARGET)}/{MASTERED_PRACTICE_TARGET}</p>
                         <p className="text-xs font-bold text-slate-500">practice</p>
                       </div>
                     </div>

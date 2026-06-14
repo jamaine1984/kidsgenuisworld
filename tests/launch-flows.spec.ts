@@ -129,8 +129,8 @@ test('math room completion creates reward and parent-visible journal proof', asy
 
   for (let round = 0; round < 3; round += 1) {
     const question = (await page.getByTestId('math-question').innerText()).trim();
-    const answer = solveMathQuestion(question);
-    await page.getByTestId('math-answer-option').filter({ hasText: String(answer) }).click();
+    solveMathQuestion(question);
+    await page.locator('[data-testid="math-answer-option"][data-math-correct="true"]').click();
     if (round < 2) {
       await expect(page.getByTestId('math-answer-option').first()).toBeEnabled({ timeout: 5_000 });
     }

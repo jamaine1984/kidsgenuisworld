@@ -18,6 +18,13 @@ const PUZZLE_MISSIONS = [
   { gradeLevel: 5, title: 'Logic Coach', pairCount: 6, patternLength: 7, prompt: 'Compare options and rule out weak choices.' },
   { gradeLevel: 6, title: 'Complex Patterns', pairCount: 6, patternLength: 8, prompt: 'Track more than one repeating part.' },
   { gradeLevel: 7, title: 'Puzzle Mastery', pairCount: 6, patternLength: 9, prompt: 'Solve with accuracy, memory, and explanation.' },
+  { gradeLevel: 1, title: 'Look Twice', pairCount: 3, patternLength: 4, prompt: 'Look, remember, then choose after one careful breath.' },
+  { gradeLevel: 2, title: 'Same and Different', pairCount: 4, patternLength: 5, prompt: 'Say what is the same and what is different before choosing.' },
+  { gradeLevel: 3, title: 'AB Pattern Coach', pairCount: 5, patternLength: 6, prompt: 'Name the repeating rule out loud before you tap.' },
+  { gradeLevel: 4, title: 'Three-Part Pattern', pairCount: 6, patternLength: 7, prompt: 'Track a longer pattern with three repeating parts.' },
+  { gradeLevel: 5, title: 'Working Memory Sprint', pairCount: 6, patternLength: 8, prompt: 'Remember more cards and use a planned search path.' },
+  { gradeLevel: 6, title: 'Rule Detective', pairCount: 6, patternLength: 9, prompt: 'Find the rule, test it, and explain why the answer fits.' },
+  { gradeLevel: 7, title: 'Logic Proof', pairCount: 6, patternLength: 10, prompt: 'Solve and explain which options you ruled out.' },
 ];
 
 export const PuzzleRoom: React.FC<PuzzleRoomProps> = ({ onBack, onReward, level }) => {
@@ -41,7 +48,10 @@ export const PuzzleRoom: React.FC<PuzzleRoomProps> = ({ onBack, onReward, level 
   const ITEMS = ['🦄', '🦕', '🍕', '🚀', '🎈', '🎁'];
   const SHAPES = ['🟥', '🟦', '🟩', '🟨', '🟠', '🟣'];
 
-  const mission = useMemo(() => PUZZLE_MISSIONS[Math.min(Math.max(level, 1), 7) - 1], [level]);
+  const mission = useMemo(() => {
+    const missionPool = PUZZLE_MISSIONS.filter(item => item.gradeLevel <= Math.min(Math.max(level, 1), 7));
+    return missionPool[new Date().getDate() % missionPool.length] || PUZZLE_MISSIONS[0];
+  }, [level]);
 
   const initGame = () => {
     if (mode === 'MEMORY') {

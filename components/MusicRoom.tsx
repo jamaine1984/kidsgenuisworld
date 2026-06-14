@@ -16,6 +16,13 @@ const MUSIC_MISSIONS = [
   { gradeLevel: 5, title: 'Mood Composer', noteGoal: 9, loopGoal: 3, prompt: 'Make the music sound happy, calm, or exciting.' },
   { gradeLevel: 6, title: 'Layered Arrangement', noteGoal: 10, loopGoal: 4, prompt: 'Layer rhythm and melody with control.' },
   { gradeLevel: 7, title: 'Performance Take', noteGoal: 12, loopGoal: 4, prompt: 'Build a short performance with a beginning and ending.' },
+  { gradeLevel: 1, title: 'Echo Notes', noteGoal: 5, loopGoal: 1, prompt: 'Play one note, then play it again like an echo.' },
+  { gradeLevel: 2, title: 'Two-Note Song', noteGoal: 6, loopGoal: 2, prompt: 'Make a tiny song using only two different notes.' },
+  { gradeLevel: 3, title: 'Question and Answer', noteGoal: 8, loopGoal: 2, prompt: 'Play a short musical question, then answer with different notes.' },
+  { gradeLevel: 4, title: 'Beat Pattern Lab', noteGoal: 8, loopGoal: 3, prompt: 'Create a rhythm pattern that repeats at least three times.' },
+  { gradeLevel: 5, title: 'Major Mood', noteGoal: 10, loopGoal: 3, prompt: 'Use brighter note choices to make a confident musical mood.' },
+  { gradeLevel: 6, title: 'Call and Response', noteGoal: 11, loopGoal: 4, prompt: 'Build two phrases that sound like they are talking to each other.' },
+  { gradeLevel: 7, title: 'Theme Variation', noteGoal: 13, loopGoal: 4, prompt: 'Create one theme, then change the ending to make a variation.' },
 ];
 
 export const MusicRoom: React.FC<MusicRoomProps> = ({ onBack, onReward, level }) => {
@@ -42,7 +49,8 @@ export const MusicRoom: React.FC<MusicRoomProps> = ({ onBack, onReward, level })
     { id: 6, note: 'B', freq: 493.88, color: 'bg-indigo-500', border: 'border-indigo-700' },
     { id: 7, note: 'C2', freq: 523.25, color: 'bg-purple-500', border: 'border-purple-700' },
   ];
-  const mission = MUSIC_MISSIONS[Math.min(Math.max(level, 1), 7) - 1];
+  const missionPool = MUSIC_MISSIONS.filter(item => item.gradeLevel <= Math.min(Math.max(level, 1), 7));
+  const mission = missionPool[new Date().getDate() % missionPool.length] || MUSIC_MISSIONS[0];
 
   const djPads = [
       { id: 1, name: 'Kick', freq: 100, type: 'square', pattern: 500 },

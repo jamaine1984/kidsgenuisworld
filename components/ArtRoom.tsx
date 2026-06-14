@@ -79,6 +79,76 @@ const ART_MISSIONS = [
     lessonSteps: ['Choose one clear message for the poster.', 'Make the most important symbol or word largest.', 'Use contrast so the viewer knows where to look first.', 'Explain who the poster is for and what it teaches.'],
     checks: ['Main idea', 'Useful symbol', 'Clear layout', 'Audience'],
   },
+  {
+    gradeLevel: 1,
+    title: 'Line Walk',
+    prompt: 'Make a picture using straight, curvy, and zigzag lines.',
+    minStrokes: 9,
+    focus: 'Artists use different line types to show movement.',
+    vocabulary: ['straight', 'curvy', 'zigzag'],
+    lessonSteps: ['Draw one straight line path.', 'Add a curvy line path.', 'Add a zigzag line path.', 'Tell which line looks fastest.'],
+    checks: ['Straight line', 'Curvy line', 'Zigzag line', 'Line explanation'],
+  },
+  {
+    gradeLevel: 2,
+    title: 'Texture Hunt',
+    prompt: 'Draw one object with smooth, bumpy, or rough texture marks.',
+    minStrokes: 11,
+    focus: 'Texture marks help viewers imagine how something feels.',
+    vocabulary: ['smooth', 'bumpy', 'rough', 'texture'],
+    lessonSteps: ['Choose one object.', 'Draw the big outside shape.', 'Fill part of it with repeated texture marks.', 'Explain how the texture would feel.'],
+    checks: ['Object shape', 'Texture marks', 'Repeated marks', 'Feeling explanation'],
+  },
+  {
+    gradeLevel: 3,
+    title: 'Emotion Portrait',
+    prompt: 'Draw a face or character that shows one clear feeling.',
+    minStrokes: 13,
+    focus: 'Artists show feelings with eyes, mouth, eyebrows, and color.',
+    vocabulary: ['portrait', 'expression', 'emotion', 'detail'],
+    lessonSteps: ['Choose one feeling.', 'Draw the face shape first.', 'Add eyes, mouth, and eyebrows that match the feeling.', 'Use one color that supports the feeling.'],
+    checks: ['Feeling chosen', 'Expression details', 'Color choice', 'Explain emotion'],
+  },
+  {
+    gradeLevel: 4,
+    title: 'Symmetry Studio',
+    prompt: 'Create a picture where the left and right sides match or almost match.',
+    minStrokes: 15,
+    focus: 'Symmetry means two sides balance like a mirror.',
+    vocabulary: ['symmetry', 'mirror line', 'balance', 'match'],
+    lessonSteps: ['Imagine a mirror line down the middle.', 'Draw one shape on the left.', 'Draw a matching shape on the right.', 'Explain what stayed balanced.'],
+    checks: ['Mirror line idea', 'Left side', 'Right side', 'Balance explanation'],
+  },
+  {
+    gradeLevel: 5,
+    title: 'Map Illustrator',
+    prompt: 'Draw a tiny map with three symbols and a clear path.',
+    minStrokes: 17,
+    focus: 'Map artists use symbols so people can read places quickly.',
+    vocabulary: ['symbol', 'path', 'map key', 'route'],
+    lessonSteps: ['Draw a path first.', 'Add three place symbols.', 'Repeat or label one symbol as the most important clue.', 'Explain how someone follows the route.'],
+    checks: ['Path', 'Three symbols', 'Important clue', 'Route explanation'],
+  },
+  {
+    gradeLevel: 6,
+    title: 'Light and Shadow',
+    prompt: 'Draw one object with a light side and a shadow side.',
+    minStrokes: 19,
+    focus: 'Value changes help objects look more three-dimensional.',
+    vocabulary: ['value', 'highlight', 'shadow', 'form'],
+    lessonSteps: ['Choose where the light comes from.', 'Draw one object shape.', 'Make one side darker with repeated marks.', 'Explain where the shadow belongs.'],
+    checks: ['Light direction', 'Object shape', 'Shadow side', 'Value explanation'],
+  },
+  {
+    gradeLevel: 7,
+    title: 'Visual Argument',
+    prompt: 'Design a poster that persuades people to do one helpful action.',
+    minStrokes: 21,
+    focus: 'Design can persuade when the message, symbol, and audience match.',
+    vocabulary: ['persuade', 'audience', 'contrast', 'call to action'],
+    lessonSteps: ['Choose one helpful action.', 'Make a symbol for the action.', 'Use contrast to make the message stand out.', 'Explain who should act and why.'],
+    checks: ['Helpful action', 'Persuasive symbol', 'Strong contrast', 'Audience explanation'],
+  },
 ];
 
 export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => {
@@ -92,7 +162,8 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => 
   const [reflectionChoice, setReflectionChoice] = useState('');
 
   const colors = ['#FF5733', '#FFBD33', '#DBFF33', '#75FF33', '#33FF57', '#33FFBD', '#33DBFF', '#3357FF', '#7533FF', '#FF33BD', '#000000', '#FFFFFF'];
-  const mission = ART_MISSIONS[Math.min(Math.max(level, 1), 7) - 1];
+  const missionPool = ART_MISSIONS.filter(item => item.gradeLevel <= Math.min(Math.max(level, 1), 7));
+  const mission = missionPool[new Date().getDate() % missionPool.length] || ART_MISSIONS[0];
   const hasEnoughDrawing = strokeCount >= mission.minStrokes;
   const hasFinishedSteps = activeStep >= mission.lessonSteps.length - 1;
   const canComplete = hasEnoughDrawing && hasFinishedSteps && Boolean(reflectionChoice) && !isComplete;

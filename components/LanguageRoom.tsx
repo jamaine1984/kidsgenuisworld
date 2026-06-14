@@ -117,6 +117,54 @@ export const VOCABULARY: { [key: string]: LanguageWord[] } = {
   ],
 };
 
+const EXTRA_LANGUAGE_WORDS: { [key: string]: LanguageWord[] } = {
+  spanish: [
+    { gradeLevel: 2, english: 'Four', translation: 'Cuatro', pronunciation: 'KWAH-troh', language: 'spanish', category: 'numbers' },
+    { gradeLevel: 2, english: 'Yellow', translation: 'Amarillo', pronunciation: 'ah-mah-REE-yoh', language: 'spanish', category: 'colors' },
+    { gradeLevel: 3, english: 'Bird', translation: 'Pajaro', pronunciation: 'PAH-hah-roh', language: 'spanish', category: 'animals' },
+    { gradeLevel: 4, english: 'Pencil', translation: 'Lapiz', pronunciation: 'LAH-pees', language: 'spanish', category: 'school' },
+    { gradeLevel: 4, english: 'Bread', translation: 'Pan', pronunciation: 'pahn', language: 'spanish', category: 'food' },
+    { gradeLevel: 5, english: 'Sister', translation: 'Hermana', pronunciation: 'ehr-MAH-nah', language: 'spanish', category: 'family' },
+    { gradeLevel: 6, english: 'I am learning', translation: 'Estoy aprendiendo', pronunciation: 'eh-STOY ah-pren-DYEN-doh', language: 'spanish', category: 'phrases' },
+    { gradeLevel: 7, english: 'Can you repeat?', translation: 'Puedes repetir?', pronunciation: 'PWEH-des reh-peh-TEER', language: 'spanish', category: 'phrases' },
+  ],
+  french: [
+    { gradeLevel: 2, english: 'Four', translation: 'Quatre', pronunciation: 'katr', language: 'french', category: 'numbers' },
+    { gradeLevel: 2, english: 'Yellow', translation: 'Jaune', pronunciation: 'zhohn', language: 'french', category: 'colors' },
+    { gradeLevel: 3, english: 'Bird', translation: 'Oiseau', pronunciation: 'wah-ZOH', language: 'french', category: 'animals' },
+    { gradeLevel: 4, english: 'Pencil', translation: 'Crayon', pronunciation: 'kray-OHN', language: 'french', category: 'school' },
+    { gradeLevel: 4, english: 'Bread', translation: 'Pain', pronunciation: 'pan', language: 'french', category: 'food' },
+    { gradeLevel: 5, english: 'Sister', translation: 'Soeur', pronunciation: 'sur', language: 'french', category: 'family' },
+    { gradeLevel: 6, english: 'I am learning', translation: "J'apprends", pronunciation: 'zhah-PRAHN', language: 'french', category: 'phrases' },
+    { gradeLevel: 7, english: 'Can you repeat?', translation: 'Pouvez-vous repeter?', pronunciation: 'poo-vay voo reh-pay-TAY', language: 'french', category: 'phrases' },
+  ],
+  mandarin: [
+    { gradeLevel: 2, english: 'Four', translation: 'Si', pronunciation: 'suh', language: 'mandarin', category: 'numbers' },
+    { gradeLevel: 2, english: 'Yellow', translation: 'Huang se', pronunciation: 'hwahng suh', language: 'mandarin', category: 'colors' },
+    { gradeLevel: 3, english: 'Bird', translation: 'Niao', pronunciation: 'nyow', language: 'mandarin', category: 'animals' },
+    { gradeLevel: 4, english: 'Pencil', translation: 'Qian bi', pronunciation: 'chyen bee', language: 'mandarin', category: 'school' },
+    { gradeLevel: 4, english: 'Bread', translation: 'Mian bao', pronunciation: 'myen bow', language: 'mandarin', category: 'food' },
+    { gradeLevel: 5, english: 'Sister', translation: 'Jiejie', pronunciation: 'jyeh-jyeh', language: 'mandarin', category: 'family' },
+    { gradeLevel: 6, english: 'I am learning', translation: 'Wo zai xuexi', pronunciation: 'woh zai shweh-shee', language: 'mandarin', category: 'phrases' },
+    { gradeLevel: 7, english: 'Can you repeat?', translation: 'Qing zai shuo yi bian', pronunciation: 'ching zai shwoh ee byen', language: 'mandarin', category: 'phrases' },
+  ],
+  japanese: [
+    { gradeLevel: 2, english: 'Four', translation: 'Yon', pronunciation: 'yohn', language: 'japanese', category: 'numbers' },
+    { gradeLevel: 2, english: 'Yellow', translation: 'Kiiro', pronunciation: 'kee-ee-roh', language: 'japanese', category: 'colors' },
+    { gradeLevel: 3, english: 'Bird', translation: 'Tori', pronunciation: 'toh-ree', language: 'japanese', category: 'animals' },
+    { gradeLevel: 4, english: 'Pencil', translation: 'Enpitsu', pronunciation: 'en-peet-soo', language: 'japanese', category: 'school' },
+    { gradeLevel: 4, english: 'Bread', translation: 'Pan', pronunciation: 'pahn', language: 'japanese', category: 'food' },
+    { gradeLevel: 5, english: 'Sister', translation: 'Oneesan', pronunciation: 'oh-neh-sahn', language: 'japanese', category: 'family' },
+    { gradeLevel: 6, english: 'I am learning', translation: 'Benkyou shiteimasu', pronunciation: 'ben-kyoh shee-teh-ee-mahs', language: 'japanese', category: 'phrases' },
+    { gradeLevel: 7, english: 'Can you repeat?', translation: 'Mou ichido onegai', pronunciation: 'moh ee-chee-doh oh-neh-gai', language: 'japanese', category: 'phrases' },
+  ],
+};
+
+const getLanguageWords = (language: keyof typeof VOCABULARY) => [
+  ...VOCABULARY[language],
+  ...(EXTRA_LANGUAGE_WORDS[language] || []),
+];
+
 export const LANGUAGE_INFO = {
   spanish: { flag: 'ES', name: 'Spanish', color: 'from-red-500 to-yellow-500' },
   french: { flag: 'FR', name: 'French', color: 'from-blue-500 to-red-500' },
@@ -148,8 +196,9 @@ export const LanguageRoom: React.FC<LanguageRoomProps> = ({ level, onBack, onRew
   const [coachTip, setCoachTip] = useState('');
 
   const availableWords = useMemo(() => {
-    const words = VOCABULARY[selectedLanguage].filter(word => (word.gradeLevel ?? 1) <= level);
-    return words.length >= 4 ? words : VOCABULARY[selectedLanguage].slice(0, 4);
+    const allWords = getLanguageWords(selectedLanguage);
+    const words = allWords.filter(word => (word.gradeLevel ?? 1) <= level);
+    return words.length >= 4 ? words : allWords.slice(0, 4);
   }, [level, selectedLanguage]);
 
   const languageTip = useMemo(() => {

@@ -243,12 +243,189 @@ const generateMathProblem = (level: number): MathProblem => {
     explanation = `A ${shapeName} has ${answer} sides.`;
   };
 
+  const setNumberBondProblem = () => {
+    const total = level <= 2 ? 10 : level <= 4 ? 20 : 100;
+    a = Math.floor(Math.random() * (total - 2)) + 1;
+    b = total - a;
+    operation = 'addition';
+    context = 'equation';
+    answer = b;
+    question = `${a} + ? = ${total}`;
+    explanation = `${a} needs ${b} more to make ${total}.`;
+  };
+
+  const setCompareProblem = () => {
+    const left = Math.floor(Math.random() * (level <= 3 ? 12 : 60)) + 4;
+    const difference = Math.floor(Math.random() * (level <= 3 ? 5 : 20)) + 1;
+    const right = left + difference;
+    a = right;
+    b = left;
+    operation = 'subtraction';
+    context = 'word-problem';
+    answer = difference;
+    question = `Jay has ${right} blocks. Ava has ${left} blocks. How many more blocks does Jay have than Ava?`;
+    explanation = `Compare by subtracting ${left} from ${right}. The difference is ${answer}.`;
+  };
+
+  const setArrayProblem = () => {
+    const rows = Math.floor(Math.random() * (level <= 4 ? 4 : 8)) + 2;
+    const columns = Math.floor(Math.random() * (level <= 4 ? 4 : 8)) + 2;
+    a = rows;
+    b = columns;
+    operation = 'multiplication';
+    context = 'word-problem';
+    answer = rows * columns;
+    question = `A sticker chart has ${rows} rows with ${columns} stickers in each row. How many stickers are on the chart?`;
+    explanation = `${rows} equal rows of ${columns} makes ${answer} stickers.`;
+  };
+
+  const setSkipCountProblem = () => {
+    const step = [2, 5, 10][Math.floor(Math.random() * 3)];
+    const count = Math.floor(Math.random() * 5) + 3;
+    a = step;
+    b = count;
+    operation = 'multiplication';
+    context = 'equation';
+    answer = step * count;
+    question = `Skip count by ${step}s for ${count} jumps. Where do you land?`;
+    explanation = `${count} jumps of ${step} is ${answer}.`;
+  };
+
+  const setPlaceValueProblem = () => {
+    const hundreds = level >= 5 ? Math.floor(Math.random() * 8) + 1 : 0;
+    const tens = Math.floor(Math.random() * 9) + 1;
+    const ones = Math.floor(Math.random() * 9);
+    a = tens;
+    b = ones;
+    operation = 'addition';
+    context = 'equation';
+    answer = hundreds * 100 + tens * 10 + ones;
+    question = hundreds > 0
+      ? `A number has ${hundreds} hundreds, ${tens} tens, and ${ones} ones. What is the number?`
+      : `A number has ${tens} tens and ${ones} ones. What is the number?`;
+    explanation = hundreds > 0
+      ? `${hundreds} hundreds, ${tens} tens, and ${ones} ones make ${answer}.`
+      : `${tens} tens are ${tens * 10}. Add ${ones} ones to make ${answer}.`;
+  };
+
+  const setExpandedFormProblem = () => {
+    const hundreds = Math.floor(Math.random() * 8) + 1;
+    const tens = Math.floor(Math.random() * 9) + 1;
+    const ones = Math.floor(Math.random() * 9);
+    a = hundreds;
+    b = tens;
+    operation = 'addition';
+    context = 'equation';
+    answer = hundreds * 100 + tens * 10 + ones;
+    question = `What number is ${hundreds * 100} + ${tens * 10} + ${ones}?`;
+    explanation = `Expanded form ${hundreds * 100} plus ${tens * 10} plus ${ones} equals ${answer}.`;
+  };
+
+  const setMissingAddendStory = () => {
+    const total = Math.floor(Math.random() * (level <= 3 ? 10 : 30)) + (level <= 3 ? 5 : 15);
+    const known = Math.floor(Math.random() * (total - 2)) + 1;
+    a = known;
+    b = total;
+    operation = 'subtraction';
+    context = 'word-problem';
+    answer = total - known;
+    question = `The class needs ${total} craft sticks. They already have ${known}. How many more craft sticks do they need?`;
+    explanation = `Find the missing part by subtracting ${known} from ${total}. They need ${answer} more.`;
+  };
+
+  const setEqualShareProblem = () => {
+    const groups = Math.floor(Math.random() * 5) + 2;
+    const each = Math.floor(Math.random() * 6) + 2;
+    const total = groups * each;
+    a = groups;
+    b = each;
+    operation = 'division';
+    context = 'word-problem';
+    answer = each;
+    question = `${total} crackers are shared equally by ${groups} kids. How many crackers does each kid get?`;
+    explanation = `${total} split into ${groups} equal groups gives ${answer} in each group.`;
+  };
+
+  const setElapsedTimeHalfHourProblem = () => {
+    const addHalfHours = Math.floor(Math.random() * 4) + 1;
+    a = addHalfHours;
+    b = addHalfHours;
+    operation = 'time';
+    context = 'time';
+    answer = addHalfHours * 30;
+    question = `Reading class lasts ${addHalfHours} half-hour blocks. How many minutes is that?`;
+    explanation = `Each half-hour is 30 minutes, so ${addHalfHours} half-hour blocks is ${answer} minutes.`;
+  };
+
+  const setMixedMoneyProblem = () => {
+    const quarters = Math.floor(Math.random() * 3) + 1;
+    const dimes = Math.floor(Math.random() * 4) + 1;
+    const nickels = Math.floor(Math.random() * 3);
+    a = quarters;
+    b = dimes;
+    operation = 'money';
+    context = 'money';
+    answer = quarters * 25 + dimes * 10 + nickels * 5;
+    question = `You have ${quarters} quarters, ${dimes} dimes, and ${nickels} nickels. How many cents is that?`;
+    explanation = `${quarters} quarters are ${quarters * 25} cents, ${dimes} dimes are ${dimes * 10} cents, and ${nickels} nickels are ${nickels * 5} cents. Total is ${answer} cents.`;
+  };
+
+  const setPerimeterProblem = () => {
+    const length = Math.floor(Math.random() * 8) + 3;
+    const width = Math.floor(Math.random() * 6) + 2;
+    a = length;
+    b = width;
+    operation = 'geometry';
+    context = 'geometry';
+    answer = length + length + width + width;
+    question = `A rectangle is ${length} units long and ${width} units wide. What is its perimeter?`;
+    explanation = `Perimeter goes around the outside: ${length} + ${width} + ${length} + ${width} = ${answer}.`;
+  };
+
+  const setAreaProblem = () => {
+    const length = Math.floor(Math.random() * 7) + 3;
+    const width = Math.floor(Math.random() * 5) + 2;
+    a = length;
+    b = width;
+    operation = 'multiplication';
+    context = 'geometry';
+    answer = length * width;
+    question = `A garden array is ${length} squares long and ${width} squares wide. How many square units are inside?`;
+    explanation = `Area is rows times columns: ${length} times ${width} equals ${answer} square units.`;
+  };
+
+  const setFractionCompareProblem = () => {
+    const denominator = [4, 6, 8, 10][Math.floor(Math.random() * 4)];
+    const numerator = Math.floor(Math.random() * (denominator - 2)) + 1;
+    a = denominator;
+    b = numerator;
+    operation = 'fraction';
+    context = 'fraction';
+    answer = denominator - numerator;
+    question = `A rectangle has ${denominator} equal parts. ${numerator} parts are shaded. How many equal parts are not shaded?`;
+    explanation = `${denominator} total parts minus ${numerator} shaded parts leaves ${answer} not shaded.`;
+  };
+
+  const setMultiStepProblem = () => {
+    const boxes = Math.floor(Math.random() * 5) + 3;
+    const each = Math.floor(Math.random() * 8) + 4;
+    const extra = Math.floor(Math.random() * 12) + 5;
+    a = boxes;
+    b = each;
+    operation = 'multiplication';
+    context = 'word-problem';
+    answer = boxes * each + extra;
+    question = `The library has ${boxes} shelves with ${each} books on each shelf. A teacher adds ${extra} more books. How many books are there now?`;
+    explanation = `First multiply ${boxes} by ${each} to get ${boxes * each}. Then add ${extra}. Total is ${answer}.`;
+  };
+
   const pick = (actions: Array<() => void>) => actions[Math.floor(Math.random() * actions.length)]();
 
   if (level <= 1) {
     pick([
       () => setEquation(Math.floor(Math.random() * 4) + 1, Math.floor(Math.random() * 4) + 1, 'addition'),
       setEarlyWordProblem,
+      setNumberBondProblem,
     ]);
   } else if (level === 2) {
     pick([
@@ -258,6 +435,9 @@ const generateMathProblem = (level: number): MathProblem => {
         setEquation(startValue, Math.floor(Math.random() * Math.max(1, startValue - 1)) + 1, 'subtraction');
       },
       setEarlyWordProblem,
+      setNumberBondProblem,
+      setMissingAddendStory,
+      setPlaceValueProblem,
     ]);
   } else if (level === 3) {
     pick([
@@ -265,6 +445,11 @@ const generateMathProblem = (level: number): MathProblem => {
       () => setEquation(Math.floor(Math.random() * 10) + 10, Math.floor(Math.random() * 10), 'subtraction'),
       setEarlyWordProblem,
       setWordProblem,
+      setNumberBondProblem,
+      setCompareProblem,
+      setMissingAddendStory,
+      setPlaceValueProblem,
+      setSkipCountProblem,
     ]);
   } else if (level === 4) {
     pick([
@@ -275,6 +460,11 @@ const generateMathProblem = (level: number): MathProblem => {
       setMeasurementProblem,
       setMoneyProblem,
       setTimeProblem,
+      setCompareProblem,
+      setArrayProblem,
+      setPlaceValueProblem,
+      setMissingAddendStory,
+      setEqualShareProblem,
     ]);
   } else if (level === 5) {
     pick([
@@ -284,6 +474,12 @@ const generateMathProblem = (level: number): MathProblem => {
       setMeasurementProblem,
       setFractionProblem,
       setGeometryProblem,
+      setArrayProblem,
+      setEqualShareProblem,
+      setExpandedFormProblem,
+      setMixedMoneyProblem,
+      setFractionCompareProblem,
+      setPerimeterProblem,
     ]);
   } else {
     pick([
@@ -295,6 +491,13 @@ const generateMathProblem = (level: number): MathProblem => {
       setMeasurementProblem,
       setFractionProblem,
       setGeometryProblem,
+      setExpandedFormProblem,
+      setMixedMoneyProblem,
+      setElapsedTimeHalfHourProblem,
+      setPerimeterProblem,
+      setAreaProblem,
+      setFractionCompareProblem,
+      setMultiStepProblem,
     ]);
   }
 

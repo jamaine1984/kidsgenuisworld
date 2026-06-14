@@ -739,6 +739,140 @@ export const CHALLENGES: Challenge[] = [
     gradeLevel: 4,
     category: 'loops'
   },
+  {
+    id: 'c45',
+    name: 'Pre-K Gem Step',
+    story: 'Robot takes one careful step to pick up a gem.',
+    grid: [
+      [{ type: 'start' }, { type: 'gem' }, { type: 'goal' }],
+    ],
+    startPos: { x: 0, y: 0, direction: 'right' },
+    goalPos: { x: 2, y: 0 },
+    maxBlocks: 3,
+    hint: 'Move to the gem, then move to the star.',
+    gradeLevel: 1,
+    category: 'basic'
+  },
+  {
+    id: 'c46',
+    name: 'Pre-K Slow Path',
+    story: 'Robot practices stopping at each open tile.',
+    grid: [
+      [{ type: 'start' }, { type: 'empty' }, { type: 'empty' }, { type: 'goal' }],
+    ],
+    startPos: { x: 0, y: 0, direction: 'right' },
+    goalPos: { x: 3, y: 0 },
+    maxBlocks: 4,
+    hint: 'Use three Move Forward blocks.',
+    gradeLevel: 1,
+    category: 'basic'
+  },
+  {
+    id: 'c47',
+    name: 'Kindergarten Up Turn',
+    story: 'Robot walks up, then turns toward the star.',
+    grid: [
+      [{ type: 'empty' }, { type: 'goal' }],
+      [{ type: 'start' }, { type: 'empty' }],
+    ],
+    startPos: { x: 0, y: 1, direction: 'up' },
+    goalPos: { x: 1, y: 0 },
+    maxBlocks: 4,
+    hint: 'Move up, turn right, then move.',
+    gradeLevel: 2,
+    category: 'turns'
+  },
+  {
+    id: 'c48',
+    name: 'Kindergarten Left Corner',
+    story: 'Robot follows the corner path to a quiet reading star.',
+    grid: [
+      [{ type: 'goal' }, { type: 'empty' }],
+      [{ type: 'empty' }, { type: 'start' }],
+    ],
+    startPos: { x: 1, y: 1, direction: 'left' },
+    goalPos: { x: 0, y: 0 },
+    maxBlocks: 4,
+    hint: 'Move left, turn right, then move up.',
+    gradeLevel: 2,
+    category: 'turns'
+  },
+  {
+    id: 'c49',
+    name: 'First Grade Garden Gate',
+    story: 'Robot must go around the garden fence without bumping it.',
+    grid: [
+      [{ type: 'start' }, { type: 'obstacle' }, { type: 'goal' }],
+      [{ type: 'empty' }, { type: 'empty' }, { type: 'empty' }],
+    ],
+    startPos: { x: 0, y: 0, direction: 'down' },
+    goalPos: { x: 2, y: 0 },
+    maxBlocks: 7,
+    hint: 'Go down, across, and back up to the star.',
+    gradeLevel: 3,
+    category: 'maze'
+  },
+  {
+    id: 'c50',
+    name: 'First Grade Reading Rug',
+    story: 'Robot follows an L path around the reading rug.',
+    grid: [
+      [{ type: 'start' }, { type: 'empty' }, { type: 'empty' }],
+      [{ type: 'obstacle' }, { type: 'obstacle' }, { type: 'goal' }],
+    ],
+    startPos: { x: 0, y: 0, direction: 'right' },
+    goalPos: { x: 2, y: 1 },
+    maxBlocks: 5,
+    hint: 'Move across, turn right, then move down.',
+    gradeLevel: 3,
+    category: 'maze'
+  },
+  {
+    id: 'c51',
+    name: 'Third Grade Loop Hall',
+    story: 'Robot uses a loop to cross the long hallway efficiently.',
+    grid: [
+      [{ type: 'start' }, { type: 'empty' }, { type: 'empty' }, { type: 'empty' }, { type: 'empty' }, { type: 'goal' }],
+    ],
+    startPos: { x: 0, y: 0, direction: 'right' },
+    goalPos: { x: 5, y: 0 },
+    maxBlocks: 4,
+    hint: 'Use repeat for the first two moves, then finish the path.',
+    gradeLevel: 5,
+    category: 'loops'
+  },
+  {
+    id: 'c52',
+    name: 'Fourth Grade Debug Detour',
+    story: 'Robot needs to debug a path with two rocks.',
+    grid: [
+      [{ type: 'start' }, { type: 'empty' }, { type: 'obstacle' }, { type: 'goal' }],
+      [{ type: 'empty' }, { type: 'empty' }, { type: 'empty' }, { type: 'empty' }],
+      [{ type: 'obstacle' }, { type: 'empty' }, { type: 'obstacle' }, { type: 'empty' }],
+    ],
+    startPos: { x: 0, y: 0, direction: 'right' },
+    goalPos: { x: 3, y: 0 },
+    maxBlocks: 9,
+    hint: 'Drop below the first rock, travel across, then return to the goal.',
+    gradeLevel: 6,
+    category: 'advanced'
+  },
+  {
+    id: 'c53',
+    name: 'Fifth Grade Efficient Route',
+    story: 'Robot must plan the shortest safe path through the lab.',
+    grid: [
+      [{ type: 'start' }, { type: 'empty' }, { type: 'empty' }, { type: 'obstacle' }],
+      [{ type: 'obstacle' }, { type: 'obstacle' }, { type: 'empty' }, { type: 'obstacle' }],
+      [{ type: 'empty' }, { type: 'empty' }, { type: 'empty' }, { type: 'goal' }],
+    ],
+    startPos: { x: 0, y: 0, direction: 'right' },
+    goalPos: { x: 3, y: 2 },
+    maxBlocks: 9,
+    hint: 'Move across, turn down through the open column, then turn to the goal.',
+    gradeLevel: 7,
+    category: 'advanced'
+  },
 ];
 
 const AVAILABLE_BLOCKS: CodeBlock[] = [

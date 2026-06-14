@@ -155,6 +155,8 @@ const buildPrompt = (gameId: ArcadeGameId, level: number): ArcadePrompt => {
           { first: 248, second: 35, skill: 'Regrouping Readiness', coach: 'Track ones, tens, and hundreds carefully.', success: 'You handled a larger addition path.' },
           { first: 360, second: 120, skill: 'Place-Value Addition', coach: 'Hundreds, tens, and ones each have a job.', success: 'You used place-value structure.' },
           { first: 475, second: 25, skill: 'Compensation', coach: 'Look for a number that makes a clean hundred.', success: 'You completed a compensation strategy.' },
+          { first: 625, second: 75, skill: 'Make a Hundred', coach: 'Look for the jump that lands on a clean hundred.', success: 'You used compensation to land on a friendly number.' },
+          { first: 840, second: 160, skill: 'Thousands Readiness', coach: 'Add hundreds first, then check the total.', success: 'You built a larger total with place-value thinking.' },
         ];
     const mission = mathMissions[Math.floor(Math.random() * mathMissions.length)];
     const first = mission.first;
@@ -181,6 +183,8 @@ const buildPrompt = (gameId: ArcadeGameId, level: number): ArcadePrompt => {
         { clue: 'p_g', answer: 'i', word: 'pig', skill: 'Short I' },
         { clue: 'b_d', answer: 'e', word: 'bed', skill: 'Short E' },
         { clue: 'd_g', answer: 'o', word: 'dog', skill: 'Short O' },
+        { clue: 'm_p', answer: 'a', word: 'map', skill: 'Short A' },
+        { clue: 'n_t', answer: 'e', word: 'net', skill: 'Short E' },
       ]
       : [
         { clue: 'pl_net', answer: 'a', word: 'planet', skill: 'Vowel Teams' },
@@ -189,6 +193,8 @@ const buildPrompt = (gameId: ArcadeGameId, level: number): ArcadePrompt => {
         { clue: 'fr_end', answer: 'i', word: 'friend', skill: 'Irregular Vowels' },
         { clue: 'm_sic', answer: 'u', word: 'music', skill: 'Long U' },
         { clue: 'r_bbit', answer: 'a', word: 'rabbit', skill: 'Syllable Check' },
+        { clue: 'comp_ss', answer: 'a', word: 'compass', skill: 'Map Vocabulary' },
+        { clue: 'evid_nce', answer: 'e', word: 'evidence', skill: 'Academic Vocabulary' },
       ];
     const item = words[Math.floor(Math.random() * words.length)];
     return {
@@ -211,6 +217,9 @@ const buildPrompt = (gameId: ArcadeGameId, level: number): ArcadePrompt => {
       { prompt: 'clap, stomp, clap, stomp, ?', answer: 'clap', options: ['clap', 'stomp', 'jump', 'spin'], skill: 'Movement Pattern' },
       { prompt: '2, 4, 6, 8, ?', answer: '10', options: ['9', '10', '11', '12'], skill: 'Skip Counting' },
       { prompt: '5, 10, 15, 20, ?', answer: '25', options: ['22', '24', '25', '30'], skill: 'Count by Fives' },
+      { prompt: 'A, A, B, A, A, ?', answer: 'B', options: ['A', 'B', 'C', 'D'], skill: 'AAB Pattern' },
+      { prompt: '3, 6, 9, 12, ?', answer: '15', options: ['13', '14', '15', '18'], skill: 'Count by Threes' },
+      { prompt: 'red, red, blue, red, red, ?', answer: 'blue', options: ['red', 'blue', 'green', 'yellow'], skill: 'AAB Color Pattern' },
     ];
     const item = patterns[Math.floor(Math.random() * (level <= 2 ? 4 : patterns.length))];
     return {
@@ -272,6 +281,33 @@ const buildPrompt = (gameId: ArcadeGameId, level: number): ArcadePrompt => {
         answer: 'To keep the baby asleep',
         options: ['To keep the baby asleep', 'To win a race', 'To paint a wall', 'To find a map'],
       },
+      {
+        prompt: 'Ava drew eight circles and crossed out three to solve a snack problem.',
+        helper: 'What strategy did Ava use?',
+        skill: 'Math Story Evidence',
+        coach: 'Look for the action that helped the character solve.',
+        success: 'You found the strategy inside the story.',
+        answer: 'She drew a model',
+        options: ['She drew a model', 'She guessed only', 'She hid the snack', 'She changed the weather'],
+      },
+      {
+        prompt: 'The class trusted the rain amount because two sources gave the same number.',
+        helper: 'Why did the class trust the detail?',
+        skill: 'Compare Sources',
+        coach: 'When sources agree, the evidence can be stronger.',
+        success: 'You used source agreement as evidence.',
+        answer: 'Two sources matched',
+        options: ['Two sources matched', 'The chart was loud', 'The door was open', 'The pencils were sharp'],
+      },
+      {
+        prompt: 'Jada helped a younger student by asking, "What clue did you notice?"',
+        helper: 'What made Jada a good mentor?',
+        skill: 'Inference',
+        coach: 'Think about how the question helped the younger student think.',
+        success: 'You inferred the helpful teaching move.',
+        answer: 'She guided thinking',
+        options: ['She guided thinking', 'She gave every answer', 'She stopped reading', 'She erased the book'],
+      },
     ];
     const scene = scenes[Math.floor(Math.random() * scenes.length)];
     return {
@@ -286,6 +322,8 @@ const buildPrompt = (gameId: ArcadeGameId, level: number): ArcadePrompt => {
       { prompt: 'Robot sees a wall after one step.', helper: 'Which plan avoids the wall?', skill: 'Debugging', coach: 'A wall means the robot needs a turn before moving again.', success: 'You debugged the path around the wall.', answer: 'Forward, turn left, forward', options: ['Forward, turn left, forward', 'Forward, forward, forward', 'Stop only', 'Turn right forever'] },
       { prompt: 'Robot can repeat a short move to reach two tiles.', helper: 'Which plan uses a repeat idea?', skill: 'Loops', coach: 'A loop repeats the same useful step.', success: 'You used loop thinking to make a shorter plan.', answer: 'Repeat forward 2x', options: ['Repeat forward 2x', 'Turn left, stop', 'Backward, turn right', 'Jump over goal'] },
       { prompt: 'Robot must check the path before moving.', helper: 'Which command sounds safest?', skill: 'Conditionals', coach: 'If there is a clear path, then move.', success: 'You used if-then thinking like a coder.', answer: 'If clear, move forward', options: ['If clear, move forward', 'Move without looking', 'Spin forever', 'Erase the goal'] },
+      { prompt: 'Robot reached the wrong square after turning too soon.', helper: 'Which plan should the coder try?', skill: 'Debugging', coach: 'Debugging means finding the step that happened too early or too late.', success: 'You debugged by changing the timing of a turn.', answer: 'Move first, then turn', options: ['Move first, then turn', 'Delete the goal', 'Spin forever', 'Stop before starting'] },
+      { prompt: 'Robot needs to collect two gems in a row.', helper: 'Which command pattern is shortest?', skill: 'Efficient Sequence', coach: 'Look for repeated steps that can be grouped.', success: 'You chose an efficient command pattern.', answer: 'Repeat move 2x', options: ['Repeat move 2x', 'Turn left 4x', 'Move once only', 'Wait forever'] },
     ];
     const path = paths[Math.floor(Math.random() * (level <= 2 ? 2 : paths.length))];
     return {

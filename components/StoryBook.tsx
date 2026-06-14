@@ -788,6 +788,76 @@ export const STORIES: Story[] = [
     ],
     moral: 'True victory is found in teamwork and love.'
   },
+  {
+    id: 'pk-11', title: 'Max Makes Ten', author: 'Kid Genius Originals', cover: 'TEN', gradeLevel: 1, category: 'learning',
+    pages: ['Max puts one red block on the mat.', 'He adds more blocks one at a time.', 'His teacher says, "Count slowly and touch each block."', 'Max counts all the way to ten.', 'Ten blocks make a tall, proud tower.'],
+    moral: 'Counting carefully helps numbers make sense.'
+  },
+  {
+    id: 'pk-12', title: 'The Listening Line', author: 'Kid Genius Originals', cover: 'EAR', gradeLevel: 1, category: 'friendship',
+    pages: ['The class lines up for music.', 'Sam wants to run, but he hears the teacher say walk.', 'Sam takes slow feet and waits his turn.', 'The whole line gets to music safely.', 'Listening helps everyone learn together.'],
+    moral: 'Listening is part of learning.'
+  },
+  {
+    id: 'k-11', title: 'The Shape Shop', author: 'Kid Genius Originals', cover: 'SHAPE', gradeLevel: 2, category: 'learning',
+    pages: ['Mina opens a pretend shape shop.', 'She sells circle cookies, square napkins, and triangle flags.', 'A customer asks for something with four equal sides.', 'Mina points to the square napkin.', 'The shop works because Mina knows shape clues.'],
+    moral: 'Shape clues help us describe the world.'
+  },
+  {
+    id: 'k-12', title: 'Rain Chart Day', author: 'Kid Genius Originals', cover: 'RAIN', gradeLevel: 2, category: 'nature',
+    pages: ['The class checks the window each morning.', 'On Monday it rains. On Tuesday it is sunny.', 'They add marks to a weather chart.', 'By Friday, they can tell which weather happened most.', 'Charts help the class see patterns.'],
+    moral: 'Data helps us remember and compare.'
+  },
+  {
+    id: 'g1-11', title: 'Ava Solves the Snack Problem', author: 'Kid Genius Originals', cover: 'SNACK', gradeLevel: 3, category: 'learning',
+    pages: ['Ava has eight crackers for snack.', 'She gives three crackers to her brother.', 'At first, she guesses how many are left.', 'Then she draws eight circles and crosses out three.', 'Now Ava can see five crackers are left.'],
+    moral: 'Drawing a model can help solve a math story.'
+  },
+  {
+    id: 'g1-12', title: 'The Map of Room 12', author: 'Kid Genius Originals', cover: 'MAP', gradeLevel: 3, category: 'learning',
+    pages: ['Room 12 makes a map of the classroom.', 'They draw the door, rug, shelves, and reading table.', 'Nico adds a star where the class pet sits.', 'A visitor uses the map to find the pet corner.', 'The class learns that maps are useful pictures.'],
+    moral: 'Maps help people find important places.'
+  },
+  {
+    id: 'g2-11', title: 'The Fair Share Table', author: 'Kid Genius Originals', cover: 'SHARE', gradeLevel: 4, category: 'friendship',
+    pages: ['Sixteen markers sit in the middle of the table.', 'Four teams need the same number for a poster project.', 'Lena starts giving one marker to each team at a time.', 'Every team ends with four markers.', 'The posters begin without arguing.'],
+    moral: 'Fair sharing uses math and kindness.'
+  },
+  {
+    id: 'g2-12', title: 'The Sound Experiment', author: 'Kid Genius Originals', cover: 'SOUND', gradeLevel: 4, category: 'learning',
+    pages: ['Omar taps a rubber band softly.', 'Then he pulls it tighter and plucks again.', 'The second sound is higher.', 'He writes what changed and what he heard.', 'His notes help him explain the experiment.'],
+    moral: 'Good scientists notice changes and keep notes.'
+  },
+  {
+    id: 'g3-11', title: 'The Debate Board', author: 'Kid Genius Originals', cover: 'CLAIM', gradeLevel: 5, category: 'learning',
+    pages: ['The class debates whether recess should include a garden station.', 'One team says gardens teach science.', 'Another team says gardens need time and care.', 'Ms. Nova asks each team to add evidence to the board.', 'The final vote feels fair because everyone used reasons.'],
+    moral: 'Strong opinions need evidence.'
+  },
+  {
+    id: 'g3-12', title: 'The Fraction Pizza Plan', author: 'Kid Genius Originals', cover: 'PIZZA', gradeLevel: 5, category: 'family',
+    pages: ['Dad cuts a pizza into eight equal slices.', 'The family eats three slices at dinner.', 'Maya says five eighths are left.', 'She explains that the denominator stayed eight.', 'Dad smiles because dinner became a fraction lesson.'],
+    moral: 'Fractions are equal parts of a whole.'
+  },
+  {
+    id: 'g4-11', title: 'The Water Filter Team', author: 'Kid Genius Originals', cover: 'FILTER', gradeLevel: 6, category: 'learning',
+    pages: ['The team builds a filter with cloth, sand, and gravel.', 'Their first cup still looks cloudy.', 'They slow the pour and add another sand layer.', 'The second test looks clearer.', 'Their report explains which change improved the design.'],
+    moral: 'Testing and improving turns ideas into evidence.'
+  },
+  {
+    id: 'g4-12', title: 'Mina Reads Two Sources', author: 'Kid Genius Originals', cover: 'SOURCE', gradeLevel: 6, category: 'learning',
+    pages: ['Mina reads one article about a local storm.', 'Then she checks a weather chart from the same day.', 'Both sources say two inches of rain fell.', 'Mina trusts the detail more because the sources agree.', 'She cites both sources in her report.'],
+    moral: 'Comparing sources can make evidence stronger.'
+  },
+  {
+    id: 'g5-11', title: 'The Solar Proposal', author: 'Kid Genius Originals', cover: 'SOLAR', gradeLevel: 7, category: 'learning',
+    pages: ['The student council wants solar panels for the school roof.', 'They collect sunlight data and electricity bills.', 'Their first proposal is too general.', 'They revise it with numbers, costs, and long-term savings.', 'The principal agrees to study the plan.'],
+    moral: 'Specific evidence makes a proposal stronger.'
+  },
+  {
+    id: 'g5-12', title: 'The Mentor Project', author: 'Kid Genius Originals', cover: 'MENTOR', gradeLevel: 7, category: 'friendship',
+    pages: ['Fifth graders mentor younger students during reading lab.', 'Jada wants to give answers quickly.', 'Her teacher reminds her to ask guiding questions instead.', 'Jada asks, "What clue did you notice?"', 'The younger student smiles and solves it independently.'],
+    moral: 'A good teacher helps someone think, not just finish.'
+  },
 ];
 
 export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward }) => {

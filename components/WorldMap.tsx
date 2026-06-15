@@ -253,12 +253,14 @@ export const WorldMap: React.FC<WorldMapProps> = ({
     if (status === 'done') return 'border-emerald-200 bg-emerald-50 text-emerald-900';
     if (status === 'in-progress') return 'border-indigo-200 bg-indigo-50 text-indigo-900';
     if (status === 'due') return 'border-amber-200 bg-amber-50 text-amber-900';
+    if (status === 'locked') return 'border-slate-200 bg-slate-100 text-slate-500';
     return 'border-slate-100 bg-white text-slate-900';
   };
   const getPeriodStatusLabel = (status: (typeof schoolDay.periods)[number]['status']) => {
     if (status === 'done') return 'Done';
     if (status === 'in-progress') return 'In progress';
     if (status === 'due') return 'Due';
+    if (status === 'locked') return 'Locked';
     return 'Ready';
   };
   const activePeriod = nextSchoolStep.isSchoolDayComplete
@@ -537,8 +539,13 @@ export const WorldMap: React.FC<WorldMapProps> = ({
                 return (
                   <button
                     key={`school-bell-${period.id}`}
-                    onClick={() => { playPop(); onEnterRoom(period.room, period.unitId); }}
-                    className={`min-h-[104px] rounded-2xl border p-3 text-left transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-sky-200 ${getPeriodStatusClasses(period.status)} ${isActivePeriod ? 'ring-4 ring-indigo-200' : ''}`}
+                    onClick={() => {
+                      if (period.status === 'locked') return;
+                      playPop();
+                      onEnterRoom(period.room, period.unitId);
+                    }}
+                    disabled={period.status === 'locked'}
+                    className={`min-h-[104px] rounded-2xl border p-3 text-left transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-sky-200 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none ${getPeriodStatusClasses(period.status)} ${isActivePeriod ? 'ring-4 ring-indigo-200' : ''}`}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/80 text-xs font-black">
@@ -740,8 +747,13 @@ export const WorldMap: React.FC<WorldMapProps> = ({
               return (
                 <button
                   key={period.id}
-                  onClick={() => { playPop(); onEnterRoom(period.room, period.unitId); }}
-                  className={`rounded-2xl border p-3 text-left transition hover:-translate-y-0.5 hover:shadow-md ${getPeriodStatusClasses(period.status)} ${isActivePeriod ? 'ring-4 ring-indigo-200' : ''}`}
+                  onClick={() => {
+                    if (period.status === 'locked') return;
+                    playPop();
+                    onEnterRoom(period.room, period.unitId);
+                  }}
+                  disabled={period.status === 'locked'}
+                  className={`rounded-2xl border p-3 text-left transition hover:-translate-y-0.5 hover:shadow-md disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none ${getPeriodStatusClasses(period.status)} ${isActivePeriod ? 'ring-4 ring-indigo-200' : ''}`}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div>

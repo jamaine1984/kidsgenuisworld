@@ -446,12 +446,14 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
     if (status === 'done') return 'border-emerald-300/40 bg-emerald-400/15';
     if (status === 'in-progress') return 'border-sky-300/40 bg-sky-400/15';
     if (status === 'due') return 'border-amber-300/40 bg-amber-400/15';
+    if (status === 'locked') return 'border-slate-300/20 bg-slate-400/10';
     return 'border-white/10 bg-white/[0.08]';
   };
   const getSchoolPeriodLabel = (status: (typeof schoolDay.periods)[number]['status']) => {
     if (status === 'done') return 'Done';
     if (status === 'in-progress') return 'In progress';
     if (status === 'due') return 'Due';
+    if (status === 'locked') return 'Locked';
     return 'Ready';
   };
   const roadmapRecommendations = getRoadmapRecommendations(progress);
@@ -480,16 +482,27 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
   const recentDailyStats = [...(progress.dailyStats || [])]
     .sort((a, b) => b.date.localeCompare(a.date))
     .slice(0, 7);
+  const currentMonthKey = new Date().toISOString().slice(0, 7);
+  const monthlyDailyStats = (progress.dailyStats || []).filter(day => day.date.startsWith(currentMonthKey));
+  const monthlyJournalEntries = (progress.learningJournal || []).filter(entry => new Date(entry.createdAt).toISOString().slice(0, 7) === currentMonthKey);
   const weeklyMinutes = recentDailyStats.reduce((sum, day) => sum + day.timeSpentMinutes, 0);
   const weeklyAttempted = recentDailyStats.reduce((sum, day) => sum + day.problemsAttempted, 0);
   const weeklyCorrect = recentDailyStats.reduce((sum, day) => sum + day.problemsCorrect, 0);
   const weeklyRooms = Array.from(new Set(recentDailyStats.flatMap(day => day.roomsVisited))).length;
+  const monthlyMinutes = monthlyDailyStats.reduce((sum, day) => sum + day.timeSpentMinutes, 0);
+  const monthlyAttempted = monthlyDailyStats.reduce((sum, day) => sum + day.problemsAttempted, 0);
+  const monthlyCorrect = monthlyDailyStats.reduce((sum, day) => sum + day.problemsCorrect, 0);
+  const monthlyRooms = Array.from(new Set(monthlyDailyStats.flatMap(day => day.roomsVisited))).length;
+  const monthlyLearningDays = monthlyDailyStats.filter(day => day.timeSpentMinutes > 0 || day.problemsAttempted > 0 || day.roomsVisited.length > 0).length;
+  const monthlyMasteryProofs = monthlyJournalEntries.filter(entry => entry.mastered).length;
+  const monthlyReflectionProofs = monthlyJournalEntries.filter(entry => Boolean(entry.childReflection)).length;
   const weeklyGoalMinutes = progress.weeklyGoalMinutes || 60;
   const dailySessionLimitMinutes = progress.dailySessionLimitMinutes || 20;
   const weeklyGoalPercent = Math.min(100, Math.round((weeklyMinutes / weeklyGoalMinutes) * 100));
   const activeLearningDays = recentDailyStats.filter(day => day.timeSpentMinutes > 0).length;
   const healthyPacingDays = recentDailyStats.filter(day => day.timeSpentMinutes > 0 && day.timeSpentMinutes <= dailySessionLimitMinutes).length;
   const weeklyAccuracy = weeklyAttempted > 0 ? Math.round((weeklyCorrect / weeklyAttempted) * 100) : 0;
+  const monthlyAccuracy = monthlyAttempted > 0 ? Math.round((monthlyCorrect / monthlyAttempted) * 100) : 0;
   const gradePacingThresholds: { [level: number]: number } = {
     1: 30,
     2: 75,
@@ -704,6 +717,28 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
       label: 'Healthy pacing',
       value: `${healthyPacingDays}/${Math.max(activeLearningDays, 1)} days`,
       detail: `${dailySessionLimitMinutes} minute daily cap before an offline break.`,
+    },
+  ];
+  const monthlyReportCards = [
+    {
+      label: 'Learning days',
+      value: `${monthlyLearningDays}`,
+      detail: `${monthlyMinutes} minutes and ${monthlyJournalEntries.length} saved proof item${monthlyJournalEntries.length === 1 ? '' : 's'} this month.`,
+    },
+    {
+      label: 'Monthly accuracy',
+      value: monthlyAttempted > 0 ? `${monthlyAccuracy}%` : 'Ready',
+      detail: monthlyAttempted > 0 ? `${monthlyCorrect}/${monthlyAttempted} correct activities this month.` : 'Monthly accuracy starts after scored practice.',
+    },
+    {
+      label: 'Rooms this month',
+      value: `${monthlyRooms}`,
+      detail: 'Unique learning rooms visited during the current calendar month.',
+    },
+    {
+      label: 'Mastery proof',
+      value: `${monthlyMasteryProofs}`,
+      detail: `${monthlyReflectionProofs} student reflection${monthlyReflectionProofs === 1 ? '' : 's'} saved for parent review.`,
     },
   ];
   const arcadeProgress = {
@@ -1135,7 +1170,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 </div>
                 <div className="rounded-xl bg-white/10 border border-white/15 px-4 py-3">
                   <p className="text-2xl font-black">{schoolDay.mastery.practiceCount}/{MASTERED_PRACTICE_TARGET}</p>
-                  <p className="text-xs text-slate-300">current mission mastery gate</p>
+                  <p className="text-xs text-slate-300">answers required before next class opens</p>
                 </div>
               </div>
               <div
@@ -1355,6 +1390,26 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                     <p className="text-xs text-slate-600 mt-1">{card.detail}</p>
                   </div>
                 ))}
+              </div>
+              <div className="mt-4 rounded-xl border border-sky-100 bg-sky-50 p-3">
+                <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                  <div>
+                    <p className="text-sm font-black text-sky-900">Monthly progress report</p>
+                    <p className="mt-1 text-sm font-semibold text-sky-900/80">
+                      Current-month totals connect daily class work to parent review, mastery proof, and saved reflections.
+                    </p>
+                  </div>
+                  <p className="rounded-full bg-white px-3 py-1 text-xs font-black text-sky-700">{currentMonthKey}</p>
+                </div>
+                <div className="mt-3 grid grid-cols-1 md:grid-cols-4 gap-2">
+                  {monthlyReportCards.map(card => (
+                    <div key={card.label} className="rounded-lg bg-white p-3 shadow-sm">
+                      <p className="text-[10px] font-black uppercase tracking-[0.12em] text-sky-500">{card.label}</p>
+                      <p className="mt-1 text-xl font-black text-slate-900">{card.value}</p>
+                      <p className="mt-1 text-xs font-semibold text-slate-600">{card.detail}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
               <div className="mt-4 rounded-xl border border-violet-100 bg-violet-50 p-3">
                 <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
@@ -1751,6 +1806,30 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 <div className="rounded-lg bg-indigo-50 p-3 text-center">
                   <p className="text-2xl font-bold text-indigo-600">{weeklyRooms}</p>
                   <p className="text-xs text-gray-500">rooms explored</p>
+                </div>
+              </div>
+              <div className="mb-4 rounded-xl border border-sky-100 bg-sky-50 p-3">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-sm font-black text-sky-800">Monthly report snapshot</p>
+                    <p className="text-xs font-semibold text-sky-700">
+                      {monthlyLearningDays} learning day{monthlyLearningDays === 1 ? '' : 's'} this month • {monthlyJournalEntries.length} saved proof item{monthlyJournalEntries.length === 1 ? '' : 's'}
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 text-center">
+                    <div className="rounded-lg bg-white px-3 py-2">
+                      <p className="text-lg font-black text-sky-700">{monthlyMinutes}</p>
+                      <p className="text-[10px] font-bold text-slate-500">min</p>
+                    </div>
+                    <div className="rounded-lg bg-white px-3 py-2">
+                      <p className="text-lg font-black text-emerald-700">{monthlyCorrect}</p>
+                      <p className="text-[10px] font-bold text-slate-500">correct</p>
+                    </div>
+                    <div className="rounded-lg bg-white px-3 py-2">
+                      <p className="text-lg font-black text-indigo-700">{monthlyRooms}</p>
+                      <p className="text-[10px] font-bold text-slate-500">rooms</p>
+                    </div>
+                  </div>
                 </div>
               </div>
               {recentDailyStats.length > 0 ? (

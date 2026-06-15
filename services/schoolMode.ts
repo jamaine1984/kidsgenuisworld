@@ -81,7 +81,7 @@ export interface SchoolCampusRoom {
   detail: string;
 }
 
-export type SchoolDayPeriodStatus = 'done' | 'in-progress' | 'ready' | 'due';
+export type SchoolDayPeriodStatus = 'done' | 'in-progress' | 'ready' | 'due' | 'locked';
 
 export interface SchoolDayPeriod {
   id: string;
@@ -462,7 +462,9 @@ export const getSchoolDayPlan = (progress: UserProgress) => {
     todayJournalEntries.length > 0
   );
   const missionPracticedToday = todayJournalEntries.some(entry => entry.unitId === mission.id || entry.room === mission.room);
-  const exitTicketDone = todayJournalEntries.some(entry => Boolean(entry.childReflection || entry.exitTicket));
+  const missionPracticeRemaining = Math.max(0, MASTERED_PRACTICE_TARGET - mastery.practiceCount);
+  const coreMasteryDone = mastery.mastered;
+  const exitTicketDone = coreMasteryDone && todayJournalEntries.some(entry => Boolean(entry.childReflection || entry.exitTicket));
   const schedule = [
     {
       time: 'Homeroom',
@@ -485,10 +487,10 @@ export const getSchoolDayPlan = (progress: UserProgress) => {
     {
       time: 'Practice',
       label: 'Guided then independent',
-      detail: `${mastery.practiceCount}/${MASTERED_PRACTICE_TARGET} mastery rounds saved.`,
+      detail: `${mastery.practiceCount}/${MASTERED_PRACTICE_TARGET} required answers saved.`,
       proof: mastery.mastered
         ? 'Show the strategy with less help.'
-        : `Complete ${Math.max(1, MASTERED_PRACTICE_TARGET - mastery.practiceCount)} more practice round${MASTERED_PRACTICE_TARGET - mastery.practiceCount === 1 ? '' : 's'}.`,
+        : `Finish ${Math.max(1, missionPracticeRemaining)} more answer${missionPracticeRemaining === 1 ? '' : 's'} before the next class opens.`,
       reward: 'Practice streak credit',
       whyItMatters: 'Repeated practice keeps kids from moving to the next grade too fast.',
       room: mission.room,
@@ -538,8 +540,8 @@ export const getSchoolDayPlan = (progress: UserProgress) => {
       whyItMatters: mission.parentExplanation || mission.masteryTarget,
       room: mission.room,
       unitId: mission.id,
-      status: mastery.mastered ? 'done' : mastery.practiceCount > 0 || missionPracticedToday ? 'in-progress' : 'ready',
-      actionLabel: mastery.mastered ? 'Mastered' : 'Learn',
+      status: coreMasteryDone ? 'done' : mastery.practiceCount > 0 || missionPracticedToday ? 'in-progress' : 'ready',
+      actionLabel: coreMasteryDone ? 'Mastered' : `${mastery.practiceCount}/${MASTERED_PRACTICE_TARGET}`,
     },
     {
       id: 'reading',
@@ -549,8 +551,8 @@ export const getSchoolDayPlan = (progress: UserProgress) => {
       reward: 'Library stamp',
       whyItMatters: 'Daily reading practice builds vocabulary, fluency, and comprehension.',
       room: RoomType.STORYBOOK,
-      status: readingDone ? 'done' : 'ready',
-      actionLabel: readingDone ? 'Done' : 'Read',
+      status: !coreMasteryDone ? 'locked' : readingDone ? 'done' : 'ready',
+      actionLabel: !coreMasteryDone ? 'Locked' : readingDone ? 'Done' : 'Read',
     },
     {
       id: 'stem',
@@ -560,8 +562,8 @@ export const getSchoolDayPlan = (progress: UserProgress) => {
       reward: 'Discovery badge',
       whyItMatters: 'STEM practice teaches kids to test ideas instead of only memorizing answers.',
       room: RoomType.SCIENCE,
-      status: stemDone ? 'done' : 'ready',
-      actionLabel: stemDone ? 'Done' : 'Explore',
+      status: !coreMasteryDone ? 'locked' : stemDone ? 'done' : 'ready',
+      actionLabel: !coreMasteryDone ? 'Locked' : stemDone ? 'Done' : 'Explore',
     },
     {
       id: 'creative',
@@ -571,8 +573,8 @@ export const getSchoolDayPlan = (progress: UserProgress) => {
       reward: 'Creative thinking badge',
       whyItMatters: 'Creative rooms build memory, communication, and flexible problem solving.',
       room: RoomType.ART,
-      status: creativeDone ? 'done' : 'ready',
-      actionLabel: creativeDone ? 'Done' : 'Create',
+      status: !coreMasteryDone ? 'locked' : creativeDone ? 'done' : 'ready',
+      actionLabel: !coreMasteryDone ? 'Locked' : creativeDone ? 'Done' : 'Create',
     },
     {
       id: 'exit',
@@ -583,8 +585,8 @@ export const getSchoolDayPlan = (progress: UserProgress) => {
       whyItMatters: 'The exit ticket gives parents evidence that the child can explain the skill.',
       room: mission.room,
       unitId: mission.id,
-      status: exitTicketDone ? 'done' : todayJournalEntries.length > 0 ? 'in-progress' : reviewDueCount > 0 ? 'due' : 'ready',
-      actionLabel: exitTicketDone ? 'Saved' : 'Check',
+      status: !coreMasteryDone ? 'locked' : exitTicketDone ? 'done' : todayJournalEntries.length > 0 ? 'in-progress' : reviewDueCount > 0 ? 'due' : 'ready',
+      actionLabel: !coreMasteryDone ? 'Locked' : exitTicketDone ? 'Saved' : 'Check',
     },
   ];
   const completedPeriods = periods.filter(period => period.status === 'done').length;
@@ -618,7 +620,7 @@ export const getNextSchoolStep = (progress: UserProgress): NextSchoolStep => {
   const childName = progress.childName || 'learner';
   const actionLabelByPeriod: Record<string, string> = {
     homeroom: 'Start with teacher',
-    core: nextPeriod.status === 'in-progress' ? 'Continue lesson' : 'Start lesson',
+    core: nextPeriod.status === 'in-progress' ? 'Finish 6 answers' : 'Start lesson',
     reading: 'Open reading block',
     stem: 'Open STEM lab',
     creative: 'Open creative studio',
@@ -627,7 +629,7 @@ export const getNextSchoolStep = (progress: UserProgress): NextSchoolStep => {
   const teacherPrompt = isSchoolDayComplete
     ? `Nice work, ${childName}. Your school day is complete. You can review a favorite classroom or show your passport to a grown-up.`
     : nextPeriod.status === 'in-progress'
-      ? `Let's finish ${nextPeriod.label}. I want to hear your strategy before we mark it complete.`
+      ? `Let's finish ${nextPeriod.label}. You need all ${MASTERED_PRACTICE_TARGET} saved answers before the next class opens.`
       : nextPeriod.status === 'due'
         ? `${childName}, a quick review is due. Explain the idea again so it sticks.`
         : `Next, come with me to ${nextPeriod.label}. I will teach first, then you try.`;

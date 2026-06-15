@@ -82,6 +82,7 @@ test('world review quest and arcade are reachable on tablet', async ({ page }) =
   await expect(page.getByTestId('school-bell-strip')).toContainText('School Bell');
   await expect(page.getByTestId('school-bell-strip')).toContainText('Now');
   await expect(page.getByTestId('school-bell-strip')).toContainText('Homeroom');
+  await expect(page.getByTestId('school-bell-strip')).toContainText('Locked');
   await expect(page.getByTestId('ai-homeroom-card')).toContainText('Ms. Nova');
   await expect(page.getByTestId('next-class-pass')).toContainText('Next Class Pass');
   await expect(page.getByTestId('next-class-pass')).toContainText('Ms. Nova says');
@@ -152,6 +153,8 @@ test('math room completion creates reward and parent-visible journal proof', asy
   await expect(page.getByTestId('parent-school-day-attendance')).toContainText('periods complete');
   await expect(page.getByTestId('parent-school-day-attendance')).toContainText('Required proof');
   await expect(page.getByTestId('parent-school-day-attendance')).toContainText('Reward:');
+  await expect(page.getByText('answers required before next class opens')).toBeVisible();
+  await expect(page.getByText('Monthly progress report')).toBeVisible();
   await expect(page.getByTestId('parent-teacher-help-ladder')).toContainText('Teacher help ladder');
   await expect(page.getByTestId('parent-teacher-help-ladder')).toContainText('Teach Back');
   await expect(page.getByTestId('parent-teacher-assignments')).toContainText('Teacher assignment cards');

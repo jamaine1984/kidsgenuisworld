@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { RoomType, UserProgress } from '../types';
 import { playError, playPop, playSuccess } from '../services/audioService';
+import { pickDailyItem, shuffleDailyItems } from '../services/dailyRotation';
 
 interface GameArcadeProps {
   progress: UserProgress;
@@ -114,10 +115,14 @@ const ARCADE_GAMES: ArcadeGame[] = [
   },
 ];
 
-const shuffle = <T,>(items: T[]) => [...items].sort(() => Math.random() - 0.5);
+const shuffle = <T,>(items: T[], scope: string, step: number) => shuffleDailyItems(items, scope, step);
 
-const makeOptions = (answer: string, distractors: string[]) =>
-  shuffle([answer, ...shuffle(Array.from(new Set(distractors.filter(item => item !== answer)))).slice(0, 3)]);
+const makeOptions = (answer: string, distractors: string[], scope: string, step: number) =>
+  shuffle(
+    [answer, ...shuffle(Array.from(new Set(distractors.filter(item => item !== answer))), `${scope}-distractors`, step).slice(0, 3)],
+    `${scope}-answers`,
+    step
+  );
 
 const tileTone = (value: string) => {
   const key = value.toLowerCase();
@@ -134,7 +139,7 @@ const tileTone = (value: string) => {
 
 const commandParts = (value: string) => value.split(',').map(part => part.trim()).filter(Boolean);
 
-const buildPrompt = (gameId: ArcadeGameId, level: number): ArcadePrompt => {
+const buildPrompt = (gameId: ArcadeGameId, level: number, roundStep: number): ArcadePrompt => {
   if (gameId === 'number-dash') {
     const mathMissions = level <= 2
       ? [
@@ -158,7 +163,7 @@ const buildPrompt = (gameId: ArcadeGameId, level: number): ArcadePrompt => {
           { first: 625, second: 75, skill: 'Make a Hundred', coach: 'Look for the jump that lands on a clean hundred.', success: 'You used compensation to land on a friendly number.' },
           { first: 840, second: 160, skill: 'Thousands Readiness', coach: 'Add hundreds first, then check the total.', success: 'You built a larger total with place-value thinking.' },
         ];
-    const mission = mathMissions[Math.floor(Math.random() * mathMissions.length)];
+    const mission = pickDailyItem(mathMissions, `arcade-number-dash-grade-${level}`, roundStep);
     const first = mission.first;
     const second = mission.second;
     const answer = String(first + second);
@@ -170,7 +175,7 @@ const buildPrompt = (gameId: ArcadeGameId, level: number): ArcadePrompt => {
       coach: mission.coach,
       success: mission.success,
       answer,
-      options: makeOptions(answer, [String(first + second + 1), String(first + second - 1), String(first + second + 3), String(Math.max(0, first + second - 3))]),
+      options: makeOptions(answer, [String(first + second + 1), String(first + second - 1), String(first + second + 3), String(Math.max(0, first + second - 3))], `arcade-number-dash-options-${level}-${answer}`, roundStep),
     };
   }
 
@@ -196,7 +201,7 @@ const buildPrompt = (gameId: ArcadeGameId, level: number): ArcadePrompt => {
         { clue: 'comp_ss', answer: 'a', word: 'compass', skill: 'Map Vocabulary' },
         { clue: 'evid_nce', answer: 'e', word: 'evidence', skill: 'Academic Vocabulary' },
       ];
-    const item = words[Math.floor(Math.random() * words.length)];
+    const item = pickDailyItem(words, `arcade-word-builder-grade-${level}`, roundStep);
     return {
       prompt: `Complete ${item.clue}`,
       helper: `Build the word ${item.word} by choosing the missing sound.`,
@@ -205,7 +210,7 @@ const buildPrompt = (gameId: ArcadeGameId, level: number): ArcadePrompt => {
       coach: 'Say the word slowly and listen for the missing sound.',
       success: `You completed ${item.word} with the right sound.`,
       answer: item.answer,
-      options: makeOptions(item.answer, ['a', 'e', 'i', 'o', 'u']),
+      options: makeOptions(item.answer, ['a', 'e', 'i', 'o', 'u'], `arcade-word-builder-options-${level}-${item.word}`, roundStep),
     };
   }
 
@@ -221,7 +226,7 @@ const buildPrompt = (gameId: ArcadeGameId, level: number): ArcadePrompt => {
       { prompt: '3, 6, 9, 12, ?', answer: '15', options: ['13', '14', '15', '18'], skill: 'Count by Threes' },
       { prompt: 'red, red, blue, red, red, ?', answer: 'blue', options: ['red', 'blue', 'green', 'yellow'], skill: 'AAB Color Pattern' },
     ];
-    const item = patterns[Math.floor(Math.random() * (level <= 2 ? 4 : patterns.length))];
+    const item = pickDailyItem(patterns.slice(0, level <= 2 ? 4 : patterns.length), `arcade-pattern-quest-grade-${level}`, roundStep);
     return {
       prompt: item.prompt,
       helper: 'Find the rule before you choose.',
@@ -230,7 +235,7 @@ const buildPrompt = (gameId: ArcadeGameId, level: number): ArcadePrompt => {
       coach: 'Read the pattern from the beginning, then name what repeats or changes.',
       success: 'You found the rule and predicted the next step.',
       answer: item.answer,
-      options: shuffle(item.options),
+      options: shuffle(item.options, `arcade-pattern-quest-options-${level}-${item.prompt}`, roundStep),
     };
   }
 
@@ -309,7 +314,7 @@ const buildPrompt = (gameId: ArcadeGameId, level: number): ArcadePrompt => {
         options: ['She guided thinking', 'She gave every answer', 'She stopped reading', 'She erased the book'],
       },
     ];
-    const scene = scenes[Math.floor(Math.random() * scenes.length)];
+    const scene = pickDailyItem(scenes, `arcade-story-detective-grade-${level}`, roundStep);
     return {
       ...scene,
       levelTag: level <= 2 ? 'Story Clues' : 'Comprehension Quest',
@@ -325,7 +330,7 @@ const buildPrompt = (gameId: ArcadeGameId, level: number): ArcadePrompt => {
       { prompt: 'Robot reached the wrong square after turning too soon.', helper: 'Which plan should the coder try?', skill: 'Debugging', coach: 'Debugging means finding the step that happened too early or too late.', success: 'You debugged by changing the timing of a turn.', answer: 'Move first, then turn', options: ['Move first, then turn', 'Delete the goal', 'Spin forever', 'Stop before starting'] },
       { prompt: 'Robot needs to collect two gems in a row.', helper: 'Which command pattern is shortest?', skill: 'Efficient Sequence', coach: 'Look for repeated steps that can be grouped.', success: 'You chose an efficient command pattern.', answer: 'Repeat move 2x', options: ['Repeat move 2x', 'Turn left 4x', 'Move once only', 'Wait forever'] },
     ];
-    const path = paths[Math.floor(Math.random() * (level <= 2 ? 2 : paths.length))];
+    const path = pickDailyItem(paths.slice(0, level <= 2 ? 2 : paths.length), `arcade-robot-maze-grade-${level}`, roundStep);
     return {
       ...path,
       levelTag: level <= 2 ? 'Robot Steps' : 'Code Planner',
@@ -340,7 +345,7 @@ const buildPrompt = (gameId: ArcadeGameId, level: number): ArcadePrompt => {
     { prompt: 'snap, rest, snap, rest, ?', answer: 'snap', options: ['snap', 'rest', 'tap', 'clap'], skill: 'Rest Pattern' },
     { prompt: 'ta, ti-ti, ta, ti-ti, ?', answer: 'ta', options: ['ta', 'ti-ti', 'rest', 'boom'], skill: 'Rhythm Reading' },
   ];
-  const rhythm = rhythms[Math.floor(Math.random() * rhythms.length)];
+  const rhythm = pickDailyItem(rhythms, `arcade-rhythm-tap-grade-${level}`, roundStep);
   return {
     prompt: rhythm.prompt,
     helper: 'Copy the rhythm rule and choose the next beat.',
@@ -349,7 +354,7 @@ const buildPrompt = (gameId: ArcadeGameId, level: number): ArcadePrompt => {
     coach: 'Say the beats out loud, then listen for what repeats.',
     success: 'You followed the rhythm pattern.',
     answer: rhythm.answer,
-    options: shuffle(rhythm.options),
+    options: shuffle(rhythm.options, `arcade-rhythm-tap-options-${level}-${rhythm.prompt}`, roundStep),
   };
 };
 
@@ -363,7 +368,7 @@ export const GameArcade: React.FC<GameArcadeProps> = ({ progress, onBack, onOpen
   const [completedGames, setCompletedGames] = useState<string[]>([]);
 
   const activeGame = ARCADE_GAMES.find(game => game.id === activeGameId) || recommendedGame;
-  const prompt = useMemo(() => buildPrompt(activeGame.id, progress.currentLevel), [activeGame.id, progress.currentLevel, roundKey]);
+  const prompt = useMemo(() => buildPrompt(activeGame.id, progress.currentLevel, roundKey), [activeGame.id, progress.currentLevel, roundKey]);
   const todayKey = new Date().toISOString().slice(0, 10);
   const arcadeProgress = progress.arcadeProgress || {
     totalWins: 0,

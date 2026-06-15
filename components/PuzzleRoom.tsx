@@ -1,6 +1,7 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useRef, useState, useEffect } from 'react';
 import { ArrowLeft, RefreshCw, Shapes, Grid3X3, BrainCircuit } from 'lucide-react';
 import { playSuccess, playError, playPop } from '../services/audioService';
+import { pickDailyItem, shuffleDailyItems } from '../services/dailyRotation';
 
 interface PuzzleRoomProps {
   onBack: () => void;
@@ -44,26 +45,30 @@ export const PuzzleRoom: React.FC<PuzzleRoomProps> = ({ onBack, onReward, level 
   // Shapes State
   const [targetShape, setTargetShape] = useState('');
   const [shapeOptions, setShapeOptions] = useState<string[]>([]);
+  const puzzleStep = useRef(0);
 
   const ITEMS = ['🦄', '🦕', '🍕', '🚀', '🎈', '🎁'];
   const SHAPES = ['🟥', '🟦', '🟩', '🟨', '🟠', '🟣'];
 
   const mission = useMemo(() => {
     const missionPool = PUZZLE_MISSIONS.filter(item => item.gradeLevel <= Math.min(Math.max(level, 1), 7));
-    return missionPool[new Date().getDate() % missionPool.length] || PUZZLE_MISSIONS[0];
+    return pickDailyItem(missionPool, `puzzle-mission-grade-${level}`) || PUZZLE_MISSIONS[0];
   }, [level]);
 
   const initGame = () => {
+    const step = puzzleStep.current;
+    puzzleStep.current += 1;
+
     if (mode === 'MEMORY') {
-        const missionItems = [...ITEMS].sort(() => Math.random() - 0.5).slice(0, mission.pairCount);
-        const deck = [...missionItems, ...missionItems].sort(() => Math.random() - 0.5).map((emoji, i) => ({
+        const missionItems = shuffleDailyItems(ITEMS, `puzzle-memory-items-${level}-${mission.title}`, step).slice(0, mission.pairCount);
+        const deck = shuffleDailyItems([...missionItems, ...missionItems], `puzzle-memory-deck-${level}-${mission.title}`, step).map((emoji, i) => ({
             id: i, emoji, isFlipped: false, isMatched: false
         }));
         setCards(deck);
         setFlipped([]);
         setIsLocked(false);
     } else if (mode === 'PATTERN') {
-        const shuffled = [...ITEMS].sort(() => Math.random() - 0.5);
+        const shuffled = shuffleDailyItems(ITEMS, `puzzle-pattern-items-${level}-${mission.title}`, step);
         const patternSize = level >= 5 ? 3 : 2;
         const pattern = shuffled.slice(0, patternSize);
         const built = Array.from({ length: mission.patternLength }, (_, i) => pattern[i % pattern.length]);
@@ -72,12 +77,12 @@ export const PuzzleRoom: React.FC<PuzzleRoomProps> = ({ onBack, onReward, level 
         setPatternAnswer(answer);
         setMissingIndex(built.length - 1);
         const options = Array.from(new Set([...pattern, answer, ...shuffled])).slice(0, Math.max(3, patternSize + 1));
-        setPatternOptions(options.sort(() => Math.random() - 0.5));
+        setPatternOptions(shuffleDailyItems(options, `puzzle-pattern-options-${level}-${mission.title}`, step));
     } else if (mode === 'SHAPES') {
-        const target = SHAPES[Math.floor(Math.random() * SHAPES.length)];
+        const target = pickDailyItem(SHAPES, `puzzle-shape-target-${level}-${mission.title}`, step);
         setTargetShape(target);
-        const distractors = SHAPES.filter(shape => shape !== target).sort(() => Math.random() - 0.5).slice(0, level >= 5 ? 5 : 3);
-        setShapeOptions([target, ...distractors].sort(() => Math.random() - 0.5));
+        const distractors = shuffleDailyItems(SHAPES.filter(shape => shape !== target), `puzzle-shape-distractors-${level}-${mission.title}`, step).slice(0, level >= 5 ? 5 : 3);
+        setShapeOptions(shuffleDailyItems([target, ...distractors], `puzzle-shape-options-${level}-${mission.title}`, step));
     }
   };
 

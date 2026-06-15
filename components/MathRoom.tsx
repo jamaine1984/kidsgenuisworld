@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { speakCorrect, speakWrong, playSuccess, playWrongBuzzer, speakAsync, speakMultipleChoiceQuestion } from '../services/audioService';
+import { speakCorrect, speakWrong, playSuccess, playWrongBuzzer, speakMultipleChoiceQuestion } from '../services/audioService';
 import { MathProblem } from '../types';
 import { Star, ArrowLeft, Volume2, RefreshCw, Calculator } from 'lucide-react';
 
@@ -552,18 +552,6 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, level }) =
     return 'Take your time and solve one step at a time.';
   }, []);
 
-  const buildTeacherIntro = useCallback((currentProblem: MathProblem) => {
-    if (currentProblem.context === 'word-problem') return 'Teacher says: Read the whole story problem before solving.';
-    if (currentProblem.context === 'money') return 'Teacher says: Money problems use coin values.';
-    if (currentProblem.context === 'time') return 'Teacher says: Time problems use the clock and elapsed hours.';
-    if (currentProblem.context === 'fraction') return 'Teacher says: Fractions are equal pieces of one whole.';
-    if (currentProblem.context === 'geometry') return 'Teacher says: Geometry problems use shape clues.';
-    if (currentProblem.operation === 'addition') return 'Teacher says: Let us add the groups together.';
-    if (currentProblem.operation === 'subtraction') return 'Teacher says: Start with the big number and count back carefully.';
-    if (currentProblem.operation === 'multiplication') return 'Teacher says: Look for equal groups and use skip counting.';
-    if (currentProblem.operation === 'division') return 'Teacher says: Think about sharing into equal groups.';
-    return 'Teacher says: Read the problem carefully and solve one step at a time.';
-  }, []);
   const speakMathQuestion = useCallback((currentProblem: MathProblem) => {
     if (isSpeaking) return;
     setIsSpeaking(true);
@@ -576,22 +564,20 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, level }) =
       .replace(/=/g, 'equals')
       .replace(/\?/g, '');
 
-    void speakMultipleChoiceQuestion(`What is ${spokenText}?`, currentProblem.options, 'Listen again.')
+    void speakMultipleChoiceQuestion(`What is ${spokenText}?`, currentProblem.options)
       .finally(() => setIsSpeaking(false));
   }, [isSpeaking]);
 
   const teachProblem = useCallback(async (currentProblem: MathProblem) => {
     setIsSpeaking(true);
-    await speakAsync(buildTeacherIntro(currentProblem), 0.88, 1.05);
-    await speakAsync(buildCoachTip(currentProblem), 0.86, 1.02);
     const spokenText = currentProblem.question
       .replace(/\+/g, 'plus')
       .replace(/-/g, 'minus')
       .replace(/=/g, 'equals')
       .replace(/\?/g, '');
-    await speakMultipleChoiceQuestion(`Your turn. What is ${spokenText}?`, currentProblem.options, 'Ms. Nova will read every answer choice.');
+    await speakMultipleChoiceQuestion(`What is ${spokenText}?`, currentProblem.options);
     setIsSpeaking(false);
-  }, [buildCoachTip, buildTeacherIntro]);
+  }, []);
   const loadProblem = useCallback(() => {
     setFeedback('idle');
     const p = generateMathProblem(level);
@@ -606,11 +592,7 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, level }) =
   }, [problem, teachProblem]);
 
   useEffect(() => {
-    const startLesson = async () => {
-      await speakAsync(`Welcome to the Math Lab. ${lessonLabel}.`);
-      loadProblem();
-    };
-    void startLesson();
+    loadProblem();
   }, [lessonLabel, loadProblem]);
 
   const handleAnswer = (val: number) => {

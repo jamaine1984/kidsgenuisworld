@@ -206,11 +206,6 @@ export const LanguageRoom: React.FC<LanguageRoomProps> = ({ level, onBack, onRew
     return 'Think of the sound first, then choose the translation.';
   }, [mode]);
 
-  const teacherIntro = useMemo(() => {
-    if (mode === 'learn') return 'Teacher says: Listen first, then repeat the new word clearly.';
-    return 'Teacher says: Think of the translation before you choose your answer.';
-  }, [mode]);
-
   const getNewWord = () => {
     const words = availableWords;
     const word = words[Math.floor(Math.random() * words.length)];
@@ -229,29 +224,21 @@ export const LanguageRoom: React.FC<LanguageRoomProps> = ({ level, onBack, onRew
     setShowResult(false);
     setCoachTip(languageTip);
 
-    void (async () => {
-      await speakAsync(teacherIntro, 0.88, 1.03);
-      if (mode === 'quiz') {
-        await speakAsync(`How do you say ${word.english} in ${LANGUAGE_INFO[selectedLanguage].name}?`, 0.86, 1.04);
-      } else {
-        await speakAsync(`In ${LANGUAGE_INFO[selectedLanguage].name}, ${word.english} is ${word.translation}.`, 0.86, 1.04);
-        await speakAsync(`Say it after me. ${word.translation}.`, 0.82, 1.0);
-      }
-    })();
+    if (mode === 'quiz') {
+      void speakAsync(`How do you say ${word.english} in ${LANGUAGE_INFO[selectedLanguage].name}? A. ${allOptions[0]}. B. ${allOptions[1]}. C. ${allOptions[2]}. D. ${allOptions[3]}.`, 0.86, 1.04);
+    } else {
+      void speakAsync(`${word.english} is ${word.translation}. Say ${word.translation}.`, 0.86, 1.04);
+    }
   };
 
   useEffect(() => {
-    const startLesson = async () => {
-      await speakAsync(`Welcome to the Language Lab. ${languageTip}`);
-      getNewWord();
-    };
-    void startLesson();
+    getNewWord();
   }, [selectedLanguage, mode, languageTip, availableWords]);
 
   const speakWord = () => {
     if (currentWord) {
       // Speak the translation with pronunciation guide
-      void speakAsync(`Teacher says: ${currentWord.translation}. It sounds like ${currentWord.pronunciation}.`, 0.82, 1.0);
+      void speakAsync(`${currentWord.translation}. It sounds like ${currentWord.pronunciation}.`, 0.82, 1.0);
     }
   };
 

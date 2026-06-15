@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, Check, Star, Type, Image as ImageIcon, Volume2, Mic2, Sparkles, Book, Ear, X } from 'lucide-react';
-import { playSuccess, playWrongBuzzer, playPop, speak, speakAsync, speakCorrect, speakWrong, speakQuestion, speakMultipleChoiceQuestion } from '../services/audioService';
+import { playSuccess, playWrongBuzzer, playPop, speak, speakAsync, speakCorrect, speakWrong, speakMultipleChoiceQuestion } from '../services/audioService';
 
 interface ReadingRoomProps {
   onBack: () => void;
@@ -233,40 +233,24 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
     }
   }, [mode]);
 
-  const buildTeacherPrompt = useCallback((word: typeof VOCABULARY[number]) => {
+  const narrateRound = useCallback(async (word: typeof VOCABULARY[number], roundOptions: string[]) => {
     switch (mode) {
       case 'MATCH':
-        return `Teacher says: We are matching the word ${word.word}. Look at the letters, then find the picture that fits.`;
+        await speakMultipleChoiceQuestion(`Which choice shows ${word.word}?`, roundOptions);
+        break;
       case 'SPELL':
-        return `Teacher says: We are spelling the word ${word.word}. Say each letter slowly as you build it.`;
+        await speakAsync(`Spell ${word.word}.`, 0.86, 1.04);
+        break;
       case 'RHYME':
-        return `Teacher says: Listen for the ending sound in ${word.word}. We want a word that sounds the same at the end.`;
+        await speakMultipleChoiceQuestion(`What rhymes with ${word.word}?`, roundOptions);
+        break;
       case 'PHONICS':
-        return `Teacher says: We are going to tap each sound in ${word.word}, then blend the sounds together.`;
+        await speakAsync(`Sound out ${word.word}.`, 0.84, 1.02);
+        break;
       case 'COMPREHENSION':
-        return 'Teacher says: Read the passage first. Then use a detail from the text to answer the question.';
+        break;
     }
   }, [mode]);
-
-  const narrateRound = useCallback(async (word: typeof VOCABULARY[number]) => {
-    await speakAsync(buildTeacherPrompt(word), 0.88, 1.04);
-    switch (mode) {
-      case 'MATCH':
-        await speakAsync(`Find the picture for ${word.word}. ${word.sentence}`, 0.86, 1.04);
-        break;
-      case 'SPELL':
-        await speakAsync(`Spell the word ${word.word}. ${word.sentence}`, 0.86, 1.04);
-        break;
-      case 'RHYME':
-        await speakAsync(`What rhymes with ${word.word}? Listen to the ending sound.`, 0.86, 1.04);
-        break;
-      case 'PHONICS':
-        await speakAsync(`Let us sound out the word ${word.word}. Tap each sound block, then read the whole word.`, 0.84, 1.02);
-        break;
-      case 'COMPREHENSION':
-        break;
-    }
-  }, [buildTeacherPrompt, mode]);
 
   const getWordsForLevel = () => {
     const maxLvl = Math.min(Math.max(level, 1), 7);
@@ -281,9 +265,8 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
   };
 
   const narratePassageRound = useCallback(async (passage: ReadingPassage) => {
-    await speakAsync('Teacher says: Read the passage first. Listen for the important details.', 0.88, 1.04);
     await speakAsync(`${passage.title}. ${passage.passage}`, 0.86, 1.02);
-    await speakMultipleChoiceQuestion(passage.question, passage.options, 'Now listen to every answer choice.');
+    await speakMultipleChoiceQuestion(passage.question, passage.options);
   }, []);
 
   const nextRound = () => {
@@ -305,31 +288,35 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
 
     if (mode === 'MATCH') {
       const distractors = shuffle(VOCABULARY.filter(v => v.word !== next.word)).slice(0, 3);
-      setOptions(shuffle([next, ...distractors]).map(o => o.emoji));
+      const roundOptions = shuffle([next, ...distractors]).map(o => o.emoji);
+      setOptions(roundOptions);
+      void narrateRound(next, roundOptions);
+      return;
 
     } else if (mode === 'SPELL') {
       const letters = next.word.toUpperCase().split('').map((char, i) => ({ id: i, char }));
       setScrambledLetters(shuffle(letters));
+      void narrateRound(next, []);
+      return;
 
     } else if (mode === 'RHYME') {
       const distractors = shuffle(VOCABULARY.filter(v => v.rhyme !== next.rhyme && v.word !== next.word)).slice(0, 2);
       const correctRhyme = next.rhyme;
       const wrongRhymes = distractors.map(d => d.rhyme);
-      setOptions(shuffle([correctRhyme, ...wrongRhymes]));
+      const roundOptions = shuffle([correctRhyme, ...wrongRhymes]);
+      setOptions(roundOptions);
+      void narrateRound(next, roundOptions);
+      return;
 
     } else if (mode === 'PHONICS') {
+      void narrateRound(next, []);
+      return;
     }
-
-    void narrateRound(next);
   };
 
   useEffect(() => {
-    const startLesson = async () => {
-      await speakAsync(`Welcome to the Reading Library. ${modeTip}`);
-      nextRound();
-      hasInitializedMode.current = true;
-    };
-    void startLesson();
+    nextRound();
+    hasInitializedMode.current = true;
   }, []);
 
   useEffect(() => {
@@ -398,13 +385,13 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
   // Phonics Handlers
   const playSegment = async (segment: string, index: number) => {
     setActiveSegment(index);
-    await speakAsync(`Teacher says the sound is ${segment}.`, 0.78, 1.0);
+    await speakAsync(`Sound: ${segment}.`, 0.78, 1.0);
     setTimeout(() => setActiveSegment(null), 1000);
   };
 
   const handleMicClick = () => {
     setIsRecording(true);
-    void speakAsync(`Teacher says: Read the word ${currentWord.word} out loud.`, 0.84, 1.02);
+    void speakAsync(`Read ${currentWord.word} out loud.`, 0.84, 1.02);
     setTimeout(async () => {
       setIsRecording(false);
       playSuccess();
@@ -419,11 +406,11 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
     if (mode === 'COMPREHENSION') {
       void (async () => {
         await speakAsync(`${currentPassage.title}. ${currentPassage.passage}`, 0.86, 1.02);
-        await speakMultipleChoiceQuestion(currentPassage.question, currentPassage.options, 'Listen again to the choices.');
+        await speakMultipleChoiceQuestion(currentPassage.question, currentPassage.options);
       })();
       return;
     }
-    void speakAsync(`Teacher says the word is ${currentWord.word}. ${currentWord.sentence}`, 0.86, 1.02);
+    void speakAsync(`${currentWord.word}. ${currentWord.sentence}`, 0.86, 1.02);
   };
 
   const modeSteps = [

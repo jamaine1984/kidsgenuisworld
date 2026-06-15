@@ -522,12 +522,12 @@ export const speakQuestion = (question: string): void => {
 export const speakMultipleChoiceQuestion = async (
   question: string,
   options: Array<string | number>,
-  intro = 'Listen to the question and the answer choices.'
+  intro = ''
 ): Promise<void> => {
   const choiceText = options
     .map((option, index) => `${String.fromCharCode(65 + index)}. ${option}.`)
     .join(' ');
-  await speakAsync(`${intro} ${question} ${choiceText}`, 0.82, 1.02, 'gentle');
+  await speakAsync([intro, question, choiceText].filter(Boolean).join(' '), 0.82, 1.02, 'gentle');
 };
 
   // Welcome messages for rooms

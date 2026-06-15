@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, Globe2, MapPin, Star, Plane, Volume2 } from 'lucide-react';
 import { GeographyQuestion } from '../types';
-import { speakAsync, speakCorrect, speakWrong, playSuccess, playWrongBuzzer, speakMultipleChoiceQuestion } from '../services/audioService';
+import { speakCorrect, speakWrong, playSuccess, playWrongBuzzer, speakMultipleChoiceQuestion } from '../services/audioService';
 
 interface GeographyRoomProps {
   level: number; // 1-7 corresponds to grade levels
@@ -145,12 +145,6 @@ export const GeographyRoom: React.FC<GeographyRoomProps> = ({ level, onBack, onR
     return 'Pause, compare the options, and eliminate what does not fit.';
   }, [level]);
 
-  const teacherIntro = useMemo(() => {
-    if (level <= 2) return 'Teacher says: Let us look for the biggest clue first.';
-    if (level <= 4) return 'Teacher says: Think about landmarks, flags, and map clues.';
-    return 'Teacher says: Compare the choices and rule out what does not fit.';
-  }, [level]);
-
   const getNewQuestion = () => {
     const freshPool = availableQuestions.filter(item => !recentQuestionKeys.current.includes(item.question));
     const pool = freshPool.length > 0 ? freshPool : availableQuestions;
@@ -163,23 +157,16 @@ export const GeographyRoom: React.FC<GeographyRoomProps> = ({ level, onBack, onR
     setShowResult(false);
     setCoachTip(geographyTip);
 
-    void (async () => {
-      await speakAsync(teacherIntro, 0.88, 1.03);
-      await speakMultipleChoiceQuestion(cleanQuestion, shuffledOptions, `${geographyTip} Ms. Nova will read the choices.`);
-    })();
+    void speakMultipleChoiceQuestion(cleanQuestion, shuffledOptions);
   };
 
   useEffect(() => {
-    const startLesson = async () => {
-      await speakAsync(`Welcome to Geography Globe. ${geographyTip}`);
-      getNewQuestion();
-    };
-    void startLesson();
+    getNewQuestion();
   }, [geographyTip]);
 
   const readQuestionAloud = () => {
     if (question) {
-      void speakMultipleChoiceQuestion(question.question, question.options, 'Listen again.');
+      void speakMultipleChoiceQuestion(question.question, question.options);
     }
   };
 

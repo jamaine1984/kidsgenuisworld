@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, Code, Play, RotateCcw, Star, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Repeat, Zap, Volume2 } from 'lucide-react';
-import { speak, speakAsync, speakCorrect, speakWrong, speakQuestion, playSuccess, playError, playWrongBuzzer } from '../services/audioService';
+import { speakAsync, speakCorrect, speakWrong, playSuccess, playError, playWrongBuzzer } from '../services/audioService';
 
 interface CodingRoomProps {
   level: number; // 1-7 corresponds to Pre-K through 5th grade
@@ -908,12 +908,6 @@ export const CodingRoom: React.FC<CodingRoomProps> = ({ level, onBack, onReward 
     return 'Plan the path first, then use repeat blocks to stay efficient.';
   }, [level]);
 
-  const teacherIntro = useMemo(() => {
-    if (level <= 2) return 'Teacher says: Watch the path and help the robot move one step at a time.';
-    if (level <= 4) return 'Teacher says: Think about which way the robot is facing before each move.';
-    return 'Teacher says: Plan the full path first, then build the code carefully.';
-  }, [level]);
-
   const stepCoach = useMemo(() => {
     const horizontal = challenge.goalPos.x - robotPos.x;
     const vertical = challenge.goalPos.y - robotPos.y;
@@ -937,16 +931,6 @@ export const CodingRoom: React.FC<CodingRoomProps> = ({ level, onBack, onReward 
     };
   }, [challenge, code.length, robotPos]);
 
-  useEffect(() => {
-    const startLesson = async () => {
-      await speakAsync(`Welcome to Coding Corner. ${codingTip}`);
-      await speakAsync(teacherIntro, 0.88, 1.03);
-      await speakAsync(challenge.story, 0.86, 1.03);
-      hasAnnouncedFirstChallenge.current = true;
-    };
-    void startLesson();
-  }, [codingTip, challenge.story, teacherIntro]);
-
   // When challenge changes, read the new story
   useEffect(() => {
     if (!challenge) return;
@@ -954,14 +938,13 @@ export const CodingRoom: React.FC<CodingRoomProps> = ({ level, onBack, onReward 
     setCoachTip(codingTip);
 
     if (!hasAnnouncedFirstChallenge.current) {
+      void speakAsync(challenge.story, 0.86, 1.03);
+      hasAnnouncedFirstChallenge.current = true;
       return;
     }
 
-    void (async () => {
-      await speakAsync(teacherIntro, 0.88, 1.03);
-      await speakAsync(challenge.story, 0.86, 1.03);
-    })();
-  }, [challenge.id, codingTip, challenge.story, teacherIntro]);
+    void speakAsync(challenge.story, 0.86, 1.03);
+  }, [challenge.id, codingTip, challenge.story]);
 
   const resetChallenge = () => {
     setRobotPos({ ...challenge.startPos });
@@ -973,7 +956,6 @@ export const CodingRoom: React.FC<CodingRoomProps> = ({ level, onBack, onReward 
   const addBlock = (block: CodeBlock) => {
     if (code.length < challenge.maxBlocks) {
       setCode([...code, { ...block, id: `${block.id}-${Date.now()}` }]);
-      void speakAsync(`${block.label}. ${block.type === 'move' ? 'The robot will step forward.' : block.type === 'repeat' ? 'Repeat uses the block before it again.' : `The robot will ${block.label.toLowerCase()}.`}`, 0.82, 1.02);
     }
   };
 
@@ -982,14 +964,14 @@ export const CodingRoom: React.FC<CodingRoomProps> = ({ level, onBack, onReward 
   };
 
   const speakHint = () => {
-    void speakAsync(`Teacher hint. ${challenge.hint}`, 0.84, 1.02);
+    void speakAsync(challenge.hint, 0.84, 1.02);
   };
 
   const speakCodePlan = () => {
     const codeText = code.length
       ? code.map((block, index) => `Step ${index + 1}: ${block.label}`).join('. ')
       : 'No blocks are in the code tray yet.';
-    void speakAsync(`${challenge.story} ${stepCoach.facing} ${stepCoach.axisHint} ${stepCoach.obstacleWarning} ${codeText}`, 0.82, 1.02);
+    void speakAsync(`${challenge.story} ${codeText}`, 0.82, 1.02);
   };
 
   const runCode = async () => {

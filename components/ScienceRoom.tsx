@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, FlaskConical, Lightbulb, Star, Sparkles, Volume2, X, Check } from 'lucide-react';
 import { ScienceExperiment } from '../types';
-import { speakAsync, speakCorrect, speakWrong, playSuccess, playWrongBuzzer, speakMultipleChoiceQuestion } from '../services/audioService';
+import { speakCorrect, speakWrong, playSuccess, playWrongBuzzer, speakMultipleChoiceQuestion } from '../services/audioService';
 
 interface ScienceRoomProps {
   level: number; // 1-7 corresponds to grade levels
@@ -485,12 +485,6 @@ export const ScienceRoom: React.FC<ScienceRoomProps> = ({ level, onBack, onRewar
     return 'Read carefully, then use the clue in the experiment title.';
   }, [level]);
 
-  const teacherIntro = useMemo(() => {
-    if (level <= 2) return 'Teacher says: Look at the choices and think about the world around you.';
-    if (level <= 4) return 'Teacher says: Use what you have noticed in nature, home, and school.';
-    return 'Teacher says: Read the science clue carefully, then choose the best answer.';
-  }, [level]);
-
   const getNewExperiment = () => {
     const freshPool = availableExperiments.filter(exp => !recentExperimentIds.current.includes(exp.id));
     const pool = freshPool.length > 0 ? freshPool : availableExperiments;
@@ -502,23 +496,16 @@ export const ScienceRoom: React.FC<ScienceRoomProps> = ({ level, onBack, onRewar
     setShowFunFact(false);
     setCoachTip(scienceTip);
 
-    void (async () => {
-      await speakAsync(teacherIntro, 0.88, 1.03);
-      await speakMultipleChoiceQuestion(randomExp.question, randomExp.hypothesis, `${scienceTip} Ms. Nova will read the choices.`);
-    })();
+    void speakMultipleChoiceQuestion(randomExp.question, randomExp.hypothesis);
   };
 
   useEffect(() => {
-    const startLesson = async () => {
-      await speakAsync(`Welcome to the Science Lab. ${scienceTip}`);
-      getNewExperiment();
-    };
-    void startLesson();
+    getNewExperiment();
   }, [scienceTip]);
 
   const readQuestionAloud = () => {
     if (experiment) {
-      void speakMultipleChoiceQuestion(experiment.question, experiment.hypothesis, 'Listen again.');
+      void speakMultipleChoiceQuestion(experiment.question, experiment.hypothesis);
     }
   };
 

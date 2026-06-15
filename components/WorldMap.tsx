@@ -261,6 +261,9 @@ export const WorldMap: React.FC<WorldMapProps> = ({
     if (status === 'due') return 'Due';
     return 'Ready';
   };
+  const activePeriod = nextSchoolStep.isSchoolDayComplete
+    ? schoolDay.periods[schoolDay.periods.length - 1]
+    : nextSchoolStep.period;
 
   const roomsBase: Array<{ type: RoomType; name: string; emoji: string; color: string; featured?: boolean }> = [
     { type: RoomType.MATH, name: 'Math Mountain', emoji: '🔢', color: 'from-indigo-500 to-blue-600' },
@@ -507,6 +510,63 @@ export const WorldMap: React.FC<WorldMapProps> = ({
       </div>
 
       <div className="relative z-10 px-4 mt-2 max-w-6xl mx-auto">
+        <section
+          data-testid="school-bell-strip"
+          className="mb-4 rounded-[28px] border-4 border-white/70 bg-white/95 p-3 shadow-xl"
+          aria-label="Today's school day schedule"
+        >
+          <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
+            <div className="rounded-3xl bg-slate-950 px-4 py-3 text-white xl:w-72">
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-sky-200">School Bell</p>
+              <h2 className="mt-1 text-xl font-black leading-tight">{activePeriod.label}</h2>
+              <p className="mt-1 line-clamp-2 text-xs font-semibold text-slate-200">{activePeriod.detail}</p>
+              <div className="mt-3 flex items-center gap-2">
+                <div className="h-2 flex-1 overflow-hidden rounded-full bg-white/15">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-emerald-300 via-sky-300 to-indigo-300"
+                    style={{ width: `${schoolDay.schoolDayPercent}%` }}
+                  />
+                </div>
+                <span className="text-xs font-black text-white">{schoolDay.schoolDayPercent}%</span>
+              </div>
+            </div>
+
+            <div className="grid flex-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+              {schoolDay.periods.map((period, index) => {
+                const isActivePeriod = period.id === activePeriod.id && !nextSchoolStep.isSchoolDayComplete;
+                return (
+                  <button
+                    key={`school-bell-${period.id}`}
+                    onClick={() => { playPop(); onEnterRoom(period.room, period.unitId); }}
+                    className={`min-h-[104px] rounded-2xl border p-3 text-left transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-sky-200 ${getPeriodStatusClasses(period.status)} ${isActivePeriod ? 'ring-4 ring-indigo-200' : ''}`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/80 text-xs font-black">
+                        {index + 1}
+                      </span>
+                      <span className="rounded-full bg-white/80 px-2 py-1 text-[10px] font-black">
+                        {isActivePeriod ? 'Now' : getPeriodStatusLabel(period.status)}
+                      </span>
+                    </div>
+                    <p className="mt-2 line-clamp-2 text-sm font-black leading-tight">{period.label}</p>
+                    <p className="mt-1 line-clamp-2 text-[11px] font-semibold opacity-80">{period.proof}</p>
+                  </button>
+                );
+              })}
+            </div>
+
+            <button
+              onClick={() => { playPop(); onEnterRoom(nextSchoolStep.room, nextSchoolStep.unitId); }}
+              className="rounded-2xl bg-indigo-600 px-5 py-4 text-sm font-black text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-indigo-700 xl:w-44"
+            >
+              <span className="inline-flex items-center justify-center gap-2">
+                <PlayCircle size={20} />
+                {nextSchoolStep.actionLabel}
+              </span>
+            </button>
+          </div>
+        </section>
+
         <div
           data-testid="ai-homeroom-card"
           className="mb-4 overflow-hidden rounded-[30px] border-4 border-white/70 bg-slate-950 text-white shadow-2xl"

@@ -79,6 +79,9 @@ test('world review quest and arcade are reachable on tablet', async ({ page }) =
   await completeKidSetup(page);
 
   await expect(page.getByTestId('ai-homeroom-card')).toContainText('AI Homeroom');
+  await expect(page.getByTestId('school-bell-strip')).toContainText('School Bell');
+  await expect(page.getByTestId('school-bell-strip')).toContainText('Now');
+  await expect(page.getByTestId('school-bell-strip')).toContainText('Homeroom');
   await expect(page.getByTestId('ai-homeroom-card')).toContainText('Ms. Nova');
   await expect(page.getByTestId('next-class-pass')).toContainText('Next Class Pass');
   await expect(page.getByTestId('next-class-pass')).toContainText('Ms. Nova says');

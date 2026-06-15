@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, Check, Star, Type, Image as ImageIcon, Volume2, Mic2, Sparkles, Book, Ear, X } from 'lucide-react';
 import { playSuccess, playWrongBuzzer, playPop, speak, speakAsync, speakCorrect, speakWrong, speakMultipleChoiceQuestion } from '../services/audioService';
+import { pickDailyItem, shuffleDailyItems } from '../services/dailyRotation';
 
 interface ReadingRoomProps {
   onBack: () => void;
@@ -220,8 +221,9 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
   const [isRecording, setIsRecording] = useState(false);
   const [activeSegment, setActiveSegment] = useState<number | null>(null);
   const hasInitializedMode = useRef(false);
+  const lessonStep = useRef(0);
 
-  const shuffle = (array: any[]) => [...array].sort(() => Math.random() - 0.5);
+  const shuffle = <T,>(array: T[], scope: string, step: number) => shuffleDailyItems(array, scope, step);
 
   const modeTip = useMemo(() => {
     switch (mode) {
@@ -274,36 +276,39 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
     setShowWrong(false);
     setSpelledWord('');
     setCoachTip(modeTip);
+    const step = lessonStep.current;
+    lessonStep.current += 1;
+
     if (mode === 'COMPREHENSION') {
       const passagePool = getPassagesForLevel();
-      const nextPassage = passagePool[Math.floor(Math.random() * passagePool.length)];
+      const nextPassage = pickDailyItem(passagePool, `reading-passage-grade-${level}`, step);
       setCurrentPassage(nextPassage);
-      setOptions(shuffle(nextPassage.options));
+      setOptions(shuffle(nextPassage.options, `reading-passage-options-${level}-${nextPassage.title}`, step));
       void narratePassageRound(nextPassage);
       return;
     }
     const pool = getWordsForLevel();
-    const next = pool[Math.floor(Math.random() * pool.length)];
+    const next = pickDailyItem(pool, `reading-${mode.toLowerCase()}-grade-${level}`, step);
     setCurrentWord(next);
 
     if (mode === 'MATCH') {
-      const distractors = shuffle(VOCABULARY.filter(v => v.word !== next.word)).slice(0, 3);
-      const roundOptions = shuffle([next, ...distractors]).map(o => o.emoji);
+      const distractors = shuffle(VOCABULARY.filter(v => v.word !== next.word), `reading-match-distractors-${level}-${next.word}`, step).slice(0, 3);
+      const roundOptions = shuffle([next, ...distractors], `reading-match-options-${level}-${next.word}`, step).map(o => o.emoji);
       setOptions(roundOptions);
       void narrateRound(next, roundOptions);
       return;
 
     } else if (mode === 'SPELL') {
       const letters = next.word.toUpperCase().split('').map((char, i) => ({ id: i, char }));
-      setScrambledLetters(shuffle(letters));
+      setScrambledLetters(shuffle(letters, `reading-spell-letters-${level}-${next.word}`, step));
       void narrateRound(next, []);
       return;
 
     } else if (mode === 'RHYME') {
-      const distractors = shuffle(VOCABULARY.filter(v => v.rhyme !== next.rhyme && v.word !== next.word)).slice(0, 2);
+      const distractors = shuffle(VOCABULARY.filter(v => v.rhyme !== next.rhyme && v.word !== next.word), `reading-rhyme-distractors-${level}-${next.word}`, step).slice(0, 2);
       const correctRhyme = next.rhyme;
       const wrongRhymes = distractors.map(d => d.rhyme);
-      const roundOptions = shuffle([correctRhyme, ...wrongRhymes]);
+      const roundOptions = shuffle([correctRhyme, ...wrongRhymes], `reading-rhyme-options-${level}-${next.word}`, step);
       setOptions(roundOptions);
       void narrateRound(next, roundOptions);
       return;

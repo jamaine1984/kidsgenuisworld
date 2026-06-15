@@ -1,7 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, Languages, Star, Volume2, Heart } from 'lucide-react';
 import { LanguageWord } from '../types';
 import { speakAsync, speakCorrect, speakWrong, playSuccess, playWrongBuzzer } from '../services/audioService';
+import { pickDailyItem, shuffleDailyItems } from '../services/dailyRotation';
 
 interface LanguageRoomProps {
   level: number;
@@ -194,6 +195,7 @@ export const LanguageRoom: React.FC<LanguageRoomProps> = ({ level, onBack, onRew
   const [wordsLearned, setWordsLearned] = useState<Set<string>>(new Set());
   const [mode, setMode] = useState<'learn' | 'quiz'>('learn');
   const [coachTip, setCoachTip] = useState('');
+  const lessonStep = useRef(0);
 
   const availableWords = useMemo(() => {
     const allWords = getLanguageWords(selectedLanguage);
@@ -207,18 +209,26 @@ export const LanguageRoom: React.FC<LanguageRoomProps> = ({ level, onBack, onRew
   }, [mode]);
 
   const getNewWord = () => {
-    const words = availableWords;
-    const word = words[Math.floor(Math.random() * words.length)];
+    const words: LanguageWord[] = availableWords;
+    const step = lessonStep.current;
+    lessonStep.current += 1;
+    const word = pickDailyItem<LanguageWord>(words, `language-${selectedLanguage}-${mode}-grade-${level}`, step);
     setCurrentWord(word);
 
     // Generate wrong options
-    const wrongOptions = words
-      .filter(w => w.translation !== word.translation)
-      .sort(() => Math.random() - 0.5)
+    const wrongOptions = shuffleDailyItems(
+      words.filter(w => w.translation !== word.translation),
+      `language-distractors-${selectedLanguage}-${mode}-${level}-${word.translation}`,
+      step
+    )
       .slice(0, 3)
       .map(w => w.translation);
 
-    const allOptions = [...wrongOptions, word.translation].sort(() => Math.random() - 0.5);
+    const allOptions = shuffleDailyItems(
+      [...wrongOptions, word.translation],
+      `language-options-${selectedLanguage}-${mode}-${level}-${word.translation}`,
+      step
+    );
     setOptions(allOptions);
     setSelectedAnswer(null);
     setShowResult(false);

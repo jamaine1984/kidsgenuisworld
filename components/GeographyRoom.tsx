@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, Globe2, MapPin, Star, Plane, Volume2 } from 'lucide-react';
 import { GeographyQuestion } from '../types';
 import { speakCorrect, speakWrong, playSuccess, playWrongBuzzer, speakMultipleChoiceQuestion } from '../services/audioService';
+import { pickDailyItem, shuffleDailyItems } from '../services/dailyRotation';
 
 interface GeographyRoomProps {
   level: number; // 1-7 corresponds to grade levels
@@ -138,6 +139,7 @@ export const GeographyRoom: React.FC<GeographyRoomProps> = ({ level, onBack, onR
   const [countriesLearned, setCountriesLearned] = useState<Set<string>>(new Set());
   const [coachTip, setCoachTip] = useState('');
   const recentQuestionKeys = useRef<string[]>([]);
+  const lessonStep = useRef(0);
 
   const geographyTip = useMemo(() => {
     if (level <= 2) return 'Use pictures, flags, and what feels familiar.';
@@ -148,9 +150,11 @@ export const GeographyRoom: React.FC<GeographyRoomProps> = ({ level, onBack, onR
   const getNewQuestion = () => {
     const freshPool = availableQuestions.filter(item => !recentQuestionKeys.current.includes(item.question));
     const pool = freshPool.length > 0 ? freshPool : availableQuestions;
-    const randomQ = pool[Math.floor(Math.random() * pool.length)];
+    const step = lessonStep.current;
+    lessonStep.current += 1;
+    const randomQ = pickDailyItem(pool, `geography-grade-${level}`, step);
     recentQuestionKeys.current = [randomQ.question, ...recentQuestionKeys.current].slice(0, Math.min(8, availableQuestions.length - 1));
-    const shuffledOptions = [...randomQ.options].sort(() => Math.random() - 0.5);
+    const shuffledOptions = shuffleDailyItems(randomQ.options, `geography-options-${level}-${randomQ.question}`, step);
     const cleanQuestion = randomQ.question;
     setQuestion({ ...randomQ, options: shuffledOptions });
     setSelectedAnswer(null);

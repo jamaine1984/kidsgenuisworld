@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, FlaskConical, Lightbulb, Star, Sparkles, Volume2, X, Check } from 'lucide-react';
 import { ScienceExperiment } from '../types';
 import { speakCorrect, speakWrong, playSuccess, playWrongBuzzer, speakMultipleChoiceQuestion } from '../services/audioService';
+import { pickDailyItem } from '../services/dailyRotation';
 
 interface ScienceRoomProps {
   level: number; // 1-7 corresponds to grade levels
@@ -478,6 +479,7 @@ export const ScienceRoom: React.FC<ScienceRoomProps> = ({ level, onBack, onRewar
   const [score, setScore] = useState(0);
   const [coachTip, setCoachTip] = useState('');
   const recentExperimentIds = useRef<string[]>([]);
+  const lessonStep = useRef(0);
 
   const scienceTip = useMemo(() => {
     if (level <= 2) return 'Look at the choices and think about the real world.';
@@ -488,7 +490,9 @@ export const ScienceRoom: React.FC<ScienceRoomProps> = ({ level, onBack, onRewar
   const getNewExperiment = () => {
     const freshPool = availableExperiments.filter(exp => !recentExperimentIds.current.includes(exp.id));
     const pool = freshPool.length > 0 ? freshPool : availableExperiments;
-    const randomExp = pool[Math.floor(Math.random() * pool.length)];
+    const step = lessonStep.current;
+    lessonStep.current += 1;
+    const randomExp = pickDailyItem(pool, `science-grade-${level}`, step);
     recentExperimentIds.current = [randomExp.id, ...recentExperimentIds.current].slice(0, Math.min(8, availableExperiments.length - 1));
     setExperiment(randomExp);
     setSelectedAnswer(null);

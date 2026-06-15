@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { speakCorrect, speakWrong, playSuccess, playWrongBuzzer, speakMultipleChoiceQuestion } from '../services/audioService';
 import { MathProblem } from '../types';
 import { Star, ArrowLeft, Volume2, RefreshCw, Calculator } from 'lucide-react';
+import { withSeededRandom } from '../services/dailyRotation';
 
 interface MathRoomProps {
   onBack: () => void;
@@ -531,6 +532,7 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, level }) =
   const [feedback, setFeedback] = useState<'idle' | 'correct' | 'wrong'>('idle');
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [coachTip, setCoachTip] = useState('');
+  const lessonStep = React.useRef(0);
 
   const lessonLabel = useMemo(() => {
     if (level <= 2) return 'Count and picture the groups';
@@ -580,7 +582,9 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, level }) =
   }, []);
   const loadProblem = useCallback(() => {
     setFeedback('idle');
-    const p = generateMathProblem(level);
+    const step = lessonStep.current;
+    lessonStep.current += 1;
+    const p = withSeededRandom(`math-grade-${level}`, step, () => generateMathProblem(level));
     setProblem(p);
     setCoachTip(buildCoachTip(p));
   }, [level, buildCoachTip]);

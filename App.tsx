@@ -69,6 +69,8 @@ const GameArcade = lazy(() => import('./components/GameArcade').then(module => (
 
 const PROFILES_KEY = 'kidGeniusProfiles';
 const ACTIVE_PROFILE_KEY = 'kidGeniusActiveProfileId';
+const PARENT_ONBOARDED_KEY = 'kidGeniusParentOnboarded';
+const PARENT_PIN_KEY = 'kidGeniusParentPin';
 const FAMILY_ACCESS_KEY_PREFIX = 'kidGeniusFamilyAccess';
 const DEV_ACCESS_OVERRIDE_KEY = 'kidGeniusDevAccessOverride';
 const BILLING_TRIAL_DAYS = 3;
@@ -89,6 +91,16 @@ const getFamilyStorageScope = (session?: Pick<ParentCloudSession, 'signedIn' | '
 const getProfilesStorageKey = (scope: string) => `${PROFILES_KEY}:${scope}`;
 const getActiveProfileStorageKey = (scope: string) => `${ACTIVE_PROFILE_KEY}:${scope}`;
 const getProgressStorageKey = (scope: string, profileId: string) => `kidGeniusProgress:${scope}:${profileId}`;
+const getScopedStorageKey = (baseKey: string, scope: string) => `${baseKey}:${scope}`;
+const loadScopedFlag = (baseKey: string, scope: string) => (
+  localStorage.getItem(getScopedStorageKey(baseKey, scope)) === 'true'
+  || (scope === 'guest' && localStorage.getItem(baseKey) === 'true')
+);
+const loadScopedValue = (baseKey: string, scope: string) => (
+  localStorage.getItem(getScopedStorageKey(baseKey, scope))
+  || (scope === 'guest' ? localStorage.getItem(baseKey) : '')
+  || ''
+);
 
 const ensureOwnerStarterProfiles = (profiles: ChildProfile[]): ChildProfile[] => {
   const now = Date.now();
@@ -551,9 +563,15 @@ const App: React.FC = () => {
   const [showMissionFocus, setShowMissionFocus] = useState(false);
   const [showLessonIntro, setShowLessonIntro] = useState(false);
   const [learningReflection, setLearningReflection] = useState<LearningReflection | null>(null);
-  const [parentOnboarded, setParentOnboarded] = useState(() => localStorage.getItem('kidGeniusParentOnboarded') === 'true');
+  const [parentOnboarded, setParentOnboarded] = useState(() => {
+    const scope = getFamilyStorageScope(getCurrentParentSession());
+    return loadScopedFlag(PARENT_ONBOARDED_KEY, scope);
+  });
   const [legalView, setLegalView] = useState<LegalPageType | null>(null);
-  const [parentPin, setParentPin] = useState(() => localStorage.getItem('kidGeniusParentPin') || '');
+  const [parentPin, setParentPin] = useState(() => {
+    const scope = getFamilyStorageScope(getCurrentParentSession());
+    return loadScopedValue(PARENT_PIN_KEY, scope);
+  });
   const [pinDraft, setPinDraft] = useState('');
   const [pinConfirmDraft, setPinConfirmDraft] = useState('');
   const [pinSetupError, setPinSetupError] = useState('');
@@ -730,6 +748,8 @@ const App: React.FC = () => {
     const scopedActiveId = localStorage.getItem(getActiveProfileStorageKey(nextScope)) || scopedProfiles[0]?.id || 'default';
     const scopedActiveProfile = scopedProfiles.find(profile => profile.id === scopedActiveId) || scopedProfiles[0];
     setProfileStorageScope(nextScope);
+    setParentOnboarded(loadScopedFlag(PARENT_ONBOARDED_KEY, nextScope));
+    setParentPin(loadScopedValue(PARENT_PIN_KEY, nextScope));
     setProfiles(scopedProfiles);
     setActiveProfileId(scopedActiveProfile?.id || scopedActiveId);
     setProgress(loadProgressForProfile(scopedActiveProfile, nextScope));
@@ -775,6 +795,32 @@ const App: React.FC = () => {
       });
     }
   }, [parentCloudSession.signedIn, parentCloudSession.familyId, parentCloudSession.email]);
+
+  useEffect(() => {
+    if (!hasStarted || !parentCloudSession.signedIn || !parentOnboarded) {
+      return;
+    }
+    const activeProfile = profiles.find(profile => profile.id === activeProfileId) || profiles[0];
+    const needsChildSetup = !activeProfile || !progress.pet || (
+      activeProfile.name === 'Learner'
+      && progress.currentGrade === GradeLevel.KINDERGARTEN
+      && progress.totalXP === 0
+    );
+    if (needsChildSetup && !showGradeSelection && !showPetSelection) {
+      setShowGradeSelection(true);
+    }
+  }, [
+    hasStarted,
+    parentCloudSession.signedIn,
+    parentOnboarded,
+    profiles,
+    activeProfileId,
+    progress.pet,
+    progress.currentGrade,
+    progress.totalXP,
+    showGradeSelection,
+    showPetSelection,
+  ]);
 
   useEffect(() => {
     const billingResult = new URLSearchParams(window.location.search).get('billing');
@@ -1008,8 +1054,12 @@ const App: React.FC = () => {
       setPinSetupError('The PIN entries do not match.');
       return;
     }
-    localStorage.setItem('kidGeniusParentPin', pinDraft);
-    localStorage.setItem('kidGeniusParentOnboarded', 'true');
+    localStorage.setItem(getScopedStorageKey(PARENT_PIN_KEY, profileStorageScope), pinDraft);
+    localStorage.setItem(getScopedStorageKey(PARENT_ONBOARDED_KEY, profileStorageScope), 'true');
+    if (profileStorageScope === 'guest') {
+      localStorage.setItem(PARENT_PIN_KEY, pinDraft);
+      localStorage.setItem(PARENT_ONBOARDED_KEY, 'true');
+    }
     localStorage.setItem('kidGeniusParentConsentReceipt', JSON.stringify({
       acceptedAt: new Date().toISOString(),
       guardian: true,
@@ -1033,7 +1083,10 @@ const App: React.FC = () => {
   };
 
   const handleUpdateParentPin = (newPin: string) => {
-    localStorage.setItem('kidGeniusParentPin', newPin);
+    localStorage.setItem(getScopedStorageKey(PARENT_PIN_KEY, profileStorageScope), newPin);
+    if (profileStorageScope === 'guest') {
+      localStorage.setItem(PARENT_PIN_KEY, newPin);
+    }
     setParentPin(newPin);
   };
 
@@ -2125,7 +2178,124 @@ const App: React.FC = () => {
     /^\d{4,8}$/.test(pinDraft) &&
     pinDraft === pinConfirmDraft;
 
-  if (!parentOnboarded || !parentCloudSession.signedIn) {
+  if (!parentCloudSession.signedIn) {
+    return (
+      <div className="relative min-h-screen w-screen overflow-y-auto bg-gradient-to-b from-sky-300 via-indigo-300 to-emerald-300 p-4 text-slate-900">
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute left-[8%] top-10 text-7xl opacity-70">☁️</div>
+          <div className="absolute right-[10%] top-16 text-8xl opacity-70">🌈</div>
+          <div className="absolute bottom-12 left-[12%] text-7xl opacity-80">🎒</div>
+          <div className="absolute bottom-16 right-[14%] text-7xl opacity-80">⭐</div>
+        </div>
+        <div className="relative z-10 mx-auto flex min-h-screen max-w-6xl items-center">
+          <div className="grid w-full overflow-hidden rounded-[34px] border-4 border-white/80 bg-white shadow-2xl lg:grid-cols-[0.95fr_1.05fr]">
+            <div className="relative overflow-hidden bg-gradient-to-br from-indigo-700 via-sky-600 to-emerald-500 p-6 text-white">
+              <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-white/20 blur-3xl" />
+              <div className="relative">
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-sky-100">Parent Welcome</p>
+                <h1 className="mt-2 text-4xl font-black leading-tight sm:text-5xl">Start with a grown-up account</h1>
+                <p className="mt-3 text-base font-semibold text-white/90">
+                  Parents sign in first. Then Kid Genius World loads the right child profile, lessons, stars, and progress for that family.
+                </p>
+                <div className="mt-6 grid gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
+                  {[
+                    ['1', 'Parent signs in'],
+                    ['2', 'Choose child profile'],
+                    ['3', 'Start school day'],
+                  ].map(([step, label]) => (
+                    <div key={step} className="rounded-2xl border border-white/20 bg-white/15 p-3">
+                      <p className="text-2xl font-black">{step}</p>
+                      <p className="mt-1 text-xs font-black uppercase tracking-[0.12em] text-sky-100">{label}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-6 rounded-3xl border border-white/20 bg-white/15 p-4">
+                  <p className="text-sm font-black">Kid Genius World by CrateShip Studios</p>
+                  <p className="mt-1 text-xs font-semibold text-white/80">Child setup, billing, and progress stay parent-controlled.</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-5 sm:p-6">
+              <div className="mb-5 flex items-center gap-3">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-yellow-100 text-3xl shadow-sm">🎓</div>
+                <div>
+                  <h2 className="text-2xl font-black text-slate-950">Sign in or create account</h2>
+                  <p className="text-sm font-semibold text-slate-600">This is for parents only. Kids start after the account is ready.</p>
+                </div>
+              </div>
+
+              <div className="grid gap-3">
+                <input
+                  value={setupParentEmail}
+                  onChange={(event) => setSetupParentEmail(event.target.value)}
+                  type="email"
+                  autoComplete="email"
+                  placeholder="Parent email"
+                  className="rounded-2xl border-2 border-sky-100 px-4 py-4 font-bold focus:border-sky-500 focus:outline-none"
+                />
+                <input
+                  value={setupParentPassword}
+                  onChange={(event) => setSetupParentPassword(event.target.value)}
+                  type="password"
+                  autoComplete="current-password"
+                  placeholder="Password"
+                  className="rounded-2xl border-2 border-sky-100 px-4 py-4 font-bold focus:border-sky-500 focus:outline-none"
+                />
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <button
+                    onClick={handleSetupSignInParentAccount}
+                    disabled={setupParentAuthBusy}
+                    className="rounded-2xl bg-indigo-600 px-5 py-4 text-sm font-black text-white shadow-lg hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+                  >
+                    Sign In Parent
+                  </button>
+                  <button
+                    onClick={handleSetupCreateParentAccount}
+                    disabled={setupParentAuthBusy}
+                    className="rounded-2xl bg-emerald-500 px-5 py-4 text-sm font-black text-white shadow-lg hover:bg-emerald-600 disabled:cursor-not-allowed disabled:bg-slate-300"
+                  >
+                    Create Account
+                  </button>
+                </div>
+                <button
+                  onClick={handleSetupSignInWithGoogle}
+                  disabled={setupParentAuthBusy}
+                  className="rounded-2xl border border-sky-200 bg-sky-50 px-5 py-4 text-sm font-black text-sky-900 shadow-sm hover:bg-sky-100 disabled:cursor-not-allowed disabled:text-slate-400"
+                >
+                  Continue with Google
+                </button>
+              </div>
+
+              {setupParentAuthStatus && (
+                <div className="mt-4 rounded-2xl bg-amber-50 px-4 py-3 text-sm font-bold text-amber-900">
+                  {setupParentAuthStatus}
+                </div>
+              )}
+
+              <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                {[
+                  ['Privacy', () => setLegalView('privacy')],
+                  ['Terms', () => setLegalView('terms')],
+                  ['Support', () => setLegalView('support')],
+                ].map(([label, action]) => (
+                  <button
+                    key={String(label)}
+                    onClick={action as () => void}
+                    className="rounded-2xl bg-slate-100 px-4 py-3 text-sm font-black text-slate-700 hover:bg-slate-200"
+                  >
+                    {String(label)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!parentOnboarded) {
     return (
       <div className="w-screen h-screen overflow-y-auto bg-slate-950 text-white">
         <div className="min-h-full flex items-center justify-center p-4">
@@ -2517,6 +2687,9 @@ const App: React.FC = () => {
               setShowParentDashboard(true);
             }}
             progress={progress}
+            profiles={profiles}
+            activeProfileId={activeProfileId}
+            onSwitchChildProfile={handleSwitchChildProfile}
           />
         );
     }

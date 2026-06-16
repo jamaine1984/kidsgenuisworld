@@ -27,6 +27,21 @@ test('parent setup requires launch checkpoints before child access', async ({ pa
   expect(receipt).toContain('policiesReviewed');
 });
 
+test('start adventure shows parent sign in before child profile setup', async ({ page }) => {
+  await page.goto('/');
+  await page.evaluate(() => {
+    window.localStorage.clear();
+  });
+  await page.reload();
+
+  await page.getByRole('button', { name: /Start Adventure/i }).click();
+  await expect(page.getByRole('heading', { name: 'Sign in or create account' })).toBeVisible();
+  await expect(page.getByPlaceholder('Parent email')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Sign In Parent' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Create Account' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Create your child profile' })).toBeHidden();
+});
+
 test('parent access gate explains trial plans before paid sections unlock', async ({ page }) => {
   await resetApp(page);
   await completeParentSetup(page);

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { DEFAULT_ARCADE_PROGRESS, RoomType, UserProgress } from '../types';
+import { ChildProfile, DEFAULT_ARCADE_PROGRESS, RoomType, UserProgress } from '../types';
 import {
   Trophy, PawPrint, Settings, LayoutDashboard, PlayCircle, BookOpen,
   Clock, Target, CheckCircle2, MapPin, HeartPulse, Sparkles, X, Gamepad2,
@@ -27,6 +27,9 @@ interface WorldMapProps {
   onOpenGameArcade: () => void;
   onOpenSettings: () => void;
   progress: UserProgress;
+  profiles?: ChildProfile[];
+  activeProfileId?: string;
+  onSwitchChildProfile?: (profileId: string) => void;
 }
 
 export const WorldMap: React.FC<WorldMapProps> = ({
@@ -36,7 +39,10 @@ export const WorldMap: React.FC<WorldMapProps> = ({
   onOpenPet,
   onOpenGameArcade,
   onOpenSettings,
-  progress
+  progress,
+  profiles = [],
+  activeProfileId = '',
+  onSwitchChildProfile,
 }) => {
   const [hoveredRoom, setHoveredRoom] = useState<RoomType | null>(null);
   const [showFocusCoach, setShowFocusCoach] = useState(false);
@@ -152,6 +158,7 @@ export const WorldMap: React.FC<WorldMapProps> = ({
   const arcadeRecommendedGame = [...arcadeGameRows]
     .filter(game => !game.mastered)
     .sort((first, second) => first.wins - second.wins)[0] || arcadeGameRows[0];
+  const activeProfile = profiles.find(profile => profile.id === activeProfileId);
   const todayMinutes = todayStats?.timeSpentMinutes || 0;
   const dailyLimitMinutes = progress.dailySessionLimitMinutes || 20;
   const dailyLimitPercent = Math.min(100, Math.round((todayMinutes / dailyLimitMinutes) * 100));
@@ -466,6 +473,29 @@ export const WorldMap: React.FC<WorldMapProps> = ({
           </div>
           <div>
             <h1 className="text-2xl font-black text-sky-700">Kid Genius World</h1>
+            <p className="text-sm font-black text-slate-800">
+              {activeProfile?.name || progress.childName || 'Learner'}
+            </p>
+            {profiles.length > 1 && (
+              <label className="mt-2 flex max-w-xs flex-col gap-1 text-[10px] font-black uppercase tracking-[0.14em] text-sky-700">
+                Switch child
+                <select
+                  value={activeProfileId}
+                  onChange={(event) => {
+                    playPop();
+                    onSwitchChildProfile?.(event.target.value);
+                  }}
+                  className="rounded-xl border-2 border-sky-100 bg-white px-3 py-2 text-sm font-black normal-case tracking-normal text-slate-800 outline-none focus:border-sky-400"
+                  aria-label="Switch child profile"
+                >
+                  {profiles.map(profile => (
+                    <option key={profile.id} value={profile.id}>
+                      {profile.name} - {profile.grade}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
             <p className="text-sm text-slate-600 font-bold">{progress.currentGrade} • Level {progress.currentLevel}</p>
             <div className="mt-2 flex gap-2 flex-wrap">
               <span className="bg-yellow-200 text-yellow-900 px-3 py-1 rounded-full text-xs font-black">⭐ {progress.stickers.length} stars</span>

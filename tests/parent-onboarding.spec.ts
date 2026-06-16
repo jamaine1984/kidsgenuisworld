@@ -99,6 +99,53 @@ test('returning parent with child profile continues without creating another chi
   await expect(page.getByRole('heading', { name: 'Create your child profile' })).toBeHidden();
 });
 
+test('returning parent prefers saved child over placeholder profile', async ({ page }) => {
+  await page.goto('/');
+  await page.evaluate(() => {
+    window.localStorage.clear();
+    window.localStorage.setItem('kidGeniusTestParentSession', JSON.stringify({
+      uid: 'playwright-parent',
+      email: 'qa-parent@kidgenius.test',
+      familyId: 'family-playwright-parent',
+    }));
+    window.localStorage.setItem('kidGeniusDevAccessOverride', 'true');
+    window.localStorage.setItem('kidGeniusParentOnboarded:family-playwright-parent', 'true');
+    window.localStorage.setItem('kidGeniusParentPin:family-playwright-parent', '2468');
+    window.localStorage.setItem('kidGeniusProfiles:family-playwright-parent', JSON.stringify([
+      {
+        id: 'default',
+        name: 'Learner',
+        grade: 'Kindergarten',
+        createdAt: Date.now() - 2000,
+        lastActiveAt: Date.now() - 2000,
+      },
+      {
+        id: 'child-second',
+        name: 'Mia',
+        grade: '2nd Grade',
+        createdAt: Date.now() - 1000,
+        lastActiveAt: Date.now() - 1000,
+      },
+    ]));
+    window.localStorage.setItem('kidGeniusActiveProfileId:family-playwright-parent', 'default');
+    window.localStorage.setItem('kidGeniusProgress:family-playwright-parent:child-second', JSON.stringify({
+      childName: 'Mia',
+      currentGrade: '2nd Grade',
+      currentLevel: 4,
+      totalXP: 20,
+      stickers: ['star'],
+      achievements: [],
+    }));
+  });
+  await page.reload();
+
+  await page.getByRole('button', { name: /Start Adventure/i }).click();
+  await page.getByRole('button', { name: 'Continue as Parent' }).click();
+  await expect(page.getByTestId('daily-mission-card')).toBeVisible();
+  await expect(page.getByText('Mia').first()).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Create your child profile' })).toBeHidden();
+});
+
 test('parent access gate explains trial plans before paid sections unlock', async ({ page }) => {
   await resetApp(page);
   await completeParentSetup(page);

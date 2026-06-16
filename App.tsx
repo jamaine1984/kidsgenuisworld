@@ -389,6 +389,22 @@ const loadProfiles = (scope = 'guest'): ChildProfile[] => {
   return [defaultProfile];
 };
 
+const isPlaceholderProfile = (profile?: ChildProfile | null) => (
+  !profile || (profile.id === 'default' && profile.name.trim().toLowerCase() === 'learner')
+);
+
+const hasRealChildProfiles = (childProfiles: ChildProfile[]) => (
+  childProfiles.some(profile => !isPlaceholderProfile(profile))
+);
+
+const getPreferredProfile = (childProfiles: ChildProfile[], requestedProfileId?: string | null) => {
+  const requestedProfile = childProfiles.find(profile => profile.id === requestedProfileId);
+  if (requestedProfile && (!isPlaceholderProfile(requestedProfile) || !hasRealChildProfiles(childProfiles))) {
+    return requestedProfile;
+  }
+  return childProfiles.find(profile => !isPlaceholderProfile(profile)) || requestedProfile || childProfiles[0];
+};
+
 const getStoredProfiles = (scope: string): ChildProfile[] | null => {
   try {
     const saved = localStorage.getItem(getProfilesStorageKey(scope));
@@ -794,7 +810,10 @@ const App: React.FC = () => {
       }
     }
     const scopedActiveId = localStorage.getItem(getActiveProfileStorageKey(nextScope)) || scopedProfiles[0]?.id || 'default';
-    const scopedActiveProfile = scopedProfiles.find(profile => profile.id === scopedActiveId) || scopedProfiles[0];
+    const scopedActiveProfile = getPreferredProfile(scopedProfiles, scopedActiveId);
+    if (scopedActiveProfile?.id) {
+      localStorage.setItem(getActiveProfileStorageKey(nextScope), scopedActiveProfile.id);
+    }
     setProfileStorageScope(nextScope);
     setParentOnboarded(loadScopedFlag(PARENT_ONBOARDED_KEY, nextScope));
     setParentPin(loadScopedValue(PARENT_PIN_KEY, nextScope));
@@ -820,15 +839,15 @@ const App: React.FC = () => {
   }, [parentCloudSession.email]);
 
   useEffect(() => {
-    if (profiles.some(profile => profile.id === activeProfileId)) {
+    const preferredProfile = getPreferredProfile(profiles, activeProfileId);
+    if (preferredProfile?.id === activeProfileId) {
       return;
     }
-    const fallbackProfile = profiles[0];
-    if (!fallbackProfile) {
+    if (!preferredProfile) {
       return;
     }
-    setActiveProfileId(fallbackProfile.id);
-    setProgress(loadProgressForProfile(fallbackProfile, profileStorageScope));
+    setActiveProfileId(preferredProfile.id);
+    setProgress(loadProgressForProfile(preferredProfile, profileStorageScope));
   }, [profiles, activeProfileId, profileStorageScope]);
 
   useEffect(() => {
@@ -848,12 +867,12 @@ const App: React.FC = () => {
     if (!hasStarted || showParentWelcome || !parentCloudSession.signedIn || !parentOnboarded) {
       return;
     }
-    const activeProfile = profiles.find(profile => profile.id === activeProfileId) || profiles[0];
-    const needsChildSetup = !activeProfile || (
+    const activeProfile = getPreferredProfile(profiles, activeProfileId);
+    const needsChildSetup = !hasRealChildProfiles(profiles) && (!activeProfile || (
       activeProfile.name === 'Learner'
       && progress.currentGrade === GradeLevel.KINDERGARTEN
       && progress.totalXP === 0
-    );
+    ));
     if (needsChildSetup && !showGradeSelection && !showPetSelection) {
       setShowGradeSelection(true);
     }
@@ -1115,12 +1134,12 @@ const App: React.FC = () => {
   };
 
   const activeChildNeedsSetup = () => {
-    const activeProfile = profiles.find(profile => profile.id === activeProfileId) || profiles[0];
-    return !activeProfile || (
+    const activeProfile = getPreferredProfile(profiles, activeProfileId);
+    return !hasRealChildProfiles(profiles) && (!activeProfile || (
       activeProfile.name === 'Learner'
       && progress.currentGrade === GradeLevel.KINDERGARTEN
       && progress.totalXP === 0
-    );
+    ));
   };
 
   const continueAfterParentWelcome = () => {

@@ -5,6 +5,9 @@ test('parent setup requires launch checkpoints before child access', async ({ pa
   await resetApp(page);
 
   await page.getByRole('button', { name: /Start Adventure/i }).click();
+  await expect(page.getByRole('heading', { name: 'Sign in or create account' })).toBeVisible();
+  await expect(page.getByText('qa-parent@kidgenius.test')).toBeVisible();
+  await page.getByRole('button', { name: 'Continue as Parent' }).click();
   await expect(page.getByRole('heading', { name: 'Parent Setup' })).toBeVisible();
 
   const saveButton = page.getByRole('button', { name: 'Save Parent Setup' });
@@ -40,6 +43,17 @@ test('start adventure shows parent sign in before child profile setup', async ({
   await expect(page.getByRole('button', { name: 'Sign In Parent' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Create Account' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Create your child profile' })).toBeHidden();
+});
+
+test('start adventure shows parent welcome even when already signed in', async ({ page }) => {
+  await resetApp(page);
+
+  await page.getByRole('button', { name: /Start Adventure/i }).click();
+  await expect(page.getByRole('heading', { name: 'Sign in or create account' })).toBeVisible();
+  await expect(page.getByText('Signed in parent')).toBeVisible();
+  await expect(page.getByText('qa-parent@kidgenius.test')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Continue as Parent' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Parent Setup' })).toBeHidden();
 });
 
 test('parent access gate explains trial plans before paid sections unlock', async ({ page }) => {

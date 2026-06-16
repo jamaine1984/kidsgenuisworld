@@ -549,6 +549,7 @@ const getBillingAccessSummary = (access?: FamilyAccessRecord | null) => {
 
 const App: React.FC = () => {
   const [hasStarted, setHasStarted] = useState(false);
+  const [showParentWelcome, setShowParentWelcome] = useState(false);
   const [showGradeSelection, setShowGradeSelection] = useState(false);
   const [currentRoom, setCurrentRoom] = useState<RoomType>(RoomType.HUB);
   const [showDashboard, setShowDashboard] = useState(false);
@@ -823,6 +824,42 @@ const App: React.FC = () => {
   ]);
 
   useEffect(() => {
+    if (!hasStarted || !showParentWelcome || !parentCloudSession.signedIn) {
+      return;
+    }
+    const justCompletedAuth = /Parent (signed in|account created)/i.test(setupParentAuthStatus);
+    if (!justCompletedAuth) {
+      return;
+    }
+
+    const currentScope = getFamilyStorageScope(parentCloudSession);
+    if (!loadScopedFlag(PARENT_ONBOARDED_KEY, currentScope)) {
+      setShowParentWelcome(false);
+      return;
+    }
+
+    setShowParentWelcome(false);
+    if (activeChildNeedsSetup()) {
+      setShowGradeSelection(true);
+      return;
+    }
+
+    speak("Welcome back to Kid Genius World!");
+  }, [
+    hasStarted,
+    showParentWelcome,
+    parentCloudSession.signedIn,
+    parentCloudSession.familyId,
+    parentCloudSession.email,
+    setupParentAuthStatus,
+    profiles,
+    activeProfileId,
+    progress.pet,
+    progress.currentGrade,
+    progress.totalXP,
+  ]);
+
+  useEffect(() => {
     const billingResult = new URLSearchParams(window.location.search).get('billing');
     if (!billingResult) return;
 
@@ -1009,6 +1046,9 @@ const App: React.FC = () => {
   const handleStart = async () => {
     await resumeAudioContext();
     setHasStarted(true);
+    setShowParentWelcome(true);
+    setShowGradeSelection(false);
+    setShowPetSelection(false);
     const today = new Date().toISOString().slice(0, 10);
 
     setProgress(prev => {
@@ -1024,16 +1064,35 @@ const App: React.FC = () => {
       return checkAchievements(nextProgress);
     });
 
-    // Check if this is a new player who needs to select grade and pet
-    const isNewPlayer = !progress.pet || progress.currentGrade === GradeLevel.KINDERGARTEN && progress.totalXP === 0;
+  };
 
-    if (isNewPlayer) {
-      if (parentOnboarded && parentCloudSession.signedIn) {
-        setShowGradeSelection(true);
-      }
-    } else {
-      speak("Welcome back to Kid Genius World!");
+  const activeChildNeedsSetup = () => {
+    const activeProfile = profiles.find(profile => profile.id === activeProfileId) || profiles[0];
+    return !activeProfile || !progress.pet || (
+      activeProfile.name === 'Learner'
+      && progress.currentGrade === GradeLevel.KINDERGARTEN
+      && progress.totalXP === 0
+    );
+  };
+
+  const continueAfterParentWelcome = () => {
+    if (!parentCloudSession.signedIn) {
+      setSetupParentAuthStatus('Sign in or create a parent account first.');
+      return;
     }
+
+    setShowParentWelcome(false);
+    const currentScope = getFamilyStorageScope(parentCloudSession);
+    if (!loadScopedFlag(PARENT_ONBOARDED_KEY, currentScope)) {
+      return;
+    }
+
+    if (activeChildNeedsSetup()) {
+      setShowGradeSelection(true);
+      return;
+    }
+
+    speak("Welcome back to Kid Genius World!");
   };
 
   const handleParentOnboardingComplete = () => {
@@ -2178,7 +2237,7 @@ const App: React.FC = () => {
     /^\d{4,8}$/.test(pinDraft) &&
     pinDraft === pinConfirmDraft;
 
-  if (!parentCloudSession.signedIn) {
+  if (showParentWelcome) {
     return (
       <div className="relative min-h-screen w-screen overflow-y-auto bg-gradient-to-b from-sky-300 via-indigo-300 to-emerald-300 p-4 text-slate-900">
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -2225,47 +2284,77 @@ const App: React.FC = () => {
                 </div>
               </div>
 
-              <div className="grid gap-3">
-                <input
-                  value={setupParentEmail}
-                  onChange={(event) => setSetupParentEmail(event.target.value)}
-                  type="email"
-                  autoComplete="email"
-                  placeholder="Parent email"
-                  className="rounded-2xl border-2 border-sky-100 px-4 py-4 font-bold focus:border-sky-500 focus:outline-none"
-                />
-                <input
-                  value={setupParentPassword}
-                  onChange={(event) => setSetupParentPassword(event.target.value)}
-                  type="password"
-                  autoComplete="current-password"
-                  placeholder="Password"
-                  className="rounded-2xl border-2 border-sky-100 px-4 py-4 font-bold focus:border-sky-500 focus:outline-none"
-                />
-                <div className="grid gap-3 sm:grid-cols-2">
+              {parentCloudSession.signedIn ? (
+                <div className="grid gap-3">
+                  <div className="rounded-3xl border-2 border-emerald-100 bg-emerald-50 p-4">
+                    <p className="text-xs font-black uppercase tracking-[0.16em] text-emerald-700">Signed in parent</p>
+                    <p className="mt-1 break-words text-lg font-black text-emerald-950">{parentCloudSession.email || 'Parent account'}</p>
+                    <p className="mt-2 text-sm font-semibold text-emerald-900">
+                      Continue to this family&apos;s child profiles, or sign out to use a different parent account.
+                    </p>
+                  </div>
                   <button
-                    onClick={handleSetupSignInParentAccount}
+                    onClick={continueAfterParentWelcome}
                     disabled={setupParentAuthBusy}
-                    className="rounded-2xl bg-indigo-600 px-5 py-4 text-sm font-black text-white shadow-lg hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+                    className="rounded-2xl bg-indigo-600 px-5 py-4 text-sm font-black text-white shadow-lg hover:bg-indigo-700"
                   >
-                    Sign In Parent
+                    Continue as Parent
                   </button>
                   <button
-                    onClick={handleSetupCreateParentAccount}
+                    onClick={async () => {
+                      setSetupParentAuthStatus('Signing out...');
+                      await handleSignOutParentAccount();
+                      setSetupParentAuthStatus('Signed out. Choose a parent account to continue.');
+                    }}
                     disabled={setupParentAuthBusy}
-                    className="rounded-2xl bg-emerald-500 px-5 py-4 text-sm font-black text-white shadow-lg hover:bg-emerald-600 disabled:cursor-not-allowed disabled:bg-slate-300"
+                    className="rounded-2xl bg-slate-100 px-5 py-4 text-sm font-black text-slate-700 shadow-sm hover:bg-slate-200"
                   >
-                    Create Account
+                    Use Different Account
                   </button>
                 </div>
-                <button
-                  onClick={handleSetupSignInWithGoogle}
-                  disabled={setupParentAuthBusy}
-                  className="rounded-2xl border border-sky-200 bg-sky-50 px-5 py-4 text-sm font-black text-sky-900 shadow-sm hover:bg-sky-100 disabled:cursor-not-allowed disabled:text-slate-400"
-                >
-                  Continue with Google
-                </button>
-              </div>
+              ) : (
+                <div className="grid gap-3">
+                  <input
+                    value={setupParentEmail}
+                    onChange={(event) => setSetupParentEmail(event.target.value)}
+                    type="email"
+                    autoComplete="email"
+                    placeholder="Parent email"
+                    className="rounded-2xl border-2 border-sky-100 px-4 py-4 font-bold focus:border-sky-500 focus:outline-none"
+                  />
+                  <input
+                    value={setupParentPassword}
+                    onChange={(event) => setSetupParentPassword(event.target.value)}
+                    type="password"
+                    autoComplete="current-password"
+                    placeholder="Password"
+                    className="rounded-2xl border-2 border-sky-100 px-4 py-4 font-bold focus:border-sky-500 focus:outline-none"
+                  />
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <button
+                      onClick={handleSetupSignInParentAccount}
+                      disabled={setupParentAuthBusy}
+                      className="rounded-2xl bg-indigo-600 px-5 py-4 text-sm font-black text-white shadow-lg hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+                    >
+                      Sign In Parent
+                    </button>
+                    <button
+                      onClick={handleSetupCreateParentAccount}
+                      disabled={setupParentAuthBusy}
+                      className="rounded-2xl bg-emerald-500 px-5 py-4 text-sm font-black text-white shadow-lg hover:bg-emerald-600 disabled:cursor-not-allowed disabled:bg-slate-300"
+                    >
+                      Create Account
+                    </button>
+                  </div>
+                  <button
+                    onClick={handleSetupSignInWithGoogle}
+                    disabled={setupParentAuthBusy}
+                    className="rounded-2xl border border-sky-200 bg-sky-50 px-5 py-4 text-sm font-black text-sky-900 shadow-sm hover:bg-sky-100 disabled:cursor-not-allowed disabled:text-slate-400"
+                  >
+                    Continue with Google
+                  </button>
+                </div>
+              )}
 
               {setupParentAuthStatus && (
                 <div className="mt-4 rounded-2xl bg-amber-50 px-4 py-3 text-sm font-bold text-amber-900">

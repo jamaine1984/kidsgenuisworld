@@ -18,6 +18,8 @@ export async function resetApp(page: Page) {
 
 export async function completeParentSetup(page: Page) {
   await page.getByRole('button', { name: /Start Adventure/i }).click();
+  await expect(page.getByRole('heading', { name: 'Sign in or create account' })).toBeVisible();
+  await page.getByRole('button', { name: 'Continue as Parent' }).click();
   await expect(page.getByRole('heading', { name: 'Parent Setup' })).toBeVisible();
   await expect(page.getByText(/Signed in: qa-parent@kidgenius.test/i)).toBeVisible();
 

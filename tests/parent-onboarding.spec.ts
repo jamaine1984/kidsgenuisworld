@@ -54,6 +54,7 @@ test('start adventure shows parent welcome even when already signed in', async (
   await expect(page.getByText('qa-parent@kidgenius.test')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Continue as Parent' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Parent Setup' })).toBeHidden();
+  await expect(page.getByRole('heading', { name: 'Create your child profile' })).toBeHidden();
 });
 
 test('parent access gate explains trial plans before paid sections unlock', async ({ page }) => {

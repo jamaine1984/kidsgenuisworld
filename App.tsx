@@ -798,7 +798,7 @@ const App: React.FC = () => {
   }, [parentCloudSession.signedIn, parentCloudSession.familyId, parentCloudSession.email]);
 
   useEffect(() => {
-    if (!hasStarted || !parentCloudSession.signedIn || !parentOnboarded) {
+    if (!hasStarted || showParentWelcome || !parentCloudSession.signedIn || !parentOnboarded) {
       return;
     }
     const activeProfile = profiles.find(profile => profile.id === activeProfileId) || profiles[0];
@@ -812,6 +812,7 @@ const App: React.FC = () => {
     }
   }, [
     hasStarted,
+    showParentWelcome,
     parentCloudSession.signedIn,
     parentOnboarded,
     profiles,

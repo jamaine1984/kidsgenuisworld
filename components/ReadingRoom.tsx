@@ -346,7 +346,7 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
       } else {
         void speakCorrect(`Great reading. ${currentWord.word}. ${currentWord.sentence}`);
       }
-      if (score > 0 && score % 3 === 0) onReward();
+      onReward();
       setTimeout(nextRound, SUCCESS_ROUND_DELAY_MS);
     } else {
       playWrongBuzzer();
@@ -373,7 +373,7 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
       setShowSuccess(true);
       setScore(s => s + 1);
       void speakCorrect(`You spelled ${currentWord.word}. ${currentWord.sentence}`);
-      if (score > 0 && score % 3 === 0) onReward();
+      onReward();
       setTimeout(nextRound, SUCCESS_ROUND_DELAY_MS);
     } else if (newSpelled.length === currentWord.word.length && newSpelled !== currentWord.word.toUpperCase()) {
       // Wrong spelling
@@ -402,7 +402,7 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
       playSuccess();
       void speakCorrect(`Excellent pronunciation. You said ${currentWord.word} very clearly.`);
       setScore(s => s + 1);
-      if (score > 0 && score % 3 === 0) onReward();
+      onReward();
       setTimeout(nextRound, SUCCESS_ROUND_DELAY_MS);
     }, 3500);
   };

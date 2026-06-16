@@ -58,48 +58,38 @@ test('parent dashboard exposes Firebase cloud sync as parent opt-in', async ({ p
   await expect(page.getByText('Firebase cloud progress sync', { exact: true })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Firebase Parent Account' })).toBeVisible();
   await expect(page.getByText(/Cloud sync is parent-only/i)).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Continue with Google' })).toBeVisible();
-  await expect(page.getByText('Or use email')).toBeVisible();
+  await expect(page.getByText('Signed in parent')).toBeVisible();
+  await expect(page.getByText('qa-parent@kidgenius.test').first()).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Family Subscription' })).toBeVisible();
   await expect(page.getByText(/Stripe checkout stays parent-only/i)).toBeVisible();
-  await expect(page.getByText(/Sign in with the Firebase parent account above/i)).toBeVisible();
+  await expect(page.getByTestId('parent-billing-status-card')).toContainText('No plan selected');
 
   const syncToggle = page.getByLabel('Toggle Firebase cloud progress sync');
   await expect(syncToggle).toHaveAttribute('aria-pressed', 'false');
   await syncToggle.click();
   await expect(syncToggle).toHaveAttribute('aria-pressed', 'true');
 
-  await expect(page.getByPlaceholder('Parent email')).toBeVisible();
-  await expect(page.getByPlaceholder('Password, 6+ characters')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Sign In Parent' })).toBeDisabled();
-  await expect(page.getByRole('button', { name: 'Create Parent Account' })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Sync Progress Now' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Sign Out' })).toBeVisible();
 });
 
 test('world review quest and arcade are reachable on tablet', async ({ page }) => {
   await completeKidSetup(page);
 
-  await expect(page.getByTestId('ai-homeroom-card')).toContainText('AI Homeroom');
   await expect(page.getByTestId('school-bell-strip')).toContainText('School Bell');
   await expect(page.getByTestId('school-bell-strip')).toContainText('Now');
   await expect(page.getByTestId('school-bell-strip')).toContainText('Homeroom');
   await expect(page.getByTestId('school-bell-strip')).toContainText('Locked');
-  await expect(page.getByTestId('ai-homeroom-card')).toContainText('Ms. Nova');
-  await expect(page.getByTestId('next-class-pass')).toContainText('Next Class Pass');
-  await expect(page.getByTestId('next-class-pass')).toContainText('Ms. Nova says');
-  await expect(page.getByTestId('next-class-pass')).toContainText('school day');
-  await expect(page.getByTestId('next-class-pass')).toContainText('Proof to finish');
-  await expect(page.getByTestId('next-class-pass')).toContainText('Class reward');
-  await expect(page.getByTestId('school-day-tracker')).toContainText('School Day Tracker');
-  await expect(page.getByTestId('school-day-tracker')).toContainText('periods complete');
-  await expect(page.getByTestId('school-day-tracker')).toContainText('Now');
-  await expect(page.getByTestId('school-day-tracker')).toContainText('Proof');
+  await expect(page.getByTestId('ai-homeroom-card')).toBeHidden();
+  await expect(page.getByTestId('next-class-pass')).toBeHidden();
+  await expect(page.getByTestId('school-day-tracker')).toBeHidden();
   await expect(page.getByTestId('teacher-assignment-cards')).toContainText('Teacher Assignment Cards');
   await expect(page.getByTestId('teacher-assignment-cards')).toContainText('Mastery rubric');
   await expect(page.getByTestId('student-passport-conference')).toContainText('Teacher conference question');
   await expect(page.getByTestId('student-passport-conference')).toContainText('Next stamp target');
   await expect(page.getByTestId('student-teacher-conference-plan')).toContainText('Teacher conference plan');
   await expect(page.getByTestId('student-teacher-conference-plan')).toContainText('Teacher move');
-  await expect(page.getByText('School Campus', { exact: true })).toBeVisible();
+  await expect(page.getByText('School Campus', { exact: true }).last()).toBeVisible();
   await expect(page.getByRole('button', { name: /Math Classroom/i }).first()).toBeVisible();
 
   await page.getByRole('button', { name: /Review Quest/i }).click();
@@ -131,10 +121,10 @@ test('math room completion creates reward and parent-visible journal proof', asy
   await page.getByLabel('Minimize guide message').click();
   await expect(page.getByTestId('guide-bubble')).toBeHidden();
 
-  for (let round = 0; round < 3; round += 1) {
+  for (let round = 0; round < 6; round += 1) {
     await expect(page.getByTestId('math-question')).toBeVisible();
     await page.locator('[data-testid="math-answer-option"][data-math-correct="true"]').click();
-    if (round < 2) {
+    if (round < 5) {
       await expect(page.getByTestId('math-answer-option').first()).toBeEnabled({ timeout: 5_000 });
     }
   }
@@ -143,7 +133,7 @@ test('math room completion creates reward and parent-visible journal proof', asy
   await expect(page.getByText('practice rounds')).toBeVisible();
   await page.getByRole('button', { name: /Teach it back/i }).click();
   await expect(page.getByText('Saved for parent review')).toBeVisible();
-  await page.getByRole('button', { name: 'Back to World', exact: true }).click();
+  await page.getByRole('button', { name: 'Next Class', exact: true }).click();
 
   await page.getByTitle('Settings').click();
   await page.getByLabel('Parent PIN').fill(PARENT_PIN);
@@ -169,8 +159,8 @@ test('math room completion creates reward and parent-visible journal proof', asy
   await expect(page.getByTestId('parent-teacher-conference-plan')).toContainText('Teacher conference plan');
   await expect(page.getByTestId('parent-teacher-conference-plan')).toContainText('Student can say');
   await expect(page.getByText('Learning Journal')).toBeVisible();
-  await expect(page.getByText('Ms. Nova note')).toBeVisible();
-  await expect(page.getByText('Teach it back')).toBeVisible();
+  await expect(page.getByText('Ms. Nova note').first()).toBeVisible();
+  await expect(page.getByText('Teach it back').first()).toBeVisible();
 });
 
 test('teacher coach starts compact on phone and expands on demand', async ({ page }) => {
@@ -221,9 +211,9 @@ test('reading room completion creates reward and parent-visible journal proof', 
   await startTeacherLesson(page);
   await expect(page.getByText('Reading Coach')).toBeVisible();
 
-  for (let round = 0; round < 4; round += 1) {
+  for (let round = 0; round < 6; round += 1) {
     await page.locator('[data-testid="reading-answer-option"][data-reading-correct="true"]').click();
-    if (round < 3) {
+    if (round < 5) {
       await expect(page.getByText('Great Job!')).toBeVisible();
       await expect(page.getByText('Great Job!')).toBeHidden({ timeout: 5_000 });
     }
@@ -232,13 +222,13 @@ test('reading room completion creates reward and parent-visible journal proof', 
   await expect(page.getByText('Learning Reflection')).toBeVisible({ timeout: 7_500 });
   await page.getByRole('button', { name: /What strategy worked/i }).click();
   await expect(page.getByText('Saved for parent review')).toBeVisible();
-  await page.getByRole('button', { name: 'Back to World', exact: true }).click();
+  await page.getByRole('button', { name: 'Next Class', exact: true }).click();
 
   await page.getByTitle('Settings').click();
   await page.getByLabel('Parent PIN').fill(PARENT_PIN);
   await page.getByRole('button', { name: 'Unlock Parent Dashboard' }).click();
   await expect(page.getByText('Learning Journal')).toBeVisible();
-  await expect(page.getByText('What strategy worked?')).toBeVisible();
+  await expect(page.getByText('What strategy worked?').first()).toBeVisible();
 });
 
 test('arcade completion creates reward and parent-visible journal proof', async ({ page }) => {
@@ -260,7 +250,7 @@ test('arcade completion creates reward and parent-visible journal proof', async 
   await expect(page.getByText('Learning Reflection')).toBeVisible({ timeout: 7_500 });
   await page.getByRole('button', { name: /What was tricky/i }).click();
   await expect(page.getByText('Saved for parent review')).toBeVisible();
-  await page.getByRole('button', { name: 'Back to World', exact: true }).click();
+  await page.getByRole('button', { name: 'Next Class', exact: true }).click();
 
   await page.getByTitle('Settings').click();
   await page.getByLabel('Parent PIN').fill(PARENT_PIN);
@@ -287,7 +277,7 @@ test('story time completion creates reward and parent-visible journal proof', as
   await expect(page.getByText('Learning Reflection')).toBeVisible({ timeout: 7_500 });
   await page.getByRole('button', { name: /Teach it back/i }).click();
   await expect(page.getByText('Saved for parent review')).toBeVisible();
-  await page.getByRole('button', { name: 'Back to World', exact: true }).click();
+  await page.getByRole('button', { name: 'Next Class', exact: true }).click();
 
   await page.getByTitle('Settings').click();
   await page.getByLabel('Parent PIN').fill(PARENT_PIN);

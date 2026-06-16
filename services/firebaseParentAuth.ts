@@ -18,12 +18,34 @@ export interface ParentCloudSession {
 }
 
 const buildFamilyId = (uid: string) => `family-${uid}`;
+const TEST_PARENT_SESSION_KEY = 'kidGeniusTestParentSession';
+
+const getTestParentSession = (): ParentCloudSession | null => {
+  if (!import.meta.env.DEV) return null;
+  try {
+    const saved = window.localStorage.getItem(TEST_PARENT_SESSION_KEY);
+    if (!saved) return null;
+    const parsed = JSON.parse(saved) as Partial<ParentCloudSession>;
+    if (!parsed.uid || !parsed.email) return null;
+    return {
+      configured: true,
+      signedIn: true,
+      uid: parsed.uid,
+      email: parsed.email,
+      familyId: parsed.familyId || buildFamilyId(parsed.uid),
+    };
+  } catch {
+    return null;
+  }
+};
 
 export const getParentFamilyId = (uid: string | null | undefined) => (
   uid ? buildFamilyId(uid) : null
 );
 
 export const getCurrentParentSession = (): ParentCloudSession => {
+  const testSession = getTestParentSession();
+  if (testSession) return testSession;
   const services = getFirebaseServices();
   const user = services?.auth.currentUser || null;
   return {
@@ -48,6 +70,12 @@ export const getCurrentParentIdToken = async () => {
 export const subscribeParentCloudSession = (
   onChange: (session: ParentCloudSession) => void
 ) => {
+  const testSession = getTestParentSession();
+  if (testSession) {
+    onChange(testSession);
+    return () => undefined;
+  }
+
   const services = getFirebaseServices();
   if (!services) {
     onChange({

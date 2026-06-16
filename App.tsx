@@ -82,6 +82,13 @@ const OWNER_STARTER_PROFILES: Array<Pick<ChildProfile, 'id' | 'name' | 'grade'>>
 
 const normalizeParentEmail = (email?: string | null) => String(email || '').trim().toLowerCase();
 const isOwnerParentEmail = (email?: string | null) => OWNER_PROFILE_EMAILS.includes(normalizeParentEmail(email));
+const getFamilyStorageScope = (session?: Pick<ParentCloudSession, 'signedIn' | 'familyId' | 'email'> | null) => {
+  if (!session?.signedIn) return 'guest';
+  return session.familyId || `email-${normalizeParentEmail(session.email).replace(/[^a-z0-9_-]/g, '-')}` || 'signed-in';
+};
+const getProfilesStorageKey = (scope: string) => `${PROFILES_KEY}:${scope}`;
+const getActiveProfileStorageKey = (scope: string) => `${ACTIVE_PROFILE_KEY}:${scope}`;
+const getProgressStorageKey = (scope: string, profileId: string) => `kidGeniusProgress:${scope}:${profileId}`;
 
 const ensureOwnerStarterProfiles = (profiles: ChildProfile[]): ChildProfile[] => {
   const now = Date.now();
@@ -347,9 +354,9 @@ const updateDailyStats = (
     .slice(0, 30);
 };
 
-const loadProfiles = (): ChildProfile[] => {
+const loadProfiles = (scope = 'guest'): ChildProfile[] => {
   try {
-    const saved = localStorage.getItem(PROFILES_KEY);
+    const saved = localStorage.getItem(getProfilesStorageKey(scope)) || (scope === 'guest' ? localStorage.getItem(PROFILES_KEY) : null);
     const profiles = saved ? JSON.parse(saved) : [];
     if (Array.isArray(profiles) && profiles.length > 0) {
       return profiles;
@@ -365,14 +372,15 @@ const loadProfiles = (): ChildProfile[] => {
     createdAt: Date.now(),
     lastActiveAt: Date.now(),
   };
-  localStorage.setItem(PROFILES_KEY, JSON.stringify([defaultProfile]));
-  localStorage.setItem(ACTIVE_PROFILE_KEY, defaultProfile.id);
+  localStorage.setItem(getProfilesStorageKey(scope), JSON.stringify([defaultProfile]));
+  localStorage.setItem(getActiveProfileStorageKey(scope), defaultProfile.id);
   return [defaultProfile];
 };
 
-const loadProgressForProfile = (profile: ChildProfile): UserProgress => {
-  const profileProgress = localStorage.getItem(`kidGeniusProgress:${profile.id}`);
-  const legacyProgress = localStorage.getItem('kidGeniusProgress');
+const loadProgressForProfile = (profile: ChildProfile, scope = 'guest'): UserProgress => {
+  const profileProgress = localStorage.getItem(getProgressStorageKey(scope, profile.id))
+    || (scope === 'guest' ? localStorage.getItem(`kidGeniusProgress:${profile.id}`) : null);
+  const legacyProgress = scope === 'guest' ? localStorage.getItem('kidGeniusProgress') : null;
   const saved = profileProgress || legacyProgress;
   if (saved) {
     try {
@@ -549,6 +557,7 @@ const App: React.FC = () => {
   const [pinDraft, setPinDraft] = useState('');
   const [pinConfirmDraft, setPinConfirmDraft] = useState('');
   const [pinSetupError, setPinSetupError] = useState('');
+  const [childProfileNameDraft, setChildProfileNameDraft] = useState('');
   const [parentConsentChecks, setParentConsentChecks] = useState({
     guardian: false,
     policies: false,
@@ -569,15 +578,28 @@ const App: React.FC = () => {
   const [accessPassword, setAccessPassword] = useState('');
   const [accessBusy, setAccessBusy] = useState(false);
   const [stripeCheckoutUrl, setStripeCheckoutUrl] = useState('');
-  const [profiles, setProfiles] = useState<ChildProfile[]>(() => loadProfiles());
-  const [activeProfileId, setActiveProfileId] = useState(() => localStorage.getItem(ACTIVE_PROFILE_KEY) || loadProfiles()[0]?.id || 'default');
+  const [setupParentEmail, setSetupParentEmail] = useState('');
+  const [setupParentPassword, setSetupParentPassword] = useState('');
+  const [setupParentAuthStatus, setSetupParentAuthStatus] = useState('');
+  const [setupParentAuthBusy, setSetupParentAuthBusy] = useState(false);
+  const [profileStorageScope, setProfileStorageScope] = useState(() => getFamilyStorageScope(getCurrentParentSession()));
+  const [profiles, setProfiles] = useState<ChildProfile[]>(() => {
+    const scope = getFamilyStorageScope(getCurrentParentSession());
+    return loadProfiles(scope);
+  });
+  const [activeProfileId, setActiveProfileId] = useState(() => {
+    const scope = getFamilyStorageScope(getCurrentParentSession());
+    const loadedProfiles = loadProfiles(scope);
+    return localStorage.getItem(getActiveProfileStorageKey(scope)) || loadedProfiles[0]?.id || 'default';
+  });
 
   // Global Progression State with all new features
   const [progress, setProgress] = useState<UserProgress>(() => {
-    const loadedProfiles = loadProfiles();
-    const activeId = localStorage.getItem(ACTIVE_PROFILE_KEY) || loadedProfiles[0]?.id || 'default';
+    const scope = getFamilyStorageScope(getCurrentParentSession());
+    const loadedProfiles = loadProfiles(scope);
+    const activeId = localStorage.getItem(getActiveProfileStorageKey(scope)) || loadedProfiles[0]?.id || 'default';
     const activeProfile = loadedProfiles.find(profile => profile.id === activeId) || loadedProfiles[0];
-    return loadProgressForProfile(activeProfile);
+    return loadProgressForProfile(activeProfile, scope);
   });
   const billingAccessSummary = getBillingAccessSummary(familyAccess);
 
@@ -673,9 +695,12 @@ const App: React.FC = () => {
 
   // Save progress to localStorage whenever it changes
   useEffect(() => {
-    localStorage.setItem(`kidGeniusProgress:${activeProfileId}`, JSON.stringify(progress));
-    localStorage.setItem('kidGeniusProgress', JSON.stringify(progress));
-  }, [progress, activeProfileId]);
+    localStorage.setItem(getProgressStorageKey(profileStorageScope, activeProfileId), JSON.stringify(progress));
+    if (profileStorageScope === 'guest') {
+      localStorage.setItem(`kidGeniusProgress:${activeProfileId}`, JSON.stringify(progress));
+      localStorage.setItem('kidGeniusProgress', JSON.stringify(progress));
+    }
+  }, [progress, activeProfileId, profileStorageScope]);
 
   useEffect(() => {
     const privacy = progress.privacy || DEFAULT_PRIVACY_SETTINGS;
@@ -684,11 +709,34 @@ const App: React.FC = () => {
   }, [progress.privacy]);
 
   useEffect(() => {
-    localStorage.setItem(PROFILES_KEY, JSON.stringify(profiles));
-    localStorage.setItem(ACTIVE_PROFILE_KEY, activeProfileId);
-  }, [profiles, activeProfileId]);
+    localStorage.setItem(getProfilesStorageKey(profileStorageScope), JSON.stringify(profiles));
+    localStorage.setItem(getActiveProfileStorageKey(profileStorageScope), activeProfileId);
+    if (profileStorageScope === 'guest') {
+      localStorage.setItem(PROFILES_KEY, JSON.stringify(profiles));
+      localStorage.setItem(ACTIVE_PROFILE_KEY, activeProfileId);
+    }
+  }, [profiles, activeProfileId, profileStorageScope]);
 
   useEffect(() => subscribeParentCloudSession(setParentCloudSession), []);
+
+  useEffect(() => {
+    const nextScope = getFamilyStorageScope(parentCloudSession);
+    if (nextScope === profileStorageScope) {
+      return;
+    }
+
+    localStorage.setItem(getProgressStorageKey(profileStorageScope, activeProfileId), JSON.stringify(progress));
+    const scopedProfiles = loadProfiles(nextScope);
+    const scopedActiveId = localStorage.getItem(getActiveProfileStorageKey(nextScope)) || scopedProfiles[0]?.id || 'default';
+    const scopedActiveProfile = scopedProfiles.find(profile => profile.id === scopedActiveId) || scopedProfiles[0];
+    setProfileStorageScope(nextScope);
+    setProfiles(scopedProfiles);
+    setActiveProfileId(scopedActiveProfile?.id || scopedActiveId);
+    setProgress(loadProgressForProfile(scopedActiveProfile, nextScope));
+    setCurrentRoom(RoomType.HUB);
+    setShowGradeSelection(false);
+    setShowPetSelection(false);
+  }, [parentCloudSession.signedIn, parentCloudSession.familyId, parentCloudSession.email]);
 
   useEffect(() => {
     if (!isOwnerParentEmail(parentCloudSession.email)) {
@@ -712,8 +760,8 @@ const App: React.FC = () => {
       return;
     }
     setActiveProfileId(fallbackProfile.id);
-    setProgress(loadProgressForProfile(fallbackProfile));
-  }, [profiles, activeProfileId]);
+    setProgress(loadProgressForProfile(fallbackProfile, profileStorageScope));
+  }, [profiles, activeProfileId, profileStorageScope]);
 
   useEffect(() => {
     const savedAccess = loadFamilyAccess(parentCloudSession.familyId);
@@ -934,7 +982,7 @@ const App: React.FC = () => {
     const isNewPlayer = !progress.pet || progress.currentGrade === GradeLevel.KINDERGARTEN && progress.totalXP === 0;
 
     if (isNewPlayer) {
-      if (parentOnboarded) {
+      if (parentOnboarded && parentCloudSession.signedIn) {
         setShowGradeSelection(true);
       }
     } else {
@@ -943,6 +991,10 @@ const App: React.FC = () => {
   };
 
   const handleParentOnboardingComplete = () => {
+    if (!parentCloudSession.signedIn) {
+      setPinSetupError('Create or sign in to the parent account before setting up a child profile.');
+      return;
+    }
     const allConsentChecksReady = Object.values(parentConsentChecks).every(Boolean);
     if (!allConsentChecksReady) {
       setPinSetupError('Review and confirm each parent launch checkpoint before continuing.');
@@ -1001,6 +1053,55 @@ const App: React.FC = () => {
     setCloudSyncStatus('Opening Google sign-in...');
     await signInParentWithGoogle();
     setCloudSyncStatus('Parent signed in with Google. Turn on cloud sync to save this child progress to Firebase.');
+  };
+
+  const handleSetupCreateParentAccount = async () => {
+    if (!setupParentEmail.trim() || setupParentPassword.length < 6) {
+      setSetupParentAuthStatus('Enter a parent email and a password with at least 6 characters.');
+      return;
+    }
+
+    setSetupParentAuthBusy(true);
+    setSetupParentAuthStatus('Creating parent account...');
+    try {
+      await createParentAccount(setupParentEmail.trim(), setupParentPassword);
+      setSetupParentAuthStatus('Parent account created. Now finish the safety checkpoints and PIN.');
+    } catch (error) {
+      setSetupParentAuthStatus(error instanceof Error ? error.message : 'Parent account could not be created.');
+    } finally {
+      setSetupParentAuthBusy(false);
+    }
+  };
+
+  const handleSetupSignInParentAccount = async () => {
+    if (!setupParentEmail.trim() || setupParentPassword.length < 6) {
+      setSetupParentAuthStatus('Enter the parent email and password.');
+      return;
+    }
+
+    setSetupParentAuthBusy(true);
+    setSetupParentAuthStatus('Signing in parent...');
+    try {
+      await signInParentAccount(setupParentEmail.trim(), setupParentPassword);
+      setSetupParentAuthStatus('Parent signed in. Now finish the safety checkpoints and PIN.');
+    } catch (error) {
+      setSetupParentAuthStatus(error instanceof Error ? error.message : 'Parent sign-in failed.');
+    } finally {
+      setSetupParentAuthBusy(false);
+    }
+  };
+
+  const handleSetupSignInWithGoogle = async () => {
+    setSetupParentAuthBusy(true);
+    setSetupParentAuthStatus('Opening Google sign-in...');
+    try {
+      await signInParentWithGoogle();
+      setSetupParentAuthStatus('Parent signed in with Google. Now finish the safety checkpoints and PIN.');
+    } catch (error) {
+      setSetupParentAuthStatus(error instanceof Error ? error.message : 'Google sign-in failed.');
+    } finally {
+      setSetupParentAuthBusy(false);
+    }
   };
 
   const handleSignOutParentAccount = async () => {
@@ -1236,17 +1337,17 @@ const App: React.FC = () => {
     if (!window.confirm('Reset all local learning progress on this device? This cannot be undone.')) {
       return;
     }
-    localStorage.removeItem(`kidGeniusProgress:${activeProfileId}`);
+    localStorage.removeItem(getProgressStorageKey(profileStorageScope, activeProfileId));
     localStorage.removeItem('kidGeniusVoiceCacheProfile');
     const activeProfile = profiles.find(profile => profile.id === activeProfileId) || profiles[0];
-    setProgress(loadProgressForProfile(activeProfile));
+    setProgress(loadProgressForProfile(activeProfile, profileStorageScope));
     setShowParentDashboard(false);
     setCurrentRoom(RoomType.HUB);
   };
 
   const handleCreateChildProfile = (name: string, grade: GradeLevel) => {
     const cleanName = name.trim() || 'Learner';
-    localStorage.setItem(`kidGeniusProgress:${activeProfileId}`, JSON.stringify(progress));
+    localStorage.setItem(getProgressStorageKey(profileStorageScope, activeProfileId), JSON.stringify(progress));
     const profile: ChildProfile = {
       id: createProfileId(),
       name: cleanName,
@@ -1256,7 +1357,7 @@ const App: React.FC = () => {
     };
     setProfiles(prev => [...prev, profile]);
     setActiveProfileId(profile.id);
-    setProgress(loadProgressForProfile(profile));
+    setProgress(loadProgressForProfile(profile, profileStorageScope));
     setCurrentRoom(RoomType.HUB);
     setShowParentDashboard(false);
     setShowPetSelection(true);
@@ -1267,7 +1368,7 @@ const App: React.FC = () => {
     if (!nextProfile || nextProfile.id === activeProfileId) {
       return;
     }
-    localStorage.setItem(`kidGeniusProgress:${activeProfileId}`, JSON.stringify(progress));
+    localStorage.setItem(getProgressStorageKey(profileStorageScope, activeProfileId), JSON.stringify(progress));
     const updatedProfiles = profiles.map(profile => (
       profile.id === nextProfile.id
         ? { ...profile, lastActiveAt: Date.now() }
@@ -1276,7 +1377,7 @@ const App: React.FC = () => {
     const updatedProfile = updatedProfiles.find(profile => profile.id === nextProfile.id) || nextProfile;
     setProfiles(updatedProfiles);
     setActiveProfileId(nextProfile.id);
-    setProgress(loadProgressForProfile(updatedProfile));
+    setProgress(loadProgressForProfile(updatedProfile, profileStorageScope));
     setCurrentRoom(RoomType.HUB);
     setShowParentDashboard(false);
   };
@@ -1301,19 +1402,21 @@ const App: React.FC = () => {
 
   // Handle grade selection
   const handleGradeSelected = (grade: GradeLevel) => {
+    const cleanChildName = childProfileNameDraft.trim() || 'Learner';
     setProfiles(prev => prev.map(profile => (
       profile.id === activeProfileId
-        ? { ...profile, grade, lastActiveAt: Date.now() }
+        ? { ...profile, name: cleanChildName, grade, lastActiveAt: Date.now() }
         : profile
     )));
     setProgress(prev => ({
       ...prev,
+      childName: cleanChildName,
       currentGrade: grade,
       currentLevel: gradeToLevel[grade],
       memberId: activeProfileId,
     }));
 
-    speak(`Great! You're in ${grade}. Let's learn together!`);
+    speak(`Great! ${cleanChildName} is in ${grade}. Let's learn together!`);
     setShowGradeSelection(false);
 
     // If no pet, show pet selection next
@@ -1563,7 +1666,10 @@ const App: React.FC = () => {
       newProgress = checkAchievements(newProgress);
       return newProgress;
     });
-    setLearningReflection(reflection);
+    const isClassroomPracticeUnit = Boolean(activeUnitId && currentRoom !== RoomType.STORYBOOK);
+    if (!isClassroomPracticeUnit || reflection.mastered) {
+      setLearningReflection(reflection);
+    }
   };
 
   const recordLearningReflectionChoice = (choice: string) => {
@@ -1925,7 +2031,7 @@ const App: React.FC = () => {
   }
 
   // Grade Selection Screen
-  if (showGradeSelection) {
+  if (showGradeSelection && parentOnboarded && parentCloudSession.signedIn) {
     const grades = [
       { grade: GradeLevel.PRE_K, emoji: '🌱', age: 'Age 3-4', color: 'from-pink-400 to-rose-500' },
       { grade: GradeLevel.KINDERGARTEN, emoji: '🌸', age: 'Age 5-6', color: 'from-purple-400 to-indigo-500' },
@@ -1941,9 +2047,23 @@ const App: React.FC = () => {
         <div className="text-center mb-8">
           <div className="text-6xl mb-4 animate-bounce">🎒</div>
           <h1 className="text-4xl md:text-5xl font-bold text-white drop-shadow-lg mb-2">
-            What grade are you in?
+            Create your child profile
           </h1>
-          <p className="text-white/90 text-lg">This helps us pick the right challenges for you!</p>
+          <p className="text-white/90 text-lg">This profile stays with the signed-in parent account.</p>
+        </div>
+
+        <div className="mb-5 w-full max-w-xl rounded-3xl border-4 border-white/30 bg-white/95 p-4 shadow-xl">
+          <label className="block text-sm font-black uppercase tracking-[0.16em] text-indigo-600" htmlFor="child-profile-name">
+            Child name
+          </label>
+          <input
+            id="child-profile-name"
+            value={childProfileNameDraft}
+            onChange={(event) => setChildProfileNameDraft(event.target.value.slice(0, 32))}
+            placeholder="Enter your child's name"
+            className="mt-2 w-full rounded-2xl border-2 border-indigo-100 px-4 py-3 text-lg font-bold text-slate-900 outline-none focus:border-indigo-500"
+          />
+          <p className="mt-2 text-sm font-semibold text-slate-500">Choose the grade next. Parents can add more children from the dashboard.</p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl w-full">
@@ -2000,11 +2120,12 @@ const App: React.FC = () => {
   }
 
   const parentSetupReady =
+    parentCloudSession.signedIn &&
     Object.values(parentConsentChecks).every(Boolean) &&
     /^\d{4,8}$/.test(pinDraft) &&
     pinDraft === pinConfirmDraft;
 
-  if (!parentOnboarded) {
+  if (!parentOnboarded || !parentCloudSession.signedIn) {
     return (
       <div className="w-screen h-screen overflow-y-auto bg-slate-950 text-white">
         <div className="min-h-full flex items-center justify-center p-4">
@@ -2050,8 +2171,68 @@ const App: React.FC = () => {
                 <button onClick={() => setLegalView('terms')} className="underline">Read Terms</button>
                 <button onClick={() => setLegalView('support')} className="underline">Parent Support</button>
               </div>
+              <div className="rounded-2xl border border-sky-100 bg-sky-50 p-4 mb-5">
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                  <div>
+                    <h2 className="font-bold text-lg text-sky-950">Step 1: Parent Account</h2>
+                    <p className="mt-1 text-sm text-sky-900/75">
+                      Create or sign in first. Child profiles, grades, and progress stay tied to this parent account.
+                    </p>
+                  </div>
+                  {parentCloudSession.signedIn && (
+                    <div className="rounded-2xl bg-white px-4 py-3 text-sm font-bold text-emerald-800 shadow-sm">
+                      Signed in: {parentCloudSession.email || 'Parent account'}
+                    </div>
+                  )}
+                </div>
+
+                {!parentCloudSession.signedIn && (
+                  <div className="mt-4 grid gap-3 lg:grid-cols-[1fr_1fr_auto]">
+                    <input
+                      value={setupParentEmail}
+                      onChange={(event) => setSetupParentEmail(event.target.value)}
+                      type="email"
+                      autoComplete="email"
+                      placeholder="Parent email"
+                      className="rounded-xl border-2 border-sky-100 px-4 py-3 font-bold focus:border-sky-500 focus:outline-none"
+                    />
+                    <input
+                      value={setupParentPassword}
+                      onChange={(event) => setSetupParentPassword(event.target.value)}
+                      type="password"
+                      autoComplete="current-password"
+                      placeholder="Password"
+                      className="rounded-xl border-2 border-sky-100 px-4 py-3 font-bold focus:border-sky-500 focus:outline-none"
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleSetupCreateParentAccount}
+                        disabled={setupParentAuthBusy}
+                        className="rounded-xl bg-sky-600 px-4 py-3 text-sm font-black text-white hover:bg-sky-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+                      >
+                        Create
+                      </button>
+                      <button
+                        onClick={handleSetupSignInParentAccount}
+                        disabled={setupParentAuthBusy}
+                        className="rounded-xl bg-white px-4 py-3 text-sm font-black text-sky-700 shadow-sm hover:bg-sky-100 disabled:cursor-not-allowed disabled:text-slate-400"
+                      >
+                        Sign In
+                      </button>
+                    </div>
+                    <button
+                      onClick={handleSetupSignInWithGoogle}
+                      disabled={setupParentAuthBusy}
+                      className="rounded-xl border border-sky-200 bg-white px-4 py-3 text-sm font-black text-sky-800 shadow-sm hover:bg-sky-100 disabled:cursor-not-allowed disabled:text-slate-400 lg:col-span-3"
+                    >
+                      Continue with Google
+                    </button>
+                  </div>
+                )}
+                {setupParentAuthStatus && <p className="mt-3 text-sm font-bold text-sky-900">{setupParentAuthStatus}</p>}
+              </div>
               <div className="rounded-2xl border border-indigo-100 bg-indigo-50 p-4 mb-5">
-                <h2 className="font-bold text-lg mb-2 text-indigo-950">Parent Launch Checkpoints</h2>
+                <h2 className="font-bold text-lg mb-2 text-indigo-950">Step 2: Parent Launch Checkpoints</h2>
                 <p className="text-sm text-indigo-900/75 mb-3">
                   Confirm these before a child starts. This creates a local parent consent receipt for this browser.
                 </p>
@@ -2081,7 +2262,7 @@ const App: React.FC = () => {
                 </div>
               </div>
               <div className="rounded-2xl border border-slate-200 p-4 mb-5">
-                <h2 className="font-bold text-lg mb-2">Create Parent PIN</h2>
+                <h2 className="font-bold text-lg mb-2">Step 3: Create Parent PIN</h2>
                 <p className="text-sm text-slate-600 mb-3">Use this PIN to open parent settings and data controls.</p>
                 <div className="grid sm:grid-cols-2 gap-3">
                   <input
@@ -2783,7 +2964,7 @@ const App: React.FC = () => {
                 onClick={() => setLearningReflection(null)}
                 className="flex-1 rounded-2xl bg-emerald-600 px-5 py-3 font-black text-white shadow-lg hover:bg-emerald-700"
               >
-                Keep Practicing
+                Review My Reflection
               </button>
               <button
                 onClick={() => {
@@ -2792,7 +2973,7 @@ const App: React.FC = () => {
                 }}
                 className="flex-1 rounded-2xl bg-slate-100 px-5 py-3 font-black text-slate-700 hover:bg-slate-200"
               >
-                Back to World
+                Next Class
               </button>
             </div>
           </div>

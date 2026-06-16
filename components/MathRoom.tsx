@@ -611,9 +611,7 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, level }) =
 
       void speakCorrect(`That is correct. ${problem.explanation}`);
 
-      if (newStreak > 0 && newStreak % 3 === 0) {
-        onReward();
-      }
+      onReward();
 
       setTimeout(loadProblem, 2500);
     } else {

@@ -6,6 +6,12 @@ export async function resetApp(page: Page) {
   await page.goto('/');
   await page.evaluate(() => {
     window.localStorage.clear();
+    window.localStorage.setItem('kidGeniusTestParentSession', JSON.stringify({
+      uid: 'playwright-parent',
+      email: 'qa-parent@kidgenius.test',
+      familyId: 'family-playwright-parent',
+    }));
+    window.localStorage.setItem('kidGeniusDevAccessOverride', 'true');
   });
   await page.reload();
 }
@@ -13,6 +19,7 @@ export async function resetApp(page: Page) {
 export async function completeParentSetup(page: Page) {
   await page.getByRole('button', { name: /Start Adventure/i }).click();
   await expect(page.getByRole('heading', { name: 'Parent Setup' })).toBeVisible();
+  await expect(page.getByText(/Signed in: qa-parent@kidgenius.test/i)).toBeVisible();
 
   await page.getByLabel('I am the parent or guardian supervising this child account.').check();
   await page.getByLabel('I reviewed the Privacy Notice and Terms of Use.').check();
@@ -21,14 +28,12 @@ export async function completeParentSetup(page: Page) {
   await page.getByPlaceholder('4-8 digit PIN').fill(PARENT_PIN);
   await page.getByPlaceholder('Confirm PIN').fill(PARENT_PIN);
   await page.getByRole('button', { name: 'Save Parent Setup' }).click();
-  await expect(page.getByRole('heading', { name: 'What grade are you in?' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Create your child profile' })).toBeVisible();
 }
 
 export async function completeKidSetup(page: Page) {
   await completeParentSetup(page);
-  await page.evaluate(() => {
-    window.localStorage.setItem('kidGeniusDevAccessOverride', 'true');
-  });
+  await page.getByLabel('Child name').fill('Student One');
   await page.getByRole('button', { name: /Kindergarten/i }).click();
   await expect(page.getByRole('heading', { name: /Choose Your Learning Buddy/i })).toBeVisible();
   await page.getByRole('button', { name: /Puppy/i }).click();

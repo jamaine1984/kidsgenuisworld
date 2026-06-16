@@ -576,7 +576,7 @@ export const WorldMap: React.FC<WorldMapProps> = ({
 
         <div
           data-testid="ai-homeroom-card"
-          className="mb-4 overflow-hidden rounded-[30px] border-4 border-white/70 bg-slate-950 text-white shadow-2xl"
+          className="hidden"
         >
           <div className="grid gap-0 lg:grid-cols-[0.95fr_1.25fr]">
             <div className="relative overflow-hidden bg-gradient-to-br from-indigo-700 via-sky-700 to-emerald-500 p-5">
@@ -656,7 +656,7 @@ export const WorldMap: React.FC<WorldMapProps> = ({
 
         <div
           data-testid="next-class-pass"
-          className="mb-4 overflow-hidden rounded-[28px] border-4 border-white/70 bg-white/95 shadow-xl"
+          className="hidden"
         >
           <div className="grid gap-0 lg:grid-cols-[0.8fr_1.2fr]">
             <div className="bg-gradient-to-br from-slate-950 via-indigo-950 to-sky-800 p-5 text-white">
@@ -722,7 +722,7 @@ export const WorldMap: React.FC<WorldMapProps> = ({
 
         <div
           data-testid="school-day-tracker"
-          className="mb-4 rounded-[28px] border-4 border-white/70 bg-white/95 p-4 shadow-xl"
+          className="hidden"
         >
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div>
@@ -965,7 +965,7 @@ export const WorldMap: React.FC<WorldMapProps> = ({
           </div>
         </div>
 
-        <div className="mb-4 rounded-[28px] border-4 border-white/60 bg-white/92 p-4 shadow-xl backdrop-blur-sm">
+        <div className="hidden">
           <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="text-xs uppercase tracking-[0.18em] text-sky-700 font-black">School Campus</p>
@@ -1180,7 +1180,7 @@ export const WorldMap: React.FC<WorldMapProps> = ({
 
       <div className="relative z-10 p-4 pb-10">
         <div className="max-w-6xl mx-auto mb-3">
-          <p className="text-sky-900 font-black bg-white/70 rounded-full px-5 py-2 inline-block shadow">Genius World School Campus</p>
+          <p className="text-sky-900 font-black bg-white/70 rounded-full px-5 py-2 inline-block shadow">School Campus</p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 max-w-6xl mx-auto w-full">
           {rooms.map((room) => {

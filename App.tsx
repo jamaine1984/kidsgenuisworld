@@ -389,6 +389,28 @@ const loadProfiles = (scope = 'guest'): ChildProfile[] => {
   return [defaultProfile];
 };
 
+const getStoredProfiles = (scope: string): ChildProfile[] | null => {
+  try {
+    const saved = localStorage.getItem(getProfilesStorageKey(scope));
+    const profiles = saved ? JSON.parse(saved) : null;
+    return Array.isArray(profiles) && profiles.length > 0 ? profiles : null;
+  } catch {
+    return null;
+  }
+};
+
+const getLegacyProfilesForMigration = (): ChildProfile[] | null => {
+  try {
+    const saved = localStorage.getItem(PROFILES_KEY);
+    const profiles = saved ? JSON.parse(saved) : null;
+    if (!Array.isArray(profiles) || profiles.length === 0) return null;
+    const hasRealChildProfile = profiles.some(profile => profile.id !== 'default' || profile.name !== 'Learner');
+    return hasRealChildProfile ? profiles : null;
+  } catch {
+    return null;
+  }
+};
+
 const loadProgressForProfile = (profile: ChildProfile, scope = 'guest'): UserProgress => {
   const profileProgress = localStorage.getItem(getProgressStorageKey(scope, profile.id))
     || (scope === 'guest' ? localStorage.getItem(`kidGeniusProgress:${profile.id}`) : null);
@@ -745,7 +767,32 @@ const App: React.FC = () => {
     }
 
     localStorage.setItem(getProgressStorageKey(profileStorageScope, activeProfileId), JSON.stringify(progress));
-    const scopedProfiles = loadProfiles(nextScope);
+    const storedScopedProfiles = getStoredProfiles(nextScope);
+    const migratedProfiles = !storedScopedProfiles && nextScope !== 'guest'
+      ? getLegacyProfilesForMigration()
+      : null;
+    const scopedProfiles = storedScopedProfiles || migratedProfiles || loadProfiles(nextScope);
+    if (migratedProfiles) {
+      localStorage.setItem(getProfilesStorageKey(nextScope), JSON.stringify(migratedProfiles));
+      const legacyActiveId = localStorage.getItem(ACTIVE_PROFILE_KEY) || migratedProfiles[0]?.id;
+      if (legacyActiveId) {
+        localStorage.setItem(getActiveProfileStorageKey(nextScope), legacyActiveId);
+      }
+      migratedProfiles.forEach(profile => {
+        const legacyProgress = localStorage.getItem(`kidGeniusProgress:${profile.id}`);
+        if (legacyProgress) {
+          localStorage.setItem(getProgressStorageKey(nextScope, profile.id), legacyProgress);
+        }
+      });
+    }
+    const legacyParentOnboarded = nextScope !== 'guest' && localStorage.getItem(PARENT_ONBOARDED_KEY) === 'true';
+    if (legacyParentOnboarded && !loadScopedFlag(PARENT_ONBOARDED_KEY, nextScope)) {
+      localStorage.setItem(getScopedStorageKey(PARENT_ONBOARDED_KEY, nextScope), 'true');
+      const legacyPin = localStorage.getItem(PARENT_PIN_KEY);
+      if (legacyPin) {
+        localStorage.setItem(getScopedStorageKey(PARENT_PIN_KEY, nextScope), legacyPin);
+      }
+    }
     const scopedActiveId = localStorage.getItem(getActiveProfileStorageKey(nextScope)) || scopedProfiles[0]?.id || 'default';
     const scopedActiveProfile = scopedProfiles.find(profile => profile.id === scopedActiveId) || scopedProfiles[0];
     setProfileStorageScope(nextScope);
@@ -802,7 +849,7 @@ const App: React.FC = () => {
       return;
     }
     const activeProfile = profiles.find(profile => profile.id === activeProfileId) || profiles[0];
-    const needsChildSetup = !activeProfile || !progress.pet || (
+    const needsChildSetup = !activeProfile || (
       activeProfile.name === 'Learner'
       && progress.currentGrade === GradeLevel.KINDERGARTEN
       && progress.totalXP === 0
@@ -1069,7 +1116,7 @@ const App: React.FC = () => {
 
   const activeChildNeedsSetup = () => {
     const activeProfile = profiles.find(profile => profile.id === activeProfileId) || profiles[0];
-    return !activeProfile || !progress.pet || (
+    return !activeProfile || (
       activeProfile.name === 'Learner'
       && progress.currentGrade === GradeLevel.KINDERGARTEN
       && progress.totalXP === 0

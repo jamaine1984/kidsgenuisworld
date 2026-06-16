@@ -160,6 +160,7 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => 
   const [isComplete, setIsComplete] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
   const [reflectionChoice, setReflectionChoice] = useState('');
+  const [studioFeedback, setStudioFeedback] = useState('Finish the studio steps, add enough drawing marks, then submit your artwork for Ms. Nova review.');
 
   const colors = ['#FF5733', '#FFBD33', '#DBFF33', '#75FF33', '#33FF57', '#33FFBD', '#33DBFF', '#3357FF', '#7533FF', '#FF33BD', '#000000', '#FFFFFF'];
   const missionPool = ART_MISSIONS.filter(item => item.gradeLevel <= Math.min(Math.max(level, 1), 7));
@@ -167,6 +168,13 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => 
   const hasEnoughDrawing = strokeCount >= mission.minStrokes;
   const hasFinishedSteps = activeStep >= mission.lessonSteps.length - 1;
   const canComplete = hasEnoughDrawing && hasFinishedSteps && Boolean(reflectionChoice) && !isComplete;
+  const drawingProgress = Math.min(strokeCount, mission.minStrokes);
+  const stepProgress = activeStep + 1;
+  const studioScore = Math.round((
+    (hasEnoughDrawing ? 40 : (drawingProgress / mission.minStrokes) * 40) +
+    (hasFinishedSteps ? 35 : (stepProgress / mission.lessonSteps.length) * 35) +
+    (reflectionChoice ? 25 : 0)
+  ));
 
   // Fixed canvas size (A4-ish ratio)
   const CANVAS_WIDTH = 800;
@@ -244,6 +252,7 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => 
       setIsComplete(false);
       setActiveStep(0);
       setReflectionChoice('');
+      setStudioFeedback('Fresh canvas ready. Follow each studio step, draw your idea, then submit it for review.');
   }
 
   const download = () => {
@@ -254,15 +263,32 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => 
   }
 
   const completeArtwork = () => {
-      if (!canComplete) return;
+      if (isComplete) return;
+
+      const missingSteps = [
+        !hasEnoughDrawing ? `add ${mission.minStrokes - strokeCount} more drawing mark${mission.minStrokes - strokeCount === 1 ? '' : 's'}` : '',
+        !hasFinishedSteps ? 'finish each studio step' : '',
+        !reflectionChoice ? 'choose one reflection sentence' : '',
+      ].filter(Boolean);
+
+      if (missingSteps.length > 0) {
+        const feedback = `Almost ready. Please ${missingSteps.join(', ')}.`;
+        setStudioFeedback(feedback);
+        void speakAsync(feedback, 0.86, 1.02);
+        return;
+      }
+
       setIsComplete(true);
-      void speakAsync(`Studio complete. You used ${reflectionChoice.toLowerCase()} and explained your art choice.`, 0.86, 1.02);
+      const feedback = `Studio complete. Your artwork shows effort, lesson steps, and a clear reflection. Studio score ${studioScore} out of 100.`;
+      setStudioFeedback(feedback);
+      void speakAsync(feedback, 0.86, 1.02);
       onReward();
   };
 
   const advanceLessonStep = () => {
       const nextStep = Math.min(activeStep + 1, mission.lessonSteps.length - 1);
       setActiveStep(nextStep);
+      setStudioFeedback(`Step ${nextStep + 1}: ${mission.lessonSteps[nextStep]}`);
       void speakAsync(mission.lessonSteps[nextStep], 0.86, 1.02);
   };
 
@@ -279,9 +305,9 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => 
         <div className="flex gap-2">
              <button
                 onClick={completeArtwork}
-                disabled={!canComplete}
-                className={`p-2 rounded-full shadow-sm ${canComplete ? 'bg-emerald-500 text-white hover:bg-emerald-600' : 'bg-white text-gray-300'}`}
-                title="Complete artwork"
+                className={`p-2 rounded-full shadow-sm ${canComplete || isComplete ? 'bg-emerald-500 text-white hover:bg-emerald-600' : 'bg-white text-emerald-700 hover:bg-emerald-50'}`}
+                title="Submit artwork for review"
+                aria-label="Submit artwork for review"
              >
                 <CheckCircle2 />
              </button>
@@ -339,8 +365,8 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => 
         </div>
 
         {/* Canvas Container - SCROLLABLE */}
-        <div className="flex-1 bg-white/25 overflow-auto p-8 flex items-start justify-center shadow-inner cursor-crosshair kid-scroll">
-            <div className="absolute top-4 left-32 right-8 z-10 hidden rounded-2xl bg-white/92 p-3 shadow-lg ring-1 ring-pink-100 md:block">
+        <div className="flex-1 bg-white/25 overflow-auto p-8 flex flex-col items-center justify-start gap-5 shadow-inner cursor-crosshair kid-scroll xl:flex-row xl:items-start xl:justify-center">
+            <div className="hidden w-full max-w-5xl shrink-0 rounded-2xl bg-white/92 p-3 shadow-lg ring-1 ring-pink-100 md:block xl:max-w-md">
               <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                 <div className="min-w-0">
                   <div className="text-xs font-black uppercase tracking-[0.22em] text-pink-600">Teacher-Led Art Lesson</div>
@@ -354,6 +380,21 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => 
                   </div>
                 </div>
                 <div className="w-full max-w-sm">
+                  <div className="mb-3 rounded-2xl border border-emerald-100 bg-white px-3 py-3 shadow-sm">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-[0.16em] text-emerald-700">Ms. Nova Review</p>
+                        <p className="mt-1 text-sm font-black text-slate-900">{studioScore}/100 studio score</p>
+                      </div>
+                      {isComplete && <CheckCircle2 className="shrink-0 text-emerald-600" size={24} />}
+                    </div>
+                    <div className="mt-3 grid gap-2 text-[11px] font-black text-slate-700">
+                      <p className={hasEnoughDrawing ? 'text-emerald-700' : 'text-amber-700'}>Drawing effort: {drawingProgress}/{mission.minStrokes}</p>
+                      <p className={hasFinishedSteps ? 'text-emerald-700' : 'text-amber-700'}>Studio steps: {stepProgress}/{mission.lessonSteps.length}</p>
+                      <p className={reflectionChoice ? 'text-emerald-700' : 'text-amber-700'}>Reflection: {reflectionChoice ? 'ready' : 'choose one'}</p>
+                    </div>
+                    <p className="mt-3 rounded-xl bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-900">{studioFeedback}</p>
+                  </div>
                   <div className="flex flex-wrap gap-2">
                     {mission.checks.map((check, index) => (
                       <span key={check} className={`rounded-full px-3 py-1 text-xs font-black ${index <= activeStep ? 'bg-pink-500 text-white' : 'bg-pink-50 text-pink-700'}`}>{check}</span>
@@ -379,6 +420,13 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => 
                     className={`mt-3 inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-black ${hasFinishedSteps ? 'bg-slate-100 text-slate-400' : 'bg-pink-600 text-white hover:bg-pink-700'}`}
                   >
                     Next studio step <ChevronRight size={14} />
+                  </button>
+                  <button
+                    onClick={completeArtwork}
+                    className={`ml-2 mt-3 inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-black shadow-sm ${isComplete ? 'bg-emerald-100 text-emerald-800' : canComplete ? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'bg-white text-emerald-800 hover:bg-emerald-50'}`}
+                  >
+                    <CheckCircle2 size={14} />
+                    {isComplete ? 'Artwork saved' : 'Finish artwork'}
                   </button>
                 </div>
               </div>

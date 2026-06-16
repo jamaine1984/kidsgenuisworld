@@ -231,6 +231,33 @@ test('reading room completion creates reward and parent-visible journal proof', 
   await expect(page.getByText('What strategy worked?').first()).toBeVisible();
 });
 
+test('art studio finish review completes the room and creates journal proof', async ({ page }) => {
+  await completeKidSetup(page);
+  await page.getByTestId('room-card-ART').click();
+  await startTeacherLesson(page);
+
+  await expect(page.getByText('Creative Studio Mission')).toBeVisible();
+  await expect(page.locator('canvas')).toBeVisible();
+  await page.getByRole('button', { name: /Finish artwork/i }).click();
+  await expect(page.getByText(/Almost ready/i)).toBeVisible();
+
+  const canvas = page.locator('canvas');
+  for (let stroke = 0; stroke < 24; stroke += 1) {
+    await canvas.click({ position: { x: 80 + (stroke % 6) * 24, y: 100 + Math.floor(stroke / 6) * 24 } });
+  }
+
+  while (await page.getByRole('button', { name: /Next studio step/i }).isEnabled()) {
+    await page.getByRole('button', { name: /Next studio step/i }).click();
+  }
+
+  await page.getByRole('button', { name: 'I can explain my choice' }).click();
+  await page.getByRole('button', { name: /Finish artwork/i }).click();
+  await expect(page.getByText(/Studio complete/i)).toBeVisible();
+  await expect(page.getByText('Learning Reflection')).toBeVisible({ timeout: 7_500 });
+  await page.getByRole('button', { name: /Teach it back/i }).click();
+  await expect(page.getByText('Saved for parent review')).toBeVisible();
+});
+
 test('arcade completion creates reward and parent-visible journal proof', async ({ page }) => {
   await completeKidSetup(page);
   await page.getByRole('button', { name: /Game Arcade/i }).click();

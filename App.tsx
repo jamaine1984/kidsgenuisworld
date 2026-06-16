@@ -8,6 +8,7 @@ import { ParentDashboard } from './components/ParentDashboard';
 import { LegalInfo, type LegalPageType } from './components/LegalInfo';
 import { InstallAppButton } from './components/InstallAppButton';
 import { TeacherRoomCoach } from './components/TeacherRoomCoach';
+import { LessonErrorBoundary } from './components/LessonErrorBoundary';
 import { getUnitsForGrade } from './services/curriculum';
 import {
   RoomType,
@@ -1719,7 +1720,8 @@ const App: React.FC = () => {
   const addSticker = (
     subject?: string,
     roomOverride?: RoomType,
-    reflectionOverride: LearningReflectionOverride = {}
+    reflectionOverride: LearningReflectionOverride = {},
+    showReflectionNow = false
   ) => {
     playSuccess();
     const journalCreatedAt = Date.now();
@@ -1846,7 +1848,7 @@ const App: React.FC = () => {
       return newProgress;
     });
     const isClassroomPracticeUnit = Boolean(activeUnitId && currentRoom !== RoomType.STORYBOOK);
-    if (!isClassroomPracticeUnit || reflection.mastered) {
+    if (showReflectionNow || !isClassroomPracticeUnit || reflection.mastered) {
       setLearningReflection(reflection);
     }
   };
@@ -1938,7 +1940,7 @@ const App: React.FC = () => {
   };
 
   const handleCreativeReward = (subject: string) => {
-    addSticker(subject);
+    addSticker(subject, currentRoom, {}, true);
   };
 
   const handleGameArcadeReward = (room: RoomType, gameTitle: string, gameId: string, combo: number) => {
@@ -2853,6 +2855,10 @@ const App: React.FC = () => {
 
   return (
     <div className={`w-screen h-screen overflow-hidden bg-sky-100 relative ${getAccessibilityClasses()}`}>
+      <LessonErrorBoundary
+        resetKey={`${currentRoom}-${activeUnitId || 'school-map'}-${activeProfileId || 'no-profile'}-${showLessonIntro ? 'intro' : 'room'}`}
+        onBack={handleBack}
+      >
       <Suspense fallback={
         <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-sky-200 to-emerald-200">
           <div className="bg-white/90 rounded-3xl shadow-xl px-6 py-5 text-center border-4 border-white">
@@ -2863,6 +2869,7 @@ const App: React.FC = () => {
       }>
         {renderView()}
       </Suspense>
+      </LessonErrorBoundary>
       {!showLessonIntro && <Guide room={currentRoom} trigger={guideTrigger} />}
 
       {showActiveMissionFocus && activeUnit && (

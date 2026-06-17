@@ -190,6 +190,9 @@ if (!firebaseParentAuthSource.includes('createUserWithEmailAndPassword') || !fir
 if (!parentSource.includes('Firebase cloud progress sync') || !firebaseProgressStoreSource.includes('cloudSyncConsent') || !appSource.includes('syncProgressToFirebase')) {
   fail('Firebase cloud progress sync must be explicit, consent-backed, and parent-gated.');
 }
+if (!appSource.includes('syncActiveProgressToCloud') || !appSource.includes('CLOUD_AUTOSYNC_DELAY_MS') || !firebaseProgressStoreSource.includes('loadFamilyProgressFromFirebase')) {
+  fail('Firebase cloud progress must hydrate saved child profiles and autosave learning progress after parent opt-in.');
+}
 if (!parentSource.includes('Family Subscription') || !stripeBillingSource.includes('getCurrentParentIdToken') || !firebaseFunctionsSource.includes('STRIPE_SECRET_KEY') || !firebaseFunctionsSource.includes('STRIPE_STARTER_PRICE_ID') || !firebaseFunctionsSource.includes('STRIPE_PREMIUM_PRICE_ID') || !firebaseFunctionsSource.includes('verifyIdToken')) {
   fail('Stripe subscription controls must be parent-only and backed by Firebase Functions verified auth.');
 }

@@ -76,6 +76,7 @@ const FAMILY_ACCESS_KEY_PREFIX = 'kidGeniusFamilyAccess';
 const DEV_ACCESS_OVERRIDE_KEY = 'kidGeniusDevAccessOverride';
 const BILLING_TRIAL_DAYS = 3;
 const BILLING_TRIAL_MS = BILLING_TRIAL_DAYS * 24 * 60 * 60 * 1000;
+const CLOUD_AUTOSYNC_DELAY_MS = 3500;
 const OWNER_PROFILE_EMAILS = ['korikes2021@gmail.com', 'koikes2021@gmail.com'];
 const OWNER_STARTER_PROFILES: Array<Pick<ChildProfile, 'id' | 'name' | 'grade'>> = [
   { id: 'owner-profile-1', name: 'Genius Kid 1', grade: GradeLevel.KINDERGARTEN },
@@ -823,6 +824,45 @@ const App: React.FC = () => {
     }
   }, [profiles, activeProfileId, profileStorageScope]);
 
+  useEffect(() => {
+    const privacy = progress.privacy || DEFAULT_PRIVACY_SETTINGS;
+    if (!privacy.allowCloudSync || !parentCloudSession.signedIn || !parentCloudSession.familyId || !parentCloudSession.uid) {
+      return;
+    }
+
+    const activeProfile = profiles.find(profile => profile.id === activeProfileId) || profiles[0];
+    if (!activeProfile || isPlaceholderProfile(activeProfile)) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      void syncActiveProgressToCloud('auto');
+    }, CLOUD_AUTOSYNC_DELAY_MS);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [
+    progress.totalXP,
+    progress.mathScore,
+    progress.readingScore,
+    progress.scienceScore,
+    progress.geographyScore,
+    progress.codingScore,
+    progress.languageScore,
+    progress.storybookScore,
+    progress.musicScore,
+    progress.completedUnitIds,
+    progress.unitPracticeCounts,
+    progress.learningJournal,
+    progress.dailyStats,
+    progress.arcadeProgress,
+    progress.privacy?.allowCloudSync,
+    activeProfileId,
+    profiles,
+    parentCloudSession.signedIn,
+    parentCloudSession.familyId,
+    parentCloudSession.uid,
+  ]);
+
   useEffect(() => subscribeParentCloudSession(setParentCloudSession), []);
 
   useEffect(() => {
@@ -1420,19 +1460,30 @@ const App: React.FC = () => {
     setCloudSyncStatus('Parent signed out. Local progress still works on this browser.');
   };
 
-  const handleSyncProgressToCloud = async () => {
+  const syncActiveProgressToCloud = async (mode: 'manual' | 'auto' = 'manual') => {
     const privacy = progress.privacy || DEFAULT_PRIVACY_SETTINGS;
     if (!privacy.allowCloudSync) {
-      setCloudSyncStatus('Cloud sync is off. Turn it on in Privacy Controls before syncing progress.');
+      if (mode === 'manual') {
+        setCloudSyncStatus('Cloud sync is off. Turn it on in Privacy Controls before syncing progress.');
+      }
       return;
     }
     if (!parentCloudSession.familyId || !parentCloudSession.uid) {
-      setCloudSyncStatus('Sign in with a parent Firebase account before syncing progress.');
+      if (mode === 'manual') {
+        setCloudSyncStatus('Sign in with a parent Firebase account before syncing progress.');
+      }
       return;
     }
 
     const activeProfile = profiles.find(profile => profile.id === activeProfileId) || profiles[0];
-    setCloudSyncStatus('Syncing progress to Firebase...');
+    if (!activeProfile || isPlaceholderProfile(activeProfile)) {
+      if (mode === 'manual') {
+        setCloudSyncStatus('Create a child profile before syncing progress to Firebase.');
+      }
+      return;
+    }
+
+    setCloudSyncStatus(mode === 'manual' ? 'Syncing progress to Firebase...' : 'Saving latest progress to Firebase...');
     const result = await syncProgressToFirebase(
       {
         familyId: parentCloudSession.familyId,
@@ -1444,10 +1495,17 @@ const App: React.FC = () => {
 
     if (result.ok) {
       localStorage.setItem('kidGeniusLastCloudSyncAt', new Date().toISOString());
-      setCloudSyncStatus('Progress synced to Firebase for this parent account.');
+      setCloudSyncStatus(mode === 'manual'
+        ? 'Progress synced to Firebase for this parent account.'
+        : 'Latest progress saved to Firebase.'
+      );
     } else {
       setCloudSyncStatus(result.reason || 'Firebase sync did not complete.');
     }
+  };
+
+  const handleSyncProgressToCloud = async () => {
+    await syncActiveProgressToCloud('manual');
   };
 
   const handleStartStripeCheckout = async (plan: 'starter' | 'premium') => {
@@ -2153,7 +2211,11 @@ const App: React.FC = () => {
   };
 
   const handleUpdatePrivacy = (settings: PrivacySettings) => {
+    const wasCloudSyncOff = !(progress.privacy || DEFAULT_PRIVACY_SETTINGS).allowCloudSync;
     setProgress(p => ({ ...p, privacy: settings }));
+    if (wasCloudSyncOff && settings.allowCloudSync) {
+      setCloudSyncStatus('Cloud sync is on. Kid Genius World will save completed lessons to Firebase automatically.');
+    }
   };
 
   const handleUpdateLearningGoals = (weeklyGoalMinutes: number, dailySessionLimitMinutes: number) => {

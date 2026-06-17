@@ -42,7 +42,7 @@ import {
   subscribeParentCloudSession,
   type ParentCloudSession,
 } from './services/firebaseParentAuth';
-import { syncProgressToFirebase } from './services/firebaseProgressStore';
+import { loadFamilyProgressFromFirebase, syncProgressToFirebase, type CloudChildProgressSnapshot } from './services/firebaseProgressStore';
 import { createStripeCheckoutUrl, getStripeBillingAccess, openStripeBillingPortal } from './services/stripeBilling';
 import { getAchievementProgress } from './services/achievements';
 import {
@@ -479,6 +479,53 @@ const loadProgressForProfile = (profile: ChildProfile, scope = 'guest'): UserPro
   };
 };
 
+const mergeCloudProgressForProfile = (
+  profile: ChildProfile,
+  scope: string,
+  snapshot: CloudChildProgressSnapshot
+): UserProgress => {
+  const baseProgress = loadProgressForProfile(profile, scope);
+  const patch = snapshot.progressPatch || {};
+  const nextArcadeProgress = patch.arcadeProgress
+    ? {
+      ...baseProgress.arcadeProgress,
+      ...patch.arcadeProgress,
+      gameWins: {
+        ...(baseProgress.arcadeProgress?.gameWins || {}),
+        ...(patch.arcadeProgress.gameWins || {}),
+      },
+      masteredGameIds: Array.from(new Set([
+        ...(baseProgress.arcadeProgress?.masteredGameIds || []),
+        ...(patch.arcadeProgress.masteredGameIds || []),
+      ])),
+    }
+    : baseProgress.arcadeProgress;
+
+  return {
+    ...baseProgress,
+    ...patch,
+    childName: profile.name,
+    currentGrade: profile.grade,
+    currentLevel: patch.currentLevel || gradeToLevel[profile.grade],
+    memberId: profile.id,
+    accessibility: {
+      ...DEFAULT_ACCESSIBILITY,
+      ...(baseProgress.accessibility || {}),
+      ...(patch.accessibility || {}),
+    },
+    privacy: {
+      ...DEFAULT_PRIVACY_SETTINGS,
+      ...(baseProgress.privacy || {}),
+      ...(patch.privacy || {}),
+    },
+    completedUnitIds: Array.isArray(patch.completedUnitIds) ? patch.completedUnitIds : baseProgress.completedUnitIds,
+    unitPracticeCounts: patch.unitPracticeCounts || baseProgress.unitPracticeCounts,
+    learningJournal: Array.isArray(patch.learningJournal) ? patch.learningJournal : baseProgress.learningJournal,
+    dailyStats: Array.isArray(patch.dailyStats) ? patch.dailyStats : baseProgress.dailyStats,
+    arcadeProgress: nextArcadeProgress,
+  };
+};
+
 const getFamilyAccessKey = (familyId?: string | null) => `${FAMILY_ACCESS_KEY_PREFIX}:${familyId || 'unknown'}`;
 
 const loadFamilyAccess = (familyId?: string | null): FamilyAccessRecord | null => {
@@ -641,6 +688,7 @@ const App: React.FC = () => {
   const [setupParentAuthStatus, setSetupParentAuthStatus] = useState('');
   const [setupParentAuthBusy, setSetupParentAuthBusy] = useState(false);
   const [profileStorageScope, setProfileStorageScope] = useState(() => getFamilyStorageScope(getCurrentParentSession()));
+  const [cloudHydratedFamilyId, setCloudHydratedFamilyId] = useState('');
   const [profiles, setProfiles] = useState<ChildProfile[]>(() => {
     const scope = getFamilyStorageScope(getCurrentParentSession());
     return loadProfiles(scope);
@@ -825,6 +873,89 @@ const App: React.FC = () => {
     setShowGradeSelection(false);
     setShowPetSelection(false);
   }, [parentCloudSession.signedIn, parentCloudSession.familyId, parentCloudSession.email]);
+
+  useEffect(() => {
+    if (!parentCloudSession.signedIn || !parentCloudSession.familyId || profileStorageScope !== parentCloudSession.familyId) {
+      return;
+    }
+    if (cloudHydratedFamilyId === parentCloudSession.familyId) {
+      return;
+    }
+
+    let cancelled = false;
+    setCloudSyncStatus('Loading saved Firebase progress...');
+    loadFamilyProgressFromFirebase(parentCloudSession.familyId)
+      .then(result => {
+        if (cancelled) return;
+        setCloudHydratedFamilyId(parentCloudSession.familyId || '');
+
+        if (result.ok === false) {
+          setCloudSyncStatus(result.reason);
+          return;
+        }
+
+        if (result.children.length === 0) {
+          setCloudSyncStatus('No Firebase progress found yet. This device will save the first snapshot after parent sync.');
+          return;
+        }
+
+        const cloudProfiles = result.children.map(child => child.profile);
+        const mergedProfilesById = new Map<string, ChildProfile>();
+        profiles.forEach(profile => {
+          if (!isPlaceholderProfile(profile) || cloudProfiles.length === 0) {
+            mergedProfilesById.set(profile.id, profile);
+          }
+        });
+        cloudProfiles.forEach(profile => {
+          mergedProfilesById.set(profile.id, {
+            ...(mergedProfilesById.get(profile.id) || {}),
+            ...profile,
+            lastActiveAt: Date.now(),
+          });
+        });
+
+        const mergedProfiles = Array.from(mergedProfilesById.values());
+        const savedActiveId = localStorage.getItem(getActiveProfileStorageKey(parentCloudSession.familyId || ''));
+        const nextActiveProfile = getPreferredProfile(mergedProfiles, savedActiveId || activeProfileId) || mergedProfiles[0];
+        if (!nextActiveProfile) {
+          setCloudSyncStatus('Firebase progress loaded, but no child profile was available.');
+          return;
+        }
+
+        result.children.forEach(snapshot => {
+          const profile = mergedProfilesById.get(snapshot.profile.id) || snapshot.profile;
+          const mergedProgress = mergeCloudProgressForProfile(profile, parentCloudSession.familyId || '', snapshot);
+          localStorage.setItem(getProgressStorageKey(parentCloudSession.familyId || '', profile.id), JSON.stringify(mergedProgress));
+        });
+
+        localStorage.setItem(getProfilesStorageKey(parentCloudSession.familyId || ''), JSON.stringify(mergedProfiles));
+        localStorage.setItem(getActiveProfileStorageKey(parentCloudSession.familyId || ''), nextActiveProfile.id);
+        setProfiles(mergedProfiles);
+        setActiveProfileId(nextActiveProfile.id);
+        const activeSnapshot = result.children.find(snapshot => snapshot.profile.id === nextActiveProfile.id);
+        setProgress(activeSnapshot
+          ? mergeCloudProgressForProfile(nextActiveProfile, parentCloudSession.familyId || '', activeSnapshot)
+          : loadProgressForProfile(nextActiveProfile, parentCloudSession.familyId || '')
+        );
+        setCloudSyncStatus(`Loaded ${result.children.length} Firebase child profile${result.children.length === 1 ? '' : 's'} for this parent account.`);
+      })
+      .catch(error => {
+        if (cancelled) return;
+        setCloudHydratedFamilyId(parentCloudSession.familyId || '');
+        setCloudSyncStatus(error instanceof Error ? error.message : 'Firebase progress could not be loaded.');
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    parentCloudSession.signedIn,
+    parentCloudSession.familyId,
+    profileStorageScope,
+    cloudHydratedFamilyId,
+    profiles,
+    activeProfileId,
+  ]);
 
   useEffect(() => {
     if (!isOwnerParentEmail(parentCloudSession.email)) {

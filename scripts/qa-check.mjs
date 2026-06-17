@@ -14,6 +14,7 @@ const requiredFiles = [
   'services/learningConstants.ts',
   'services/achievements.ts',
   'services/audioService.ts',
+  'services/diagnosticsService.ts',
   'services/mediaApi.ts',
   'services/voiceCacheService.ts',
   'server/production-server.mjs',
@@ -87,6 +88,7 @@ const achievementServiceSource = fs.readFileSync(path.join(root, 'services/achie
 const schoolModeSource = fs.readFileSync(path.join(root, 'services/schoolMode.ts'), 'utf8');
 const typesSource = fs.readFileSync(path.join(root, 'types.ts'), 'utf8');
 const audioServiceSource = fs.readFileSync(path.join(root, 'services/audioService.ts'), 'utf8');
+const diagnosticsServiceSource = fs.readFileSync(path.join(root, 'services/diagnosticsService.ts'), 'utf8');
 const mediaApiSource = fs.readFileSync(path.join(root, 'services/mediaApi.ts'), 'utf8');
 const voiceCacheSource = fs.readFileSync(path.join(root, 'services/voiceCacheService.ts'), 'utf8');
 const firebaseClientSource = fs.readFileSync(path.join(root, 'services/firebaseClient.ts'), 'utf8');
@@ -212,6 +214,9 @@ if (!parentDashboardSource.includes('Family Plan') || !parentDashboardSource.inc
 }
 if (!parentDashboardSource.includes('Export Local Progress') || !parentDashboardSource.includes('kid-genius-progress-') || !parentDashboardSource.includes('Parent progress export')) {
   fail('Parent dashboard must provide local progress export before reset or device migration.');
+}
+if (!parentDashboardSource.includes('Support Diagnostics') || !parentDashboardSource.includes('Export Diagnostics') || !diagnosticsServiceSource.includes('kid-genius-diagnostics-') || !appSource.includes('logDiagnosticEvent') || !audioServiceSource.includes('voice-playback')) {
+  fail('Parent support diagnostics export and client-side error logging must be wired.');
 }
 if (!appSource.includes('Family Plan') || !appSource.includes('parent-only Firebase sign-in and Stripe checkout')) {
   fail('Parent onboarding must clearly frame parent-only family billing.');

@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { AlertTriangle, ArrowLeft, RotateCcw } from 'lucide-react';
+import { logDiagnosticEvent } from '../services/diagnosticsService';
 
 interface LessonErrorBoundaryProps {
   children: React.ReactNode;
@@ -30,6 +31,12 @@ export class LessonErrorBoundary extends Component<LessonErrorBoundaryProps, Les
 
   componentDidCatch(error: unknown, info: React.ErrorInfo) {
     console.error('Kid Genius lesson failed to render', error, info);
+    logDiagnosticEvent(
+      'error',
+      'lesson-render',
+      error instanceof Error ? error.message : 'Lesson render failed.',
+      info.componentStack
+    );
   }
 
   componentDidUpdate(previousProps: LessonErrorBoundaryProps) {

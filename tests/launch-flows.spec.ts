@@ -45,6 +45,8 @@ test('parent dashboard gate protects tabs and privacy receipt', async ({ page })
   await expect(page.getByText('Family Learning Goals')).toBeVisible();
   await expect(page.getByText('Parent Consent Receipt')).toBeVisible();
   await expect(page.getByText(/Saved locally on/i)).toBeVisible();
+  await expect(page.getByTestId('parent-diagnostics-card')).toContainText('Support Diagnostics');
+  await expect(page.getByRole('button', { name: 'Export Diagnostics' })).toBeVisible();
 });
 
 test('parent dashboard exposes Firebase cloud sync as parent opt-in', async ({ page }) => {

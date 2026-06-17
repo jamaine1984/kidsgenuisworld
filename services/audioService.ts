@@ -1,4 +1,5 @@
 import { getStaticMediaUrl, getStaticVoiceManifestUrl } from './mediaApi';
+import { logDiagnosticEvent } from './diagnosticsService';
 
 let audioContext: AudioContext | null = null;
 let currentAudio: HTMLAudioElement | null = null;
@@ -249,6 +250,7 @@ const playStaticVoiceSpeech = async (text: string): Promise<void> => {
 
   if (!fileName) {
     notifyNarrationStatus('error', 'This teacher voice line has not been generated yet. Run the offline voice cache builder, then redeploy static media.');
+    logDiagnosticEvent('warn', 'voice-cache-miss', `Static voice is missing for ${currentNarrationContext}.`);
     throw new Error(`Static voice is missing for ${currentNarrationContext}.`);
   }
 
@@ -268,6 +270,7 @@ const playStaticVoiceSpeech = async (text: string): Promise<void> => {
     audio.onended = cleanup;
     audio.onerror = () => {
       notifyNarrationStatus('error', 'This teacher voice line is not in the static voice cache yet.');
+      logDiagnosticEvent('warn', 'voice-playback', 'Static voice file could not be played.');
       if (currentAudio === audio) {
         currentAudio = null;
       }
@@ -277,6 +280,7 @@ const playStaticVoiceSpeech = async (text: string): Promise<void> => {
       notifyNarrationStatus('ready', 'Teacher narration is playing.');
     }).catch(() => {
       notifyNarrationStatus('error', 'The saved voice file could not play. Using this device voice instead.');
+      logDiagnosticEvent('warn', 'voice-playback-blocked', 'Static voice playback was blocked by the browser.');
       if (currentAudio === audio) {
         currentAudio = null;
       }

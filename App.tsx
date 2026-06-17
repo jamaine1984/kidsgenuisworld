@@ -45,6 +45,7 @@ import {
 import { loadFamilyProgressFromFirebase, syncProgressToFirebase, type CloudChildProgressSnapshot } from './services/firebaseProgressStore';
 import { createStripeCheckoutUrl, getStripeBillingAccess, openStripeBillingPortal } from './services/stripeBilling';
 import { getAchievementProgress } from './services/achievements';
+import { logDiagnosticEvent } from './services/diagnosticsService';
 import {
   AI_TEACHER,
   MASTERED_PRACTICE_TARGET,
@@ -710,6 +711,23 @@ const App: React.FC = () => {
   });
   const billingAccessSummary = getBillingAccessSummary(familyAccess);
 
+  useEffect(() => {
+    const handleWindowError = (event: ErrorEvent) => {
+      logDiagnosticEvent('error', 'window-error', event.message || 'Unhandled app error.', event.error);
+    };
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      const reason = event.reason instanceof Error ? event.reason.message : String(event.reason || 'Unhandled promise rejection.');
+      logDiagnosticEvent('error', 'unhandled-promise', reason, event.reason);
+    };
+
+    window.addEventListener('error', handleWindowError);
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+    return () => {
+      window.removeEventListener('error', handleWindowError);
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+    };
+  }, []);
+
   const refreshBillingAccess = async (statusPrefix = 'Checking Stripe trial access...') => {
     if (!parentCloudSession.signedIn || !parentCloudSession.familyId) {
       setFamilyAccess(null);
@@ -982,6 +1000,7 @@ const App: React.FC = () => {
       .catch(error => {
         if (cancelled) return;
         setCloudHydratedFamilyId(parentCloudSession.familyId || '');
+        logDiagnosticEvent('warn', 'firebase-progress-load', 'Firebase progress could not be loaded.', error);
         setCloudSyncStatus(error instanceof Error ? error.message : 'Firebase progress could not be loaded.');
       });
 
@@ -1030,6 +1049,7 @@ const App: React.FC = () => {
         ? 'Checking owner access...'
         : 'Checking Stripe trial access...';
       refreshBillingAccess(statusPrefix).catch(error => {
+        logDiagnosticEvent('warn', 'billing-access-refresh', 'Parent account access could not be checked.', error);
         setBillingStatus(error instanceof Error ? error.message : 'Parent account access could not be checked.');
       });
     }
@@ -1418,6 +1438,7 @@ const App: React.FC = () => {
       await createParentAccount(setupParentEmail.trim(), setupParentPassword);
       setSetupParentAuthStatus('Parent account created. Now finish the safety checkpoints and PIN.');
     } catch (error) {
+      logDiagnosticEvent('warn', 'firebase-parent-create', 'Parent Firebase account could not be created.', error);
       setSetupParentAuthStatus(error instanceof Error ? error.message : 'Parent account could not be created.');
     } finally {
       setSetupParentAuthBusy(false);
@@ -1436,6 +1457,7 @@ const App: React.FC = () => {
       await signInParentAccount(setupParentEmail.trim(), setupParentPassword);
       setSetupParentAuthStatus('Parent signed in. Now finish the safety checkpoints and PIN.');
     } catch (error) {
+      logDiagnosticEvent('warn', 'firebase-parent-signin', 'Parent Firebase sign-in failed.', error);
       setSetupParentAuthStatus(error instanceof Error ? error.message : 'Parent sign-in failed.');
     } finally {
       setSetupParentAuthBusy(false);
@@ -1449,6 +1471,7 @@ const App: React.FC = () => {
       await signInParentWithGoogle();
       setSetupParentAuthStatus('Parent signed in with Google. Now finish the safety checkpoints and PIN.');
     } catch (error) {
+      logDiagnosticEvent('warn', 'firebase-google-signin', 'Google parent sign-in failed.', error);
       setSetupParentAuthStatus(error instanceof Error ? error.message : 'Google sign-in failed.');
     } finally {
       setSetupParentAuthBusy(false);
@@ -1500,6 +1523,7 @@ const App: React.FC = () => {
         : 'Latest progress saved to Firebase.'
       );
     } else {
+      logDiagnosticEvent('warn', 'firebase-progress-sync', result.reason || 'Firebase sync did not complete.');
       setCloudSyncStatus(result.reason || 'Firebase sync did not complete.');
     }
   };
@@ -1544,6 +1568,7 @@ const App: React.FC = () => {
         checkoutWindow.close();
       }
       const message = error instanceof Error ? error.message : 'Stripe checkout could not be opened.';
+      logDiagnosticEvent('error', 'stripe-checkout', message, error);
       setBillingStatus(message);
       setAccessGateStatus(`Payment setup needs attention: ${message}`);
     }
@@ -1562,6 +1587,7 @@ const App: React.FC = () => {
       await openStripeBillingPortal(parentCloudSession);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Stripe billing portal could not be opened.';
+      logDiagnosticEvent('warn', 'stripe-portal', message, error);
       setBillingStatus(message);
       setAccessGateStatus(`Billing management needs attention: ${message}`);
     }
@@ -1585,6 +1611,7 @@ const App: React.FC = () => {
       );
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Stripe status could not be refreshed.';
+      logDiagnosticEvent('warn', 'stripe-refresh', message, error);
       setBillingStatus(message);
       setAccessGateStatus(`Stripe status needs attention: ${message}`);
     }
@@ -1662,6 +1689,7 @@ const App: React.FC = () => {
           : 'Parent account created. Choose a plan to start the 3-day free trial.'
       );
     } catch (error) {
+      logDiagnosticEvent('warn', 'access-parent-create', 'Parent account could not be created from access gate.', error);
       setAccessGateStatus(error instanceof Error ? error.message : 'Parent account could not be created.');
     } finally {
       setAccessBusy(false);
@@ -1683,6 +1711,7 @@ const App: React.FC = () => {
           : 'Parent signed in. Choose a plan to start the 3-day free trial.'
       );
     } catch (error) {
+      logDiagnosticEvent('warn', 'access-parent-signin', 'Parent sign-in failed from access gate.', error);
       setAccessGateStatus(error instanceof Error ? error.message : 'Parent sign-in failed.');
     } finally {
       setAccessBusy(false);
@@ -1696,6 +1725,7 @@ const App: React.FC = () => {
       await signInParentWithGoogle();
       setAccessGateStatus('Parent signed in with Google. Checking account access...');
     } catch (error) {
+      logDiagnosticEvent('warn', 'access-google-signin', 'Google sign-in failed from access gate.', error);
       setAccessGateStatus(error instanceof Error ? error.message : 'Google sign-in failed.');
     } finally {
       setAccessBusy(false);

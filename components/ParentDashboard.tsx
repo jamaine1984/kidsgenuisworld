@@ -32,6 +32,7 @@ import {
   getTeacherAssignmentCards,
   getTeacherGradebookRows,
 } from '../services/schoolMode';
+import { clearDiagnosticEvents, exportDiagnosticEvents, getDiagnosticEvents } from '../services/diagnosticsService';
 
 interface BillingAccessSummary {
   billingAccessActive?: boolean;
@@ -259,6 +260,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
   const [cloudAuthStatus, setCloudAuthStatus] = useState('');
   const [isCloudActionBusy, setIsCloudActionBusy] = useState(false);
   const [isBillingBusy, setIsBillingBusy] = useState(false);
+  const [diagnosticEvents, setDiagnosticEvents] = useState(() => getDiagnosticEvents());
 
   // Calculate stats
   const totalProblems = progress.mathScore + progress.readingScore + progress.scienceScore +
@@ -909,6 +911,16 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
     anchor.click();
     anchor.remove();
     URL.revokeObjectURL(url);
+  };
+
+  const exportDiagnostics = () => {
+    exportDiagnosticEvents();
+    setDiagnosticEvents(getDiagnosticEvents());
+  };
+
+  const clearDiagnostics = () => {
+    clearDiagnosticEvents();
+    setDiagnosticEvents([]);
   };
 
   const getFriendlyFirebaseMessage = (message: string) => {
@@ -3160,6 +3172,44 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 <Download size={18} />
                 Export Local Progress
               </button>
+              <div className="mb-3 rounded-xl border border-sky-100 bg-sky-50 p-3" data-testid="parent-diagnostics-card">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-[0.12em] text-sky-700">Support Diagnostics</p>
+                    <p className="mt-1 text-sm font-semibold text-sky-950">
+                      {diagnosticEvents.length} recent app event{diagnosticEvents.length === 1 ? '' : 's'} saved on this device.
+                    </p>
+                    <p className="mt-1 text-xs text-sky-800">
+                      Export this if parent support needs to review crashes, checkout issues, voice playback, or Firebase sync problems.
+                    </p>
+                  </div>
+                  <ClipboardList className="shrink-0 text-sky-600" size={24} />
+                </div>
+                {diagnosticEvents.length > 0 && (
+                  <div className="mt-3 space-y-2">
+                    {diagnosticEvents.slice(0, 3).map(event => (
+                      <div key={event.id} className="rounded-lg bg-white/85 px-3 py-2 text-xs">
+                        <p className="font-black text-slate-800">{event.area}: {event.message}</p>
+                        <p className="mt-1 text-slate-500">{new Date(event.createdAt).toLocaleString()}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                  <button
+                    onClick={exportDiagnostics}
+                    className="rounded-lg bg-sky-600 px-3 py-2 text-sm font-bold text-white hover:bg-sky-700"
+                  >
+                    Export Diagnostics
+                  </button>
+                  <button
+                    onClick={clearDiagnostics}
+                    className="rounded-lg bg-white px-3 py-2 text-sm font-bold text-sky-700 hover:bg-sky-100"
+                  >
+                    Clear Diagnostics
+                  </button>
+                </div>
+              </div>
               <button
                 onClick={onResetProgress}
                 className="w-full py-3 bg-red-100 text-red-600 font-semibold rounded-lg hover:bg-red-200 transition"

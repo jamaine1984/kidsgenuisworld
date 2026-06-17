@@ -104,6 +104,7 @@ const appSource = read('App.tsx');
 const legalSource = read('components/LegalInfo.tsx');
 const parentSource = read('components/ParentDashboard.tsx');
 const audioSource = read('services/audioService.ts');
+const diagnosticsSource = read('services/diagnosticsService.ts');
 const storySource = read('components/StoryBook.tsx');
 const serverSource = read('server/production-server.mjs');
 const cloudflareWorkerSource = read('cloudflare/worker.ts');
@@ -138,6 +139,9 @@ if (
 }
 if (!parentSource.includes('Privacy Controls') || !parentSource.includes('Parent PIN')) {
   fail('Parent privacy controls and PIN gate must be present before launch.');
+}
+if (!parentSource.includes('Support Diagnostics') || !parentSource.includes('Export Diagnostics') || !diagnosticsSource.includes('kid-genius-diagnostics-') || !appSource.includes('logDiagnosticEvent') || !audioSource.includes('voice-playback')) {
+  fail('Parent support diagnostics export and client-side error logging must be present before launch.');
 }
 if (
   !packageJson.scripts?.qa?.includes('qa:secrets') ||

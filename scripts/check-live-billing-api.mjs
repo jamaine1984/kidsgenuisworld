@@ -19,13 +19,29 @@ const expectHeader = (headers, name, expectedValue) => {
   }
 };
 
+const readResponseBody = async (response) => {
+  const contentType = response.headers.get('content-type') || '';
+  if (contentType.toLowerCase().includes('application/json')) {
+    return response.json().catch(() => null);
+  }
+  return response.text().catch(() => '');
+};
+
+const failIfFunctionsUnavailable = (endpoint, response, body) => {
+  const text = typeof body === 'string' ? body : JSON.stringify(body || {});
+  if ([500, 503].includes(response.status) && /billing is disabled|service you requested is not available|server error/i.test(text)) {
+    fail(`${endpoint} is reaching Firebase Functions but the function is unavailable. Enable Firebase Blaze billing, redeploy functions, then rerun npm run qa:billing-live.`);
+  }
+};
+
 for (const endpoint of endpoints) {
   const response = await fetch(`${baseUrl}${endpoint}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({}),
   });
-  const body = await response.json().catch(() => null);
+  const body = await readResponseBody(response);
+  failIfFunctionsUnavailable(endpoint, response, body);
 
   if (response.status !== 401) {
     fail(`${endpoint} should return 401 without a Firebase parent token, got ${response.status}.`);
@@ -56,7 +72,8 @@ const unsignedWebhook = await fetch(`${baseUrl}${webhookEndpoint}`, {
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ type: 'customer.subscription.updated' }),
 });
-const unsignedWebhookBody = await unsignedWebhook.json().catch(() => null);
+const unsignedWebhookBody = await readResponseBody(unsignedWebhook);
+failIfFunctionsUnavailable(webhookEndpoint, unsignedWebhook, unsignedWebhookBody);
 
 if (unsignedWebhook.status !== 400) {
   fail(`${webhookEndpoint} should reject unsigned Stripe events with 400, got ${unsignedWebhook.status}.`);

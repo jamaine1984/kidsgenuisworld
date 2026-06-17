@@ -6,6 +6,39 @@ const getBillingApiBaseUrl = () => {
   return String(configured).replace(/\/$/, '');
 };
 
+const BILLING_FUNCTIONS_UNAVAILABLE_MESSAGE = 'Billing is not available yet. Firebase Functions need Blaze billing enabled and the Stripe billing functions deployed before checkout can open.';
+
+const parseBillingResponse = async (response: Response) => {
+  const contentType = response.headers.get('content-type') || '';
+  const isJson = contentType.toLowerCase().includes('application/json');
+  const result = isJson ? await response.json().catch(() => ({})) : {};
+
+  if (!response.ok && !isJson && response.status >= 500) {
+    throw new Error(BILLING_FUNCTIONS_UNAVAILABLE_MESSAGE);
+  }
+
+  return result as {
+    url?: string;
+    error?: string;
+    active?: boolean;
+    status?: string;
+    plan?: 'starter' | 'premium';
+    accessSource?: 'stripe' | 'owner_comped';
+    billingAccessActive?: boolean;
+    comped?: boolean;
+    trialEndsAt?: number | null;
+    currentPeriodEndsAt?: number | null;
+    cancelAtPeriodEnd?: boolean;
+    lastInvoiceAmountDue?: number;
+    lastInvoiceAmountPaid?: number;
+    lastInvoiceCurrency?: string;
+    lastInvoicePaid?: boolean;
+    lastInvoiceStatus?: string;
+    lastStripeEventAt?: number;
+    lastStripeEventType?: string;
+  };
+};
+
 const postBillingRequest = async (
   path: '/api/billing/checkout' | '/api/billing/portal',
   cloudSession: ParentCloudSession,
@@ -29,7 +62,7 @@ const postBillingRequest = async (
     }),
   });
 
-  const result = await response.json().catch(() => ({})) as { url?: string; error?: string };
+  const result = await parseBillingResponse(response);
   if (!response.ok || !result.url) {
     throw new Error(result.error || `Billing session could not be created. Server returned ${response.status}.`);
   }
@@ -54,25 +87,7 @@ export const getStripeBillingAccess = async (cloudSession: ParentCloudSession) =
     }),
   });
 
-  const result = await response.json().catch(() => ({})) as {
-    active?: boolean;
-    status?: string;
-    plan?: 'starter' | 'premium';
-    accessSource?: 'stripe' | 'owner_comped';
-    billingAccessActive?: boolean;
-    comped?: boolean;
-    trialEndsAt?: number | null;
-    currentPeriodEndsAt?: number | null;
-    cancelAtPeriodEnd?: boolean;
-    lastInvoiceAmountDue?: number;
-    lastInvoiceAmountPaid?: number;
-    lastInvoiceCurrency?: string;
-    lastInvoicePaid?: boolean;
-    lastInvoiceStatus?: string;
-    lastStripeEventAt?: number;
-    lastStripeEventType?: string;
-    error?: string;
-  };
+  const result = await parseBillingResponse(response);
 
   if (!response.ok) {
     throw new Error(result.error || 'Billing access could not be verified.');

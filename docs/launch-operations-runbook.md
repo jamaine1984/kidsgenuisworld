@@ -62,6 +62,8 @@ Rollback path:
 
 Stripe remains the final launch gate.
 
+Firebase Functions must be running before any paid checkout test. If `npm run qa:billing-live` reports that a function is unavailable or that billing is disabled, upgrade the Firebase project to Blaze, deploy functions with `npm run firebase:deploy:functions`, then rerun `npm run qa:billing-live`. Firebase Hosting alone can serve the app, but Stripe checkout, billing portal, billing access, and webhooks depend on Firebase Functions.
+
 After the low-price live checkout test:
 
 - Stripe Dashboard shows the checkout session.

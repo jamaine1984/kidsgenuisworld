@@ -717,13 +717,31 @@ export const ScienceRoom: React.FC<ScienceRoomProps> = ({ level, onBack, onRewar
 
           {/* Result Message */}
           {showResult && (
-            <div className={`p-4 rounded-xl ${isCorrect ? 'bg-green-100' : 'bg-orange-100'} mb-4 flex items-start gap-3`}>
-              {isCorrect ? (
-                <Check className="text-green-600 flex-shrink-0" size={24} />
-              ) : (
-                <X className="text-orange-600 flex-shrink-0" size={24} />
-              )}
-              <p className={`font-semibold ${isCorrect ? 'text-green-700' : 'text-orange-700'}`}>
+            <div className={`mb-4 rounded-2xl border-2 p-4 ${isCorrect ? 'border-green-200 bg-green-50' : 'border-orange-200 bg-orange-50'}`}>
+              <div className="mb-3 flex items-center gap-3">
+                {isCorrect ? (
+                  <Check className="text-green-600 flex-shrink-0" size={24} />
+                ) : (
+                  <X className="text-orange-600 flex-shrink-0" size={24} />
+                )}
+                <div>
+                  <div className={`text-xs font-black uppercase tracking-[0.18em] ${isCorrect ? 'text-green-600' : 'text-orange-600'}`}>
+                    Teacher Check
+                  </div>
+                  <div className={`text-lg font-black ${isCorrect ? 'text-green-800' : 'text-orange-800'}`}>
+                    {isCorrect ? 'Correct prediction.' : 'Good try. Let us fix it.'}
+                  </div>
+                </div>
+              </div>
+              <div className="grid gap-2 text-sm font-bold sm:grid-cols-2">
+                <div className="rounded-xl bg-white/85 p-3 text-slate-700 shadow-sm">
+                  Your answer: {selectedAnswer !== null ? experiment.hypothesis[selectedAnswer] : 'Not selected'}
+                </div>
+                <div className="rounded-xl bg-white/85 p-3 text-slate-700 shadow-sm">
+                  Correct answer: {experiment.hypothesis[experiment.correctAnswer]}
+                </div>
+              </div>
+              <p className={`mt-3 font-semibold ${isCorrect ? 'text-green-700' : 'text-orange-700'}`}>
                 {experiment.explanation}
               </p>
             </div>
@@ -748,7 +766,7 @@ export const ScienceRoom: React.FC<ScienceRoomProps> = ({ level, onBack, onRewar
               onClick={getNewExperiment}
               className="w-full py-4 bg-gradient-to-r from-teal-500 to-cyan-500 text-white font-bold rounded-xl shadow-lg hover:from-teal-600 hover:to-cyan-600 transition-all transform hover:scale-105"
             >
-              {isCorrect ? 'Next Experiment! 🔬' : 'Try Another! 🧪'}
+              {isCorrect ? 'Next Experiment' : 'Try Another'}
             </button>
           )}
 

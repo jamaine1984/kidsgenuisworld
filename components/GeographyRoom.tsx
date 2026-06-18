@@ -350,7 +350,7 @@ export const GeographyRoom: React.FC<GeographyRoomProps> = ({ level, onBack, onR
           </div>
 
           {/* Answer Options */}
-          <div className="grid grid-cols-2 gap-3 mb-6">
+          <div className="grid grid-cols-1 gap-3 mb-6 sm:grid-cols-2">
             {question.options.map((option, index) => {
               let buttonClass = 'bg-gradient-to-r from-gray-100 to-gray-200 hover:from-blue-100 hover:to-cyan-100 text-gray-700 border-2 border-gray-200';
 
@@ -369,9 +369,12 @@ export const GeographyRoom: React.FC<GeographyRoomProps> = ({ level, onBack, onR
                   key={index}
                   onClick={() => handleAnswer(option)}
                   disabled={showResult}
-                  className={`p-4 rounded-xl font-bold text-lg transition-all transform hover:scale-105 shadow-md ${buttonClass}`}
+                  className={`flex min-h-[88px] items-center gap-3 rounded-xl p-4 text-left text-lg font-bold transition-all transform hover:scale-105 shadow-md ${buttonClass}`}
                 >
-                  {option}
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/85 text-base font-black text-blue-700 shadow-sm">
+                    {String.fromCharCode(65 + index)}
+                  </span>
+                  <span>{option}</span>
                 </button>
               );
             })}
@@ -379,14 +382,17 @@ export const GeographyRoom: React.FC<GeographyRoomProps> = ({ level, onBack, onR
 
           {/* Result & Fun Fact */}
           {showResult && (
-            <div className={`p-4 rounded-xl mb-4 ${isCorrect ? 'bg-green-100' : 'bg-orange-100'}`}>
+            <div className={`p-4 rounded-2xl border-2 mb-4 ${isCorrect ? 'border-green-200 bg-green-50' : 'border-orange-200 bg-orange-50'}`}>
               <div className="flex items-start gap-3">
                 <span className="rounded-full bg-white px-3 py-1 text-sm font-black uppercase tracking-wide text-slate-700">
-                  {isCorrect ? 'Nice' : 'Learn'}
+                  Teacher Check
                 </span>
                 <div>
                   <p className={`font-bold ${isCorrect ? 'text-green-700' : 'text-orange-700'}`}>
-                    {isCorrect ? 'Correct!' : `The answer is ${question.answer}`}
+                    {isCorrect ? 'Correct.' : `The answer is ${question.answer}.`}
+                  </p>
+                  <p className="mt-1 text-sm font-bold text-slate-600">
+                    Your answer: {selectedAnswer || 'Not selected'}
                   </p>
                   <p className="text-gray-600 mt-1">{question.funFact}</p>
                 </div>

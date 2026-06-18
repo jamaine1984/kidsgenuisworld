@@ -174,20 +174,22 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => 
   const [studioFeedback, setStudioFeedback] = useState('Finish the studio steps, add enough drawing marks, then submit your artwork for Ms. Nova review.');
   const [artFocusSeconds, setArtFocusSeconds] = useState(0);
   const [hasStartedArtwork, setHasStartedArtwork] = useState(false);
+  const [completedTimedSteps, setCompletedTimedSteps] = useState(0);
 
   const colors = ['#FF5733', '#FFBD33', '#DBFF33', '#75FF33', '#33FF57', '#33FFBD', '#33DBFF', '#3357FF', '#7533FF', '#FF33BD', '#000000', '#FFFFFF'];
   const missionPool = ART_MISSIONS.filter(item => item.gradeLevel <= Math.min(Math.max(level, 1), 7));
   const mission = missionPool[new Date().getDate() % missionPool.length] || ART_MISSIONS[0];
   const hasEnoughDrawing = strokeCount >= mission.minStrokes;
-  const hasEnoughFocusTime = artFocusSeconds >= ART_FOCUS_SECONDS;
+  const hasEnoughFocusTime = completedTimedSteps >= mission.lessonSteps.length;
   const hasFinishedSteps = activeStep >= mission.lessonSteps.length - 1;
   const canComplete = hasEnoughDrawing && hasEnoughFocusTime && hasFinishedSteps && Boolean(reflectionChoice) && !isComplete;
   const drawingProgress = Math.min(strokeCount, mission.minStrokes);
   const focusProgress = Math.min(artFocusSeconds, ART_FOCUS_SECONDS);
+  const focusSecondsLeft = Math.max(0, ART_FOCUS_SECONDS - focusProgress);
   const stepProgress = activeStep + 1;
   const studioScore = Math.round((
     (hasEnoughDrawing ? 30 : (drawingProgress / mission.minStrokes) * 30) +
-    (hasEnoughFocusTime ? 20 : (focusProgress / ART_FOCUS_SECONDS) * 20) +
+    (hasEnoughFocusTime ? 20 : (completedTimedSteps / mission.lessonSteps.length) * 20) +
     (hasFinishedSteps ? 30 : (stepProgress / mission.lessonSteps.length) * 30) +
     (reflectionChoice ? 20 : 0)
   ));
@@ -217,7 +219,7 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => 
   }, [mission]);
 
   useEffect(() => {
-    if (!hasStartedArtwork || isComplete || hasEnoughFocusTime) {
+    if (!hasStartedArtwork || isComplete || artFocusSeconds >= ART_FOCUS_SECONDS) {
       return;
     }
 
@@ -226,7 +228,33 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => 
     }, 1000);
 
     return () => window.clearInterval(timer);
-  }, [hasStartedArtwork, isComplete, hasEnoughFocusTime]);
+  }, [hasStartedArtwork, isComplete, artFocusSeconds]);
+
+  useEffect(() => {
+    if (!hasStartedArtwork || isComplete || artFocusSeconds < ART_FOCUS_SECONDS) {
+      return;
+    }
+
+    const completedStepCount = Math.max(completedTimedSteps, activeStep + 1);
+    setCompletedTimedSteps(completedStepCount);
+
+    if (activeStep < mission.lessonSteps.length - 1) {
+      const nextStep = activeStep + 1;
+      setActiveStep(nextStep);
+      setArtFocusSeconds(0);
+      setHasStartedArtwork(false);
+      const encouragement = ART_TEACHER_PRAISE[nextStep % ART_TEACHER_PRAISE.length];
+      const feedback = `${encouragement} Now step ${nextStep + 1}: ${mission.lessonSteps[nextStep]} Draw for 30 seconds and I will move you again.`;
+      setStudioFeedback(feedback);
+      void speakAsync(feedback, 0.86, 1.02);
+      return;
+    }
+
+    const feedback = 'Nice focus. You finished the timed art steps. Choose one reflection sentence, then I can save your artwork.';
+    setHasStartedArtwork(false);
+    setStudioFeedback(feedback);
+    void speakAsync(feedback, 0.86, 1.02);
+  }, [activeStep, artFocusSeconds, completedTimedSteps, hasStartedArtwork, isComplete, mission.lessonSteps]);
 
   const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
     setIsDrawing(true);
@@ -283,6 +311,7 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => 
       setReflectionChoice('');
       setArtFocusSeconds(0);
       setHasStartedArtwork(false);
+      setCompletedTimedSteps(0);
       setStudioFeedback('Fresh canvas ready. Follow each studio step, draw your idea, then submit it for review.');
   }
 
@@ -298,8 +327,8 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => 
 
       const missingSteps = [
         !hasEnoughDrawing ? `add ${mission.minStrokes - strokeCount} more drawing mark${mission.minStrokes - strokeCount === 1 ? '' : 's'}` : '',
-        !hasEnoughFocusTime ? `spend ${ART_FOCUS_SECONDS - artFocusSeconds} more second${ART_FOCUS_SECONDS - artFocusSeconds === 1 ? '' : 's'} drawing or improving the art` : '',
-        !hasFinishedSteps ? 'finish each studio step' : '',
+        !hasEnoughFocusTime ? `finish ${mission.lessonSteps.length - completedTimedSteps} more timed studio step${mission.lessonSteps.length - completedTimedSteps === 1 ? '' : 's'}` : '',
+        !hasFinishedSteps ? 'let Ms. Nova guide you through each studio step' : '',
         !reflectionChoice ? 'choose one reflection sentence' : '',
       ].filter(Boolean);
 
@@ -321,8 +350,11 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => 
   const advanceLessonStep = () => {
       const nextStep = Math.min(activeStep + 1, mission.lessonSteps.length - 1);
       setActiveStep(nextStep);
+      setCompletedTimedSteps(count => Math.max(count, activeStep + 1));
+      setArtFocusSeconds(0);
+      setHasStartedArtwork(false);
       const encouragement = ART_TEACHER_PRAISE[nextStep % ART_TEACHER_PRAISE.length];
-      const feedback = `${encouragement} Step ${nextStep + 1}: ${mission.lessonSteps[nextStep]}`;
+      const feedback = `${encouragement} Step ${nextStep + 1}: ${mission.lessonSteps[nextStep]} Draw for 30 seconds and I will move you again.`;
       setStudioFeedback(feedback);
       void speakAsync(feedback, 0.86, 1.02);
   };
@@ -412,7 +444,9 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => 
                       <span key={word} className="rounded-full bg-indigo-50 px-3 py-1 text-indigo-700">{word}</span>
                     ))}
                     <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700">{strokeCount}/{mission.minStrokes} strokes</span>
-                    <span className="rounded-full bg-sky-50 px-3 py-1 text-sky-700">{focusProgress}/{ART_FOCUS_SECONDS}s focus</span>
+                    <span className="rounded-full bg-sky-50 px-3 py-1 text-sky-700">
+                      Step timer: {focusSecondsLeft}s left
+                    </span>
                   </div>
                 </div>
                 <div className="w-full max-w-sm">
@@ -426,8 +460,10 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => 
                     </div>
                     <div className="mt-3 grid gap-2 text-[11px] font-black text-slate-700">
                       <p className={hasEnoughDrawing ? 'text-emerald-700' : 'text-amber-700'}>Drawing effort: {drawingProgress}/{mission.minStrokes}</p>
-                      <p className={hasEnoughFocusTime ? 'text-emerald-700' : 'text-amber-700'}>Art focus timer: {focusProgress}/{ART_FOCUS_SECONDS} seconds</p>
-                      <p className={hasFinishedSteps ? 'text-emerald-700' : 'text-amber-700'}>Studio steps: {stepProgress}/{mission.lessonSteps.length}</p>
+                      <p className={hasEnoughFocusTime ? 'text-emerald-700' : 'text-amber-700'}>
+                        Timed studio steps: {completedTimedSteps}/{mission.lessonSteps.length}
+                      </p>
+                      <p className={hasFinishedSteps ? 'text-emerald-700' : 'text-amber-700'}>Current step: {stepProgress}/{mission.lessonSteps.length}</p>
                       <p className={reflectionChoice ? 'text-emerald-700' : 'text-amber-700'}>Reflection: {reflectionChoice ? 'ready' : 'choose one'}</p>
                     </div>
                     <p className="mt-3 rounded-xl bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-900">{studioFeedback}</p>
@@ -456,7 +492,7 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => 
                     disabled={hasFinishedSteps}
                     className={`mt-3 inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-black ${hasFinishedSteps ? 'bg-slate-100 text-slate-400' : 'bg-pink-600 text-white hover:bg-pink-700'}`}
                   >
-                    Next studio step <ChevronRight size={14} />
+                    Skip to next step <ChevronRight size={14} />
                   </button>
                   <button
                     onClick={completeArtwork}

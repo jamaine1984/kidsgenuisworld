@@ -275,6 +275,13 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
   const [showSuccess, setShowSuccess] = useState(false);
   const [showWrong, setShowWrong] = useState(false);
   const [coachTip, setCoachTip] = useState('');
+  const [teacherCheck, setTeacherCheck] = useState<{
+    status: 'correct' | 'wrong';
+    title: string;
+    detail: string;
+    selectedAnswer?: string;
+    correctAnswer?: string;
+  } | null>(null);
 
   // Phonics State
   const [isRecording, setIsRecording] = useState(false);
@@ -333,6 +340,7 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
   const nextRound = () => {
     setShowSuccess(false);
     setShowWrong(false);
+    setTeacherCheck(null);
     setSpelledWord('');
     setCoachTip(modeTip);
     const step = lessonStep.current;
@@ -406,6 +414,22 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
       playSuccess();
       setShowSuccess(true);
       setScore(s => s + 1);
+      const correctAnswer = mode === 'COMPREHENSION'
+        ? currentPassage.answer
+        : mode === 'MATCH'
+          ? currentWord.emoji
+          : currentWord.rhyme;
+      setTeacherCheck({
+        status: 'correct',
+        title: mode === 'COMPREHENSION' ? 'Correct. Use the evidence.' : 'Correct reading.',
+        detail: mode === 'COMPREHENSION'
+          ? `The text evidence is: ${currentPassage.answer}.`
+          : mode === 'MATCH'
+            ? `${currentWord.word} matches that picture.`
+            : `${val} rhymes with ${currentWord.word}.`,
+        selectedAnswer: val,
+        correctAnswer,
+      });
       if (mode === 'COMPREHENSION') {
         void speakCorrect(`Great reading. The text evidence is: ${currentPassage.answer}.`);
       } else {
@@ -434,10 +458,31 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
       playWrongBuzzer();
       setShowWrong(true);
       if (mode === 'MATCH') {
+        setTeacherCheck({
+          status: 'wrong',
+          title: 'Look again at the word.',
+          detail: `${currentWord.word} matches the picture ${currentWord.emoji}.`,
+          selectedAnswer: val,
+          correctAnswer: currentWord.emoji,
+        });
         void speakWrong(`That is not ${currentWord.word}. Look again and find the matching picture.`);
       } else if (mode === 'RHYME') {
+        setTeacherCheck({
+          status: 'wrong',
+          title: 'Listen for the ending sound.',
+          detail: `${currentWord.rhyme} rhymes with ${currentWord.word}.`,
+          selectedAnswer: val,
+          correctAnswer: currentWord.rhyme,
+        });
         void speakWrong(`${val} does not rhyme with ${currentWord.word}. The rhyming answer is ${currentWord.rhyme}.`);
       } else if (mode === 'COMPREHENSION') {
+        setTeacherCheck({
+          status: 'wrong',
+          title: 'Go back to the passage.',
+          detail: `The best text evidence is: ${currentPassage.answer}.`,
+          selectedAnswer: val,
+          correctAnswer: currentPassage.answer,
+        });
         void speakWrong(`Look back at the passage. The best answer is ${currentPassage.answer}.`);
       }
       setTimeout(() => setShowWrong(false), 2000);
@@ -454,6 +499,13 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
       playSuccess();
       setShowSuccess(true);
       setScore(s => s + 1);
+      setTeacherCheck({
+        status: 'correct',
+        title: 'Correct spelling.',
+        detail: `${currentWord.word} is spelled ${currentWord.word.toUpperCase().split('').join('-')}.`,
+        selectedAnswer: newSpelled,
+        correctAnswer: currentWord.word.toUpperCase(),
+      });
       void speakCorrect(`You spelled ${currentWord.word}. ${currentWord.sentence}`);
       onReward({
         questionId: `reading-spell-${currentWord.word}`,
@@ -467,6 +519,13 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
       // Wrong spelling
       playWrongBuzzer();
       setShowWrong(true);
+      setTeacherCheck({
+        status: 'wrong',
+        title: 'Let us spell it together.',
+        detail: `${currentWord.word} is spelled ${currentWord.word.toUpperCase().split('').join('-')}.`,
+        selectedAnswer: newSpelled,
+        correctAnswer: currentWord.word.toUpperCase(),
+      });
       void speakWrong(`Let us spell it together. ${currentWord.word.split('').join(' ')}.`);
       setTimeout(() => {
         setShowWrong(false);
@@ -488,6 +547,13 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
     setTimeout(async () => {
       setIsRecording(false);
       playSuccess();
+      setTeacherCheck({
+        status: 'correct',
+        title: 'Clear reading voice.',
+        detail: `You practiced saying ${currentWord.word}. ${currentWord.sentence}`,
+        selectedAnswer: currentWord.word,
+        correctAnswer: currentWord.word,
+      });
       void speakCorrect(`Excellent pronunciation. You said ${currentWord.word} very clearly.`);
       setScore(s => s + 1);
       onReward({
@@ -699,7 +765,7 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
 
         {/* Interaction Area (Options/Spelling) */}
         {(mode === 'MATCH' || mode === 'RHYME' || mode === 'COMPREHENSION') && (
-          <div className="grid grid-cols-2 gap-4 w-full max-w-md">
+          <div className="grid grid-cols-1 gap-4 w-full max-w-md sm:grid-cols-2">
             {options.map((opt, i) => {
               const isCorrect =
                 (mode === 'MATCH' && opt === currentWord.emoji) ||
@@ -711,9 +777,12 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
                   data-testid="reading-answer-option"
                   data-reading-correct={isCorrect ? 'true' : 'false'}
                   onClick={() => handleOptionClick(opt)}
-                  className={`${mode === 'COMPREHENSION' ? 'min-h-24 px-4 text-base leading-snug' : 'h-28 text-4xl'} bg-white rounded-3xl font-bold flex items-center justify-center text-center shadow-lg hover:bg-orange-50 border-b-8 border-orange-100 active:border-b-0 active:translate-y-2 transition-all`}
+                  className={`${mode === 'COMPREHENSION' ? 'min-h-24 px-4 text-base leading-snug' : 'min-h-28 text-4xl'} bg-white rounded-3xl font-bold flex items-center justify-center gap-3 text-center shadow-lg hover:bg-orange-50 border-b-8 border-orange-100 active:border-b-0 active:translate-y-2 transition-all`}
                 >
-                  {opt}
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-orange-100 text-base font-black text-orange-700">
+                    {String.fromCharCode(65 + i)}
+                  </span>
+                  <span>{opt}</span>
                 </button>
               );
             })}
@@ -740,6 +809,26 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
                 </button>
               ))}
             </div>
+          </div>
+        )}
+
+        {teacherCheck && (
+          <div className={`mb-8 w-full max-w-xl rounded-[28px] border-2 p-5 shadow-lg ${teacherCheck.status === 'correct' ? 'border-green-200 bg-green-50' : 'border-orange-200 bg-orange-50'}`}>
+            <div className={`text-xs font-black uppercase tracking-[0.18em] ${teacherCheck.status === 'correct' ? 'text-green-600' : 'text-orange-600'}`}>
+              Teacher Check
+            </div>
+            <div className={`mt-1 text-xl font-black ${teacherCheck.status === 'correct' ? 'text-green-800' : 'text-orange-800'}`}>
+              {teacherCheck.title}
+            </div>
+            <div className="mt-3 grid gap-2 text-sm font-bold text-slate-700 sm:grid-cols-2">
+              {teacherCheck.selectedAnswer && (
+                <div className="rounded-xl bg-white/85 p-3 shadow-sm">Your answer: {teacherCheck.selectedAnswer}</div>
+              )}
+              {teacherCheck.correctAnswer && (
+                <div className="rounded-xl bg-white/85 p-3 shadow-sm">Correct answer: {teacherCheck.correctAnswer}</div>
+              )}
+            </div>
+            <p className="mt-3 font-semibold text-slate-700">{teacherCheck.detail}</p>
           </div>
         )}
 

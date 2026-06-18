@@ -1074,7 +1074,9 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
   const finishStoryAfterQuiz = async (finalCorrectCount: number) => {
     if (!currentStory) return;
     playSuccess();
-    setCompletedStories(prev => new Set(prev).add(currentStory.id));
+    const completedStoryIds = new Set(completedStories);
+    completedStoryIds.add(currentStory.id);
+    setCompletedStories(completedStoryIds);
     onReward({
       questionId: `storybook-${currentStory.id}`,
       skill: `story comprehension grade ${currentStory.gradeLevel}`,
@@ -1082,18 +1084,31 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
       selectedAnswer: `${finalCorrectCount}/${quizQuestions.length} correct`,
       correctAnswer: currentStory.moral || currentStory.title,
     });
-    const completedCount = completedStories.has(currentStory.id) ? completedStories.size : completedStories.size + 1;
+    const nextStory = availableStories.find(story => !completedStoryIds.has(story.id) && story.id !== currentStory.id);
+    const completedCount = completedStoryIds.size;
     const nextRoundLabel = Math.min(completedCount + 1, 6);
-    await speakAsync(`Story complete. You got ${finalCorrectCount} correct. Now choose the next book, ${nextRoundLabel} out of 6.`, 0.76, 1.02, 'story');
+    await speakAsync(
+      nextStory
+        ? `Story complete. You got ${finalCorrectCount} correct. I am opening the next book, ${nextRoundLabel} out of 6: ${nextStory.title}.`
+        : `Story complete. You got ${finalCorrectCount} correct. You finished the available books for this shelf.`,
+      0.76,
+      1.02,
+      'story'
+    );
     const finishedTitle = currentStory.title;
-    setLibraryCoachNotice(`${finishedTitle} complete. Choose the next book: ${nextRoundLabel}/6.`);
+    setLibraryCoachNotice(nextStory
+      ? `${finishedTitle} complete. Ms. Nova opened the next book: ${nextStory.title} (${nextRoundLabel}/6).`
+      : `${finishedTitle} complete. This shelf is ready for parent review.`);
     window.setTimeout(() => {
-      setCurrentStory(null);
+      setCurrentStory(nextStory || null);
       setCurrentPage(0);
-      setMode('select');
+      setMode(nextStory ? 'listen' : 'select');
+      setQuizQuestions([]);
+      setQuizIndex(0);
+      setQuizCorrectCount(0);
       setQuizFeedback('');
       setQuizTeacherCheck(null);
-    }, 1200);
+    }, 1600);
   };
 
   const answerQuiz = (answer: string) => {

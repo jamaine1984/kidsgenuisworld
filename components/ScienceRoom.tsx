@@ -523,6 +523,7 @@ export const ScienceRoom: React.FC<ScienceRoomProps> = ({ level, onBack, onRewar
   const [showFunFact, setShowFunFact] = useState(false);
   const [score, setScore] = useState(0);
   const [coachTip, setCoachTip] = useState('');
+  const [draggedAnswerIndex, setDraggedAnswerIndex] = useState<number | null>(null);
   const recentExperimentIds = useRef<string[]>([]);
   const lessonStep = useRef(0);
 
@@ -544,6 +545,7 @@ export const ScienceRoom: React.FC<ScienceRoomProps> = ({ level, onBack, onRewar
     setShowResult(false);
     setShowFunFact(false);
     setCoachTip(scienceTip);
+    setDraggedAnswerIndex(null);
 
     void speakMultipleChoiceQuestion(randomExp.question, randomExp.hypothesis);
   };
@@ -591,6 +593,12 @@ export const ScienceRoom: React.FC<ScienceRoomProps> = ({ level, onBack, onRewar
       }, false);
       void speakWrong(`Let us learn it together. ${experiment.explanation}`);
     }
+  };
+
+  const handleLabTrayDrop = () => {
+    if (draggedAnswerIndex === null || showResult) return;
+    handleAnswer(draggedAnswerIndex);
+    setDraggedAnswerIndex(null);
   };
 
   const getCategoryColor = (category: string) => {
@@ -693,6 +701,25 @@ export const ScienceRoom: React.FC<ScienceRoomProps> = ({ level, onBack, onRewar
           </div>
 
           {/* Answer Options */}
+          <div
+            onDragOver={(event) => event.preventDefault()}
+            onDrop={handleLabTrayDrop}
+            className={`mb-4 rounded-2xl border-2 border-dashed p-4 text-center transition ${
+              draggedAnswerIndex !== null
+                ? 'border-teal-500 bg-teal-50 text-teal-900'
+                : 'border-teal-200 bg-white text-slate-700'
+            }`}
+          >
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-teal-600">Drag-and-drop lab tray</p>
+            <p className="mt-1 text-sm font-bold">
+              Drag an answer here, or tap an answer card. Ms. Nova will check your prediction.
+            </p>
+            {draggedAnswerIndex !== null && experiment.hypothesis[draggedAnswerIndex] && (
+              <p className="mt-2 rounded-xl bg-white px-3 py-2 text-sm font-black text-teal-800 shadow-sm">
+                Testing: {experiment.hypothesis[draggedAnswerIndex]}
+              </p>
+            )}
+          </div>
           <div className="grid grid-cols-1 gap-3 mb-4">
             {experiment.hypothesis.map((option, index) => {
               let buttonClass = 'bg-gray-100 hover:bg-gray-200 text-gray-700';
@@ -711,6 +738,9 @@ export const ScienceRoom: React.FC<ScienceRoomProps> = ({ level, onBack, onRewar
                 <button
                   key={index}
                   onClick={() => handleAnswer(index)}
+                  draggable={!showResult}
+                  onDragStart={() => setDraggedAnswerIndex(index)}
+                  onDragEnd={() => setDraggedAnswerIndex(null)}
                   disabled={showResult}
                   className={`p-4 rounded-xl font-semibold transition-all transform hover:scale-102 flex items-center gap-3 ${buttonClass}`}
                 >

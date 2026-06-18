@@ -111,6 +111,7 @@ const cloudflareWorkerSource = read('cloudflare/worker.ts');
 const wranglerSource = read('wrangler.jsonc');
 const firebaseJsonSource = read('firebase.json');
 const firestoreRulesSource = read('firestore.rules');
+const storageRulesSource = read('storage.rules');
 const firebaseClientSource = read('services/firebaseClient.ts');
 const firebaseParentAuthSource = read('services/firebaseParentAuth.ts');
 const firebaseProgressStoreSource = read('services/firebaseProgressStore.ts');
@@ -171,8 +172,8 @@ if (audioSource.includes('/api/tts') || storySource.includes('/api/story-cover')
 if (!cloudflareWorkerSource.includes('MEDIA_CACHE') || !cloudflareWorkerSource.includes('/voice-cache/') || !wranglerSource.includes('r2_buckets')) {
   fail('Cloudflare deployment must serve static voice files from R2 storage.');
 }
-if (!firebaseJsonSource.includes('"public": "dist"') || !firebaseJsonSource.includes('"destination": "/index.html"')) {
-  fail('Firebase Hosting must serve the Vite dist build with SPA rewrites.');
+if (!firebaseJsonSource.includes('"public": "dist"') || !firebaseJsonSource.includes('"destination": "/index.html"') || !firebaseJsonSource.includes('"storage"')) {
+  fail('Firebase Hosting must serve the Vite dist build with SPA rewrites and Storage rules config.');
 }
 if (
   !firestoreRulesSource.includes('isFamilyParent') ||
@@ -184,6 +185,17 @@ if (
   !firestoreRulesSource.includes('billingAccessActive')
 ) {
   fail('Firestore rules must enforce parent-owned access, server-only billing records, and deny by default.');
+}
+if (
+  !storageRulesSource.includes('isFamilyParent') ||
+  !storageRulesSource.includes('match /families/{familyId}/{allPaths=**}') ||
+  !storageRulesSource.includes('allow create, update: if isFamilyParent(familyId) && childUploadIsSafe()') ||
+  !storageRulesSource.includes('match /public/{allPaths=**}') ||
+  !storageRulesSource.includes('allow write: if false') ||
+  !storageRulesSource.includes('match /{allPaths=**}') ||
+  !storageRulesSource.includes('allow read, write: if false')
+) {
+  fail('Storage rules must enforce parent-owned family files, read-only public assets, and deny by default.');
 }
 if (!firebaseClientSource.includes('VITE_FIREBASE_API_KEY') || !firebaseClientSource.includes('getFirebaseServices')) {
   fail('Firebase Web SDK config must be env-driven and initialized behind a helper.');
@@ -243,6 +255,7 @@ if (
   !firebaseFunctionsSource.includes('billingCustomers') ||
   !firebaseFunctionsSource.includes('stripeEvents') ||
   !firebaseFunctionsSource.includes('billingAccessActive') ||
+  !firebaseFunctionsSource.includes('cancelAtPeriodEnd: Boolean(subscription.cancel_at_period_end)') ||
   !firebaseFunctionsSource.includes('FieldValue.serverTimestamp') ||
   !firebaseFunctionsSource.includes('persistCustomerMapping') ||
   !firebaseFunctionsSource.includes("invoker: 'public'") ||

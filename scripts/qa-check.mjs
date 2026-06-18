@@ -21,6 +21,7 @@ const requiredFiles = [
   '.firebaserc',
   'firebase.json',
   'firestore.rules',
+  'storage.rules',
   'firestore.indexes.json',
   'services/firebaseClient.ts',
   'services/firebaseParentAuth.ts',
@@ -98,6 +99,7 @@ const stripeBillingSource = fs.readFileSync(path.join(root, 'services/stripeBill
 const installAppButtonSource = fs.readFileSync(path.join(root, 'components/InstallAppButton.tsx'), 'utf8');
 const firebaseJsonSource = fs.readFileSync(path.join(root, 'firebase.json'), 'utf8');
 const firestoreRulesSource = fs.readFileSync(path.join(root, 'firestore.rules'), 'utf8');
+const storageRulesSource = fs.readFileSync(path.join(root, 'storage.rules'), 'utf8');
 const storyBookSource = fs.readFileSync(path.join(root, 'components/StoryBook.tsx'), 'utf8');
 const cloudflareWorkerSource = fs.readFileSync(path.join(root, 'cloudflare/worker.ts'), 'utf8');
 const wranglerSource = fs.readFileSync(path.join(root, 'wrangler.jsonc'), 'utf8');
@@ -294,8 +296,8 @@ if (
 ) {
   fail('Secret scanning and Firebase Functions environment documentation must stay wired before launch.');
 }
-if (!firebaseJsonSource.includes('"public": "dist"') || !firebaseJsonSource.includes('"firestore"')) {
-  fail('Firebase Hosting must serve the Vite dist folder and include Firestore config.');
+if (!firebaseJsonSource.includes('"public": "dist"') || !firebaseJsonSource.includes('"firestore"') || !firebaseJsonSource.includes('"storage"')) {
+  fail('Firebase Hosting must serve the Vite dist folder and include Firestore and Storage config.');
 }
 if (!firebaseClientSource.includes('VITE_FIREBASE_PROJECT_ID') || !firebaseClientSource.includes('kid-genius-world')) {
   fail('Firebase Web SDK must be initialized from VITE_FIREBASE_* config with the expected project fallback.');
@@ -329,6 +331,17 @@ if (
 ) {
   fail('Firestore rules must enforce parent-owned access, server-only billing records, and deny unknown collections.');
 }
+if (
+  !storageRulesSource.includes('isFamilyParent') ||
+  !storageRulesSource.includes('match /families/{familyId}/{allPaths=**}') ||
+  !storageRulesSource.includes('allow create, update: if isFamilyParent(familyId) && childUploadIsSafe()') ||
+  !storageRulesSource.includes('match /public/{allPaths=**}') ||
+  !storageRulesSource.includes('allow write: if false') ||
+  !storageRulesSource.includes('match /{allPaths=**}') ||
+  !storageRulesSource.includes('allow read, write: if false')
+) {
+  fail('Storage rules must enforce parent-owned family files, read-only public assets, and deny unknown paths.');
+}
 if (!stripeBillingSource.includes('getCurrentParentIdToken') || !stripeBillingSource.includes('/api/billing/checkout') || !stripeBillingSource.includes('/api/billing/portal')) {
   fail('Stripe billing must require Firebase parent auth before checkout or portal access.');
 }
@@ -357,6 +370,7 @@ if (
   !firebaseFunctionsSource.includes('billingCustomers') ||
   !firebaseFunctionsSource.includes('stripeEvents') ||
   !firebaseFunctionsSource.includes('billingAccessActive') ||
+  !firebaseFunctionsSource.includes('cancelAtPeriodEnd: Boolean(subscription.cancel_at_period_end)') ||
   !firebaseFunctionsSource.includes('FieldValue.serverTimestamp') ||
   !firebaseFunctionsSource.includes('persistCustomerMapping') ||
   !firebaseFunctionsSource.includes("invoker: 'public'") ||

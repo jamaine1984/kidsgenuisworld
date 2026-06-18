@@ -489,6 +489,12 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
     .sort((a, b) => b.date.localeCompare(a.date))
     .slice(0, 7);
   const currentMonthKey = new Date().toISOString().slice(0, 7);
+  const reportDateFormatter = new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  const reportMonthFormatter = new Intl.DateTimeFormat(undefined, { month: 'long', year: 'numeric' });
+  const weekStartDate = new Date(Date.now() - 6 * 24 * 60 * 60 * 1000);
+  const weekEndDate = new Date();
+  const weekRangeLabel = `${reportDateFormatter.format(weekStartDate)} - ${reportDateFormatter.format(weekEndDate)}`;
+  const monthRangeLabel = reportMonthFormatter.format(new Date(`${currentMonthKey}-01T12:00:00`));
   const todayAssignmentSet = progress.dailyAssignmentSets?.[getLocalDateKey()];
   const assignmentAttempts = progress.assignmentAttempts || [];
   const weekStartMs = Date.now() - 7 * 24 * 60 * 60 * 1000;
@@ -499,6 +505,9 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
   const weeklyAssignmentAccuracy = weeklyAssignmentAttempts.length > 0 ? Math.round((weeklyAssignmentCorrect / weeklyAssignmentAttempts.length) * 100) : 0;
   const monthlyAssignmentAccuracy = monthlyAssignmentAttempts.length > 0 ? Math.round((monthlyAssignmentCorrect / monthlyAssignmentAttempts.length) * 100) : 0;
   const reviewReadyAttempts = assignmentAttempts.filter(attempt => !attempt.correct).slice(0, 6);
+  const weeklyMissedSkills = Array.from(new Set(weeklyAssignmentAttempts.filter(attempt => !attempt.correct).map(attempt => attempt.skill))).slice(0, 3);
+  const monthlyMissedSkills = Array.from(new Set(monthlyAssignmentAttempts.filter(attempt => !attempt.correct).map(attempt => attempt.skill))).slice(0, 4);
+  const latestAssignmentEvidence = [...assignmentAttempts].sort((a, b) => b.createdAt - a.createdAt).slice(0, 5);
   const masterySummaryByRoom = Object.values(RoomType)
     .filter(room => room !== RoomType.HUB)
     .map(room => ({ room, summary: getMasteryPeriodSummary(progress, room) }))
@@ -718,8 +727,8 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
       label: 'Practice rhythm',
       value: `${activeLearningDays}/7 days`,
       detail: activeLearningDays >= 4
-        ? 'Strong weekly rhythm. Keep sessions short and consistent.'
-        : 'Aim for four short practice days before adding longer sessions.',
+        ? `Strong rhythm for ${weekRangeLabel}. Keep sessions short and consistent.`
+        : `For ${weekRangeLabel}, aim for four short practice days before adding longer sessions.`,
     },
     {
       label: 'Accuracy signal',
@@ -744,14 +753,14 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
       label: 'Assignment evidence',
       value: weeklyAssignmentAttempts.length > 0 ? `${weeklyAssignmentAccuracy}%` : 'Ready',
       detail: weeklyAssignmentAttempts.length > 0
-        ? `${weeklyAssignmentCorrect}/${weeklyAssignmentAttempts.length} saved assignment attempts were correct this week.`
+        ? `${weeklyAssignmentCorrect}/${weeklyAssignmentAttempts.length} saved attempts were correct from ${weekRangeLabel}.`
         : 'Question-level evidence appears after classroom attempts are saved.',
     },
     {
       label: 'Review queue',
       value: `${reviewReadyAttempts.length}`,
       detail: reviewReadyAttempts.length > 0
-        ? `${reviewReadyAttempts[0].skill} should come back before harder work.`
+        ? `${weeklyMissedSkills[0] || reviewReadyAttempts[0].skill} should come back before harder work.`
         : 'No missed assignment attempts are waiting for review.',
     },
   ];
@@ -759,7 +768,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
     {
       label: 'Learning days',
       value: `${monthlyLearningDays}`,
-      detail: `${monthlyMinutes} minutes and ${monthlyJournalEntries.length} saved proof item${monthlyJournalEntries.length === 1 ? '' : 's'} this month.`,
+      detail: `${monthlyMinutes} minutes and ${monthlyJournalEntries.length} saved proof item${monthlyJournalEntries.length === 1 ? '' : 's'} in ${monthRangeLabel}.`,
     },
     {
       label: 'Monthly accuracy',
@@ -780,8 +789,15 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
       label: 'Assignment attempts',
       value: `${monthlyAssignmentAttempts.length}`,
       detail: monthlyAssignmentAttempts.length > 0
-        ? `${monthlyAssignmentAccuracy}% correct from saved question-level evidence this month.`
+        ? `${monthlyAssignmentAccuracy}% correct from saved question-level evidence in ${monthRangeLabel}.`
         : 'Monthly assignment evidence starts after classroom questions are completed.',
+    },
+    {
+      label: 'Reteach focus',
+      value: monthlyMissedSkills[0] || 'Clear',
+      detail: monthlyMissedSkills.length > 0
+        ? `Bring back ${monthlyMissedSkills.join(', ')} during the next review cycle.`
+        : 'No recurring missed skill is showing this month.',
     },
   ];
   const arcadeProgress = {
@@ -1444,6 +1460,39 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                   </div>
                 ))}
               </div>
+              <div className="mt-4 rounded-xl border border-slate-100 bg-white p-3">
+                <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
+                  <div>
+                    <p className="text-sm font-black text-slate-900">Saved assignment evidence</p>
+                    <p className="text-xs font-semibold text-slate-600">
+                      Recent classroom answers used for weekly and monthly reports.
+                    </p>
+                  </div>
+                  <p className="rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-600">{weekRangeLabel}</p>
+                </div>
+                <div className="mt-3 grid gap-2">
+                  {latestAssignmentEvidence.length > 0 ? latestAssignmentEvidence.map(attempt => (
+                    <div key={`${attempt.questionId}-${attempt.createdAt}`} className="rounded-lg bg-slate-50 p-3 text-sm">
+                      <div className="flex flex-col gap-1 md:flex-row md:items-start md:justify-between">
+                        <div>
+                          <p className="font-black text-slate-900">{attempt.skill}</p>
+                          <p className="mt-1 text-xs font-semibold text-slate-600">{attempt.prompt}</p>
+                        </div>
+                        <span className={`rounded-full px-3 py-1 text-xs font-black ${attempt.correct ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-800'}`}>
+                          {attempt.correct ? 'correct' : 'review'}
+                        </span>
+                      </div>
+                      <p className="mt-2 text-xs font-semibold text-slate-500">
+                        {reportDateFormatter.format(new Date(attempt.createdAt))} • Answer: {attempt.selectedAnswer || 'not saved'} • Expected: {attempt.correctAnswer || 'teacher check'}
+                      </p>
+                    </div>
+                  )) : (
+                    <div className="rounded-lg bg-slate-50 p-3 text-sm font-semibold text-slate-600">
+                      Assignment evidence appears here after the child completes classroom questions.
+                    </div>
+                  )}
+                </div>
+              </div>
               <div className="mt-4 rounded-xl border border-sky-100 bg-sky-50 p-3">
                 <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                   <div>
@@ -1452,7 +1501,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                       Current-month totals connect daily class work to parent review, mastery proof, and saved reflections.
                     </p>
                   </div>
-                  <p className="rounded-full bg-white px-3 py-1 text-xs font-black text-sky-700">{currentMonthKey}</p>
+                  <p className="rounded-full bg-white px-3 py-1 text-xs font-black text-sky-700">{monthRangeLabel}</p>
                 </div>
                 <div className="mt-3 grid grid-cols-1 md:grid-cols-4 gap-2">
                   {monthlyReportCards.map(card => (

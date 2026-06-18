@@ -1,0 +1,36 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isFamilyParent(familyId) {
+      return signedIn()
+        && firestore.exists(/databases/(default)/documents/families/$(familyId))
+        && request.auth.uid in firestore.get(/databases/(default)/documents/families/$(familyId)).data.parentUids;
+    }
+
+    function childUploadIsSafe() {
+      return request.resource != null
+        && request.resource.size < 10 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*|audio/.*|application/pdf|text/plain|application/json');
+    }
+
+    match /families/{familyId}/{allPaths=**} {
+      allow read: if isFamilyParent(familyId);
+      allow create, update: if isFamilyParent(familyId) && childUploadIsSafe();
+      allow delete: if isFamilyParent(familyId);
+    }
+
+    match /public/{allPaths=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

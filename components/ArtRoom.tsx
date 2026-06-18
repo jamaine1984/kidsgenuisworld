@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { ArrowLeft, CheckCircle2, ChevronRight, Download, Eraser, Palette, Target } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Download, Eraser, Palette, Target } from 'lucide-react';
 import { playPop, speakAsync } from '../services/audioService';
 
 interface ArtRoomProps {
@@ -395,18 +395,6 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => 
       });
   };
 
-  const advanceLessonStep = () => {
-      const nextStep = Math.min(activeStep + 1, mission.lessonSteps.length - 1);
-      setActiveStep(nextStep);
-      setCompletedTimedSteps(count => Math.max(count, activeStep + 1));
-      setArtFocusSeconds(0);
-      setHasStartedArtwork(false);
-      const encouragement = ART_TEACHER_PRAISE[nextStep % ART_TEACHER_PRAISE.length];
-      const feedback = `${encouragement} Step ${nextStep + 1}: ${mission.lessonSteps[nextStep]} Draw for 30 seconds and I will move you again.`;
-      setStudioFeedback(feedback);
-      void speakAsync(feedback, 0.86, 1.02);
-  };
-
   return (
     <div className="h-full w-full bg-[radial-gradient(circle_at_top_left,#fde68a_0,#f9a8d4_34%,#c084fc_68%,#60a5fa_100%)] flex flex-col">
       <header className="p-4 flex justify-between items-center bg-white/35 backdrop-blur-md shadow-md z-20 shrink-0">
@@ -445,16 +433,13 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => 
               </div>
               <div className="space-y-1">
                 {mission.lessonSteps.map((step, index) => (
-                  <button
+                  <div
                     key={step}
-                    onClick={() => {
-                      setActiveStep(index);
-                      void speakAsync(step, 0.86, 1.02);
-                    }}
-                    className={`w-full rounded-xl px-2 py-1 text-left text-[9px] font-bold leading-tight ${activeStep === index ? 'bg-indigo-600 text-white' : 'bg-white text-indigo-800'}`}
+                    aria-current={activeStep === index ? 'step' : undefined}
+                    className={`w-full rounded-xl px-2 py-1 text-left text-[9px] font-bold leading-tight ${activeStep === index ? 'bg-indigo-600 text-white' : index < completedTimedSteps ? 'bg-emerald-50 text-emerald-800' : 'bg-white text-indigo-800'}`}
                   >
                     {index + 1}. {step}
-                  </button>
+                  </div>
                 ))}
               </div>
             </div>
@@ -536,15 +521,8 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => 
                     ))}
                   </div>
                   <button
-                    onClick={advanceLessonStep}
-                    disabled={hasFinishedSteps}
-                    className={`mt-3 inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-black ${hasFinishedSteps ? 'bg-slate-100 text-slate-400' : 'bg-pink-600 text-white hover:bg-pink-700'}`}
-                  >
-                    Skip to next step <ChevronRight size={14} />
-                  </button>
-                  <button
                     onClick={completeArtwork}
-                    className={`ml-2 mt-3 inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-black shadow-sm ${isComplete ? 'bg-emerald-100 text-emerald-800' : canComplete ? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'bg-white text-emerald-800 hover:bg-emerald-50'}`}
+                    className={`mt-3 inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-black shadow-sm ${isComplete ? 'bg-emerald-100 text-emerald-800' : canComplete ? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'bg-white text-emerald-800 hover:bg-emerald-50'}`}
                   >
                     <CheckCircle2 size={14} />
                     {isComplete ? 'Artwork saved' : 'Finish artwork'}

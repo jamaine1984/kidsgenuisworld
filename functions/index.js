@@ -610,6 +610,7 @@ export const billingAccess = onRequest(functionOptions, async (req, res) => {
       plan,
       trialEndsAt: subscription.trial_end ? subscription.trial_end * 1000 : null,
       currentPeriodEndsAt: subscription.current_period_end ? subscription.current_period_end * 1000 : null,
+      cancelAtPeriodEnd: Boolean(subscription.cancel_at_period_end),
       ...billingSnapshotSummary,
     });
   } catch (error) {

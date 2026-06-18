@@ -32,7 +32,7 @@
     "firebase:deploy": "npm run qa:all && firebase deploy --project kid-genius-world && npm run qa:production-live",
     "firebase:deploy:hosting": "npm run qa:all && firebase deploy --only hosting --project kid-genius-world && npm run qa:production-live",
     "firebase:deploy:functions": "node scripts/deploy-firebase-functions.mjs && npm run qa:billing-live",
-    "firebase:deploy:rules": "firebase deploy --only firestore:rules --project kid-genius-world",
+    "firebase:deploy:rules": "firebase deploy --only firestore:rules,storage --project kid-genius-world",
     "cf:dev": "wrangler dev",
     "cf:deploy": "npm run qa && wrangler deploy"
   },

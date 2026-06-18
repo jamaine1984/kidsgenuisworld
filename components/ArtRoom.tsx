@@ -4,7 +4,7 @@ import { playPop, speakAsync } from '../services/audioService';
 
 interface ArtRoomProps {
   onBack: () => void;
-  onReward: () => void;
+  onReward: (meta?: { questionId: string; skill: string; prompt: string; selectedAnswer?: string; correctAnswer?: string; timeSpentMs?: number }) => void;
   level: number;
 }
 
@@ -385,7 +385,14 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => 
       const feedback = `${praise} Studio score ${studioScore} out of 100. Next, I will save your art progress and guide you to the next activity.`;
       setStudioFeedback(feedback);
       void speakAsync(feedback, 0.86, 1.02);
-      onReward();
+      onReward({
+        questionId: `art-${mission.gradeLevel}-${mission.title}`,
+        skill: mission.focus,
+        prompt: mission.prompt,
+        selectedAnswer: reflectionChoice,
+        correctAnswer: mission.checks.join(', '),
+        timeSpentMs: completedTimedSteps * ART_FOCUS_SECONDS * 1000,
+      });
   };
 
   const advanceLessonStep = () => {

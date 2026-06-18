@@ -7,7 +7,7 @@ import { pickDailyItem, shuffleDailyItems } from '../services/dailyRotation';
 interface GeographyRoomProps {
   level: number; // 1-7 corresponds to grade levels
   onBack: () => void;
-  onReward: () => void;
+  onReward: (meta?: { questionId: string; skill: string; prompt: string; selectedAnswer?: string; correctAnswer?: string }) => void;
 }
 
 // Geography questions organized by grade level
@@ -227,7 +227,13 @@ export const GeographyRoom: React.FC<GeographyRoomProps> = ({ level, onBack, onR
       setScore(s => s + 1);
       setCountriesLearned(prev => new Set(prev).add(question.answer));
       void speakCorrect(`Correct. ${question.funFact}`);
-      setTimeout(() => onReward(), 2000);
+      setTimeout(() => onReward({
+        questionId: `geography-${level}-${question.type}-${question.question}`,
+        skill: question.type,
+        prompt: question.question,
+        selectedAnswer: answer,
+        correctAnswer: question.answer,
+      }), 2000);
     } else {
       playWrongBuzzer();
       void speakWrong(`The answer is ${question.answer}. ${question.funFact}`);

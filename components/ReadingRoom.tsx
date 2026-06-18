@@ -5,7 +5,7 @@ import { pickDailyItem, shuffleDailyItems } from '../services/dailyRotation';
 
 interface ReadingRoomProps {
   onBack: () => void;
-  onReward: () => void;
+  onReward: (meta?: { questionId: string; skill: string; prompt: string; selectedAnswer?: string; correctAnswer?: string }) => void;
   level: number; // 1-7 corresponds to grade levels
 }
 
@@ -414,7 +414,21 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
           : `Great reading. ${currentWord.word}. ${currentWord.sentence}`
         );
       }
-      onReward();
+      onReward(mode === 'COMPREHENSION'
+        ? {
+          questionId: `reading-comprehension-${currentPassage.id}`,
+          skill: currentPassage.skill,
+          prompt: currentPassage.question,
+          selectedAnswer: val,
+          correctAnswer: currentPassage.answer,
+        }
+        : {
+          questionId: `reading-${mode.toLowerCase()}-${currentWord.word}`,
+          skill: mode.toLowerCase(),
+          prompt: mode === 'MATCH' ? `Match ${currentWord.word}` : `What rhymes with ${currentWord.word}?`,
+          selectedAnswer: val,
+          correctAnswer: mode === 'MATCH' ? currentWord.emoji : currentWord.rhyme,
+        });
       setTimeout(nextRound, mode === 'MATCH' ? MATCH_SUCCESS_ROUND_DELAY_MS : SUCCESS_ROUND_DELAY_MS);
     } else {
       playWrongBuzzer();
@@ -441,7 +455,13 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
       setShowSuccess(true);
       setScore(s => s + 1);
       void speakCorrect(`You spelled ${currentWord.word}. ${currentWord.sentence}`);
-      onReward();
+      onReward({
+        questionId: `reading-spell-${currentWord.word}`,
+        skill: 'spelling',
+        prompt: `Spell ${currentWord.word}`,
+        selectedAnswer: newSpelled,
+        correctAnswer: currentWord.word.toUpperCase(),
+      });
       setTimeout(nextRound, SUCCESS_ROUND_DELAY_MS);
     } else if (newSpelled.length === currentWord.word.length && newSpelled !== currentWord.word.toUpperCase()) {
       // Wrong spelling
@@ -470,7 +490,13 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
       playSuccess();
       void speakCorrect(`Excellent pronunciation. You said ${currentWord.word} very clearly.`);
       setScore(s => s + 1);
-      onReward();
+      onReward({
+        questionId: `reading-phonics-${currentWord.word}`,
+        skill: 'phonics',
+        prompt: `Read ${currentWord.word} out loud`,
+        selectedAnswer: currentWord.word,
+        correctAnswer: currentWord.word,
+      });
       setTimeout(nextRound, SUCCESS_ROUND_DELAY_MS);
     }, 3500);
   };

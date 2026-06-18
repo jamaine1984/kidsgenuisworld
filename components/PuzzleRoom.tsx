@@ -5,7 +5,7 @@ import { pickDailyItem, shuffleDailyItems } from '../services/dailyRotation';
 
 interface PuzzleRoomProps {
   onBack: () => void;
-  onReward: () => void;
+  onReward: (meta?: { questionId: string; skill: string; prompt: string; selectedAnswer?: string; correctAnswer?: string }) => void;
   level: number;
 }
 
@@ -135,7 +135,15 @@ export const PuzzleRoom: React.FC<PuzzleRoomProps> = ({ onBack, onReward, level 
             setCards(prev => prev.map(c => newFlipped.includes(c.id) ? { ...c, isMatched: true } : c));
             setFlipped([]);
             setIsLocked(false);
-            if (newCards.filter(c => !c.isMatched).length <= 2) setTimeout(onReward, 500);
+            if (newCards.filter(c => !c.isMatched).length <= 2) {
+              setTimeout(() => onReward({
+                questionId: `puzzle-memory-${mission.title}`,
+                skill: 'memory matching',
+                prompt: mission.prompt,
+                selectedAnswer: 'matched all pairs',
+                correctAnswer: `${mission.pairCount} pairs`,
+              }), 500);
+            }
         } else {
             setTimeout(() => {
                 playError();
@@ -152,7 +160,13 @@ export const PuzzleRoom: React.FC<PuzzleRoomProps> = ({ onBack, onReward, level 
           playSuccess();
           setSequence(prev => prev.map(p => p === '?' ? opt : p));
           setTimeout(() => {
-              onReward();
+              onReward({
+                questionId: `puzzle-pattern-${mission.title}-${sequence.join('')}`,
+                skill: 'pattern logic',
+                prompt: mission.prompt,
+                selectedAnswer: opt,
+                correctAnswer: patternAnswer,
+              });
               initGame();
           }, 1000);
       } else {
@@ -163,7 +177,13 @@ export const PuzzleRoom: React.FC<PuzzleRoomProps> = ({ onBack, onReward, level 
   const handleShapeClick = (opt: string) => {
       if (opt === targetShape) {
           playSuccess();
-          onReward();
+          onReward({
+            questionId: `puzzle-shape-${mission.title}-${targetShape}`,
+            skill: 'visual discrimination',
+            prompt: mission.prompt,
+            selectedAnswer: opt,
+            correctAnswer: targetShape,
+          });
           initGame();
       } else {
           playError();

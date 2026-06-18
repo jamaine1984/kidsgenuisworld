@@ -5,7 +5,7 @@ import { speakAsync, stopSpeaking, isSpeaking, playSuccess } from '../services/a
 interface StoryBookProps {
   level: number; // 1-7 corresponds to grade levels
   onBack: () => void;
-  onReward: () => void;
+  onReward: (meta?: { questionId: string; skill: string; prompt: string; selectedAnswer?: string; correctAnswer?: string }) => void;
 }
 
 interface Story {
@@ -1067,7 +1067,13 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
     if (!currentStory) return;
     playSuccess();
     setCompletedStories(prev => new Set(prev).add(currentStory.id));
-    onReward();
+    onReward({
+      questionId: `storybook-${currentStory.id}`,
+      skill: `story comprehension grade ${currentStory.gradeLevel}`,
+      prompt: `Completed ${currentStory.title} quiz`,
+      selectedAnswer: `${finalCorrectCount}/${quizQuestions.length} correct`,
+      correctAnswer: currentStory.moral || currentStory.title,
+    });
     const completedCount = completedStories.has(currentStory.id) ? completedStories.size : completedStories.size + 1;
     const nextRoundLabel = Math.min(completedCount + 1, 6);
     await speakAsync(`Story complete. You got ${finalCorrectCount} correct. Now choose the next book, ${nextRoundLabel} out of 6.`, 0.76, 1.02, 'story');

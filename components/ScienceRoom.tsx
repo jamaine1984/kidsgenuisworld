@@ -7,7 +7,7 @@ import { pickDailyItem } from '../services/dailyRotation';
 interface ScienceRoomProps {
   level: number; // 1-7 corresponds to grade levels
   onBack: () => void;
-  onReward: () => void;
+  onReward: (meta?: { questionId: string; skill: string; prompt: string; selectedAnswer?: string; correctAnswer?: string }) => void;
 }
 
 // Science experiments/questions organized by grade level
@@ -570,7 +570,13 @@ export const ScienceRoom: React.FC<ScienceRoomProps> = ({ level, onBack, onRewar
       setScore(s => s + 1);
       void speakCorrect(`That is right. ${experiment.explanation}`);
       setTimeout(() => {
-        onReward();
+        onReward({
+          questionId: experiment.id,
+          skill: experiment.category,
+          prompt: experiment.question,
+          selectedAnswer: experiment.hypothesis[index],
+          correctAnswer: experiment.hypothesis[experiment.correctAnswer],
+        });
         setShowFunFact(true);
       }, 2500);
     } else {

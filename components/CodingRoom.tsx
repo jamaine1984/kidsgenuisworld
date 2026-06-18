@@ -5,7 +5,7 @@ import { speakAsync, speakCorrect, speakWrong, playSuccess, playError, playWrong
 interface CodingRoomProps {
   level: number; // 1-7 corresponds to Pre-K through 5th grade
   onBack: () => void;
-  onReward: () => void;
+  onReward: (meta?: { questionId: string; skill: string; prompt: string; selectedAnswer?: string; correctAnswer?: string }) => void;
 }
 
 interface GridCell {
@@ -1096,7 +1096,13 @@ export const CodingRoom: React.FC<CodingRoomProps> = ({ level, onBack, onReward 
       setScore(s => s + 1);
       playSuccess();
       void speakCorrect("You solved it. You are becoming a real programmer.");
-      onReward();
+      onReward({
+        questionId: challenge.id,
+        skill: challenge.category,
+        prompt: challenge.story,
+        selectedAnswer: code.map(block => block.label).join(', '),
+        correctAnswer: challenge.hint,
+      });
     } else {
       playWrongBuzzer();
       void speakWrong("The robot did not reach the star. Try a different path.");

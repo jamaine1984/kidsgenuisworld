@@ -6,7 +6,7 @@ import { withSeededRandom } from '../services/dailyRotation';
 
 interface MathRoomProps {
   onBack: () => void;
-  onReward: () => void;
+  onReward: (meta?: { questionId: string; skill: string; prompt: string; selectedAnswer?: string; correctAnswer?: string }) => void;
   level: number; // 1-7 corresponds to grade levels
 }
 
@@ -611,7 +611,13 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, level }) =
 
       void speakCorrect(`That is correct. ${problem.explanation}`);
 
-      onReward();
+      onReward({
+        questionId: `math-${level}-${problem.context || 'equation'}-${problem.operation}-${problem.question}`,
+        skill: problem.context || problem.operation,
+        prompt: problem.question,
+        selectedAnswer: String(val),
+        correctAnswer: String(problem.answer),
+      });
 
       setTimeout(loadProblem, 2500);
     } else {

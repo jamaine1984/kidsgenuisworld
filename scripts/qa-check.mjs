@@ -664,10 +664,10 @@ if (!curriculumSource.includes('getUnitReadiness') || !curriculumSource.includes
 if (!curriculumSource.includes('getWeeklyLearningPlan') || !curriculumSource.includes('WeeklyPlanItem')) {
   fail('Weekly learning plan helpers are missing.');
 }
-if (!appSource.includes("addSticker('puzzle')")) {
+if (!appSource.includes("addSticker('puzzle', currentRoom, {}, false, meta)")) {
   fail('Puzzle completions are not counted as learning activity.');
 }
-if (!appSource.includes("handleCreativeReward('art')") || !appSource.includes('handleMusicReward') || !appSource.includes("addSticker('puzzle')")) {
+if (!appSource.includes("handleCreativeReward('art', meta)") || !appSource.includes('handleMusicReward') || !appSource.includes("addSticker('puzzle', currentRoom, {}, false, meta)")) {
   fail('Art, music, and puzzle curriculum completions are not wired to rewards.');
 }
 for (const gradeLevel of [1, 2, 3, 4, 5, 6, 7]) {

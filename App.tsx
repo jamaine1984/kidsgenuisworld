@@ -171,6 +171,15 @@ interface FamilyAccessRecord {
   checkedAt?: number;
 }
 
+interface AssignmentRewardMeta {
+  questionId: string;
+  skill: string;
+  prompt: string;
+  selectedAnswer?: string;
+  correctAnswer?: string;
+  timeSpentMs?: number;
+}
+
 type PaidAccessAction =
   | { type: 'room'; room: RoomType; unitId?: string }
   | { type: 'arcade' };
@@ -2025,7 +2034,8 @@ const App: React.FC = () => {
     subject?: string,
     roomOverride?: RoomType,
     reflectionOverride: LearningReflectionOverride = {},
-    showReflectionNow = false
+    showReflectionNow = false,
+    assignmentMeta?: AssignmentRewardMeta
   ) => {
     playSuccess();
     const journalCreatedAt = Date.now();
@@ -2149,15 +2159,18 @@ const App: React.FC = () => {
       };
 
       if (journalUnit) {
+        const rawQuestionId = assignmentMeta?.questionId || `${journalUnit.id}:practice-${journalPracticeCount}`;
         newProgress = recordAssignmentAttempt(newProgress, {
-          questionId: getQuestionKey(journalRoom, `${journalUnit.id}:practice-${journalPracticeCount}`),
+          questionId: rawQuestionId.includes(':') ? rawQuestionId : getQuestionKey(journalRoom, rawQuestionId),
           room: journalRoom,
           grade: prev.currentGrade,
           unitId: journalUnit.id,
-          skill: journalUnit.standardsFocus?.[0] || journalRoomLabel,
-          prompt: journalUnit.successCheck || journalUnit.objective,
+          skill: assignmentMeta?.skill || journalUnit.standardsFocus?.[0] || journalRoomLabel,
+          prompt: assignmentMeta?.prompt || journalUnit.successCheck || journalUnit.objective,
           correct: true,
-          correctAnswer: journalUnit.successCheck || journalUnit.masteryTarget,
+          selectedAnswer: assignmentMeta?.selectedAnswer,
+          correctAnswer: assignmentMeta?.correctAnswer || journalUnit.successCheck || journalUnit.masteryTarget,
+          timeSpentMs: assignmentMeta?.timeSpentMs,
         });
       }
 
@@ -2185,79 +2198,79 @@ const App: React.FC = () => {
     }));
   };
 
-  const handleMathReward = () => {
+  const handleMathReward = (assignmentMeta?: AssignmentRewardMeta) => {
     setProgress(p => {
       const newProgress = { ...p, mathScore: p.mathScore + 1 };
       return checkAchievements(newProgress);
     });
     recordMathSkill();
-    addSticker('math');
+    addSticker('math', undefined, {}, false, assignmentMeta);
   };
 
-  const handleReadingReward = () => {
+  const handleReadingReward = (assignmentMeta?: AssignmentRewardMeta) => {
     setProgress(p => {
       const newProgress = { ...p, readingScore: p.readingScore + 1 };
       return checkAchievements(newProgress);
     });
     recordReadingSkill('sightWords');
-    addSticker('reading');
+    addSticker('reading', undefined, {}, false, assignmentMeta);
   };
 
-  const handleScienceReward = () => {
+  const handleScienceReward = (assignmentMeta?: AssignmentRewardMeta) => {
     setProgress(p => {
       const newProgress = { ...p, scienceScore: (p.scienceScore || 0) + 1 };
       return checkAchievements(newProgress);
     });
     recordSubjectSkill('scienceSkills', 5000);
-    addSticker('science');
+    addSticker('science', undefined, {}, false, assignmentMeta);
   };
 
-  const handleGeographyReward = () => {
+  const handleGeographyReward = (assignmentMeta?: AssignmentRewardMeta) => {
     setProgress(p => {
       const newProgress = { ...p, geographyScore: (p.geographyScore || 0) + 1 };
       return checkAchievements(newProgress);
     });
     recordSubjectSkill('geographySkills', 4500);
-    addSticker('geography');
+    addSticker('geography', undefined, {}, false, assignmentMeta);
   };
 
-  const handleCodingReward = () => {
+  const handleCodingReward = (assignmentMeta?: AssignmentRewardMeta) => {
     setProgress(p => {
       const newProgress = { ...p, codingScore: (p.codingScore || 0) + 1 };
       return checkAchievements(newProgress);
     });
     recordSubjectSkill('codingSkills', 6500);
-    addSticker('coding');
+    addSticker('coding', undefined, {}, false, assignmentMeta);
   };
 
-  const handleLanguageReward = () => {
+  const handleLanguageReward = (assignmentMeta?: AssignmentRewardMeta) => {
     setProgress(p => {
       const newProgress = { ...p, languageScore: (p.languageScore || 0) + 1 };
       return checkAchievements(newProgress);
     });
     recordSubjectSkill('languageSkills', 4500);
-    addSticker('language');
+    addSticker('language', undefined, {}, false, assignmentMeta);
   };
 
-  const handleStorybookReward = () => {
+  const handleStorybookReward = (assignmentMeta?: AssignmentRewardMeta) => {
     setProgress(p => {
       const newProgress = { ...p, storybookScore: (p.storybookScore || 0) + 1 };
       return checkAchievements(newProgress);
     });
     recordReadingSkill('comprehension');
-    addSticker('reading');
+    addSticker('reading', undefined, {}, false, assignmentMeta);
   };
 
-  const handleMusicReward = () => {
+  const handleMusicReward = (assignmentMeta?: AssignmentRewardMeta) => {
     setProgress(p => {
       const newProgress = { ...p, musicScore: (p.musicScore || 0) + 1 };
       return checkAchievements(newProgress);
     });
-    addSticker('music');
+    addSticker('music', undefined, {}, false, assignmentMeta);
   };
 
-  const handleCreativeReward = (subject: string) => {
-    addSticker(subject, currentRoom, {}, true);
+  const handleCreativeReward = (subject: string, assignmentMeta?: AssignmentRewardMeta) => {
+    addSticker(subject, currentRoom, {}, true, assignmentMeta);
   };
 
   const handleGameArcadeReward = (room: RoomType, gameTitle: string, gameId: string, combo: number) => {
@@ -3150,11 +3163,11 @@ const App: React.FC = () => {
       case RoomType.STORYBOOK:
         return <StoryBook level={progress.currentLevel} onBack={handleBack} onReward={handleStorybookReward} />;
       case RoomType.ART:
-        return <ArtRoom level={progress.currentLevel} onBack={handleBack} onReward={() => handleCreativeReward('art')} />;
+        return <ArtRoom level={progress.currentLevel} onBack={handleBack} onReward={(meta) => handleCreativeReward('art', meta)} />;
       case RoomType.MUSIC:
         return <MusicRoom level={progress.currentLevel} onBack={handleBack} onReward={handleMusicReward} />;
       case RoomType.PUZZLE:
-        return <PuzzleRoom level={progress.currentLevel} onBack={handleBack} onReward={() => addSticker('puzzle')} />;
+        return <PuzzleRoom level={progress.currentLevel} onBack={handleBack} onReward={(meta) => addSticker('puzzle', currentRoom, {}, false, meta)} />;
       case RoomType.HUB:
       default:
         return (

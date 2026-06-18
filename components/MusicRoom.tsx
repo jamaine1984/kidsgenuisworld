@@ -4,7 +4,7 @@ import { playNote, playSuccess, playError, playPop } from '../services/audioServ
 
 interface MusicRoomProps {
   onBack: () => void;
-  onReward: () => void;
+  onReward: (meta?: { questionId: string; skill: string; prompt: string; selectedAnswer?: string; correctAnswer?: string }) => void;
   level: number;
 }
 
@@ -136,7 +136,13 @@ export const MusicRoom: React.FC<MusicRoomProps> = ({ onBack, onReward, level })
       if (!hasFinishedPattern || isComplete) return;
       setIsComplete(true);
       playSuccess();
-      onReward();
+      onReward({
+        questionId: `music-${mission.gradeLevel}-${mission.title}`,
+        skill: tab === 'PIANO' ? 'melody and pitch' : 'rhythm and loops',
+        prompt: mission.prompt,
+        selectedAnswer: `${notesPlayed} notes, ${loopsTried} loops`,
+        correctAnswer: `${mission.noteGoal} notes or ${mission.loopGoal} loops`,
+      });
   };
 
   return (

@@ -7,7 +7,7 @@ import { pickDailyItem, shuffleDailyItems } from '../services/dailyRotation';
 interface LanguageRoomProps {
   level: number;
   onBack: () => void;
-  onReward: () => void;
+  onReward: (meta?: { questionId: string; skill: string; prompt: string; selectedAnswer?: string; correctAnswer?: string }) => void;
 }
 
 // Grade-paced language vocabulary. Translations are romanized/ASCII so cached narration and UI labels stay stable.
@@ -296,7 +296,13 @@ export const LanguageRoom: React.FC<LanguageRoomProps> = ({ level, onBack, onRew
       setScore(s => s + 1);
       setWordsLearned(prev => new Set(prev).add(currentWord.english));
       void speakCorrect(`${currentWord.translation} means ${currentWord.english}. Great job learning ${langInfo.name}.`);
-      setTimeout(() => onReward(), 2000);
+      setTimeout(() => onReward({
+        questionId: `language-${selectedLanguage}-${currentWord.category}-${currentWord.english}`,
+        skill: `${selectedLanguage} ${currentWord.category}`,
+        prompt: `Translate ${currentWord.english}`,
+        selectedAnswer: answer,
+        correctAnswer: currentWord.translation,
+      }), 2000);
     } else {
       playWrongBuzzer();
       void speakWrong(`The answer is ${currentWord.translation}. It sounds like ${currentWord.pronunciation}.`);

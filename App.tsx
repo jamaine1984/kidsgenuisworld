@@ -71,6 +71,7 @@ const GameArcade = lazy(() => import('./components/GameArcade').then(module => (
 
 const PROFILES_KEY = 'kidGeniusProfiles';
 const ACTIVE_PROFILE_KEY = 'kidGeniusActiveProfileId';
+const PROFILES_OWNER_KEY = 'kidGeniusProfilesOwner';
 const PARENT_ONBOARDED_KEY = 'kidGeniusParentOnboarded';
 const PARENT_PIN_KEY = 'kidGeniusParentPin';
 const FAMILY_ACCESS_KEY_PREFIX = 'kidGeniusFamilyAccess';
@@ -93,6 +94,7 @@ const getFamilyStorageScope = (session?: Pick<ParentCloudSession, 'signedIn' | '
 };
 const getProfilesStorageKey = (scope: string) => `${PROFILES_KEY}:${scope}`;
 const getActiveProfileStorageKey = (scope: string) => `${ACTIVE_PROFILE_KEY}:${scope}`;
+const getProfilesOwnerStorageKey = (scope: string) => `${PROFILES_OWNER_KEY}:${scope}`;
 const getProgressStorageKey = (scope: string, profileId: string) => `kidGeniusProgress:${scope}:${profileId}`;
 const getScopedStorageKey = (baseKey: string, scope: string) => `${baseKey}:${scope}`;
 const loadScopedFlag = (baseKey: string, scope: string) => (
@@ -121,6 +123,10 @@ const ensureOwnerStarterProfiles = (profiles: ChildProfile[]): ChildProfile[] =>
 };
 const hasOwnerStarterProfiles = (profiles: ChildProfile[]) =>
   OWNER_STARTER_PROFILES.every(seed => profiles.some(profile => profile.id === seed.id));
+const hasAnyOwnerStarterProfile = (profiles: ChildProfile[]) => {
+  const ownerProfileIds = new Set(OWNER_STARTER_PROFILES.map(profile => profile.id));
+  return profiles.some(profile => ownerProfileIds.has(profile.id));
+};
 
 interface LearningReflection {
   roomLabel: string;
@@ -432,16 +438,35 @@ const getStoredProfiles = (scope: string): ChildProfile[] | null => {
   }
 };
 
-const getLegacyProfilesForMigration = (): ChildProfile[] | null => {
-  try {
-    const saved = localStorage.getItem(PROFILES_KEY);
-    const profiles = saved ? JSON.parse(saved) : null;
-    if (!Array.isArray(profiles) || profiles.length === 0) return null;
-    const hasRealChildProfile = profiles.some(profile => profile.id !== 'default' || profile.name !== 'Learner');
-    return hasRealChildProfile ? profiles : null;
-  } catch {
-    return null;
+const resetProfilesForScope = (scope: string): ChildProfile[] => {
+  localStorage.removeItem(getProfilesStorageKey(scope));
+  localStorage.removeItem(getActiveProfileStorageKey(scope));
+  return loadProfiles(scope);
+};
+
+const sanitizeProfilesForParentScope = (
+  scope: string,
+  profiles: ChildProfile[],
+  session: ParentCloudSession
+) => {
+  if (scope === 'guest' || !session.signedIn) {
+    return profiles;
   }
+
+  const normalizedEmail = normalizeParentEmail(session.email);
+  const savedOwner = localStorage.getItem(getProfilesOwnerStorageKey(scope));
+  const belongsToDifferentParent = Boolean(savedOwner && savedOwner !== normalizedEmail);
+  const hasOwnerProfilesInNonOwnerAccount = !isOwnerParentEmail(session.email) && hasAnyOwnerStarterProfile(profiles);
+
+  if (belongsToDifferentParent || hasOwnerProfilesInNonOwnerAccount) {
+    profiles.forEach(profile => {
+      localStorage.removeItem(getProgressStorageKey(scope, profile.id));
+    });
+    return resetProfilesForScope(scope);
+  }
+
+  localStorage.setItem(getProfilesOwnerStorageKey(scope), normalizedEmail || session.uid || scope);
+  return profiles;
 };
 
 const loadProgressForProfile = (profile: ChildProfile, scope = 'guest'): UserProgress => {
@@ -857,11 +882,17 @@ const App: React.FC = () => {
   useEffect(() => {
     localStorage.setItem(getProfilesStorageKey(profileStorageScope), JSON.stringify(profiles));
     localStorage.setItem(getActiveProfileStorageKey(profileStorageScope), activeProfileId);
+    if (profileStorageScope !== 'guest' && parentCloudSession.signedIn) {
+      localStorage.setItem(
+        getProfilesOwnerStorageKey(profileStorageScope),
+        normalizeParentEmail(parentCloudSession.email) || parentCloudSession.uid || profileStorageScope
+      );
+    }
     if (profileStorageScope === 'guest') {
       localStorage.setItem(PROFILES_KEY, JSON.stringify(profiles));
       localStorage.setItem(ACTIVE_PROFILE_KEY, activeProfileId);
     }
-  }, [profiles, activeProfileId, profileStorageScope]);
+  }, [profiles, activeProfileId, profileStorageScope, parentCloudSession.signedIn, parentCloudSession.email, parentCloudSession.uid]);
 
   useEffect(() => {
     const privacy = progress.privacy || DEFAULT_PRIVACY_SETTINGS;
@@ -912,23 +943,11 @@ const App: React.FC = () => {
 
     localStorage.setItem(getProgressStorageKey(profileStorageScope, activeProfileId), JSON.stringify(progress));
     const storedScopedProfiles = getStoredProfiles(nextScope);
-    const migratedProfiles = !storedScopedProfiles && nextScope !== 'guest'
-      ? getLegacyProfilesForMigration()
-      : null;
-    const scopedProfiles = storedScopedProfiles || migratedProfiles || loadProfiles(nextScope);
-    if (migratedProfiles) {
-      localStorage.setItem(getProfilesStorageKey(nextScope), JSON.stringify(migratedProfiles));
-      const legacyActiveId = localStorage.getItem(ACTIVE_PROFILE_KEY) || migratedProfiles[0]?.id;
-      if (legacyActiveId) {
-        localStorage.setItem(getActiveProfileStorageKey(nextScope), legacyActiveId);
-      }
-      migratedProfiles.forEach(profile => {
-        const legacyProgress = localStorage.getItem(`kidGeniusProgress:${profile.id}`);
-        if (legacyProgress) {
-          localStorage.setItem(getProgressStorageKey(nextScope, profile.id), legacyProgress);
-        }
-      });
-    }
+    const scopedProfiles = sanitizeProfilesForParentScope(
+      nextScope,
+      storedScopedProfiles || loadProfiles(nextScope),
+      parentCloudSession
+    );
     const legacyParentOnboarded = nextScope !== 'guest' && localStorage.getItem(PARENT_ONBOARDED_KEY) === 'true';
     if (legacyParentOnboarded && !loadScopedFlag(PARENT_ONBOARDED_KEY, nextScope)) {
       localStorage.setItem(getScopedStorageKey(PARENT_ONBOARDED_KEY, nextScope), 'true');

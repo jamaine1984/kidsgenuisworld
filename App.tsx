@@ -1245,6 +1245,10 @@ const App: React.FC = () => {
   }, [progress.currentGrade, progress.accessibility, currentRoom]);
 
   useEffect(() => {
+    setShowMissionFocus(false);
+  }, [currentRoom, activeUnitId, showLessonIntro]);
+
+  useEffect(() => {
     if (!hasStarted) {
       return;
     }

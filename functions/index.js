@@ -51,8 +51,16 @@ const getStripe = () => {
   return new Stripe(secretKey, { apiVersion: '2025-11-17.clover' });
 };
 
+const VALID_BILLING_PLANS = new Set(['starter', 'premium', 'checkout_test']);
+
+const normalizeBillingPlan = (plan) => (VALID_BILLING_PLANS.has(plan) ? plan : 'starter');
+
 const getConfiguredPriceId = (plan) => {
-  const envName = plan === 'premium' ? 'STRIPE_PREMIUM_PRICE_ID' : 'STRIPE_STARTER_PRICE_ID';
+  const envName = plan === 'premium'
+    ? 'STRIPE_PREMIUM_PRICE_ID'
+    : plan === 'checkout_test'
+      ? 'STRIPE_TEST_PRICE_ID'
+      : 'STRIPE_STARTER_PRICE_ID';
   const priceId = getEnv(envName);
   if (!priceId) {
     throw publicError(`Stripe ${plan} monthly subscription Price ID is not configured.`, 503);
@@ -61,14 +69,16 @@ const getConfiguredPriceId = (plan) => {
 };
 
 const identifyPlanFromPrice = (subscription, priceId) => {
-  if (subscription.metadata?.plan === 'premium' || subscription.metadata?.plan === 'starter') {
+  if (VALID_BILLING_PLANS.has(subscription.metadata?.plan)) {
     return subscription.metadata.plan;
   }
 
   const premiumId = getEnv('STRIPE_PREMIUM_PRICE_ID');
   const starterId = getEnv('STRIPE_STARTER_PRICE_ID');
+  const testId = getEnv('STRIPE_TEST_PRICE_ID');
   if (premiumId && priceId === premiumId) return 'premium';
   if (starterId && priceId === starterId) return 'starter';
+  if (testId && priceId === testId) return 'checkout_test';
   return 'starter';
 };
 
@@ -476,7 +486,9 @@ export const billingCheckout = onRequest(functionOptions, async (req, res) => {
     const parent = await verifyParent(req);
     const familyId = getVerifiedFamilyId(req, parent);
     const returnUrl = safeReturnUrl(req, req.body?.returnUrl);
-    if (isCompedParent(parent)) {
+    const requestedPlan = normalizeBillingPlan(req.body?.plan);
+    const isCheckoutTestPlan = requestedPlan === 'checkout_test';
+    if (isCompedParent(parent) && !isCheckoutTestPlan) {
       await persistCompedBillingSnapshot(parent, familyId);
       return sendJson(res, 200, {
         url: `${returnUrl}/?billing=success`,
@@ -484,7 +496,6 @@ export const billingCheckout = onRequest(functionOptions, async (req, res) => {
       });
     }
 
-    const requestedPlan = req.body?.plan === 'premium' ? 'premium' : 'starter';
     const priceId = getConfiguredPriceId(requestedPlan);
 
     const stripe = getStripe();
@@ -500,15 +511,18 @@ export const billingCheckout = onRequest(functionOptions, async (req, res) => {
       metadata: {
         firebase_uid: parent.uid,
         family_id: familyId,
-        trial_days: '3',
+        trial_days: isCheckoutTestPlan ? '0' : '3',
+        plan: requestedPlan,
+        temporary_checkout_test: isCheckoutTestPlan ? 'true' : 'false',
       },
       subscription_data: {
-        trial_period_days: 3,
+        ...(isCheckoutTestPlan ? {} : { trial_period_days: 3 }),
         metadata: {
           firebase_uid: parent.uid,
           family_id: familyId,
           plan: requestedPlan,
-          trial_days: '3',
+          trial_days: isCheckoutTestPlan ? '0' : '3',
+          temporary_checkout_test: isCheckoutTestPlan ? 'true' : 'false',
         },
       },
     });

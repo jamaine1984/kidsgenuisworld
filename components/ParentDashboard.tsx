@@ -33,10 +33,11 @@ import {
   getTeacherGradebookRows,
 } from '../services/schoolMode';
 import { clearDiagnosticEvents, exportDiagnosticEvents, getDiagnosticEvents } from '../services/diagnosticsService';
+import type { StripeBillingPlan } from '../services/stripeBilling';
 
 interface BillingAccessSummary {
   billingAccessActive?: boolean;
-  plan?: 'starter' | 'premium';
+  plan?: StripeBillingPlan;
   stripeStatus?: string;
   accessSource?: 'stripe' | 'owner_comped';
   comped?: boolean;
@@ -76,7 +77,7 @@ interface ParentDashboardProps {
   onSignInParentWithGoogle?: () => Promise<void>;
   onSignOutParentAccount?: () => Promise<void>;
   onSyncProgressToCloud?: () => Promise<void>;
-  onStartStripeCheckout?: (plan: 'starter' | 'premium') => Promise<void>;
+  onStartStripeCheckout?: (plan: StripeBillingPlan) => Promise<void>;
   onOpenStripeBillingPortal?: () => Promise<void>;
   onRefreshBillingAccess?: () => Promise<void>;
   billingStatus?: string;
@@ -103,7 +104,9 @@ const formatStripeEventType = (eventType?: string) => (
 );
 
 const getDashboardBillingSummary = (billingAccess?: BillingAccessSummary) => {
-  const planLabel = billingAccess?.plan === 'premium'
+  const planLabel = billingAccess?.plan === 'checkout_test'
+    ? 'Checkout Test $0.50/mo'
+    : billingAccess?.plan === 'premium'
     ? 'Premium $9.99/mo'
     : billingAccess?.plan === 'starter'
       ? 'Starter $4.99/mo'
@@ -2909,13 +2912,13 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                         <div className="rounded-xl border border-indigo-100 bg-indigo-50 p-3">
                           <p className="text-xs font-black uppercase tracking-[0.12em] text-indigo-700">Premium</p>
                           <p className="mt-1 text-lg font-black text-slate-950">$9.99/mo</p>
-                          <p className="mt-1 text-xs font-bold text-slate-600">Same child-safe access, optional support for faster books, voices, and lesson production.</p>
+                          <p className="mt-1 text-xs font-bold text-slate-600">Everything in Starter plus expanded parent reports, early book packs, priority content drops, and support priority.</p>
                         </div>
                       </div>
                       <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
                         <p className="text-xs font-black uppercase tracking-[0.12em] text-slate-600">Plan clarity</p>
                         <p className="mt-1 text-xs font-bold text-slate-700">
-                          Premium helps fund curriculum and media growth. No child-facing learning room is hidden behind a surprise upsell at launch.
+                          Starter unlocks the full school app for one family. Premium adds parent-facing reporting and early content benefits; no child-facing learning room is hidden behind a surprise upsell at launch.
                         </p>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -2940,6 +2943,23 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                         >
                           <CreditCard size={18} />
                           Start $9.99/mo
+                        </button>
+                      </div>
+                      <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
+                        <p className="text-xs font-black uppercase tracking-[0.12em] text-amber-700">Owner checkout test</p>
+                        <p className="mt-1 text-xs font-bold text-amber-900">
+                          Temporary live Stripe test. Charges $0.50 today, creates a real invoice, then can be canceled in Stripe before the next renewal.
+                        </p>
+                        <button
+                          onClick={() => runBillingAction(
+                            () => onStartStripeCheckout?.('checkout_test') || Promise.resolve(),
+                            'Stripe $0.50 test checkout could not be opened.'
+                          )}
+                          disabled={isBillingBusy}
+                          className="mt-3 w-full py-3 rounded-lg bg-amber-400 text-slate-950 font-semibold hover:bg-amber-300 disabled:bg-gray-200 disabled:text-gray-500 transition flex items-center justify-center gap-2"
+                        >
+                          <CreditCard size={18} />
+                          Start $0.50 Test Checkout
                         </button>
                       </div>
                     </div>

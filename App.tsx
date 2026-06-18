@@ -43,7 +43,7 @@ import {
   type ParentCloudSession,
 } from './services/firebaseParentAuth';
 import { loadFamilyProgressFromFirebase, syncProgressToFirebase, type CloudChildProgressSnapshot } from './services/firebaseProgressStore';
-import { createStripeCheckoutUrl, getStripeBillingAccess, openStripeBillingPortal } from './services/stripeBilling';
+import { createStripeCheckoutUrl, getStripeBillingAccess, openStripeBillingPortal, type StripeBillingPlan } from './services/stripeBilling';
 import { getAchievementProgress } from './services/achievements';
 import { logDiagnosticEvent } from './services/diagnosticsService';
 import {
@@ -143,7 +143,7 @@ interface LearningReflectionOverride {
 interface FamilyAccessRecord {
   familyId: string;
   billingAccessActive: boolean;
-  plan?: 'starter' | 'premium';
+  plan?: StripeBillingPlan;
   stripeStatus?: string;
   accessSource?: 'stripe' | 'owner_comped';
   comped?: boolean;
@@ -182,12 +182,13 @@ const ACCESS_GATE_TRUST_POINTS = [
 ];
 
 const SUBSCRIPTION_PLANS: Array<{
-  id: 'starter' | 'premium';
+  id: StripeBillingPlan;
   label: string;
   price: string;
   badge: string;
   description: string;
   highlights: string[];
+  temporary?: boolean;
 }> = [
   {
     id: 'starter',
@@ -198,7 +199,7 @@ const SUBSCRIPTION_PLANS: Array<{
     highlights: [
       'Full school campus, Story Time, and Game Arcade',
       'Saved teacher narration and story covers',
-      'Parent dashboard, gradebook, and progress export',
+      'Core parent dashboard, gradebook, and progress export',
     ],
   },
   {
@@ -206,12 +207,25 @@ const SUBSCRIPTION_PLANS: Array<{
     label: 'Premium',
     price: '$9.99',
     badge: 'Build with us',
-    description: 'Optional higher-support plan for families who want to help grow the curriculum library faster.',
+    description: 'Best parent toolkit with deeper reporting, priority content drops, and early access learning packs.',
     highlights: [
-      'Full app access with the same child-safe learning rooms',
+      'Everything in Starter plus expanded weekly and monthly reports',
+      'Priority access to new books, voices, and seasonal lesson packs',
       'Best choice for families using multiple child profiles',
-      'Helps fund new static voices, books, and lesson packs',
     ],
+  },
+  {
+    id: 'checkout_test',
+    label: 'Checkout Test',
+    price: '$0.50',
+    badge: 'Temporary',
+    description: 'Owner-only live Stripe verification charge. This plan will be removed after checkout testing.',
+    highlights: [
+      'Charges immediately so payment and invoice can be verified',
+      'Confirms Firebase webhook subscription unlock',
+      'Cancel in Stripe to stop the next monthly renewal',
+    ],
+    temporary: true,
   },
 ];
 
@@ -578,7 +592,13 @@ const formatBillingDate = (timestamp?: number) => {
 };
 
 const getBillingAccessSummary = (access?: FamilyAccessRecord | null) => {
-  const planLabel = access?.plan === 'premium' ? 'Premium $9.99/mo' : access?.plan === 'starter' ? 'Starter $4.99/mo' : 'Plan not selected';
+  const planLabel = access?.plan === 'checkout_test'
+    ? 'Checkout Test $0.50/mo'
+    : access?.plan === 'premium'
+      ? 'Premium $9.99/mo'
+      : access?.plan === 'starter'
+        ? 'Starter $4.99/mo'
+        : 'Plan not selected';
   if (access?.accessSource === 'owner_comped' || access?.comped || access?.stripeStatus === 'owner_comped') {
     return {
       tone: 'success' as const,
@@ -1302,8 +1322,10 @@ const App: React.FC = () => {
   };
 
   // Start Screen to unlock AudioContext
-  const handleStart = async () => {
-    await resumeAudioContext();
+  const handleStart = () => {
+    resumeAudioContext().catch(error => {
+      logDiagnosticEvent('warn', 'audio-start-resume', 'Audio context could not be resumed from Start Adventure.', error);
+    });
     setHasStarted(true);
     setShowParentWelcome(true);
     setShowGradeSelection(false);
@@ -1532,7 +1554,7 @@ const App: React.FC = () => {
     await syncActiveProgressToCloud('manual');
   };
 
-  const handleStartStripeCheckout = async (plan: 'starter' | 'premium') => {
+  const handleStartStripeCheckout = async (plan: StripeBillingPlan) => {
     if (!parentCloudSession.signedIn) {
       setBillingStatus('Sign in with a parent Firebase account before opening Stripe checkout.');
       setAccessGateStatus('Sign in or create a parent account first. Then choose a plan to start the 3-day trial.');
@@ -1549,8 +1571,13 @@ const App: React.FC = () => {
     }
 
     setStripeCheckoutUrl('');
-    setBillingStatus(`Opening secure Stripe ${plan === 'premium' ? '$9.99' : '$4.99'} monthly checkout with a 3-day trial...`);
-    setAccessGateStatus(`Creating secure Stripe checkout for the ${plan === 'premium' ? '$9.99' : '$4.99'} monthly plan...`);
+    const checkoutLabel = plan === 'checkout_test'
+      ? '$0.50 test checkout'
+      : plan === 'premium'
+        ? '$9.99 monthly checkout with a 3-day trial'
+        : '$4.99 monthly checkout with a 3-day trial';
+    setBillingStatus(`Opening secure Stripe ${checkoutLabel}...`);
+    setAccessGateStatus(`Creating secure Stripe checkout for the ${checkoutLabel}...`);
     try {
       const checkoutUrl = await createStripeCheckoutUrl(parentCloudSession, plan);
       setStripeCheckoutUrl(checkoutUrl);
@@ -3315,7 +3342,7 @@ const App: React.FC = () => {
                       <p className="font-black">Choose the trial plan</p>
                     </div>
                     <p className="mt-2 text-sm font-semibold text-indigo-900">
-                      Stripe starts a 3-day free trial now. The monthly plan begins after the trial unless the parent cancels in Stripe.
+                      Starter and Premium start a 3-day free trial now. The temporary checkout test charges $0.50 today so we can verify live Stripe invoices and webhooks.
                     </p>
                   </div>
                   <div className="rounded-2xl bg-white px-3 py-2 text-center shadow-sm">
@@ -3324,9 +3351,10 @@ const App: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="mt-4 grid gap-3 md:grid-cols-2">
+                <div className="mt-4 grid gap-3 md:grid-cols-3">
                   {SUBSCRIPTION_PLANS.map(plan => {
                     const isPremium = plan.id === 'premium';
+                    const isTemporary = Boolean(plan.temporary);
                     return (
                       <button
                         key={plan.id}
@@ -3334,29 +3362,33 @@ const App: React.FC = () => {
                         disabled={!parentCloudSession.signedIn}
                         aria-label={`Choose ${plan.label} plan`}
                         className={`rounded-[22px] p-4 text-left shadow-lg ring-2 transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60 ${
-                          isPremium
-                            ? 'bg-slate-950 text-white ring-indigo-200 hover:ring-indigo-400'
-                            : 'bg-white text-slate-900 ring-indigo-100 hover:ring-indigo-300'
+                          isTemporary
+                            ? 'bg-amber-50 text-slate-950 ring-amber-200 hover:ring-amber-400'
+                            : isPremium
+                              ? 'bg-slate-950 text-white ring-indigo-200 hover:ring-indigo-400'
+                              : 'bg-white text-slate-900 ring-indigo-100 hover:ring-indigo-300'
                         }`}
                       >
                         <div className="flex items-start justify-between gap-2">
                           <div>
-                            <p className={`text-xs font-black uppercase tracking-[0.14em] ${isPremium ? 'text-sky-200' : 'text-indigo-600'}`}>{plan.label}</p>
+                            <p className={`text-xs font-black uppercase tracking-[0.14em] ${isTemporary ? 'text-amber-700' : isPremium ? 'text-sky-200' : 'text-indigo-600'}`}>{plan.label}</p>
                             <p className="mt-1 text-3xl font-black">{plan.price}</p>
-                            <p className={`text-xs font-bold ${isPremium ? 'text-slate-300' : 'text-slate-500'}`}>per month after 3 days</p>
+                            <p className={`text-xs font-bold ${isTemporary ? 'text-amber-800' : isPremium ? 'text-slate-300' : 'text-slate-500'}`}>
+                              {isTemporary ? 'charged today for testing' : 'per month after 3 days'}
+                            </p>
                           </div>
                           <span className={`rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-[0.1em] ${
-                            isPremium ? 'bg-sky-200 text-slate-950' : 'bg-indigo-100 text-indigo-700'
+                            isTemporary ? 'bg-amber-200 text-amber-950' : isPremium ? 'bg-sky-200 text-slate-950' : 'bg-indigo-100 text-indigo-700'
                           }`}>
                             {plan.badge}
                           </span>
                         </div>
-                        <p className={`mt-3 text-sm font-bold ${isPremium ? 'text-slate-200' : 'text-slate-700'}`}>{plan.description}</p>
+                        <p className={`mt-3 text-sm font-bold ${isTemporary ? 'text-amber-950' : isPremium ? 'text-slate-200' : 'text-slate-700'}`}>{plan.description}</p>
                         <div className="mt-3 space-y-2">
                           {plan.highlights.map(item => (
                             <div key={item} className="flex items-start gap-2">
-                              <CheckCircle2 size={15} className={`mt-0.5 shrink-0 ${isPremium ? 'text-emerald-200' : 'text-emerald-600'}`} />
-                              <p className={`text-xs font-bold ${isPremium ? 'text-slate-200' : 'text-slate-700'}`}>{item}</p>
+                              <CheckCircle2 size={15} className={`mt-0.5 shrink-0 ${isTemporary ? 'text-amber-600' : isPremium ? 'text-emerald-200' : 'text-emerald-600'}`} />
+                              <p className={`text-xs font-bold ${isTemporary ? 'text-amber-950' : isPremium ? 'text-slate-200' : 'text-slate-700'}`}>{item}</p>
                             </div>
                           ))}
                         </div>
@@ -3368,7 +3400,7 @@ const App: React.FC = () => {
                 <div className="mt-4 rounded-2xl border border-indigo-200 bg-white/80 p-3">
                   <p className="text-xs font-black uppercase tracking-[0.14em] text-indigo-700">Transparent launch pricing</p>
                   <p className="mt-1 text-sm font-bold text-indigo-950">
-                    The child app access is the same in both launch plans. Premium is optional and supports faster books, voices, and lesson production; no child-facing feature is hidden behind surprise upsells.
+                    Starter unlocks the full school app for one family. Premium adds priority curriculum drops, expanded parent reports, early access to new book packs, and support priority while keeping kids out of billing screens.
                   </p>
                 </div>
 

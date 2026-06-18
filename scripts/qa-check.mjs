@@ -225,11 +225,11 @@ if (
   appSource.includes('future premium') ||
   appSource.includes('Intended tier for future premium content') ||
   !appSource.includes('Transparent launch pricing') ||
-  !appSource.includes('Premium is optional and supports faster books, voices, and lesson production') ||
-  !appSource.includes('no child-facing feature is hidden behind surprise upsells') ||
+  !appSource.includes('Premium adds priority curriculum drops, expanded parent reports, early access to new book packs, and support priority') ||
+  !appSource.includes('keeping kids out of billing screens') ||
   !parentDashboardSource.includes('Plan clarity') ||
-  !parentDashboardSource.includes('Same child-safe access, optional support for faster books, voices, and lesson production') ||
-  !parentDashboardSource.includes('No child-facing learning room is hidden behind a surprise upsell at launch')
+  !parentDashboardSource.includes('expanded parent reports, early book packs, priority content drops, and support priority') ||
+  !parentDashboardSource.includes('no child-facing learning room is hidden behind a surprise upsell at launch')
 ) {
   fail('Launch subscription plan copy must be transparent and avoid unfinished premium promises.');
 }

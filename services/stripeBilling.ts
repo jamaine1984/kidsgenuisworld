@@ -1,5 +1,7 @@
 import { getCurrentParentIdToken, type ParentCloudSession } from './firebaseParentAuth';
 
+export type StripeBillingPlan = 'starter' | 'premium' | 'checkout_test';
+
 const getBillingApiBaseUrl = () => {
   const configured = import.meta.env.VITE_BILLING_API_BASE_URL || '';
 
@@ -22,7 +24,7 @@ const parseBillingResponse = async (response: Response) => {
     error?: string;
     active?: boolean;
     status?: string;
-    plan?: 'starter' | 'premium';
+    plan?: StripeBillingPlan;
     accessSource?: 'stripe' | 'owner_comped';
     billingAccessActive?: boolean;
     comped?: boolean;
@@ -42,7 +44,7 @@ const parseBillingResponse = async (response: Response) => {
 const postBillingRequest = async (
   path: '/api/billing/checkout' | '/api/billing/portal',
   cloudSession: ParentCloudSession,
-  plan?: 'starter' | 'premium'
+  plan?: StripeBillingPlan
 ) => {
   if (!cloudSession.signedIn || !cloudSession.uid) {
     throw new Error('Sign in with a parent account before opening billing.');
@@ -115,12 +117,12 @@ export const getStripeBillingAccess = async (cloudSession: ParentCloudSession) =
 
 export const createStripeCheckoutUrl = async (
   cloudSession: ParentCloudSession,
-  plan: 'starter' | 'premium' = 'starter'
+  plan: StripeBillingPlan = 'starter'
 ) => postBillingRequest('/api/billing/checkout', cloudSession, plan);
 
 export const openStripeCheckout = async (
   cloudSession: ParentCloudSession,
-  plan: 'starter' | 'premium' = 'starter'
+  plan: StripeBillingPlan = 'starter'
 ) => {
   window.location.assign(await createStripeCheckoutUrl(cloudSession, plan));
 };

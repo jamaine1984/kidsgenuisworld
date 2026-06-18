@@ -947,6 +947,11 @@ export const CodingRoom: React.FC<CodingRoomProps> = ({ level, onBack, onReward 
   const [won, setWon] = useState(false);
   const [score, setScore] = useState(0);
   const [coachTip, setCoachTip] = useState('');
+  const [runFeedback, setRunFeedback] = useState<{
+    status: 'success' | 'retry';
+    title: string;
+    detail: string;
+  } | null>(null);
   const hasAnnouncedFirstChallenge = useRef(false);
 
   const codingTip = useMemo(() => {
@@ -998,6 +1003,7 @@ export const CodingRoom: React.FC<CodingRoomProps> = ({ level, onBack, onReward 
     setPath([]);
     setWon(false);
     setCode([]);
+    setRunFeedback(null);
   };
 
   const addBlock = (block: CodeBlock) => {
@@ -1026,6 +1032,7 @@ export const CodingRoom: React.FC<CodingRoomProps> = ({ level, onBack, onReward 
 
     setIsRunning(true);
     setPath([]);
+    setRunFeedback(null);
 
     let pos = { ...challenge.startPos };
     const newPath: { x: number; y: number }[] = [{ x: pos.x, y: pos.y }];
@@ -1094,6 +1101,11 @@ export const CodingRoom: React.FC<CodingRoomProps> = ({ level, onBack, onReward 
     if (pos.x === challenge.goalPos.x && pos.y === challenge.goalPos.y) {
       setWon(true);
       setScore(s => s + 1);
+      setRunFeedback({
+        status: 'success',
+        title: 'Program reached the star.',
+        detail: `Your code used ${code.length} block${code.length === 1 ? '' : 's'}. ${challenge.hint}`,
+      });
       playSuccess();
       void speakCorrect("You solved it. You are becoming a real programmer.");
       onReward({
@@ -1104,6 +1116,11 @@ export const CodingRoom: React.FC<CodingRoomProps> = ({ level, onBack, onReward 
         correctAnswer: challenge.hint,
       });
     } else {
+      setRunFeedback({
+        status: 'retry',
+        title: 'Debug the path.',
+        detail: `${stepCoach.facing} ${stepCoach.axisHint} ${challenge.hint}`,
+      });
       playWrongBuzzer();
       void speakWrong("The robot did not reach the star. Try a different path.");
     }
@@ -1120,6 +1137,7 @@ export const CodingRoom: React.FC<CodingRoomProps> = ({ level, onBack, onReward 
     setPath([]);
     setWon(false);
     setCode([]);
+    setRunFeedback(null);
   };
 
   useEffect(() => {
@@ -1130,6 +1148,7 @@ export const CodingRoom: React.FC<CodingRoomProps> = ({ level, onBack, onReward 
     setPath([]);
     setWon(false);
     setCode([]);
+    setRunFeedback(null);
   }, [dailyChallengeIndex, level]);
 
   const getDirectionRotation = (direction: string) => {
@@ -1323,6 +1342,23 @@ export const CodingRoom: React.FC<CodingRoomProps> = ({ level, onBack, onReward 
               {isRunning ? 'Running...' : 'Run Code'}
             </button>
           </div>
+
+          {runFeedback && (
+            <div className={`rounded-2xl border-2 p-4 shadow-lg ${
+              runFeedback.status === 'success'
+                ? 'border-emerald-200 bg-emerald-50 text-emerald-900'
+                : 'border-orange-200 bg-orange-50 text-orange-900'
+            }`}>
+              <div className="text-xs font-black uppercase tracking-[0.18em]">
+                Teacher Check
+              </div>
+              <div className="mt-1 text-lg font-black">{runFeedback.title}</div>
+              <p className="mt-2 text-sm font-semibold text-slate-700">{runFeedback.detail}</p>
+              <div className="mt-3 rounded-xl bg-white/85 p-3 text-xs font-bold text-slate-600 shadow-sm">
+                Code plan: {code.length ? code.map((block, index) => `${index + 1}. ${block.label}`).join(' | ') : 'No blocks in the tray.'}
+              </div>
+            </div>
+          )}
 
           {/* Challenge Progress */}
           <div className="bg-white/95 rounded-2xl p-3 shadow-lg ring-1 ring-white/60">

@@ -1022,6 +1022,12 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
   const [quizIndex, setQuizIndex] = useState(0);
   const [quizCorrectCount, setQuizCorrectCount] = useState(0);
   const [quizFeedback, setQuizFeedback] = useState('');
+  const [quizTeacherCheck, setQuizTeacherCheck] = useState<{
+    status: 'correct' | 'wrong';
+    selectedAnswer: string;
+    correctAnswer: string;
+    detail: string;
+  } | null>(null);
 
   useEffect(() => {
     const handleNarrationStatus = (event: Event) => {
@@ -1047,6 +1053,7 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
     setQuizIndex(0);
     setQuizCorrectCount(0);
     setQuizFeedback('');
+    setQuizTeacherCheck(null);
   };
 
   const startStoryQuiz = async () => {
@@ -1056,6 +1063,7 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
     setQuizIndex(0);
     setQuizCorrectCount(0);
     setQuizFeedback('');
+    setQuizTeacherCheck(null);
     setMode('quiz');
     await speakAsync(`Story check. Answer ${questions.length} questions, then I will guide you to the next book.`, 0.78, 1.02, 'story');
     if (questions[0]) {
@@ -1084,6 +1092,7 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
       setCurrentPage(0);
       setMode('select');
       setQuizFeedback('');
+      setQuizTeacherCheck(null);
     }, 1200);
   };
 
@@ -1094,6 +1103,14 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
     const nextCorrectCount = quizCorrectCount + (correct ? 1 : 0);
     setQuizCorrectCount(nextCorrectCount);
     setQuizFeedback(correct ? 'Correct. Nice evidence.' : `Good try. The best answer is: ${question.answer}`);
+    setQuizTeacherCheck({
+      status: correct ? 'correct' : 'wrong',
+      selectedAnswer: answer,
+      correctAnswer: question.answer,
+      detail: correct
+        ? 'You used the story clue correctly.'
+        : 'Go back to the story clue and compare the answer choices.',
+    });
     void (correct
       ? speakAsync('Correct. Nice evidence.', 0.78, 1.02, 'story')
       : speakAsync(`Good try. The best answer is ${question.answer}.`, 0.78, 1.02, 'story'));
@@ -1106,6 +1123,7 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
       }
       setQuizIndex(nextIndex);
       setQuizFeedback('');
+      setQuizTeacherCheck(null);
       const nextQuestion = quizQuestions[nextIndex];
       void speakAsync(`${nextQuestion.question} ${nextQuestion.options.map((option, index) => `${String.fromCharCode(65 + index)}. ${option}`).join('. ')}`, 0.78, 1.02, 'story');
     }, 1100);
@@ -1348,12 +1366,30 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
               ))}
             </div>
 
-            {quizFeedback && (
-              <div className={`mt-5 flex items-start gap-3 rounded-2xl p-4 text-sm font-black ${
-                quizFeedback.startsWith('Correct') ? 'bg-emerald-50 text-emerald-900' : 'bg-rose-50 text-rose-900'
+            {quizTeacherCheck && (
+              <div className={`mt-5 rounded-2xl border-2 p-4 ${
+                quizTeacherCheck.status === 'correct'
+                  ? 'border-emerald-200 bg-emerald-50 text-emerald-900'
+                  : 'border-rose-200 bg-rose-50 text-rose-900'
               }`}>
-                {quizFeedback.startsWith('Correct') ? <CheckCircle2 className="shrink-0" /> : <XCircle className="shrink-0" />}
-                <p>{quizFeedback}</p>
+                <div className="flex items-start gap-3">
+                  {quizTeacherCheck.status === 'correct' ? <CheckCircle2 className="shrink-0" /> : <XCircle className="shrink-0" />}
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs font-black uppercase tracking-[0.16em]">
+                      Teacher Check
+                    </div>
+                    <p className="mt-1 text-sm font-black">{quizFeedback}</p>
+                    <div className="mt-3 grid gap-2 text-sm font-bold text-slate-700 sm:grid-cols-2">
+                      <div className="rounded-xl bg-white/85 p-3 shadow-sm">
+                        Your answer: {quizTeacherCheck.selectedAnswer}
+                      </div>
+                      <div className="rounded-xl bg-white/85 p-3 shadow-sm">
+                        Correct answer: {quizTeacherCheck.correctAnswer}
+                      </div>
+                    </div>
+                    <p className="mt-3 text-sm font-semibold text-slate-700">{quizTeacherCheck.detail}</p>
+                  </div>
+                </div>
               </div>
             )}
 

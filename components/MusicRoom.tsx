@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, CheckCircle2, Disc, Piano, Speaker } from 'lucide-react';
-import { playNote, playSuccess, playError, playPop } from '../services/audioService';
+import { playNote, playSuccess, playError, playPop, speakAsync } from '../services/audioService';
 
 interface MusicRoomProps {
   onBack: () => void;
@@ -57,6 +57,7 @@ export const MusicRoom: React.FC<MusicRoomProps> = ({ onBack, onReward, level })
   const [notesPlayed, setNotesPlayed] = useState(0);
   const [loopsTried, setLoopsTried] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
+  const [teacherFeedback, setTeacherFeedback] = useState('Play notes or loops until the mission board says ready. Then finish the music mission for a teacher check.');
   
   // DJ State
   const [activeLoops, setActiveLoops] = useState<number[]>([]);
@@ -93,7 +94,13 @@ export const MusicRoom: React.FC<MusicRoomProps> = ({ onBack, onReward, level })
 
   const handleNoteClick = (id: number) => {
       setActiveNote(id);
-      setNotesPlayed(count => count + 1);
+      setNotesPlayed(count => {
+        const next = count + 1;
+        if (next === mission.noteGoal) {
+          setTeacherFeedback(`Teacher Check: melody goal reached. You played ${next} notes for ${mission.title}.`);
+        }
+        return next;
+      });
       playNote(notes[id].freq, getOscType(), 0.5);
       setTimeout(() => setActiveNote(null), 200);
   };
@@ -109,7 +116,13 @@ export const MusicRoom: React.FC<MusicRoomProps> = ({ onBack, onReward, level })
       } else {
           // Start
           setActiveLoops(prev => [...prev, padId]);
-          setLoopsTried(count => count + 1);
+          setLoopsTried(count => {
+            const next = count + 1;
+            if (next === mission.loopGoal) {
+              setTeacherFeedback(`Teacher Check: rhythm goal reached. You tried ${next} loops for ${mission.title}.`);
+            }
+            return next;
+          });
           const pad = djPads.find(p => p.id === padId);
           if (pad) {
              // Play immediately
@@ -136,6 +149,9 @@ export const MusicRoom: React.FC<MusicRoomProps> = ({ onBack, onReward, level })
       if (!hasFinishedPattern || isComplete) return;
       setIsComplete(true);
       playSuccess();
+      const feedback = `Teacher Check: music mission complete. You used ${notesPlayed} notes and ${loopsTried} loops. Next, try a new sound pattern with a clear beginning, middle, and ending.`;
+      setTeacherFeedback(feedback);
+      void speakAsync(feedback, 0.86, 1.02);
       onReward({
         questionId: `music-${mission.gradeLevel}-${mission.title}`,
         skill: tab === 'PIANO' ? 'melody and pitch' : 'rhythm and loops',
@@ -194,6 +210,9 @@ export const MusicRoom: React.FC<MusicRoomProps> = ({ onBack, onReward, level })
               <div className="text-xs font-semibold text-white/75">{copy}</div>
             </div>
           ))}
+        </div>
+        <div className={`mt-3 rounded-xl px-4 py-3 text-sm font-bold ${isComplete ? 'bg-emerald-400/90 text-emerald-950' : hasFinishedPattern ? 'bg-yellow-300/90 text-yellow-950' : 'bg-white/15 text-white'}`}>
+          {teacherFeedback}
         </div>
       </div>
 

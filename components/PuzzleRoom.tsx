@@ -71,6 +71,7 @@ export const PuzzleRoom: React.FC<PuzzleRoomProps> = ({ onBack, onReward, level 
   // Shapes State
   const [targetShape, setTargetShape] = useState('');
   const [shapeOptions, setShapeOptions] = useState<string[]>([]);
+  const [teacherFeedback, setTeacherFeedback] = useState('Teacher Check: look carefully, name your strategy, then solve the puzzle.');
   const puzzleStep = useRef(0);
 
   const ITEMS = ['🦄', '🦕', '🍕', '🚀', '🎈', '🎁'];
@@ -93,6 +94,7 @@ export const PuzzleRoom: React.FC<PuzzleRoomProps> = ({ onBack, onReward, level 
         setCards(deck);
         setFlipped([]);
         setIsLocked(false);
+        setTeacherFeedback(`Teacher Check: memory mission ready. Find ${mission.pairCount} matching pairs.`);
     } else if (mode === 'PATTERN') {
         const shuffled = shuffleDailyItems(ITEMS, `puzzle-pattern-items-${level}-${mission.title}`, step);
         const patternSize = level >= 5 ? 3 : 2;
@@ -104,11 +106,13 @@ export const PuzzleRoom: React.FC<PuzzleRoomProps> = ({ onBack, onReward, level 
         setMissingIndex(built.length - 1);
         const options = Array.from(new Set([...pattern, answer, ...shuffled])).slice(0, Math.max(3, patternSize + 1));
         setPatternOptions(shuffleDailyItems(options, `puzzle-pattern-options-${level}-${mission.title}`, step));
+        setTeacherFeedback(`Teacher Check: pattern mission ready. Say the rule, then choose what comes next.`);
     } else if (mode === 'SHAPES') {
         const target = pickDailyItem(SHAPES, `puzzle-shape-target-${level}-${mission.title}`, step);
         setTargetShape(target);
         const distractors = shuffleDailyItems(SHAPES.filter(shape => shape !== target), `puzzle-shape-distractors-${level}-${mission.title}`, step).slice(0, level >= 5 ? 5 : 3);
         setShapeOptions(shuffleDailyItems([target, ...distractors], `puzzle-shape-options-${level}-${mission.title}`, step));
+        setTeacherFeedback(`Teacher Check: shape mission ready. Match the target exactly.`);
     }
   };
 
@@ -132,10 +136,12 @@ export const PuzzleRoom: React.FC<PuzzleRoomProps> = ({ onBack, onReward, level 
         const [c1, c2] = newCards.filter(c => newFlipped.includes(c.id));
         if (c1.emoji === c2.emoji) {
             playSuccess();
+            setTeacherFeedback(`Correct match. You found two ${c1.emoji} cards. Keep scanning slowly.`);
             setCards(prev => prev.map(c => newFlipped.includes(c.id) ? { ...c, isMatched: true } : c));
             setFlipped([]);
             setIsLocked(false);
             if (newCards.filter(c => !c.isMatched).length <= 2) {
+              setTeacherFeedback(`Teacher Check: memory mission complete. You matched ${mission.pairCount} pairs by remembering card locations.`);
               setTimeout(() => onReward({
                 questionId: `puzzle-memory-${mission.title}`,
                 skill: 'memory matching',
@@ -147,6 +153,7 @@ export const PuzzleRoom: React.FC<PuzzleRoomProps> = ({ onBack, onReward, level 
         } else {
             setTimeout(() => {
                 playError();
+                setTeacherFeedback(`Good try. ${c1.emoji} and ${c2.emoji} do not match. Remember those spots and try another pair.`);
                 setCards(prev => prev.map(c => newFlipped.includes(c.id) ? { ...c, isFlipped: false } : c));
                 setFlipped([]);
                 setIsLocked(false);
@@ -159,6 +166,7 @@ export const PuzzleRoom: React.FC<PuzzleRoomProps> = ({ onBack, onReward, level 
       if (opt === patternAnswer) {
           playSuccess();
           setSequence(prev => prev.map(p => p === '?' ? opt : p));
+          setTeacherFeedback(`Correct. ${opt} completes the pattern because the rule repeats.`);
           setTimeout(() => {
               onReward({
                 questionId: `puzzle-pattern-${mission.title}-${sequence.join('')}`,
@@ -171,12 +179,14 @@ export const PuzzleRoom: React.FC<PuzzleRoomProps> = ({ onBack, onReward, level 
           }, 1000);
       } else {
           playError();
+          setTeacherFeedback(`Try again. ${opt} does not fit the rule yet. Look at the first two or three items and repeat the pattern.`);
       }
   };
 
   const handleShapeClick = (opt: string) => {
       if (opt === targetShape) {
           playSuccess();
+          setTeacherFeedback(`Correct. ${opt} matches the target shape exactly.`);
           onReward({
             questionId: `puzzle-shape-${mission.title}-${targetShape}`,
             skill: 'visual discrimination',
@@ -187,6 +197,7 @@ export const PuzzleRoom: React.FC<PuzzleRoomProps> = ({ onBack, onReward, level 
           initGame();
       } else {
           playError();
+          setTeacherFeedback(`Try again. ${opt} is not the target. Compare color and shape before tapping.`);
       }
   }
 
@@ -212,6 +223,9 @@ export const PuzzleRoom: React.FC<PuzzleRoomProps> = ({ onBack, onReward, level 
         <div className="text-xs font-black uppercase tracking-[0.22em] text-teal-600">Puzzle Brain Gym</div>
         <div className="mt-1 text-lg font-black text-slate-800">{mission.title}</div>
         <div className="text-xs font-bold text-slate-500">{mission.prompt}</div>
+        <div className="mt-3 rounded-xl bg-white px-4 py-3 text-sm font-black text-teal-900 shadow-sm ring-1 ring-teal-100">
+          {teacherFeedback}
+        </div>
         <div className="mt-2 grid grid-cols-3 gap-2">
           {[
             ['Memory', 'Flip and match'],

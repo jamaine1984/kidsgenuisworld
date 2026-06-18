@@ -25,6 +25,32 @@ const MUSIC_MISSIONS = [
   { gradeLevel: 7, title: 'Theme Variation', noteGoal: 13, loopGoal: 4, prompt: 'Create one theme, then change the ending to make a variation.' },
 ];
 
+const MUSIC_EXPANSION_THEMES = [
+  'animal parade', 'rainy day', 'rocket launch', 'sleepy song', 'school bell',
+  'ocean waves', 'robot dance', 'friendship theme', 'jungle walk', 'city lights',
+  'mountain echo', 'garden breeze', 'sports chant', 'story intro', 'celebration',
+  'quiet focus', 'mystery path', 'sunrise', 'train ride', 'hero theme',
+];
+
+const EXPANDED_MUSIC_MISSIONS = MUSIC_EXPANSION_THEMES.flatMap((theme, themeIndex) =>
+  Array.from({ length: 7 }, (_, gradeIndex) => Array.from({ length: 2 }, (_, variantIndex) => {
+    const gradeLevel = gradeIndex + 1;
+    return {
+      gradeLevel,
+      title: `${theme.replace(/^\w/, letter => letter.toUpperCase())} Music ${variantIndex + 1}`,
+      noteGoal: 5 + gradeLevel + (themeIndex % 3) + variantIndex,
+      loopGoal: Math.min(5, 1 + Math.ceil(gradeLevel / 2)),
+      prompt: gradeLevel <= 2
+        ? `Make a ${theme} sound using high notes, low notes, and one repeated beat.`
+        : gradeLevel <= 4
+          ? `Build a ${theme} pattern with a steady beat and a short melody answer.`
+          : `Compose a ${theme} performance with layers, contrast, and a clear ending.`,
+    };
+  })).flat()
+);
+
+const ALL_MUSIC_MISSIONS = [...MUSIC_MISSIONS, ...EXPANDED_MUSIC_MISSIONS];
+
 export const MusicRoom: React.FC<MusicRoomProps> = ({ onBack, onReward, level }) => {
   const [tab, setTab] = useState<'PIANO' | 'DJ'>('PIANO');
   const [instrument, setInstrument] = useState<'PIANO' | 'SYNTH' | '8BIT'>('PIANO');
@@ -49,8 +75,8 @@ export const MusicRoom: React.FC<MusicRoomProps> = ({ onBack, onReward, level })
     { id: 6, note: 'B', freq: 493.88, color: 'bg-indigo-500', border: 'border-indigo-700' },
     { id: 7, note: 'C2', freq: 523.25, color: 'bg-purple-500', border: 'border-purple-700' },
   ];
-  const missionPool = MUSIC_MISSIONS.filter(item => item.gradeLevel <= Math.min(Math.max(level, 1), 7));
-  const mission = missionPool[new Date().getDate() % missionPool.length] || MUSIC_MISSIONS[0];
+  const missionPool = ALL_MUSIC_MISSIONS.filter(item => item.gradeLevel <= Math.min(Math.max(level, 1), 7));
+  const mission = missionPool[new Date().getDate() % missionPool.length] || ALL_MUSIC_MISSIONS[0];
 
   const djPads = [
       { id: 1, name: 'Kick', freq: 100, type: 'square', pattern: 500 },

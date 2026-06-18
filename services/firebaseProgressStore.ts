@@ -7,7 +7,7 @@ import {
   setDoc,
   type Firestore,
 } from 'firebase/firestore';
-import { GradeLevel, type ArcadeProgress, type ChildProfile, type DailyStats, type UserProgress } from '../types';
+import { GradeLevel, type ArcadeProgress, type AssignmentAttempt, type ChildProfile, type DailyAssignmentSet, type DailyStats, type UserProgress } from '../types';
 import { getFirebaseServices } from './firebaseClient';
 
 export interface FamilySyncContext {
@@ -75,6 +75,9 @@ const writeProgressSnapshot = async (
     },
     completedUnitIds: progress.completedUnitIds || [],
     unitPracticeCounts: progress.unitPracticeCounts || {},
+    assignmentAttempts: (progress.assignmentAttempts || []).slice(0, 500),
+    dailyAssignmentSets: progress.dailyAssignmentSets || {},
+    questionSeenAt: progress.questionSeenAt || {},
     arcadeProgress: progress.arcadeProgress,
     dailyStats: progress.dailyStats || [],
   }, { merge: true });
@@ -109,6 +112,38 @@ const toUnitPracticeCounts = (value: unknown) => (
     ? Object.fromEntries(
       Object.entries(value as Record<string, unknown>)
         .filter((entry): entry is [string, number] => typeof entry[1] === 'number')
+    )
+    : {}
+);
+
+const toNumberMap = (value: unknown) => (
+  value && typeof value === 'object' && !Array.isArray(value)
+    ? Object.fromEntries(
+      Object.entries(value as Record<string, unknown>)
+        .filter((entry): entry is [string, number] => typeof entry[1] === 'number')
+    )
+    : {}
+);
+
+const toAssignmentAttempts = (value: unknown): AssignmentAttempt[] => (
+  Array.isArray(value) ? value.filter((item): item is AssignmentAttempt => (
+    Boolean(item)
+    && typeof item === 'object'
+    && typeof (item as AssignmentAttempt).id === 'string'
+    && typeof (item as AssignmentAttempt).questionId === 'string'
+    && typeof (item as AssignmentAttempt).createdAt === 'number'
+  )) : []
+);
+
+const toDailyAssignmentSets = (value: unknown): { [date: string]: DailyAssignmentSet } => (
+  value && typeof value === 'object' && !Array.isArray(value)
+    ? Object.fromEntries(
+      Object.entries(value as Record<string, unknown>).filter((entry): entry is [string, DailyAssignmentSet] => (
+        typeof entry[0] === 'string'
+        && Boolean(entry[1])
+        && typeof entry[1] === 'object'
+        && Array.isArray((entry[1] as DailyAssignmentSet).items)
+      ))
     )
     : {}
 );
@@ -160,6 +195,9 @@ const readProgressSnapshot = async (
     musicScore: toNumber(scores.music),
     completedUnitIds: toStringArray(data.completedUnitIds),
     unitPracticeCounts: toUnitPracticeCounts(data.unitPracticeCounts),
+    assignmentAttempts: toAssignmentAttempts(data.assignmentAttempts),
+    dailyAssignmentSets: toDailyAssignmentSets(data.dailyAssignmentSets),
+    questionSeenAt: toNumberMap(data.questionSeenAt),
     arcadeProgress: toArcadeProgress(data.arcadeProgress) as ArcadeProgress,
     dailyStats: toDailyStats(data.dailyStats),
   };

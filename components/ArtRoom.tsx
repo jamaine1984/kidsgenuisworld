@@ -151,6 +151,47 @@ const ART_MISSIONS = [
   },
 ];
 
+const ART_EXPANSION_THEMES = [
+  'weather', 'family', 'garden', 'space', 'ocean', 'city', 'forest', 'school',
+  'friendship', 'sports', 'music', 'animals', 'machines', 'community', 'dreams',
+  'books', 'kindness', 'seasons', 'maps', 'inventions',
+];
+
+const EXPANDED_ART_MISSIONS = ART_EXPANSION_THEMES.flatMap((theme, themeIndex) =>
+  Array.from({ length: 7 }, (_, gradeIndex) => Array.from({ length: 2 }, (_, variantIndex) => {
+    const gradeLevel = gradeIndex + 1;
+    return {
+      gradeLevel,
+      title: `${theme.replace(/^\w/, letter => letter.toUpperCase())} Studio ${gradeLevel}.${variantIndex + 1}`,
+      prompt: gradeLevel <= 2
+        ? `Draw a ${theme} picture with big shapes, clear colors, and one favorite detail.`
+        : gradeLevel <= 4
+          ? `Create a ${theme} scene with foreground, background, pattern, and a clear focal point.`
+          : `Design a ${theme} artwork that communicates an idea using layout, contrast, labels, and evidence details.`,
+      minStrokes: 8 + gradeLevel + (themeIndex % 4) + variantIndex,
+      focus: gradeLevel <= 2
+        ? 'Artists use simple marks to show an idea clearly.'
+        : gradeLevel <= 4
+          ? 'Artists organize details so the viewer understands the scene.'
+          : 'Artists make design choices that communicate a message to an audience.',
+      vocabulary: gradeLevel <= 2
+        ? ['shape', 'color', 'detail']
+        : gradeLevel <= 4
+          ? ['pattern', 'space', 'focal point', 'detail']
+          : ['composition', 'contrast', 'audience', 'evidence'],
+      lessonSteps: [
+        `Choose the main ${theme} idea ${variantIndex + 1} before drawing.`,
+        'Draw the largest shape first so the picture has a clear plan.',
+        'Add colors, patterns, or details that support the idea.',
+        'Explain one choice that makes the artwork easier to understand.',
+      ],
+      checks: ['Main idea', 'Large shape', 'Helpful details', 'Artist explanation'],
+    };
+  })).flat()
+);
+
+const ALL_ART_MISSIONS = [...ART_MISSIONS, ...EXPANDED_ART_MISSIONS];
+
 const ART_FOCUS_SECONDS = 30;
 
 const ART_TEACHER_PRAISE = [
@@ -177,8 +218,8 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => 
   const [completedTimedSteps, setCompletedTimedSteps] = useState(0);
 
   const colors = ['#FF5733', '#FFBD33', '#DBFF33', '#75FF33', '#33FF57', '#33FFBD', '#33DBFF', '#3357FF', '#7533FF', '#FF33BD', '#000000', '#FFFFFF'];
-  const missionPool = ART_MISSIONS.filter(item => item.gradeLevel <= Math.min(Math.max(level, 1), 7));
-  const mission = missionPool[new Date().getDate() % missionPool.length] || ART_MISSIONS[0];
+  const missionPool = ALL_ART_MISSIONS.filter(item => item.gradeLevel <= Math.min(Math.max(level, 1), 7));
+  const mission = missionPool[new Date().getDate() % missionPool.length] || ALL_ART_MISSIONS[0];
   const hasEnoughDrawing = strokeCount >= mission.minStrokes;
   const hasEnoughFocusTime = completedTimedSteps >= mission.lessonSteps.length;
   const hasFinishedSteps = activeStep >= mission.lessonSteps.length - 1;

@@ -127,11 +127,51 @@ export const GEOGRAPHY_QUESTIONS: (GeographyQuestion & { gradeLevel: number })[]
   { gradeLevel: 7, type: 'climate', question: 'Why can mountains have colder climates than nearby lowlands?', answer: 'Higher elevation is usually cooler', options: ['Higher elevation is usually cooler', 'Mountains are always closer to deserts', 'Clouds only touch cities', 'Maps make mountains cold'], funFact: 'Elevation is one reason climate can change over short distances.' },
 ];
 
+const GEOGRAPHY_EXPANSION_TOPICS: Array<{ type: GeographyQuestion['type']; clue: string; answer: string; fact: string }> = [
+  { type: 'map', clue: 'map symbol', answer: 'It stands for a real place or feature', fact: 'Map symbols help people read maps faster.' },
+  { type: 'nature', clue: 'river system', answer: 'Water flows from higher land to lower land', fact: 'Rivers often connect mountains, valleys, lakes, and oceans.' },
+  { type: 'continent', clue: 'continent clue', answer: 'A continent is a very large land area', fact: 'Earth has seven continents.' },
+  { type: 'climate', clue: 'climate pattern', answer: 'Climate means usual weather over many years', fact: 'Climate is different from today weather.' },
+  { type: 'landmark', clue: 'landmark clue', answer: 'A landmark is a recognizable place', fact: 'Landmarks can be natural or human-made.' },
+  { type: 'country', clue: 'country clue', answer: 'A country has its own government and borders', fact: 'Countries can share borders, rivers, and regions.' },
+  { type: 'capital', clue: 'capital city', answer: 'A capital is where a government is based', fact: 'Some capital cities are not the largest city in the country.' },
+  { type: 'flag', clue: 'flag symbol', answer: 'Flags use colors and symbols to represent places', fact: 'Flags often connect to history, values, or geography.' },
+  { type: 'map', clue: 'direction clue', answer: 'Directions help describe where to go', fact: 'North, south, east, and west are cardinal directions.' },
+  { type: 'nature', clue: 'landform clue', answer: 'Landforms are natural shapes on Earth surface', fact: 'Mountains, valleys, plains, and islands are landforms.' },
+  { type: 'climate', clue: 'region clue', answer: 'Regions can be grouped by land, climate, or culture', fact: 'Geographers compare regions to understand places.' },
+  { type: 'map', clue: 'coordinate clue', answer: 'Coordinates help name an exact location', fact: 'Latitude and longitude are used for exact locations.' },
+];
+
+const EXPANDED_GEOGRAPHY_QUESTIONS: (GeographyQuestion & { gradeLevel: number })[] = GEOGRAPHY_EXPANSION_TOPICS.flatMap((topic, topicIndex) =>
+  Array.from({ length: 7 }, (_, gradeIndex) => Array.from({ length: 8 }, (_, variantIndex) => {
+    const gradeLevel = gradeIndex + 1;
+    return {
+      gradeLevel,
+      type: topic.type,
+      question: gradeLevel <= 2
+        ? `What does this ${topic.clue} help us understand in example ${variantIndex + 1}?`
+        : gradeLevel <= 4
+          ? `Which answer best explains the ${topic.clue} in map set ${variantIndex + 1}?`
+          : `Which geography claim best fits the ${topic.clue} evidence set ${variantIndex + 1}?`,
+      answer: topic.answer,
+      options: [
+        topic.answer,
+        'It only tells a lunch choice',
+        'It is not connected to places',
+        'It means every place is the same',
+      ],
+      funFact: topic.fact,
+    };
+  })).flat()
+);
+
+export const ALL_GEOGRAPHY_QUESTIONS = [...GEOGRAPHY_QUESTIONS, ...EXPANDED_GEOGRAPHY_QUESTIONS];
+
 export const GeographyRoom: React.FC<GeographyRoomProps> = ({ level, onBack, onReward }) => {
   // Filter questions by grade level
-  const availableQuestions = GEOGRAPHY_QUESTIONS.filter(q => q.gradeLevel <= level);
+  const availableQuestions = ALL_GEOGRAPHY_QUESTIONS.filter(q => q.gradeLevel <= level);
 
-  const [question, setQuestion] = useState<typeof GEOGRAPHY_QUESTIONS[0] | null>(null);
+  const [question, setQuestion] = useState<typeof ALL_GEOGRAPHY_QUESTIONS[0] | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [showResult, setShowResult] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);

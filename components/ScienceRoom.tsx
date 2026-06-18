@@ -467,11 +467,55 @@ export const SCIENCE_EXPERIMENTS: (ScienceExperiment & { gradeLevel: number })[]
   { id: '5g10', gradeLevel: 7, title: 'Food Web Stability', question: 'What may happen if one species disappears from a food web?', hypothesis: ['Other species can be affected', 'Nothing can ever change', 'The sun turns off', 'All water freezes'], correctAnswer: 0, explanation: 'Food webs connect living things, so one change can affect many organisms.', funFact: 'Biodiversity can help ecosystems stay balanced.', category: 'biology', icon: '*' },
 ];
 
+const SCIENCE_EXPANSION_TOPICS = [
+  { category: 'biology' as const, icon: '*', title: 'Plant Clue', answer: 'Sunlight, water, and air' },
+  { category: 'biology' as const, icon: '*', title: 'Animal Need', answer: 'Food, water, and a safe home' },
+  { category: 'physics' as const, icon: '*', title: 'Force Test', answer: 'A push or pull can change motion' },
+  { category: 'chemistry' as const, icon: '*', title: 'Matter Change', answer: 'Heating or cooling can change matter' },
+  { category: 'nature' as const, icon: '*', title: 'Weather Watch', answer: 'Weather can change during the day' },
+  { category: 'space' as const, icon: '*', title: 'Sky Pattern', answer: 'Objects in the sky follow patterns' },
+  { category: 'biology' as const, icon: '*', title: 'Body System', answer: 'Body parts work together' },
+  { category: 'physics' as const, icon: '*', title: 'Sound Lab', answer: 'Sound comes from vibrations' },
+  { category: 'nature' as const, icon: '*', title: 'Water Cycle', answer: 'Water moves and changes form' },
+  { category: 'chemistry' as const, icon: '*', title: 'Mixing Lab', answer: 'Some materials mix and some do not' },
+  { category: 'space' as const, icon: '*', title: 'Sun Energy', answer: 'The sun gives light and heat' },
+  { category: 'nature' as const, icon: '*', title: 'Earth Shape', answer: 'Land and water can change slowly' },
+];
+
+const EXPANDED_SCIENCE_EXPERIMENTS: (ScienceExperiment & { gradeLevel: number })[] = SCIENCE_EXPANSION_TOPICS.flatMap((topic, topicIndex) =>
+  Array.from({ length: 7 }, (_, gradeIndex) => Array.from({ length: 8 }, (_, variantIndex) => {
+    const gradeLevel = gradeIndex + 1;
+    return {
+      id: `science-expanded-${topicIndex + 1}-g${gradeLevel}-v${variantIndex + 1}`,
+      gradeLevel,
+      title: `${topic.title} ${gradeLevel}.${variantIndex + 1}`,
+      question: gradeLevel <= 2
+        ? `What should a young scientist notice in ${topic.title.toLowerCase()} example ${variantIndex + 1}?`
+        : gradeLevel <= 4
+          ? `Which explanation best fits the ${topic.title.toLowerCase()} evidence set ${variantIndex + 1}?`
+          : `Which claim is best supported by observations from the ${topic.title.toLowerCase()} investigation ${variantIndex + 1}?`,
+      hypothesis: [
+        topic.answer,
+        gradeLevel <= 2 ? 'It happens by magic' : 'It happens without any cause',
+        gradeLevel <= 3 ? 'Only color matters' : 'The answer never changes',
+        gradeLevel <= 4 ? 'It is not something scientists observe' : 'It cannot be tested with evidence',
+      ],
+      correctAnswer: 0,
+      explanation: `${topic.answer}. Scientists use observations and evidence before they choose an answer.`,
+      funFact: 'Scientists often repeat a test so they can see whether the same pattern happens again.',
+      category: topic.category,
+      icon: topic.icon,
+    };
+  })).flat()
+);
+
+export const ALL_SCIENCE_EXPERIMENTS = [...SCIENCE_EXPERIMENTS, ...EXPANDED_SCIENCE_EXPERIMENTS];
+
 export const ScienceRoom: React.FC<ScienceRoomProps> = ({ level, onBack, onReward }) => {
   // Filter experiments by grade level
-  const availableExperiments = SCIENCE_EXPERIMENTS.filter(e => e.gradeLevel <= level);
+  const availableExperiments = ALL_SCIENCE_EXPERIMENTS.filter(e => e.gradeLevel <= level);
 
-  const [experiment, setExperiment] = useState<typeof SCIENCE_EXPERIMENTS[0] | null>(null);
+  const [experiment, setExperiment] = useState<typeof ALL_SCIENCE_EXPERIMENTS[0] | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);

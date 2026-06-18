@@ -46,6 +46,7 @@ import { loadFamilyProgressFromFirebase, syncProgressToFirebase, type CloudChild
 import { createStripeCheckoutUrl, getStripeBillingAccess, openStripeBillingPortal, type StripeBillingPlan } from './services/stripeBilling';
 import { getAchievementProgress } from './services/achievements';
 import { logDiagnosticEvent } from './services/diagnosticsService';
+import { getQuestionKey, recordAssignmentAttempt } from './services/assignmentTracking';
 import {
   AI_TEACHER,
   MASTERED_PRACTICE_TARGET,
@@ -497,6 +498,9 @@ const loadProgressForProfile = (profile: ChildProfile, scope = 'guest'): UserPro
         completedUnitIds: Array.isArray(savedProgress.completedUnitIds) ? savedProgress.completedUnitIds : [],
         unitPracticeCounts: savedProgress.unitPracticeCounts || {},
         learningJournal: Array.isArray(savedProgress.learningJournal) ? savedProgress.learningJournal : [],
+        assignmentAttempts: Array.isArray(savedProgress.assignmentAttempts) ? savedProgress.assignmentAttempts : [],
+        dailyAssignmentSets: savedProgress.dailyAssignmentSets || {},
+        questionSeenAt: savedProgress.questionSeenAt || {},
         arcadeProgress: {
           ...DEFAULT_ARCADE_PROGRESS,
           ...(savedProgress.arcadeProgress || {}),
@@ -562,6 +566,9 @@ const mergeCloudProgressForProfile = (
     completedUnitIds: Array.isArray(patch.completedUnitIds) ? patch.completedUnitIds : baseProgress.completedUnitIds,
     unitPracticeCounts: patch.unitPracticeCounts || baseProgress.unitPracticeCounts,
     learningJournal: Array.isArray(patch.learningJournal) ? patch.learningJournal : baseProgress.learningJournal,
+    assignmentAttempts: Array.isArray(patch.assignmentAttempts) ? patch.assignmentAttempts : baseProgress.assignmentAttempts,
+    dailyAssignmentSets: patch.dailyAssignmentSets || baseProgress.dailyAssignmentSets,
+    questionSeenAt: patch.questionSeenAt || baseProgress.questionSeenAt,
     dailyStats: Array.isArray(patch.dailyStats) ? patch.dailyStats : baseProgress.dailyStats,
     arcadeProgress: nextArcadeProgress,
   };
@@ -2140,6 +2147,19 @@ const App: React.FC = () => {
           stickersEarned: earnedNewSticker ? 1 : 0,
         }),
       };
+
+      if (journalUnit) {
+        newProgress = recordAssignmentAttempt(newProgress, {
+          questionId: getQuestionKey(journalRoom, `${journalUnit.id}:practice-${journalPracticeCount}`),
+          room: journalRoom,
+          grade: prev.currentGrade,
+          unitId: journalUnit.id,
+          skill: journalUnit.standardsFocus?.[0] || journalRoomLabel,
+          prompt: journalUnit.successCheck || journalUnit.objective,
+          correct: true,
+          correctAnswer: journalUnit.successCheck || journalUnit.masteryTarget,
+        });
+      }
 
       newProgress = checkAchievements(newProgress);
       return newProgress;

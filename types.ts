@@ -233,6 +233,42 @@ export interface ArcadeProgress {
   masteredGameIds: string[];
 }
 
+export interface AssignmentAttempt {
+  id: string;
+  assignmentId: string;
+  questionId: string;
+  room: RoomType;
+  grade: GradeLevel;
+  unitId?: string;
+  skill: string;
+  prompt: string;
+  correct: boolean;
+  selectedAnswer?: string;
+  correctAnswer?: string;
+  createdAt: number;
+  timeSpentMs?: number;
+  reviewKind: 'new' | 'review' | 'reteach';
+}
+
+export interface DailyAssignmentItem {
+  assignmentId: string;
+  questionId: string;
+  room: RoomType;
+  grade: GradeLevel;
+  unitId?: string;
+  skill: string;
+  reviewKind: 'new' | 'review' | 'reteach';
+  plannedAt: number;
+  completedAt?: number;
+}
+
+export interface DailyAssignmentSet {
+  date: string;
+  childId?: string;
+  grade: GradeLevel;
+  items: DailyAssignmentItem[];
+}
+
 // ============================================
 // SEASONAL CONTENT
 // ============================================
@@ -330,6 +366,9 @@ export interface UserProgress {
   completedUnitIds: string[];
   unitPracticeCounts: { [unitId: string]: number };
   learningJournal: LearningJournalEntry[];
+  assignmentAttempts: AssignmentAttempt[];
+  dailyAssignmentSets: { [date: string]: DailyAssignmentSet };
+  questionSeenAt: { [questionId: string]: number };
   arcadeProgress: ArcadeProgress;
 
   // Adaptive learning
@@ -580,6 +619,9 @@ export const createDefaultProgress = (childName = 'Learner'): UserProgress => ({
   completedUnitIds: [],
   unitPracticeCounts: {},
   learningJournal: [],
+  assignmentAttempts: [],
+  dailyAssignmentSets: {},
+  questionSeenAt: {},
   arcadeProgress: {
     ...DEFAULT_ARCADE_PROGRESS,
     gameWins: {},

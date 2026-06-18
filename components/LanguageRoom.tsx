@@ -161,9 +161,40 @@ const EXTRA_LANGUAGE_WORDS: { [key: string]: LanguageWord[] } = {
   ],
 };
 
+const LANGUAGE_EXPANSION_CONCEPTS = [
+  { gradeLevel: 1, english: 'Yes', category: 'greetings' as const, spanish: ['Si', 'see'], french: ['Oui', 'wee'], mandarin: ['Shi', 'shrr'], japanese: ['Hai', 'hai'] },
+  { gradeLevel: 1, english: 'No', category: 'greetings' as const, spanish: ['No', 'noh'], french: ['Non', 'nohn'], mandarin: ['Bu', 'boo'], japanese: ['Iie', 'ee-eh'] },
+  { gradeLevel: 2, english: 'Five', category: 'numbers' as const, spanish: ['Cinco', 'SEEN-koh'], french: ['Cinq', 'sank'], mandarin: ['Wu', 'woo'], japanese: ['Go', 'goh'] },
+  { gradeLevel: 2, english: 'Black', category: 'colors' as const, spanish: ['Negro', 'NEH-groh'], french: ['Noir', 'nwahr'], mandarin: ['Hei se', 'hay suh'], japanese: ['Kuro', 'koo-roh'] },
+  { gradeLevel: 2, english: 'White', category: 'colors' as const, spanish: ['Blanco', 'BLAHN-koh'], french: ['Blanc', 'blahn'], mandarin: ['Bai se', 'bye suh'], japanese: ['Shiro', 'shee-roh'] },
+  { gradeLevel: 3, english: 'Fish', category: 'animals' as const, spanish: ['Pez', 'pehs'], french: ['Poisson', 'pwah-SOHN'], mandarin: ['Yu', 'yoo'], japanese: ['Sakana', 'sah-kah-nah'] },
+  { gradeLevel: 3, english: 'Horse', category: 'animals' as const, spanish: ['Caballo', 'kah-BAH-yoh'], french: ['Cheval', 'shuh-VAHL'], mandarin: ['Ma', 'mah'], japanese: ['Uma', 'oo-mah'] },
+  { gradeLevel: 4, english: 'Teacher', category: 'school' as const, spanish: ['Maestra', 'my-ES-trah'], french: ['Professeur', 'proh-feh-SUR'], mandarin: ['Lao shi', 'laow shrr'], japanese: ['Sensei', 'sen-say'] },
+  { gradeLevel: 4, english: 'Table', category: 'school' as const, spanish: ['Mesa', 'MEH-sah'], french: ['Table', 'tahbl'], mandarin: ['Zhuo zi', 'jwoh dzuh'], japanese: ['Tsukue', 'tsoo-koo-eh'] },
+  { gradeLevel: 4, english: 'Rice', category: 'food' as const, spanish: ['Arroz', 'ah-ROHS'], french: ['Riz', 'ree'], mandarin: ['Mi fan', 'mee fahn'], japanese: ['Gohan', 'goh-hahn'] },
+  { gradeLevel: 5, english: 'Brother', category: 'family' as const, spanish: ['Hermano', 'ehr-MAH-noh'], french: ['Frere', 'frair'], mandarin: ['Gege', 'guh-guh'], japanese: ['Oniisan', 'oh-nee-sahn'] },
+  { gradeLevel: 5, english: 'Grandma', category: 'family' as const, spanish: ['Abuela', 'ah-BWEH-lah'], french: ['Grand-mere', 'grahn-mair'], mandarin: ['Nainai', 'nye-nye'], japanese: ['Obaasan', 'oh-bah-sahn'] },
+  { gradeLevel: 5, english: 'Library', category: 'places' as const, spanish: ['Biblioteca', 'bee-blee-oh-TEH-kah'], french: ['Bibliotheque', 'bee-blee-oh-TEK'], mandarin: ['Tu shu guan', 'too shoo gwahn'], japanese: ['Toshokan', 'toh-shoh-kahn'] },
+  { gradeLevel: 5, english: 'Store', category: 'places' as const, spanish: ['Tienda', 'TYEN-dah'], french: ['Magasin', 'mah-gah-ZAN'], mandarin: ['Shang dian', 'shahng dyen'], japanese: ['Mise', 'mee-seh'] },
+  { gradeLevel: 6, english: 'How are you?', category: 'phrases' as const, spanish: ['Como estas?', 'KOH-moh ehs-TAHS'], french: ['Comment ca va?', 'koh-mahn sah vah'], mandarin: ['Ni hao ma?', 'nee how mah'], japanese: ['Genki desu ka?', 'gen-kee dess kah'] },
+  { gradeLevel: 6, english: 'I understand', category: 'phrases' as const, spanish: ['Entiendo', 'en-TYEN-doh'], french: ['Je comprends', 'zhuh kohm-PRAHN'], mandarin: ['Wo ming bai', 'woh ming bye'], japanese: ['Wakarimasu', 'wah-kah-ree-mahs'] },
+  { gradeLevel: 6, english: 'I do not understand', category: 'phrases' as const, spanish: ['No entiendo', 'noh en-TYEN-doh'], french: ['Je ne comprends pas', 'zhuh nuh kohm-PRAHN pah'], mandarin: ['Wo bu ming bai', 'woh boo ming bye'], japanese: ['Wakarimasen', 'wah-kah-ree-mah-sen'] },
+  { gradeLevel: 7, english: 'What is your name?', category: 'phrases' as const, spanish: ['Como te llamas?', 'KOH-moh teh YAH-mahs'], french: ['Comment tu tappelles?', 'koh-mahn too tah-pel'], mandarin: ['Ni jiao shenme?', 'nee jyow shen-muh'], japanese: ['Onamae wa?', 'oh-nah-my wah'] },
+  { gradeLevel: 7, english: 'My name is...', category: 'phrases' as const, spanish: ['Me llamo...', 'meh YAH-moh'], french: ['Je mappelle...', 'zhuh mah-pel'], mandarin: ['Wo jiao...', 'woh jyow'], japanese: ['Watashi wa...', 'wah-tah-shee wah'] },
+  { gradeLevel: 7, english: 'Nice to meet you', category: 'phrases' as const, spanish: ['Mucho gusto', 'MOO-choh GOOS-toh'], french: ['Enchante', 'ahn-shahn-TAY'], mandarin: ['Hen gao xing', 'hun gow shing'], japanese: ['Hajimemashite', 'hah-jee-meh-mah-shee-teh'] },
+];
+
+const EXPANDED_LANGUAGE_WORDS: { [key: string]: LanguageWord[] } = {
+  spanish: LANGUAGE_EXPANSION_CONCEPTS.map(item => ({ gradeLevel: item.gradeLevel, english: item.english, translation: item.spanish[0], pronunciation: item.spanish[1], language: 'spanish', category: item.category })),
+  french: LANGUAGE_EXPANSION_CONCEPTS.map(item => ({ gradeLevel: item.gradeLevel, english: item.english, translation: item.french[0], pronunciation: item.french[1], language: 'french', category: item.category })),
+  mandarin: LANGUAGE_EXPANSION_CONCEPTS.map(item => ({ gradeLevel: item.gradeLevel, english: item.english, translation: item.mandarin[0], pronunciation: item.mandarin[1], language: 'mandarin', category: item.category })),
+  japanese: LANGUAGE_EXPANSION_CONCEPTS.map(item => ({ gradeLevel: item.gradeLevel, english: item.english, translation: item.japanese[0], pronunciation: item.japanese[1], language: 'japanese', category: item.category })),
+};
+
 const getLanguageWords = (language: keyof typeof VOCABULARY) => [
   ...VOCABULARY[language],
   ...(EXTRA_LANGUAGE_WORDS[language] || []),
+  ...(EXPANDED_LANGUAGE_WORDS[language] || []),
 ];
 
 export const LANGUAGE_INFO = {

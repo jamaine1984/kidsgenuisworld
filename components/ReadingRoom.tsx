@@ -131,6 +131,32 @@ export const VOCABULARY = [
   { word: 'Innovation', emoji: 'IDEA', level: 7, rhyme: 'Creation', segments: ['In','no','va','tion'], sentence: 'Innovation means creating a better way.' },
 ];
 
+const READING_EXPANSION_WORDS = [
+  ['Dad', 'DAD', 1, 'Sad'], ['Mom', 'MOM', 1, 'Tom'], ['Sit', 'SIT', 1, 'Fit'], ['Run', 'RUN', 1, 'Sun'], ['Top', 'TOP', 1, 'Hop'],
+  ['Bell', 'BELL', 2, 'Shell'], ['Duck', 'DUCK', 2, 'Truck'], ['Shop', 'SHOP', 2, 'Stop'], ['Hill', 'HILL', 2, 'Will'], ['Rain', 'RAIN', 2, 'Train'],
+  ['Helper', 'HELP', 3, 'Yelper'], ['Basket', 'BASKET', 3, 'Task it'], ['Market', 'MARKET', 3, 'Park it'], ['Garden', 'GARDEN', 3, 'Pardon'], ['Rocket', 'ROCKET', 3, 'Pocket'],
+  ['Measure', 'RULER', 4, 'Treasure'], ['Weather', 'SKY', 4, 'Feather'], ['Problem', 'THINK', 4, 'Solve them'], ['Compass', 'NORTH', 4, 'Campus'], ['Habitat', 'POND', 4, 'Cat'],
+  ['Evidence', 'CLUE', 5, 'Residence'], ['Strategy', 'PLAN', 5, 'Energy'], ['Estimate', 'ABOUT', 5, 'Best mate'], ['Culture', 'WORLD', 5, 'Vulture'], ['System', 'GEAR', 5, 'Wisdom'],
+  ['Analyze', 'THINK', 6, 'Wise'], ['Compare', 'SCALE', 6, 'Chair'], ['Structure', 'BUILD', 6, 'Picture'], ['Migration', 'MOVE', 6, 'Nation'], ['Resource', 'WATER', 6, 'Course'],
+  ['Hypothesis', 'TEST', 7, 'Emphasis'], ['Democracy', 'VOTE', 7, 'Policy'], ['Renewable', 'WIND', 7, 'Doable'], ['Perspective', 'VIEW', 7, 'Detective'], ['Innovation', 'IDEA', 7, 'Creation'],
+] as const;
+
+const EXPANDED_VOCABULARY = READING_EXPANSION_WORDS.flatMap(([word, emoji, baseLevel, rhyme], index) =>
+  Array.from({ length: 2 }, (_, variant) => ({
+    word: variant === 0 ? word : `${word}${baseLevel <= 2 ? '' : 's'}`,
+    emoji,
+    level: baseLevel,
+    rhyme,
+    segments: word.length <= 4 ? word.split('') : word.match(/.{1,3}/g) || [word],
+    sentence: variant === 0
+      ? `Read the word ${word.toLowerCase()} carefully.`
+      : `Use ${word.toLowerCase()} in a clear sentence.`,
+    id: `expanded-word-${index + 1}-${variant + 1}`,
+  }))
+);
+
+const ALL_VOCABULARY = [...VOCABULARY, ...EXPANDED_VOCABULARY];
+
 type Activity = 'MATCH' | 'SPELL' | 'RHYME' | 'PHONICS' | 'COMPREHENSION';
 
 interface ReadingPassage {
@@ -203,14 +229,46 @@ export const READING_PASSAGES: ReadingPassage[] = [
   { id: 'g5-prototype-notebook', level: 7, title: 'Prototype Notebook', passage: 'The first wheelchair ramp model was too steep. The team measured the angle, made the ramp longer, and tested again. The second model was easier for the toy wheelchair to climb.', question: 'What revision improved the design?', answer: 'Making the ramp longer', options: ['Making the ramp longer', 'Removing all measurements', 'Using fewer tests', 'Making it steeper'], skill: 'Analyze design revision' },
 ];
 
+const READING_PASSAGE_TOPICS = [
+  'class garden', 'lost lunchbox', 'rainy recess', 'robot helper', 'library choice',
+  'science notebook', 'map walk', 'kind teammate', 'broken bridge', 'music practice',
+  'animal habitat', 'weather station', 'school vote', 'clean water', 'new student',
+  'sports strategy', 'art mural', 'bus route', 'space model', 'energy saver',
+];
+
+const EXPANDED_READING_PASSAGES: ReadingPassage[] = READING_PASSAGE_TOPICS.flatMap((topic, topicIndex) =>
+  Array.from({ length: 7 }, (_, gradeIndex) => Array.from({ length: 5 }, (_, variantIndex) => {
+    const level = gradeIndex + 1;
+    const title = `${topic.replace(/^\w/, letter => letter.toUpperCase())} Reader ${level}.${variantIndex + 1}`;
+    const passage = level <= 2
+      ? `A child notices the ${topic}. The child looks closely at clue ${variantIndex + 1}. Then the child tells one detail.`
+      : level <= 4
+        ? `The class worked on a ${topic}. First they made a plan. Then they checked clue ${variantIndex + 1} and changed one thing that helped.`
+        : `Students studied a ${topic} problem. They compared evidence set ${variantIndex + 1}, explained their claim, and revised the plan after a fair test.`;
+    const answer = level <= 2 ? 'The child tells one detail' : level <= 4 ? 'They checked clues and changed one thing' : 'They used evidence and revised the plan';
+    return {
+      id: `expanded-reading-${topicIndex + 1}-g${level}-v${variantIndex + 1}`,
+      level,
+      title,
+      passage,
+      question: level <= 2 ? 'What does the child do?' : level <= 4 ? 'What helped the class improve?' : 'What made the students explanation stronger?',
+      answer,
+      options: [answer, 'They ignored every clue', 'They stopped reading', 'They hid the notebook'],
+      skill: level <= 2 ? 'Remember key detail' : level <= 4 ? 'Sequence and cause' : 'Evidence and reasoning',
+    };
+  })).flat()
+);
+
+const ALL_READING_PASSAGES = [...READING_PASSAGES, ...EXPANDED_READING_PASSAGES];
+
 const SUCCESS_ROUND_DELAY_MS = 1800;
 const MATCH_SUCCESS_ROUND_DELAY_MS = 950;
 
 export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, level }) => {
   const [mode, setMode] = useState<Activity>('MATCH');
   const [score, setScore] = useState(0);
-  const [currentWord, setCurrentWord] = useState(VOCABULARY[0]);
-  const [currentPassage, setCurrentPassage] = useState(READING_PASSAGES[0]);
+  const [currentWord, setCurrentWord] = useState(ALL_VOCABULARY[0]);
+  const [currentPassage, setCurrentPassage] = useState(ALL_READING_PASSAGES[0]);
   const [options, setOptions] = useState<string[]>([]);
   const [scrambledLetters, setScrambledLetters] = useState<{id: number, char: string}[]>([]);
   const [spelledWord, setSpelledWord] = useState<string>('');
@@ -236,7 +294,7 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
     }
   }, [mode]);
 
-  const narrateRound = useCallback(async (word: typeof VOCABULARY[number], roundOptions: string[]) => {
+  const narrateRound = useCallback(async (word: typeof ALL_VOCABULARY[number], roundOptions: string[]) => {
     switch (mode) {
       case 'MATCH':
         await speakMultipleChoiceQuestion(`Which picture shows ${word.word}?`, roundOptions);
@@ -257,14 +315,14 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
 
   const getWordsForLevel = () => {
     const maxLvl = Math.min(Math.max(level, 1), 7);
-    const list = VOCABULARY.filter(v => v.level <= maxLvl);
-    return list.length > 0 ? list : VOCABULARY;
+    const list = ALL_VOCABULARY.filter(v => v.level <= maxLvl);
+    return list.length > 0 ? list : ALL_VOCABULARY;
   };
 
   const getPassagesForLevel = () => {
     const maxLvl = Math.min(Math.max(level, 1), 7);
-    const list = READING_PASSAGES.filter(p => p.level <= maxLvl);
-    return list.length > 0 ? list : READING_PASSAGES;
+    const list = ALL_READING_PASSAGES.filter(p => p.level <= maxLvl);
+    return list.length > 0 ? list : ALL_READING_PASSAGES;
   };
 
   const narratePassageRound = useCallback(async (passage: ReadingPassage) => {
@@ -312,7 +370,7 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
       return;
 
     } else if (mode === 'RHYME') {
-      const distractors = shuffle(VOCABULARY.filter(v => v.rhyme !== next.rhyme && v.word !== next.word), `reading-rhyme-distractors-${level}-${next.word}`, step).slice(0, 2);
+      const distractors = shuffle(ALL_VOCABULARY.filter(v => v.rhyme !== next.rhyme && v.word !== next.word), `reading-rhyme-distractors-${level}-${next.word}`, step).slice(0, 2);
       const correctRhyme = next.rhyme;
       const wrongRhymes = distractors.map(d => d.rhyme);
       const roundOptions = shuffle([correctRhyme, ...wrongRhymes], `reading-rhyme-options-${level}-${next.word}`, step);

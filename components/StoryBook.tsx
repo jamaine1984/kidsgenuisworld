@@ -944,8 +944,72 @@ export const STORIES: Story[] = [
   },
 ];
 
+const STORY_EXPANSION_TOPICS: Array<{ title: string; category: Story['category']; cover: string; moral: string }> = [
+  { title: 'The Garden Promise', category: 'nature', cover: 'GARDEN', moral: 'Taking care of small things builds responsibility.' },
+  { title: 'Robot Learns to Wait', category: 'learning', cover: 'ROBOT', moral: 'Patience helps us solve problems.' },
+  { title: 'The Kind Seat', category: 'friendship', cover: 'KIND', moral: 'Kind choices help everyone feel welcome.' },
+  { title: 'Maya Measures Twice', category: 'learning', cover: 'RULER', moral: 'Careful checking helps work improve.' },
+  { title: 'The Rain Map', category: 'adventure', cover: 'MAP', moral: 'Plans can change when new clues appear.' },
+  { title: 'Leo and the Little Bridge', category: 'learning', cover: 'BRIDGE', moral: 'Testing helps builders make better designs.' },
+  { title: 'The Library Light', category: 'family', cover: 'BOOK', moral: 'Reading together grows ideas.' },
+  { title: 'A Home for the Frog', category: 'animals', cover: 'FROG', moral: 'Living things need safe habitats.' },
+  { title: 'The Music Parade', category: 'friendship', cover: 'MUSIC', moral: 'Practice and teamwork make a performance stronger.' },
+  { title: 'The Star Notebook', category: 'fantasy', cover: 'STAR', moral: 'Wonder leads to good questions.' },
+  { title: 'The Clean Water Team', category: 'nature', cover: 'WATER', moral: 'Communities can work together to solve problems.' },
+  { title: 'The Puzzle Door', category: 'adventure', cover: 'PUZZLE', moral: 'A strategy can make a hard problem smaller.' },
+  { title: 'The New Playground', category: 'friendship', cover: 'PLAY', moral: 'Listening helps a group make fair choices.' },
+  { title: 'The Weather Window', category: 'learning', cover: 'SKY', moral: 'Observing patterns helps us predict what may happen.' },
+  { title: 'The Helpful Code', category: 'learning', cover: 'CODE', moral: 'Clear steps help a computer and a person follow directions.' },
+  { title: 'The Art Wall', category: 'family', cover: 'ART', moral: 'Art can tell a story without using many words.' },
+  { title: 'The Tiny Seed Vote', category: 'nature', cover: 'SEED', moral: 'Evidence and reasons help people choose wisely.' },
+  { title: 'The Brave First Try', category: 'adventure', cover: 'TRY', moral: 'First tries teach us what to improve next.' },
+  { title: 'The Sharing Table', category: 'family', cover: 'TABLE', moral: 'Fair shares help everyone feel respected.' },
+  { title: 'The Compass Club', category: 'adventure', cover: 'NORTH', moral: 'Directions and landmarks help us find the way.' },
+];
+
+const EXPANDED_STORIES: Story[] = STORY_EXPANSION_TOPICS.flatMap((topic, topicIndex) =>
+  Array.from({ length: 7 }, (_, gradeIndex) => Array.from({ length: 2 }, (_, variantIndex) => {
+    const gradeLevel = gradeIndex + 1;
+    const title = `${topic.title} ${gradeLevel}.${variantIndex + 1}`;
+    return {
+      id: `story-expanded-${topicIndex + 1}-g${gradeLevel}-v${variantIndex + 1}`,
+      title,
+      author: 'Kid Genius Originals',
+      cover: topic.cover,
+      gradeLevel,
+      category: topic.category,
+      pages: gradeLevel <= 2
+        ? [
+          `${title} begins with one small problem.`,
+          `The child looks closely at clue ${variantIndex + 1}.`,
+          'A helper asks, "What can we try first?"',
+          'They try one careful step and notice what changes.',
+          topic.moral,
+        ]
+        : gradeLevel <= 4
+          ? [
+            `${title} begins when the class notices a problem that needs a plan.`,
+            `They collect clue ${variantIndex + 1} and compare it with what they already know.`,
+            'One student suggests a strategy, and another student checks whether it is fair.',
+            'The group revises the plan after seeing new evidence.',
+            topic.moral,
+          ]
+          : [
+            `${title} opens with a claim that needs evidence before the group can decide.`,
+            `The students examine evidence set ${variantIndex + 1}, then separate facts from opinions.`,
+            'They test a solution, explain the strongest reason, and revise one weak part.',
+            'By the end, the group can teach the lesson to a younger student.',
+            topic.moral,
+          ],
+      moral: topic.moral,
+    };
+  })).flat()
+);
+
+export const ALL_STORIES = [...STORIES, ...EXPANDED_STORIES];
+
 export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward }) => {
-  const availableStories = useMemo(() => STORIES.filter(s => s.gradeLevel <= level), [level]);
+  const availableStories = useMemo(() => ALL_STORIES.filter(s => s.gradeLevel <= level), [level]);
 
   const [currentStory, setCurrentStory] = useState<Story | null>(null);
   const [currentPage, setCurrentPage] = useState(0);

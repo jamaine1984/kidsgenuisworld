@@ -28,6 +28,32 @@ const PUZZLE_MISSIONS = [
   { gradeLevel: 7, title: 'Logic Proof', pairCount: 6, patternLength: 10, prompt: 'Solve and explain which options you ruled out.' },
 ];
 
+const PUZZLE_EXPANSION_THEMES = [
+  'color clues', 'animal pairs', 'space path', 'shape rules', 'weather sort',
+  'number trail', 'garden memory', 'ocean pattern', 'robot logic', 'map route',
+  'music match', 'sports sequence', 'school supplies', 'food groups', 'story order',
+  'kindness choices', 'machine parts', 'season cycle', 'community helpers', 'mystery code',
+];
+
+const EXPANDED_PUZZLE_MISSIONS = PUZZLE_EXPANSION_THEMES.flatMap((theme, themeIndex) =>
+  Array.from({ length: 7 }, (_, gradeIndex) => Array.from({ length: 2 }, (_, variantIndex) => {
+    const gradeLevel = gradeIndex + 1;
+    return {
+      gradeLevel,
+      title: `${theme.replace(/^\w/, letter => letter.toUpperCase())} Challenge ${variantIndex + 1}`,
+      pairCount: Math.min(6, 3 + Math.floor((gradeLevel + themeIndex % 2) / 2)),
+      patternLength: 4 + gradeLevel + (themeIndex % 3) + variantIndex,
+      prompt: gradeLevel <= 2
+        ? `Use careful looking to solve the ${theme} puzzle.`
+        : gradeLevel <= 4
+          ? `Find the rule in the ${theme} puzzle, then explain what comes next.`
+          : `Use memory, logic, and elimination to prove the best ${theme} answer.`,
+    };
+  })).flat()
+);
+
+const ALL_PUZZLE_MISSIONS = [...PUZZLE_MISSIONS, ...EXPANDED_PUZZLE_MISSIONS];
+
 export const PuzzleRoom: React.FC<PuzzleRoomProps> = ({ onBack, onReward, level }) => {
   const [mode, setMode] = useState<PuzzleMode>('MEMORY');
   
@@ -51,8 +77,8 @@ export const PuzzleRoom: React.FC<PuzzleRoomProps> = ({ onBack, onReward, level 
   const SHAPES = ['🟥', '🟦', '🟩', '🟨', '🟠', '🟣'];
 
   const mission = useMemo(() => {
-    const missionPool = PUZZLE_MISSIONS.filter(item => item.gradeLevel <= Math.min(Math.max(level, 1), 7));
-    return pickDailyItem(missionPool, `puzzle-mission-grade-${level}`) || PUZZLE_MISSIONS[0];
+    const missionPool = ALL_PUZZLE_MISSIONS.filter(item => item.gradeLevel <= Math.min(Math.max(level, 1), 7));
+    return pickDailyItem(missionPool, `puzzle-mission-grade-${level}`) || ALL_PUZZLE_MISSIONS[0];
   }, [level]);
 
   const initGame = () => {

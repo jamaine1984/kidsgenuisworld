@@ -875,6 +875,53 @@ export const CHALLENGES: Challenge[] = [
   },
 ];
 
+const CODING_EXPANSION_THEMES = [
+  'Robot Snack', 'Moon Base', 'Garden Gate', 'Library Path', 'Bridge Bot',
+  'Treasure Tile', 'Weather Station', 'Music Stage', 'Puzzle Door', 'Space Gem',
+  'School Hall', 'Pet Rescue', 'Map Marker', 'Art Table', 'Science Shelf',
+  'Kindness Card', 'Number Trail', 'Story Robot', 'Shape Castle', 'Focus Path',
+];
+
+const EXPANDED_CHALLENGES: Challenge[] = CODING_EXPANSION_THEMES.flatMap((theme, themeIndex) =>
+  Array.from({ length: 7 }, (_, gradeIndex) => Array.from({ length: 3 }, (_, variantIndex) => {
+    const gradeLevel = gradeIndex + 1;
+    const width = Math.min(6, 2 + Math.ceil(gradeLevel / 2) + (variantIndex % 2));
+    const height = gradeLevel <= 2 ? 1 : Math.min(4, 2 + Math.floor(gradeLevel / 3) + (variantIndex === 2 ? 1 : 0));
+    const startPos: Position = { x: 0, y: height - 1, direction: 'right' };
+    const goalPos = gradeLevel <= 2
+      ? { x: width - 1, y: 0 }
+      : { x: width - 1, y: 0 };
+    const grid: GridCell[][] = Array.from({ length: height }, (_, y) =>
+      Array.from({ length: width }, (_, x): GridCell => {
+        if (x === startPos.x && y === startPos.y) return { type: 'start' };
+        if (x === goalPos.x && y === goalPos.y) return { type: 'goal' };
+        if (gradeLevel >= 4 && y === height - 1 && x === Math.floor(width / 2) && themeIndex % 2 === 0) return { type: 'obstacle' };
+        return { type: 'empty' };
+      })
+    );
+    return {
+      id: `coding-expanded-${themeIndex + 1}-g${gradeLevel}-v${variantIndex + 1}`,
+      name: `${theme} ${gradeLevel}.${variantIndex + 1}`,
+      story: gradeLevel <= 2
+        ? `Help Robot move across the ${theme.toLowerCase()} path.`
+        : gradeLevel <= 4
+          ? `Guide Robot through the ${theme.toLowerCase()} path using turns and careful steps.`
+          : `Use sequencing, turns, and loops to solve the ${theme.toLowerCase()} route efficiently.`,
+      grid,
+      startPos,
+      goalPos,
+      maxBlocks: Math.min(10, width + height + Math.ceil(gradeLevel / 2)),
+      hint: gradeLevel <= 2
+        ? 'Use move blocks to reach the star.'
+        : 'Move across, turn toward the goal, and keep the path inside the grid.',
+      gradeLevel,
+      category: (gradeLevel <= 2 ? 'basic' : gradeLevel <= 4 ? 'turns' : gradeLevel <= 6 ? 'loops' : 'advanced') as Challenge['category'],
+    };
+  })).flat()
+);
+
+const ALL_CHALLENGES = [...CHALLENGES, ...EXPANDED_CHALLENGES];
+
 const AVAILABLE_BLOCKS: CodeBlock[] = [
   { id: 'move', type: 'move', icon: <ChevronUp size={20} />, label: 'Move Forward', color: 'bg-green-500' },
   { id: 'turnLeft', type: 'turnLeft', icon: <RotateCcw size={20} />, label: 'Turn Left', color: 'bg-blue-500' },
@@ -884,7 +931,7 @@ const AVAILABLE_BLOCKS: CodeBlock[] = [
 
 export const CodingRoom: React.FC<CodingRoomProps> = ({ level, onBack, onReward }) => {
   // Filter challenges by grade level
-  const availableChallenges = CHALLENGES.filter(c => c.gradeLevel <= level);
+  const availableChallenges = ALL_CHALLENGES.filter(c => c.gradeLevel <= level);
   const dailyChallengeIndex = useMemo(() => {
     const dayKey = new Date().toISOString().slice(0, 10);
     const seed = [...dayKey].reduce((total, char) => total + char.charCodeAt(0), 0);

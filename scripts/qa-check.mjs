@@ -489,6 +489,18 @@ if (
 ) {
   fail('School day plan must show required proof, rewards, parent rationale, and teacher help ladder support.');
 }
+if (
+  !schoolModeSource.includes('CORE_SCHOOL_PERIOD_ROOMS') ||
+  !schoolModeSource.includes('RoomType.READING') ||
+  !schoolModeSource.includes('RoomType.LANGUAGE') ||
+  !schoolModeSource.includes('RoomType.MATH') ||
+  !schoolModeSource.includes('Last Period: Art Studio') ||
+  !schoolModeSource.includes('Last Period: Music Room') ||
+  !schoolModeSource.includes('previousComplete') ||
+  !schoolModeSource.includes('Finish 6 answers')
+) {
+  fail('School periods must prioritize reading, speech/language, and math first, then keep art/music as last-period work.');
+}
 for (const achievementMarker of [
   'math_streak_10',
   'read_100',
@@ -769,6 +781,18 @@ if (!parentDashboardSource.includes('Parent explanation') || !parentDashboardSou
 if (!parentDashboardSource.includes('Parent Learning Report') || !parentDashboardSource.includes('Practice rhythm') || !parentDashboardSource.includes('Next parent actions') || !parentDashboardSource.includes('Print Weekly Report')) {
   fail('Parent dashboard needs plain-language weekly learning insights for paid-user readiness.');
 }
+if (
+  !parentDashboardSource.includes('All Classroom Activity') ||
+  !parentDashboardSource.includes('Every period parents can track') ||
+  !parentDashboardSource.includes('allRoomActivityRows') ||
+  !parentDashboardSource.includes('RoomType.MUSIC') ||
+  !parentDashboardSource.includes('RoomType.ART') ||
+  !parentDashboardSource.includes('RoomType.PUZZLE') ||
+  !parentDashboardSource.includes('RoomType.STUDY') ||
+  !parentDashboardSource.includes('saved proof items')
+) {
+  fail('Parent dashboard must show all-room activity, including music, art, puzzle, and Study Zone proof.');
+}
 if (!appSource.includes('Learning Reflection') || !appSource.includes('Explain what you learned') || !appSource.includes('Teach it back') || !appSource.includes('practice rounds')) {
   fail('Reward flow needs a kid-facing learning reflection after practice.');
 }
@@ -905,6 +929,9 @@ if (!artRoomSource.includes('lessonSteps') || !artRoomSource.includes('reflectio
 }
 if (!musicRoomSource.includes('Music Mission Board') || !musicRoomSource.includes('Explore Sound')) {
   fail('Music room needs a clearer kid-facing mission panel.');
+}
+if (!musicRoomSource.includes('sessionRound') || !musicRoomSource.includes('Next music round is ready') || !musicRoomSource.includes('setIsComplete(false)')) {
+  fail('Music room must auto-advance to another round so six mastery saves are possible in one period.');
 }
 if (!appSource.includes('<ArtRoom level={progress.currentLevel}') || !appSource.includes('<MusicRoom level={progress.currentLevel}') || !appSource.includes('<PuzzleRoom level={progress.currentLevel}')) {
   fail('Creative rooms must receive the active grade level for pacing.');

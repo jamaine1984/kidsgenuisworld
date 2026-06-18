@@ -289,8 +289,6 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
     ].sort((a, b) => b.score - a.score);
   };
 
-  const subjectData = getSubjectData();
-  const maxScore = Math.max(...subjectData.map(s => s.score), 1);
   const curriculumUnits = getUnitsForGrade(progress.currentGrade);
   const currentGradeUnits = getCurrentGradeUnits(progress.currentGrade);
   const weeklyPlan = getWeeklyLearningPlan(progress);
@@ -305,6 +303,38 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
   const gradebookMasteredCount = teacherGradebookRows.filter(row => row.status === 'done').length;
   const gradebookInProgressCount = teacherGradebookRows.filter(row => row.status === 'in-progress').length;
   const gradebookNotStartedCount = teacherGradebookRows.filter(row => row.status === 'ready').length;
+  const roomJournalTotals = (progress.learningJournal || []).reduce((summary, entry) => {
+    const current = summary[entry.room] || { total: 0, mastered: 0, reflected: 0 };
+    summary[entry.room] = {
+      total: current.total + 1,
+      mastered: current.mastered + (entry.mastered ? 1 : 0),
+      reflected: current.reflected + (entry.childReflection ? 1 : 0),
+    };
+    return summary;
+  }, {} as Record<RoomType, { total: number; mastered: number; reflected: number }>);
+  const allRoomActivityRows = [
+    { room: RoomType.READING, label: 'Reading', icon: '📚', color: 'bg-green-500', score: progress.readingScore || 0 },
+    { room: RoomType.LANGUAGE, label: 'Speech & Language', icon: '🗣️', color: 'bg-pink-500', score: progress.languageScore || 0 },
+    { room: RoomType.MATH, label: 'Math', icon: '🔢', color: 'bg-blue-500', score: progress.mathScore || 0 },
+    { room: RoomType.SCIENCE, label: 'Science', icon: '🔬', color: 'bg-purple-500', score: progress.scienceScore || 0 },
+    { room: RoomType.GEOGRAPHY, label: 'World Studies', icon: '🌍', color: 'bg-cyan-500', score: progress.geographyScore || 0 },
+    { room: RoomType.CODING, label: 'Coding', icon: '💻', color: 'bg-indigo-500', score: progress.codingScore || 0 },
+    { room: RoomType.STORYBOOK, label: 'Library', icon: '📖', color: 'bg-amber-500', score: progress.storybookScore || 0 },
+    { room: RoomType.PUZZLE, label: 'Strategy', icon: '🧩', color: 'bg-teal-500', score: roomJournalTotals[RoomType.PUZZLE]?.total || 0 },
+    { room: RoomType.ART, label: 'Art', icon: '🎨', color: 'bg-rose-500', score: roomJournalTotals[RoomType.ART]?.total || 0 },
+    { room: RoomType.MUSIC, label: 'Music', icon: '🎵', color: 'bg-fuchsia-500', score: progress.musicScore || roomJournalTotals[RoomType.MUSIC]?.total || 0 },
+    { room: RoomType.STUDY, label: 'Study Zone', icon: '✨', color: 'bg-slate-700', score: roomJournalTotals[RoomType.STUDY]?.total || 0 },
+  ].map(item => ({
+    ...item,
+    name: item.label,
+    evidence: roomJournalTotals[item.room]?.total || 0,
+    mastered: roomJournalTotals[item.room]?.mastered || 0,
+    reflected: roomJournalTotals[item.room]?.reflected || 0,
+  }));
+  const subjectData = allRoomActivityRows
+    .filter(item => item.room !== RoomType.STUDY)
+    .sort((a, b) => b.score - a.score);
+  const maxScore = Math.max(...subjectData.map(s => s.score), 1);
   const journalByRoom = (progress.learningJournal || []).reduce((summary, entry) => {
     const current = summary[entry.room] || { total: 0, mastered: 0, reflected: 0 };
     summary[entry.room] = {
@@ -1401,6 +1431,47 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                           className={`h-full ${subject.color} rounded-full transition-all`}
                           style={{ width: `${(subject.score / maxScore) * 100}%` }}
                         />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100">
+              <div className="flex flex-col gap-1 md:flex-row md:items-start md:justify-between mb-3">
+                <div>
+                  <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">All Classroom Activity</p>
+                  <h3 className="font-semibold text-gray-800">Every period parents can track</h3>
+                </div>
+                <p className="rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-600">
+                  {allRoomActivityRows.reduce((sum, row) => sum + row.evidence, 0)} saved proof items
+                </p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-2">
+                {allRoomActivityRows.map(row => (
+                  <div key={row.room} className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xl">{row.icon}</span>
+                        <p className="text-sm font-black text-slate-900">{row.label}</p>
+                      </div>
+                      <span className="rounded-full bg-white px-2 py-1 text-[10px] font-black text-slate-600">
+                        {row.score} scored
+                      </span>
+                    </div>
+                    <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+                      <div className="rounded-lg bg-white px-2 py-2">
+                        <p className="text-sm font-black text-slate-900">{row.evidence}</p>
+                        <p className="text-[9px] font-black uppercase tracking-[0.1em] text-slate-500">proof</p>
+                      </div>
+                      <div className="rounded-lg bg-white px-2 py-2">
+                        <p className="text-sm font-black text-emerald-700">{row.mastered}</p>
+                        <p className="text-[9px] font-black uppercase tracking-[0.1em] text-slate-500">mastered</p>
+                      </div>
+                      <div className="rounded-lg bg-white px-2 py-2">
+                        <p className="text-sm font-black text-indigo-700">{row.reflected}</p>
+                        <p className="text-[9px] font-black uppercase tracking-[0.1em] text-slate-500">reflections</p>
                       </div>
                     </div>
                   </div>

@@ -57,6 +57,7 @@ export const MusicRoom: React.FC<MusicRoomProps> = ({ onBack, onReward, level })
   const [notesPlayed, setNotesPlayed] = useState(0);
   const [loopsTried, setLoopsTried] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
+  const [sessionRound, setSessionRound] = useState(0);
   const [teacherFeedback, setTeacherFeedback] = useState('Play notes or loops until the mission board says ready. Then finish the music mission for a teacher check.');
   
   // DJ State
@@ -77,7 +78,7 @@ export const MusicRoom: React.FC<MusicRoomProps> = ({ onBack, onReward, level })
     { id: 7, note: 'C2', freq: 523.25, color: 'bg-purple-500', border: 'border-purple-700' },
   ];
   const missionPool = ALL_MUSIC_MISSIONS.filter(item => item.gradeLevel <= Math.min(Math.max(level, 1), 7));
-  const mission = missionPool[new Date().getDate() % missionPool.length] || ALL_MUSIC_MISSIONS[0];
+  const mission = missionPool[(new Date().getDate() + sessionRound) % missionPool.length] || ALL_MUSIC_MISSIONS[0];
 
   const djPads = [
       { id: 1, name: 'Kick', freq: 100, type: 'square', pattern: 500 },
@@ -159,6 +160,18 @@ export const MusicRoom: React.FC<MusicRoomProps> = ({ onBack, onReward, level })
         selectedAnswer: `${notesPlayed} notes, ${loopsTried} loops`,
         correctAnswer: `${mission.noteGoal} notes or ${mission.loopGoal} loops`,
       });
+      loopRefs.current.forEach(clearInterval);
+      loopRefs.current.clear();
+      window.setTimeout(() => {
+        setNotesPlayed(0);
+        setLoopsTried(0);
+        setActiveLoops([]);
+        setIsComplete(false);
+        setSessionRound(round => round + 1);
+        const nextFeedback = 'Next music round is ready. Play a new pattern so you can keep moving toward six saved practice rounds.';
+        setTeacherFeedback(nextFeedback);
+        void speakAsync(nextFeedback, 0.86, 1.02);
+      }, 1200);
   };
 
   return (

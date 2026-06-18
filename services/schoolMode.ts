@@ -173,17 +173,32 @@ export interface TeacherHelpStep {
 }
 
 export const SCHOOL_ASSIGNMENT_ROOMS = [
-  RoomType.MATH,
   RoomType.READING,
-  RoomType.STORYBOOK,
+  RoomType.LANGUAGE,
+  RoomType.MATH,
   RoomType.SCIENCE,
   RoomType.GEOGRAPHY,
   RoomType.CODING,
+  RoomType.PUZZLE,
+  RoomType.STORYBOOK,
   RoomType.ART,
   RoomType.MUSIC,
-  RoomType.LANGUAGE,
-  RoomType.PUZZLE,
 ];
+
+const CORE_SCHOOL_PERIOD_ROOMS = [
+  RoomType.READING,
+  RoomType.LANGUAGE,
+  RoomType.MATH,
+  RoomType.SCIENCE,
+  RoomType.GEOGRAPHY,
+  RoomType.CODING,
+  RoomType.PUZZLE,
+] as const;
+
+const CREATIVE_SCHOOL_PERIOD_ROOMS = [
+  RoomType.ART,
+  RoomType.MUSIC,
+] as const;
 
 export const SCHOOL_CAMPUS_ROOMS: Partial<Record<RoomType, SchoolCampusRoom>> = {
   [RoomType.MATH]: {
@@ -523,80 +538,64 @@ export const getSchoolDayPlan = (progress: UserProgress) => {
     const daysSincePractice = Math.floor((Date.now() - practicedAt) / (24 * 60 * 60 * 1000));
     return daysSincePractice >= item.unit.reviewCycleDays;
   }).length;
-  const readingDone = todayRooms.has(RoomType.READING) || todayRooms.has(RoomType.STORYBOOK);
-  const stemDone = todayRooms.has(RoomType.SCIENCE) || todayRooms.has(RoomType.CODING) || todayRooms.has(RoomType.GEOGRAPHY);
-  const creativeDone = todayRooms.has(RoomType.ART) || todayRooms.has(RoomType.MUSIC) || todayRooms.has(RoomType.LANGUAGE) || todayRooms.has(RoomType.PUZZLE);
-  const periods: SchoolDayPeriod[] = [
-    {
-      id: 'homeroom',
-      label: 'Homeroom',
-      detail: `${AI_TEACHER.name} greets the child and sets the mission.`,
-      proof: 'Child starts the day and names the learning goal.',
-      reward: 'Attendance stamp',
-      whyItMatters: 'Homeroom turns the app into a guided school day instead of random clicking.',
-      room: mission.room,
-      unitId: mission.id,
-      status: hasTodayActivity ? 'done' : 'ready',
-      actionLabel: hasTodayActivity ? 'Present' : 'Start',
-    },
-    {
-      id: 'core',
-      label: missionRoom.classroomName,
-      detail: mission.title,
-      proof: mission.successCheck,
-      reward: `${missionRoom.shortName} mastery credit`,
-      whyItMatters: mission.parentExplanation || mission.masteryTarget,
-      room: mission.room,
-      unitId: mission.id,
-      status: coreMasteryDone ? 'done' : mastery.practiceCount > 0 || missionPracticedToday ? 'in-progress' : 'ready',
-      actionLabel: coreMasteryDone ? 'Mastered' : `${mastery.practiceCount}/${MASTERED_PRACTICE_TARGET}`,
-    },
-    {
-      id: 'reading',
-      label: 'Reading Block',
-      detail: 'Read, listen, and answer with text evidence.',
-      proof: 'Answer one story or reading question using a clue from the words.',
-      reward: 'Library stamp',
-      whyItMatters: 'Daily reading practice builds vocabulary, fluency, and comprehension.',
-      room: RoomType.STORYBOOK,
-      status: !coreMasteryDone ? 'locked' : readingDone ? 'done' : 'ready',
-      actionLabel: !coreMasteryDone ? 'Locked' : readingDone ? 'Done' : 'Read',
-    },
-    {
-      id: 'stem',
-      label: 'STEM Lab',
-      detail: 'Practice science, world studies, or coding logic.',
-      proof: 'Make a prediction, explain evidence, or debug one step.',
-      reward: 'Discovery badge',
-      whyItMatters: 'STEM practice teaches kids to test ideas instead of only memorizing answers.',
-      room: RoomType.SCIENCE,
-      status: !coreMasteryDone ? 'locked' : stemDone ? 'done' : 'ready',
-      actionLabel: !coreMasteryDone ? 'Locked' : stemDone ? 'Done' : 'Explore',
-    },
-    {
-      id: 'creative',
-      label: 'Creative Studio',
-      detail: 'Use art, music, languages, or strategy thinking.',
-      proof: 'Create, repeat, speak, or solve, then explain one choice.',
-      reward: 'Creative thinking badge',
-      whyItMatters: 'Creative rooms build memory, communication, and flexible problem solving.',
-      room: RoomType.ART,
-      status: !coreMasteryDone ? 'locked' : creativeDone ? 'done' : 'ready',
-      actionLabel: !coreMasteryDone ? 'Locked' : creativeDone ? 'Done' : 'Create',
-    },
-    {
-      id: 'exit',
-      label: 'Exit Ticket',
-      detail: mission.successCheck,
-      proof: mission.successCheck,
-      reward: 'Parent proof saved',
-      whyItMatters: 'The exit ticket gives parents evidence that the child can explain the skill.',
-      room: mission.room,
-      unitId: mission.id,
-      status: !coreMasteryDone ? 'locked' : exitTicketDone ? 'done' : todayJournalEntries.length > 0 ? 'in-progress' : reviewDueCount > 0 ? 'due' : 'ready',
-      actionLabel: !coreMasteryDone ? 'Locked' : exitTicketDone ? 'Saved' : 'Check',
-    },
+  const assignmentCards = getTeacherAssignmentCards(progress);
+  const cardByRoom = new Map(assignmentCards.map(card => [card.room, card]));
+  const chooseFirstReadyRoom = (rooms: readonly RoomType[]) => (
+    rooms.find(room => cardByRoom.get(room)?.status !== 'done') || rooms[0]
+  );
+  const stemRoom = chooseFirstReadyRoom([RoomType.SCIENCE, RoomType.GEOGRAPHY, RoomType.CODING]);
+  const strategyRoom = chooseFirstReadyRoom([RoomType.PUZZLE, RoomType.STORYBOOK]);
+  const creativeRoom = chooseFirstReadyRoom(CREATIVE_SCHOOL_PERIOD_ROOMS);
+  const orderedPeriodRooms = [
+    RoomType.READING,
+    RoomType.LANGUAGE,
+    RoomType.MATH,
+    stemRoom,
+    strategyRoom,
+    creativeRoom,
   ];
+  const periodNames: Record<string, string> = {
+    [RoomType.READING]: 'Period 1: Reading',
+    [RoomType.LANGUAGE]: 'Period 2: Speech & Language',
+    [RoomType.MATH]: 'Period 3: Math',
+    [RoomType.SCIENCE]: 'Period 4: Science',
+    [RoomType.GEOGRAPHY]: 'Period 4: World Studies',
+    [RoomType.CODING]: 'Period 4: Coding Logic',
+    [RoomType.PUZZLE]: 'Period 5: Strategy Gym',
+    [RoomType.STORYBOOK]: 'Period 5: School Library',
+    [RoomType.ART]: 'Last Period: Art Studio',
+    [RoomType.MUSIC]: 'Last Period: Music Room',
+  };
+  const periods: SchoolDayPeriod[] = orderedPeriodRooms.map((room, index) => {
+    const card = cardByRoom.get(room);
+    const campusRoom = getCampusRoom(room);
+    const previousRooms = orderedPeriodRooms.slice(0, index);
+    const previousComplete = previousRooms.every(previousRoom => cardByRoom.get(previousRoom)?.status === 'done');
+    const baseStatus: SchoolDayPeriodStatus = card?.status || 'ready';
+    const status: SchoolDayPeriodStatus = previousComplete
+      ? baseStatus
+      : 'locked';
+    const remaining = Math.max(0, MASTERED_PRACTICE_TARGET - Math.min(card?.practiceCount || 0, MASTERED_PRACTICE_TARGET));
+
+    return {
+      id: `${index + 1}-${room.toLowerCase()}`,
+      label: periodNames[room] || `Period ${index + 1}: ${campusRoom.classroomName}`,
+      detail: card?.title || campusRoom.detail,
+      proof: card?.masteryRubric || `Complete ${MASTERED_PRACTICE_TARGET} saved practice rounds in ${campusRoom.classroomName}.`,
+      reward: index === orderedPeriodRooms.length - 1 ? 'End-of-day creative stamp' : `${campusRoom.shortName} class stamp`,
+      whyItMatters: card?.parentNote || campusRoom.detail,
+      room,
+      unitId: card?.unitId,
+      status,
+      actionLabel: status === 'locked'
+        ? 'Locked'
+        : status === 'done'
+          ? 'Mastered'
+          : remaining > 0
+            ? `${Math.min(card?.practiceCount || 0, MASTERED_PRACTICE_TARGET)}/${MASTERED_PRACTICE_TARGET}`
+            : 'Start',
+    };
+  });
   const completedPeriods = periods.filter(period => period.status === 'done').length;
   const schoolDayPercent = Math.round((completedPeriods / periods.length) * 100);
 
@@ -626,13 +625,17 @@ export const getNextSchoolStep = (progress: UserProgress): NextSchoolStep => {
   const isSchoolDayComplete = schoolDay.completedPeriods >= schoolDay.totalPeriods;
   const room = getCampusRoom(nextPeriod.room);
   const childName = progress.childName || 'learner';
-  const actionLabelByPeriod: Record<string, string> = {
-    homeroom: 'Start with teacher',
-    core: nextPeriod.status === 'in-progress' ? 'Finish 6 answers' : 'Start lesson',
-    reading: 'Open reading block',
-    stem: 'Open STEM lab',
-    creative: 'Open creative studio',
-    exit: 'Do exit ticket',
+  const actionLabelByRoom: Partial<Record<RoomType, string>> = {
+    [RoomType.READING]: 'Open reading',
+    [RoomType.LANGUAGE]: 'Open speech',
+    [RoomType.MATH]: 'Open math',
+    [RoomType.SCIENCE]: 'Open science',
+    [RoomType.GEOGRAPHY]: 'Open world studies',
+    [RoomType.CODING]: 'Open coding',
+    [RoomType.PUZZLE]: 'Open strategy',
+    [RoomType.STORYBOOK]: 'Open library',
+    [RoomType.ART]: 'Open art',
+    [RoomType.MUSIC]: 'Open music',
   };
   const teacherPrompt = isSchoolDayComplete
     ? `Nice work, ${childName}. Your school day is complete. You can review a favorite classroom or show your passport to a grown-up.`
@@ -650,7 +653,11 @@ export const getNextSchoolStep = (progress: UserProgress): NextSchoolStep => {
     detail: isSchoolDayComplete
       ? 'All planned class periods are checked off for today.'
       : nextPeriod.detail,
-    actionLabel: isSchoolDayComplete ? 'Review favorite class' : actionLabelByPeriod[nextPeriod.id] || nextPeriod.actionLabel,
+    actionLabel: isSchoolDayComplete
+      ? 'Review favorite class'
+      : nextPeriod.status === 'in-progress'
+        ? 'Finish 6 answers'
+        : actionLabelByRoom[nextPeriod.room] || nextPeriod.actionLabel,
     teacherPrompt,
     progressLabel: `${schoolDay.completedPeriods}/${schoolDay.totalPeriods} periods complete`,
     proof: nextPeriod.proof,

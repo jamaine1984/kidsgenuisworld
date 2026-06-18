@@ -532,7 +532,9 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, level }) =
   const [feedback, setFeedback] = useState<'idle' | 'correct' | 'wrong'>('idle');
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [coachTip, setCoachTip] = useState('');
+  const [selectedChoice, setSelectedChoice] = useState<number | null>(null);
   const lessonStep = React.useRef(0);
+  const choiceLabels = ['A', 'B', 'C', 'D'];
 
   const lessonLabel = useMemo(() => {
     if (level <= 2) return 'Count and picture the groups';
@@ -582,6 +584,7 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, level }) =
   }, []);
   const loadProblem = useCallback(() => {
     setFeedback('idle');
+    setSelectedChoice(null);
     const step = lessonStep.current;
     lessonStep.current += 1;
     const p = withSeededRandom(`math-grade-${level}`, step, () => generateMathProblem(level));
@@ -601,6 +604,7 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, level }) =
 
   const handleAnswer = (val: number) => {
     if (!problem || feedback !== 'idle') return;
+    setSelectedChoice(val);
 
     if (val === problem.answer) {
       setFeedback('correct');
@@ -782,7 +786,7 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, level }) =
               {problem.question}
             </h2>
             {renderMathManipulatives()}
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6">
               {problem.options.map((opt, idx) => (
                 <button
                   key={idx}
@@ -791,25 +795,30 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, level }) =
                   onClick={() => handleAnswer(opt)}
                   disabled={feedback !== 'idle'}
                   className={`
-                    p-8 rounded-3xl text-5xl font-bold text-white transition-all transform hover:scale-105 hover:shadow-xl active:scale-95
+                    flex min-h-[112px] items-center gap-4 rounded-3xl p-5 text-left text-white transition-all transform hover:scale-105 hover:shadow-xl active:scale-95
                     ${feedback === 'correct' && opt === problem.answer ? 'bg-green-500 animate-pulse ring-4 ring-green-300' : ''}
                     ${feedback === 'wrong' && opt === problem.answer ? 'bg-green-500' : ''}
-                    ${feedback === 'wrong' && opt !== problem.answer ? 'bg-gray-300 cursor-not-allowed' : ''}
+                    ${feedback === 'wrong' && opt !== problem.answer ? (selectedChoice === opt ? 'bg-orange-400 ring-4 ring-orange-200' : 'bg-gray-300 cursor-not-allowed') : ''}
                     ${feedback === 'idle' ? 'bg-indigo-500 hover:bg-indigo-400 shadow-[0_6px_0_rgb(55,48,163)] active:shadow-none active:translate-y-2' : ''}
                   `}
                 >
-                  {opt}
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/95 text-2xl font-black text-indigo-700 shadow-sm">
+                    {choiceLabels[idx]}
+                  </span>
+                  <span className="text-4xl font-black leading-none sm:text-5xl">{opt}</span>
                 </button>
               ))}
             </div>
             {feedback === 'correct' && (
-                <div className="absolute inset-x-0 bottom-[-80px] text-4xl font-bold text-green-600 animate-bounce text-center">
-                    Awesome! 🎉
+                <div className="mt-6 rounded-[28px] border-2 border-green-200 bg-green-50 p-5 text-left text-green-800 shadow-sm">
+                    <div className="text-xs font-black uppercase tracking-[0.18em] text-green-600">Teacher Check</div>
+                    <div className="mt-2 text-2xl font-black">Correct. {problem.explanation}</div>
                 </div>
             )}
             {feedback === 'wrong' && (
-                <div className="absolute inset-x-0 bottom-[-80px] text-2xl font-bold text-orange-600 text-center">
-                    The answer is {problem.answer}
+                <div className="mt-6 rounded-[28px] border-2 border-orange-200 bg-orange-50 p-5 text-left text-orange-800 shadow-sm">
+                    <div className="text-xs font-black uppercase tracking-[0.18em] text-orange-600">Teacher Check</div>
+                    <div className="mt-2 text-2xl font-black">The answer is {problem.answer}. {problem.explanation}</div>
                 </div>
             )}
           </div>

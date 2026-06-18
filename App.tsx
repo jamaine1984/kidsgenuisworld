@@ -46,7 +46,7 @@ import { loadFamilyProgressFromFirebase, syncProgressToFirebase, type CloudChild
 import { createStripeCheckoutUrl, getStripeBillingAccess, openStripeBillingPortal, type StripeBillingPlan } from './services/stripeBilling';
 import { getAchievementProgress } from './services/achievements';
 import { logDiagnosticEvent } from './services/diagnosticsService';
-import { getQuestionKey, recordAssignmentAttempt } from './services/assignmentTracking';
+import { getMasteryPeriodSummary, getQuestionKey, recordAssignmentAttempt, type MasteryPeriodSummary } from './services/assignmentTracking';
 import {
   AI_TEACHER,
   MASTERED_PRACTICE_TARGET,
@@ -138,6 +138,7 @@ interface LearningReflection {
   practiceCount: number;
   mastered: boolean;
   journalEntryId?: string;
+  masterySummary?: MasteryPeriodSummary;
 }
 
 interface LearningReflectionOverride {
@@ -2044,6 +2045,7 @@ const App: React.FC = () => {
       ...prepareLearningReflection(subject, roomOverride, reflectionOverride),
       journalEntryId,
     };
+    let completedReflection: LearningReflection = reflection;
 
     const holiday = getCurrentHoliday();
     const seasonalStickers = SEASONAL_STICKERS[holiday];
@@ -2174,12 +2176,19 @@ const App: React.FC = () => {
         });
       }
 
+      completedReflection = {
+        ...reflection,
+        practiceCount: journalPracticeCount,
+        mastered: Boolean(activeUnitId && journalPracticeCount >= MASTERED_PRACTICE_TARGET),
+        masterySummary: getMasteryPeriodSummary(newProgress, journalRoom, MASTERED_PRACTICE_TARGET),
+      };
+
       newProgress = checkAchievements(newProgress);
       return newProgress;
     });
     const isClassroomPracticeUnit = Boolean(activeUnitId && currentRoom !== RoomType.STORYBOOK);
-    if (showReflectionNow || !isClassroomPracticeUnit || reflection.mastered) {
-      setLearningReflection(reflection);
+    if (showReflectionNow || !isClassroomPracticeUnit || completedReflection.mastered) {
+      setLearningReflection(completedReflection);
     }
   };
 
@@ -3637,6 +3646,37 @@ const App: React.FC = () => {
               {learningReflection.mastered && (
                 <div className="mt-3 rounded-2xl bg-white p-3 text-sm font-black text-emerald-700">
                   Mastery check reached. This lesson can move into review.
+                </div>
+              )}
+              {learningReflection.masterySummary && (
+                <div className="mt-3 rounded-2xl border border-indigo-100 bg-white p-3">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-[0.14em] text-indigo-600">Period Mastery Summary</p>
+                      <p className="mt-1 text-sm font-bold text-slate-700">
+                        {learningReflection.masterySummary.correctCount}/{learningReflection.masterySummary.attemptsReviewed || MASTERED_PRACTICE_TARGET} correct
+                        {learningReflection.masterySummary.attemptsReviewed > 0 ? `, ${learningReflection.masterySummary.accuracyPercent}% accuracy` : ''}
+                      </p>
+                    </div>
+                    <div className="rounded-2xl bg-amber-50 px-4 py-2 text-center">
+                      <p className="text-2xl font-black text-amber-600">{'★'.repeat(learningReflection.masterySummary.starsEarned || 1)}</p>
+                      <p className="text-[10px] font-black uppercase tracking-[0.12em] text-amber-700">stars earned</p>
+                    </div>
+                  </div>
+                  <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                    <div className="rounded-xl bg-slate-50 p-3">
+                      <p className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-500">Review focus</p>
+                      <p className="mt-1 text-sm font-bold text-slate-800">
+                        {learningReflection.masterySummary.missedSkills.length > 0
+                          ? learningReflection.masterySummary.missedSkills.join(', ')
+                          : 'No missed skill in this summary.'}
+                      </p>
+                    </div>
+                    <div className="rounded-xl bg-indigo-50 p-3">
+                      <p className="text-[10px] font-black uppercase tracking-[0.12em] text-indigo-600">Next lesson</p>
+                      <p className="mt-1 text-sm font-bold text-indigo-900">{learningReflection.masterySummary.nextRecommendedLesson}</p>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>

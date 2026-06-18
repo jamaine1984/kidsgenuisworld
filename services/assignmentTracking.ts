@@ -134,3 +134,59 @@ export const recordAssignmentAttempt = (
   };
 };
 
+export interface MasteryPeriodSummary {
+  attemptsReviewed: number;
+  correctCount: number;
+  starsEarned: number;
+  accuracyPercent: number;
+  missedSkills: string[];
+  reviewQuestionIds: string[];
+  nextRecommendedLesson: string;
+  parentExplanation: string;
+}
+
+const normalizeSkillLabel = (skill: string) => skill.trim() || 'current skill';
+
+export const getMasteryPeriodSummary = (
+  progress: Pick<UserProgress, 'assignmentAttempts'>,
+  room?: RoomType,
+  targetCount = MASTERED_PRACTICE_TARGET
+): MasteryPeriodSummary => {
+  const attempts = [...(progress.assignmentAttempts || [])]
+    .filter(attempt => !room || attempt.room === room)
+    .sort((a, b) => b.createdAt - a.createdAt)
+    .slice(0, targetCount);
+  const correctCount = attempts.filter(attempt => attempt.correct).length;
+  const missedAttempts = attempts.filter(attempt => !attempt.correct);
+  const missedSkills = Array.from(new Set(missedAttempts.map(attempt => normalizeSkillLabel(attempt.skill)))).slice(0, 3);
+  const reviewQuestionIds = missedAttempts.map(attempt => attempt.questionId).slice(0, 6);
+  const accuracyPercent = attempts.length > 0 ? Math.round((correctCount / attempts.length) * 100) : 0;
+  const starsEarned = attempts.length === 0
+    ? 0
+    : accuracyPercent >= 90
+      ? 3
+      : accuracyPercent >= 70
+        ? 2
+        : 1;
+  const nextRecommendedLesson = missedSkills.length > 0
+    ? `Review ${missedSkills[0]} before the next new lesson.`
+    : attempts.length >= targetCount
+      ? 'Move to the next lesson and keep one quick review question.'
+      : `Finish ${targetCount - attempts.length} more question${targetCount - attempts.length === 1 ? '' : 's'} to complete this period.`;
+  const parentExplanation = missedSkills.length > 0
+    ? `Review is ready for ${missedSkills.join(', ')}. Missed questions should come back before harder work.`
+    : attempts.length >= targetCount
+      ? 'This period is ready for new learning with light spaced review.'
+      : 'This period is still collecting enough evidence for a full mastery summary.';
+
+  return {
+    attemptsReviewed: attempts.length,
+    correctCount,
+    starsEarned,
+    accuracyPercent,
+    missedSkills,
+    reviewQuestionIds,
+    nextRecommendedLesson,
+    parentExplanation,
+  };
+};

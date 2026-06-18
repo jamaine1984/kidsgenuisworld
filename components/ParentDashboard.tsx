@@ -34,6 +34,7 @@ import {
 } from '../services/schoolMode';
 import { clearDiagnosticEvents, exportDiagnosticEvents, getDiagnosticEvents } from '../services/diagnosticsService';
 import type { StripeBillingPlan } from '../services/stripeBilling';
+import { getLocalDateKey, getMasteryPeriodSummary } from '../services/assignmentTracking';
 
 interface BillingAccessSummary {
   billingAccessActive?: boolean;
@@ -488,6 +489,22 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
     .sort((a, b) => b.date.localeCompare(a.date))
     .slice(0, 7);
   const currentMonthKey = new Date().toISOString().slice(0, 7);
+  const todayAssignmentSet = progress.dailyAssignmentSets?.[getLocalDateKey()];
+  const assignmentAttempts = progress.assignmentAttempts || [];
+  const weekStartMs = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  const weeklyAssignmentAttempts = assignmentAttempts.filter(attempt => attempt.createdAt >= weekStartMs);
+  const monthlyAssignmentAttempts = assignmentAttempts.filter(attempt => new Date(attempt.createdAt).toISOString().slice(0, 7) === currentMonthKey);
+  const weeklyAssignmentCorrect = weeklyAssignmentAttempts.filter(attempt => attempt.correct).length;
+  const monthlyAssignmentCorrect = monthlyAssignmentAttempts.filter(attempt => attempt.correct).length;
+  const weeklyAssignmentAccuracy = weeklyAssignmentAttempts.length > 0 ? Math.round((weeklyAssignmentCorrect / weeklyAssignmentAttempts.length) * 100) : 0;
+  const monthlyAssignmentAccuracy = monthlyAssignmentAttempts.length > 0 ? Math.round((monthlyAssignmentCorrect / monthlyAssignmentAttempts.length) * 100) : 0;
+  const reviewReadyAttempts = assignmentAttempts.filter(attempt => !attempt.correct).slice(0, 6);
+  const masterySummaryByRoom = Object.values(RoomType)
+    .filter(room => room !== RoomType.HUB)
+    .map(room => ({ room, summary: getMasteryPeriodSummary(progress, room) }))
+    .filter(item => item.summary.attemptsReviewed > 0)
+    .sort((a, b) => a.summary.accuracyPercent - b.summary.accuracyPercent);
+  const priorityMasterySummary = masterySummaryByRoom[0]?.summary;
   const monthlyDailyStats = (progress.dailyStats || []).filter(day => day.date.startsWith(currentMonthKey));
   const monthlyJournalEntries = (progress.learningJournal || []).filter(entry => new Date(entry.createdAt).toISOString().slice(0, 7) === currentMonthKey);
   const weeklyMinutes = recentDailyStats.reduce((sum, day) => sum + day.timeSpentMinutes, 0);
@@ -723,6 +740,20 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
       value: `${healthyPacingDays}/${Math.max(activeLearningDays, 1)} days`,
       detail: `${dailySessionLimitMinutes} minute daily cap before an offline break.`,
     },
+    {
+      label: 'Assignment evidence',
+      value: weeklyAssignmentAttempts.length > 0 ? `${weeklyAssignmentAccuracy}%` : 'Ready',
+      detail: weeklyAssignmentAttempts.length > 0
+        ? `${weeklyAssignmentCorrect}/${weeklyAssignmentAttempts.length} saved assignment attempts were correct this week.`
+        : 'Question-level evidence appears after classroom attempts are saved.',
+    },
+    {
+      label: 'Review queue',
+      value: `${reviewReadyAttempts.length}`,
+      detail: reviewReadyAttempts.length > 0
+        ? `${reviewReadyAttempts[0].skill} should come back before harder work.`
+        : 'No missed assignment attempts are waiting for review.',
+    },
   ];
   const monthlyReportCards = [
     {
@@ -744,6 +775,13 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
       label: 'Mastery proof',
       value: `${monthlyMasteryProofs}`,
       detail: `${monthlyReflectionProofs} student reflection${monthlyReflectionProofs === 1 ? '' : 's'} saved for parent review.`,
+    },
+    {
+      label: 'Assignment attempts',
+      value: `${monthlyAssignmentAttempts.length}`,
+      detail: monthlyAssignmentAttempts.length > 0
+        ? `${monthlyAssignmentAccuracy}% correct from saved question-level evidence this month.`
+        : 'Monthly assignment evidence starts after classroom questions are completed.',
     },
   ];
   const arcadeProgress = {
@@ -1424,6 +1462,46 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                       <p className="mt-1 text-xs font-semibold text-slate-600">{card.detail}</p>
                     </div>
                   ))}
+                </div>
+              </div>
+              <div className="mt-4 rounded-xl border border-amber-100 bg-amber-50 p-3">
+                <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+                  <div>
+                    <p className="text-sm font-black text-amber-900">Review Cycle</p>
+                    <p className="mt-1 text-sm font-semibold text-amber-900/80">
+                      Missed or low-accuracy skills should return before harder new work.
+                    </p>
+                  </div>
+                  <p className="rounded-full bg-white px-3 py-1 text-xs font-black text-amber-700">
+                    {todayAssignmentSet?.items?.filter(item => item.completedAt).length || 0}/{todayAssignmentSet?.items?.length || MASTERED_PRACTICE_TARGET} today
+                  </p>
+                </div>
+                <div className="mt-3 grid gap-2 md:grid-cols-3">
+                  <div className="rounded-lg bg-white p-3 shadow-sm">
+                    <p className="text-[10px] font-black uppercase tracking-[0.12em] text-amber-600">Priority review</p>
+                    <p className="mt-1 text-sm font-black text-slate-900">
+                      {reviewReadyAttempts[0]?.skill || priorityMasterySummary?.missedSkills[0] || 'No review needed yet'}
+                    </p>
+                    <p className="mt-1 text-xs font-semibold text-slate-600">
+                      {reviewReadyAttempts[0]?.prompt || priorityMasterySummary?.parentExplanation || 'Keep one light review question in each session.'}
+                    </p>
+                  </div>
+                  <div className="rounded-lg bg-white p-3 shadow-sm">
+                    <p className="text-[10px] font-black uppercase tracking-[0.12em] text-amber-600">Six-question summary</p>
+                    <p className="mt-1 text-sm font-black text-slate-900">
+                      {priorityMasterySummary ? `${priorityMasterySummary.correctCount}/${priorityMasterySummary.attemptsReviewed} correct` : 'Waiting for attempts'}
+                    </p>
+                    <p className="mt-1 text-xs font-semibold text-slate-600">
+                      {priorityMasterySummary?.nextRecommendedLesson || 'Complete a classroom period to generate a mastery summary.'}
+                    </p>
+                  </div>
+                  <div className="rounded-lg bg-white p-3 shadow-sm">
+                    <p className="text-[10px] font-black uppercase tracking-[0.12em] text-amber-600">Review questions</p>
+                    <p className="mt-1 text-sm font-black text-slate-900">{reviewReadyAttempts.length} ready</p>
+                    <p className="mt-1 text-xs font-semibold text-slate-600">
+                      Saved missed questions are kept in the assignment history for future reteach cycles.
+                    </p>
+                  </div>
                 </div>
               </div>
               <div className="mt-4 rounded-xl border border-violet-100 bg-violet-50 p-3">

@@ -3122,6 +3122,8 @@ const App: React.FC = () => {
               stopSpeaking();
               setShowParentDashboard(true);
             }}
+            onOpenBilling={handleOpenStripeBillingPortal}
+            hasBillingAccess={hasPaidAccess() && familyAccess?.accessSource !== 'owner_comped' && !familyAccess?.comped}
             progress={progress}
             profiles={profiles}
             activeProfileId={activeProfileId}

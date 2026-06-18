@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ChildProfile, DEFAULT_ARCADE_PROGRESS, RoomType, UserProgress } from '../types';
 import {
-  Trophy, PawPrint, Settings, LayoutDashboard, PlayCircle, BookOpen,
+  Trophy, PawPrint, Settings, LayoutDashboard, PlayCircle, BookOpen, CreditCard,
   Clock, Target, CheckCircle2, MapPin, HeartPulse, Sparkles, X, Gamepad2,
 } from 'lucide-react';
 import { playPop } from '../services/audioService';
@@ -26,6 +26,8 @@ interface WorldMapProps {
   onOpenPet: () => void;
   onOpenGameArcade: () => void;
   onOpenSettings: () => void;
+  onOpenBilling?: () => void;
+  hasBillingAccess?: boolean;
   progress: UserProgress;
   profiles?: ChildProfile[];
   activeProfileId?: string;
@@ -39,6 +41,8 @@ export const WorldMap: React.FC<WorldMapProps> = ({
   onOpenPet,
   onOpenGameArcade,
   onOpenSettings,
+  onOpenBilling,
+  hasBillingAccess = false,
   progress,
   profiles = [],
   activeProfileId = '',
@@ -531,12 +535,25 @@ export const WorldMap: React.FC<WorldMapProps> = ({
           >
             <LayoutDashboard size={24} />
           </button>
+          {hasBillingAccess && onOpenBilling && (
+            <button
+              onClick={() => { playPop(); onOpenBilling(); }}
+              className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-3 rounded-2xl shadow-lg transition-transform hover:scale-105 border-b-4 border-emerald-800 font-black"
+              title="Manage Billing"
+            >
+              <CreditCard size={22} />
+              <span className="hidden sm:inline">Manage Billing</span>
+              <span className="sm:hidden">Billing</span>
+            </button>
+          )}
           <button
             onClick={() => { playPop(); onOpenSettings(); }}
-            className="bg-slate-200 hover:bg-slate-100 text-slate-700 p-4 rounded-2xl shadow-lg transition-transform hover:scale-110 border-b-4 border-slate-400"
-            title="Settings"
+            className="inline-flex items-center gap-2 bg-slate-200 hover:bg-slate-100 text-slate-700 px-4 py-3 rounded-2xl shadow-lg transition-transform hover:scale-105 border-b-4 border-slate-400 font-black"
+            title="Parent Dashboard and Settings"
           >
-            <Settings size={24} />
+            <Settings size={22} />
+            <span className="hidden sm:inline">Parent Settings</span>
+            <span className="sm:hidden">Settings</span>
           </button>
         </div>
       </div>

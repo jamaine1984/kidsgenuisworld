@@ -1040,9 +1040,9 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
   }
 
   return (
-    <div className="w-full h-full bg-gray-50 flex flex-col overflow-y-auto overflow-x-hidden kid-scroll">
+    <div className="w-full h-screen min-h-0 bg-gray-50 flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-4 text-white sticky top-0 z-20">
+      <div className="shrink-0 bg-gradient-to-r from-indigo-600 to-purple-600 p-4 text-white">
         <div className="flex items-center justify-between gap-3 mb-4">
           <button onClick={onBack} aria-label="Back to world map" className="p-2 bg-white/20 rounded-full hover:bg-white/30 transition shrink-0">
             <ArrowLeft size={24} />
@@ -1072,7 +1072,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
       </div>
 
       {/* Tabs */}
-        <div className="grid grid-cols-5 bg-white border-b sticky top-[140px] sm:top-[120px] z-10">
+      <div className="grid shrink-0 grid-cols-5 overflow-x-auto bg-white border-b">
         {[
           { id: 'overview', label: 'Overview', icon: <BarChart3 size={18} /> },
           { id: 'gradebook', label: 'Gradebook', icon: <ClipboardList size={18} /> },
@@ -1096,7 +1096,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
       </div>
 
       {/* Content */}
-      <div className="p-4">
+      <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden p-4 kid-scroll">
         {activeTab === 'overview' && (
           <div className="space-y-6">
             {/* Current Grade */}
@@ -2367,6 +2367,60 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
 
         {activeTab === 'settings' && (
           <div className="space-y-6">
+            <div className="rounded-xl border-2 border-emerald-200 bg-emerald-50 p-4 shadow-sm">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <h3 className="font-black text-emerald-950 mb-1 flex items-center gap-2">
+                    <CreditCard size={20} className="text-emerald-700" />
+                    Billing & Cancellation
+                  </h3>
+                  <p className="text-sm font-bold text-emerald-900">
+                    {cloudSession.signedIn
+                      ? billingSummary.active
+                        ? `${billingSummary.statusLabel}: ${billingSummary.planLabel}.`
+                        : 'No active Stripe subscription is verified for this family yet.'
+                      : 'Sign in with the parent Firebase account to manage billing.'}
+                  </p>
+                  <p className="mt-1 text-xs font-semibold text-emerald-800">
+                    Cancel future renewals in Stripe. Access stays active through the paid billing period.
+                  </p>
+                  {billingSummary.cancelLabel && (
+                    <p className="mt-2 rounded-lg bg-amber-100 px-3 py-2 text-xs font-bold text-amber-900">
+                      {billingSummary.cancelLabel}
+                    </p>
+                  )}
+                </div>
+                <div className="grid shrink-0 gap-2 sm:min-w-56">
+                  <button
+                    onClick={() => runBillingAction(
+                      () => onOpenStripeBillingPortal?.() || Promise.resolve(),
+                      'Stripe billing portal could not be opened.'
+                    )}
+                    disabled={isBillingBusy || !cloudSession.signedIn || isOwnerCompedBilling}
+                    className="rounded-lg bg-emerald-700 px-4 py-3 text-sm font-black text-white hover:bg-emerald-800 disabled:bg-gray-200 disabled:text-gray-500 transition flex items-center justify-center gap-2"
+                  >
+                    <CreditCard size={18} />
+                    Manage Billing / Cancel
+                  </button>
+                  <button
+                    onClick={() => runBillingAction(
+                      () => onRefreshBillingAccess?.() || Promise.resolve(),
+                      'Stripe status could not be refreshed.'
+                    )}
+                    disabled={isBillingBusy || !cloudSession.signedIn}
+                    className="rounded-lg border border-emerald-200 bg-white px-4 py-3 text-sm font-black text-emerald-800 hover:bg-emerald-100 disabled:bg-gray-100 disabled:text-gray-400 transition"
+                  >
+                    Refresh Stripe Status
+                  </button>
+                </div>
+              </div>
+              {isOwnerCompedBilling && (
+                <p className="mt-3 rounded-lg bg-white px-3 py-2 text-xs font-bold text-emerald-900">
+                  This parent account has owner access, so no Stripe billing portal is needed for that access.
+                </p>
+              )}
+            </div>
+
             <div className="bg-white rounded-xl p-4 shadow-sm">
               <h3 className="font-semibold text-gray-700 mb-4 flex items-center gap-2">
                 <Target size={20} className="text-emerald-500" />

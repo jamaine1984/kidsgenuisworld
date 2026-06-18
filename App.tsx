@@ -705,6 +705,7 @@ const App: React.FC = () => {
   const [accessPassword, setAccessPassword] = useState('');
   const [accessBusy, setAccessBusy] = useState(false);
   const [stripeCheckoutUrl, setStripeCheckoutUrl] = useState('');
+  const [postCheckoutNotice, setPostCheckoutNotice] = useState('');
   const [setupParentEmail, setSetupParentEmail] = useState('');
   const [setupParentPassword, setSetupParentPassword] = useState('');
   const [setupParentAuthStatus, setSetupParentAuthStatus] = useState('');
@@ -1150,15 +1151,42 @@ const App: React.FC = () => {
 
     if (billingResult !== 'success' || !parentCloudSession.familyId) return;
 
-    refreshBillingAccess('Verifying Stripe checkout and 3-day trial...')
+    setHasStarted(true);
+    setShowParentWelcome(false);
+    setShowAccessGate(false);
+    setPendingAccessAction(null);
+    setShowDashboard(false);
+    setShowParentDashboard(false);
+    setShowGameArcade(false);
+    setCurrentRoom(RoomType.HUB);
+    setActiveUnitId(null);
+    setShowLessonIntro(false);
+    setPostCheckoutNotice('Payment successful. Stripe access is active for this family.');
+
+    refreshBillingAccess('Payment successful. Verifying Stripe access...')
+      .then(access => {
+        setBillingStatus(
+          access?.currentPeriodEndsAt
+            ? `Payment successful. Access is active through ${formatBillingDate(access.currentPeriodEndsAt)}.`
+            : 'Payment successful. Access is active for this family.'
+        );
+        if (activeChildNeedsSetup()) {
+          setShowGradeSelection(true);
+          return;
+        }
+        speak("Payment successful. Welcome back to Kid Genius World!");
+      })
       .catch(error => {
         clearFamilyAccess(parentCloudSession.familyId);
         setFamilyAccess(null);
+        setShowAccessGate(true);
         setBillingStatus(
           error instanceof Error
             ? `Stripe checkout returned success, but access could not be verified yet: ${error.message}`
             : 'Stripe checkout returned success, but access could not be verified yet.'
         );
+        setAccessGateStatus('Stripe returned payment success, but verification needs a refresh. Tap Refresh Stripe Status.');
+        setPostCheckoutNotice('Payment returned from Stripe. Refresh billing status if access is not active yet.');
       })
       .finally(() => {
         window.history.replaceState({}, '', window.location.pathname);
@@ -3121,6 +3149,34 @@ const App: React.FC = () => {
       </Suspense>
       </LessonErrorBoundary>
       {!showLessonIntro && <Guide room={currentRoom} trigger={guideTrigger} />}
+
+      {postCheckoutNotice && hasStarted && currentRoom === RoomType.HUB && (
+        <div className="fixed left-3 right-3 top-3 z-[70] mx-auto max-w-4xl rounded-[24px] border-4 border-white bg-emerald-50 p-3 shadow-2xl">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.16em] text-emerald-700">Stripe checkout</p>
+              <p className="mt-1 text-sm font-black text-emerald-950">{postCheckoutNotice}</p>
+              <p className="mt-1 text-xs font-bold text-emerald-800">
+                To cancel future renewals, use Manage Billing in Stripe. Access remains active through the current paid period.
+              </p>
+            </div>
+            <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
+              <button
+                onClick={handleOpenStripeBillingPortal}
+                className="rounded-2xl bg-white px-4 py-2 text-xs font-black text-emerald-800 shadow-sm ring-1 ring-emerald-200 hover:bg-emerald-100"
+              >
+                Manage Billing
+              </button>
+              <button
+                onClick={() => setPostCheckoutNotice('')}
+                className="rounded-2xl bg-emerald-600 px-4 py-2 text-xs font-black text-white shadow hover:bg-emerald-700"
+              >
+                Continue School
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showActiveMissionFocus && activeUnit && (
         <TeacherRoomCoach

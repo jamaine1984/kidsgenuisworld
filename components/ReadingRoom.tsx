@@ -228,7 +228,7 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
 
   const modeTip = useMemo(() => {
     switch (mode) {
-      case 'MATCH': return 'Look at the word, then find the picture that fits.';
+      case 'MATCH': return 'Read the word, then choose the picture that matches.';
       case 'SPELL': return 'Say each letter as you build the word.';
       case 'RHYME': return 'Listen for the ending sound.';
       case 'PHONICS': return 'Tap each sound block slowly, then blend them.';
@@ -239,7 +239,7 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
   const narrateRound = useCallback(async (word: typeof VOCABULARY[number], roundOptions: string[]) => {
     switch (mode) {
       case 'MATCH':
-        await speakMultipleChoiceQuestion(`Which choice shows ${word.word}?`, roundOptions);
+        await speakMultipleChoiceQuestion(`Which picture shows ${word.word}?`, roundOptions);
         break;
       case 'SPELL':
         await speakAsync(`Spell ${word.word}.`, 0.86, 1.04);
@@ -526,6 +526,22 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
               <p className="mt-3 rounded-2xl bg-orange-500 px-4 py-3 text-base font-black text-white">{currentPassage.question}</p>
               <p className="mt-3 text-xs font-black uppercase tracking-[0.18em] text-orange-500">Skill: {currentPassage.skill}</p>
             </div>
+          ) : mode === 'MATCH' ? (
+            <div className="mb-5 rounded-[28px] bg-gradient-to-br from-orange-100 to-yellow-50 p-5 shadow-inner">
+              <div className="mb-2 text-xs font-black uppercase tracking-[0.18em] text-orange-500">Read this word</div>
+              <p className="text-6xl font-black text-orange-700">{currentWord.word}</p>
+              <p className="mt-3 rounded-2xl bg-white/80 px-4 py-2 text-sm font-bold text-orange-900">
+                Choose the picture that matches this word.
+              </p>
+            </div>
+          ) : mode === 'RHYME' ? (
+            <div className="mb-5 rounded-[28px] bg-gradient-to-br from-orange-100 to-yellow-50 p-5 shadow-inner">
+              <div className="mb-2 text-xs font-black uppercase tracking-[0.18em] text-orange-500">Listen for ending sounds</div>
+              <p className="text-6xl font-black text-orange-700">{currentWord.word}</p>
+              <p className="mt-3 rounded-2xl bg-white/80 px-4 py-2 text-sm font-bold text-orange-900">
+                Pick the word that rhymes.
+              </p>
+            </div>
           ) : (
             <div className="mb-5 rounded-[28px] bg-gradient-to-br from-orange-100 to-yellow-50 p-5 shadow-inner">
               <div className="text-7xl mb-3">{currentWord.emoji}</div>
@@ -536,12 +552,7 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
 
           {mode === 'MATCH' && <h1 className="sr-only">{currentWord.word}</h1>}
           {mode === 'SPELL' && <div className="mb-6 text-sm font-black uppercase tracking-[0.18em] text-orange-500">Build the word</div>}
-          {mode === 'RHYME' && (
-            <div>
-              <div className="text-6xl mb-4">{currentWord.emoji}</div>
-              <h1 className="text-2xl font-bold text-orange-800 mb-6">What rhymes with <span className="text-orange-600 underline">{currentWord.word}</span>?</h1>
-            </div>
-          )}
+          {mode === 'RHYME' && <h1 className="sr-only">What rhymes with {currentWord.word}?</h1>}
 
           {/* PHONICS VIEW */}
           {mode === 'PHONICS' && (

@@ -2969,6 +2969,12 @@ const App: React.FC = () => {
   const selectedReflectionChoice = learningReflection?.journalEntryId
     ? progress.learningJournal?.find(entry => entry.id === learningReflection.journalEntryId)?.childReflection
     : undefined;
+  const reflectionPrimaryActionLabel = learningReflection?.roomLabel === 'Story Time'
+    ? (learningReflection.mastered ? 'Next Class' : 'Next Book')
+    : 'Review My Reflection';
+  const reflectionSecondaryActionLabel = learningReflection?.roomLabel === 'Story Time'
+    ? (learningReflection.mastered ? 'Back to School' : 'Choose Next Book')
+    : 'Next Class';
   const activeUnit = activeUnitId
     ? getUnitsForGrade(progress.currentGrade).find(unit => unit.id === activeUnitId)
     : undefined;
@@ -3199,13 +3205,22 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {showActiveMissionFocus && activeUnit && (
+      {showActiveMissionFocus && activeUnit && showMissionFocus && (
         <TeacherRoomCoach
           unit={activeUnit}
           progress={progress}
           practiceCount={activeUnitPracticeCount}
           onOpenLessonBoard={() => setShowMissionFocus(true)}
         />
+      )}
+
+      {showActiveMissionFocus && activeUnit && !showMissionFocus && (
+        <button
+          onClick={() => setShowMissionFocus(true)}
+          className="fixed right-3 top-3 z-30 rounded-2xl bg-white/95 px-3 py-2 text-xs font-black text-slate-800 shadow-lg ring-2 ring-indigo-100 hover:bg-indigo-50"
+        >
+          Lesson Help
+        </button>
       )}
 
       {showActiveMissionFocus && activeUnit && showMissionFocus && (
@@ -3629,19 +3644,26 @@ const App: React.FC = () => {
 
             <div className="mt-5 flex flex-col sm:flex-row gap-3">
               <button
-                onClick={() => setLearningReflection(null)}
+                onClick={() => {
+                  setLearningReflection(null);
+                  if (learningReflection.roomLabel === 'Story Time' && learningReflection.mastered) {
+                    handleBack();
+                  }
+                }}
                 className="flex-1 rounded-2xl bg-emerald-600 px-5 py-3 font-black text-white shadow-lg hover:bg-emerald-700"
               >
-                Review My Reflection
+                {reflectionPrimaryActionLabel}
               </button>
               <button
                 onClick={() => {
                   setLearningReflection(null);
-                  handleBack();
+                  if (learningReflection.roomLabel !== 'Story Time' || learningReflection.mastered) {
+                    handleBack();
+                  }
                 }}
                 className="flex-1 rounded-2xl bg-slate-100 px-5 py-3 font-black text-slate-700 hover:bg-slate-200"
               >
-                Next Class
+                {reflectionSecondaryActionLabel}
               </button>
             </div>
           </div>

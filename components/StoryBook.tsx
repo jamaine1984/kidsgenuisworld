@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, BookOpen, Play, Pause, ChevronLeft, ChevronRight, Star, Volume2, Mic2, Heart } from 'lucide-react';
+import { ArrowLeft, BookOpen, Play, Pause, ChevronLeft, ChevronRight, Star, Volume2, Mic2, Heart, CheckCircle2, XCircle } from 'lucide-react';
 import { speakAsync, stopSpeaking, isSpeaking, playSuccess } from '../services/audioService';
 
 interface StoryBookProps {
@@ -19,10 +19,94 @@ interface Story {
   category: 'adventure' | 'animals' | 'friendship' | 'family' | 'nature' | 'fantasy' | 'learning';
 }
 
+interface StoryQuizQuestion {
+  question: string;
+  answer: string;
+  options: string[];
+}
+
 const getStoryShelfLabel = (gradeLevel: number) => {
   if (gradeLevel === 1) return 'Pre-K';
   if (gradeLevel === 2) return 'Kindergarten';
   return `Grade ${gradeLevel - 2}`;
+};
+
+const getStoryQuizTargetCount = (level: number) => {
+  if (level <= 2) return 2;
+  if (level <= 4) return 4;
+  if (level === 5) return 6;
+  if (level === 6) return 8;
+  return 10;
+};
+
+const shuffleQuizOptions = (options: string[], seed: string) => {
+  const copy = [...options];
+  let hash = 0;
+  for (let i = 0; i < seed.length; i += 1) {
+    hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
+  }
+  return copy
+    .map((item, index) => ({
+      item,
+      sort: ((hash + (index + 1) * 2654435761) >>> 0),
+    }))
+    .sort((a, b) => a.sort - b.sort)
+    .map(entry => entry.item);
+};
+
+const buildStoryQuiz = (story: Story, level: number): StoryQuizQuestion[] => {
+  const targetCount = getStoryQuizTargetCount(level);
+  const pageAnswers = story.pages.map(page => page.replace(/[.!?"]+$/g, '').trim()).filter(Boolean);
+  const shortTitle = story.title;
+  const genericDistractors = [
+    'The character gives up right away',
+    'The story happens on the moon',
+    'Everyone forgets the problem',
+    'The character hides from learning',
+    'The story is mostly about buying toys',
+    'The ending says practice does not matter',
+  ];
+
+  const candidates: StoryQuizQuestion[] = [
+    {
+      question: `Which event happened in ${shortTitle}?`,
+      answer: pageAnswers[0] || story.title,
+      options: shuffleQuizOptions([
+        pageAnswers[0] || story.title,
+        ...genericDistractors.slice(0, 3),
+      ], `${story.id}-event-0`),
+    },
+    {
+      question: 'What is the best lesson from this story?',
+      answer: story.moral || 'The character learns something important',
+      options: shuffleQuizOptions([
+        story.moral || 'The character learns something important',
+        ...genericDistractors.slice(2, 5),
+      ], `${story.id}-moral`),
+    },
+    ...pageAnswers.slice(1).map((answer, index) => ({
+      question: `Which detail belongs in the story?`,
+      answer,
+      options: shuffleQuizOptions([
+        answer,
+        ...genericDistractors.slice(index % genericDistractors.length).concat(genericDistractors).slice(0, 3),
+      ], `${story.id}-detail-${index}`),
+    })),
+  ];
+
+  while (candidates.length < targetCount) {
+    const answer = story.moral || pageAnswers[candidates.length % Math.max(pageAnswers.length, 1)] || story.title;
+    candidates.push({
+      question: `What should the reader remember from ${shortTitle}?`,
+      answer,
+      options: shuffleQuizOptions([
+        answer,
+        ...genericDistractors.slice(0, 3),
+      ], `${story.id}-remember-${candidates.length}`),
+    });
+  }
+
+  return candidates.slice(0, targetCount);
 };
 
 // 50 Stories organized by grade level
@@ -866,9 +950,14 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
   const [currentStory, setCurrentStory] = useState<Story | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
   const [isReading, setIsReading] = useState(false);
-  const [mode, setMode] = useState<'select' | 'listen' | 'read'>('select');
+  const [mode, setMode] = useState<'select' | 'listen' | 'read' | 'quiz'>('select');
   const [completedStories, setCompletedStories] = useState<Set<string>>(new Set());
   const [narrationNotice, setNarrationNotice] = useState('');
+  const [libraryCoachNotice, setLibraryCoachNotice] = useState('');
+  const [quizQuestions, setQuizQuestions] = useState<StoryQuizQuestion[]>([]);
+  const [quizIndex, setQuizIndex] = useState(0);
+  const [quizCorrectCount, setQuizCorrectCount] = useState(0);
+  const [quizFeedback, setQuizFeedback] = useState('');
 
   useEffect(() => {
     const handleNarrationStatus = (event: Event) => {
@@ -889,6 +978,67 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
     setCurrentStory(story);
     setCurrentPage(0);
     setMode('listen');
+    setLibraryCoachNotice('');
+    setQuizQuestions([]);
+    setQuizIndex(0);
+    setQuizCorrectCount(0);
+    setQuizFeedback('');
+  };
+
+  const startStoryQuiz = async () => {
+    if (!currentStory) return;
+    const questions = buildStoryQuiz(currentStory, level);
+    setQuizQuestions(questions);
+    setQuizIndex(0);
+    setQuizCorrectCount(0);
+    setQuizFeedback('');
+    setMode('quiz');
+    await speakAsync(`Story check. Answer ${questions.length} questions, then I will guide you to the next book.`, 0.78, 1.02, 'story');
+    if (questions[0]) {
+      await speakAsync(`${questions[0].question} ${questions[0].options.map((option, index) => `${String.fromCharCode(65 + index)}. ${option}`).join('. ')}`, 0.78, 1.02, 'story');
+    }
+  };
+
+  const finishStoryAfterQuiz = async (finalCorrectCount: number) => {
+    if (!currentStory) return;
+    playSuccess();
+    setCompletedStories(prev => new Set(prev).add(currentStory.id));
+    onReward();
+    const completedCount = completedStories.has(currentStory.id) ? completedStories.size : completedStories.size + 1;
+    const nextRoundLabel = Math.min(completedCount + 1, 6);
+    await speakAsync(`Story complete. You got ${finalCorrectCount} correct. Now choose the next book, ${nextRoundLabel} out of 6.`, 0.76, 1.02, 'story');
+    const finishedTitle = currentStory.title;
+    setLibraryCoachNotice(`${finishedTitle} complete. Choose the next book: ${nextRoundLabel}/6.`);
+    window.setTimeout(() => {
+      setCurrentStory(null);
+      setCurrentPage(0);
+      setMode('select');
+      setQuizFeedback('');
+    }, 1200);
+  };
+
+  const answerQuiz = (answer: string) => {
+    const question = quizQuestions[quizIndex];
+    if (!question) return;
+    const correct = answer === question.answer;
+    const nextCorrectCount = quizCorrectCount + (correct ? 1 : 0);
+    setQuizCorrectCount(nextCorrectCount);
+    setQuizFeedback(correct ? 'Correct. Nice evidence.' : `Good try. The best answer is: ${question.answer}`);
+    void (correct
+      ? speakAsync('Correct. Nice evidence.', 0.78, 1.02, 'story')
+      : speakAsync(`Good try. The best answer is ${question.answer}.`, 0.78, 1.02, 'story'));
+
+    window.setTimeout(() => {
+      const nextIndex = quizIndex + 1;
+      if (nextIndex >= quizQuestions.length) {
+        void finishStoryAfterQuiz(nextCorrectCount);
+        return;
+      }
+      setQuizIndex(nextIndex);
+      setQuizFeedback('');
+      const nextQuestion = quizQuestions[nextIndex];
+      void speakAsync(`${nextQuestion.question} ${nextQuestion.options.map((option, index) => `${String.fromCharCode(65 + index)}. ${option}`).join('. ')}`, 0.78, 1.02, 'story');
+    }, 1100);
   };
 
   const readCurrentPage = async () => {
@@ -922,20 +1072,14 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
     }
 
     setIsReading(false);
-    playSuccess();
-
-    // Mark story as completed
-    setCompletedStories(prev => new Set(prev).add(currentStory.id));
-    onReward();
+    void startStoryQuiz();
   };
 
   const completeCurrentStory = () => {
     if (!currentStory || completedStories.has(currentStory.id)) return;
     stopSpeaking();
     setIsReading(false);
-    playSuccess();
-    setCompletedStories(prev => new Set(prev).add(currentStory.id));
-    onReward();
+    void startStoryQuiz();
   };
 
   const stopReading = () => {
@@ -959,6 +1103,7 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
     stopSpeaking();
     setCurrentStory(null);
     setMode('select');
+    setQuizFeedback('');
   };
 
   const switchToReadMode = () => {
@@ -1049,6 +1194,11 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
         {/* Story Grid */}
         <div className="flex-1 overflow-auto p-4">
           <p className="text-center text-gray-600 mb-4">Choose a story to read. New shelves open as your grade level grows.</p>
+          {libraryCoachNotice && (
+            <div className="mx-auto mb-4 max-w-3xl rounded-2xl border-2 border-emerald-200 bg-emerald-50 px-4 py-3 text-center text-sm font-black text-emerald-900 shadow-sm">
+              {libraryCoachNotice}
+            </div>
+          )}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {availableStories.map(story => (
               <button
@@ -1085,6 +1235,76 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
   }
 
   // Story Reading View
+  if (mode === 'quiz' && currentStory) {
+    const activeQuestion = quizQuestions[quizIndex];
+    return (
+      <div className="w-full h-full bg-gradient-to-b from-amber-50 to-orange-100 flex flex-col overflow-hidden">
+        <div className="flex items-center justify-between p-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white">
+          <button onClick={goToLibrary} aria-label="Back to story library" className="p-2 bg-white/20 rounded-full hover:bg-white/30 transition">
+            <ArrowLeft size={24} />
+          </button>
+          <div className="text-center">
+            <h1 className="font-bold text-lg drop-shadow">Story Check</h1>
+            <p className="text-xs text-white/85">{currentStory.title}</p>
+          </div>
+          <div className="rounded-full bg-white/20 px-3 py-2 text-sm font-black">
+            {Math.min(quizIndex + 1, quizQuestions.length)}/{quizQuestions.length}
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-4">
+          <div className="mx-auto max-w-3xl rounded-[32px] border-4 border-white bg-white p-5 shadow-2xl">
+            <div className="rounded-[26px] bg-amber-50 p-4 text-center">
+              <p className="text-xs font-black uppercase tracking-[0.16em] text-amber-600">Mini test before the next book</p>
+              <h2 className="mt-2 text-2xl font-black text-slate-900">{activeQuestion?.question}</h2>
+              <p className="mt-2 text-sm font-bold text-slate-600">
+                Answer the story questions. Ms. Nova will guide you to the next book when you finish.
+              </p>
+            </div>
+
+            <div className="mt-5 grid gap-3">
+              {activeQuestion?.options.map((option, index) => (
+                <button
+                  key={`${activeQuestion.question}-${option}`}
+                  onClick={() => answerQuiz(option)}
+                  disabled={Boolean(quizFeedback)}
+                  className="rounded-2xl border-2 border-amber-100 bg-white px-4 py-4 text-left text-base font-black text-slate-800 shadow-sm transition hover:border-amber-300 hover:bg-amber-50 disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  <span className="mr-3 inline-flex h-8 w-8 items-center justify-center rounded-full bg-amber-100 text-amber-800">
+                    {String.fromCharCode(65 + index)}
+                  </span>
+                  {option}
+                </button>
+              ))}
+            </div>
+
+            {quizFeedback && (
+              <div className={`mt-5 flex items-start gap-3 rounded-2xl p-4 text-sm font-black ${
+                quizFeedback.startsWith('Correct') ? 'bg-emerald-50 text-emerald-900' : 'bg-rose-50 text-rose-900'
+              }`}>
+                {quizFeedback.startsWith('Correct') ? <CheckCircle2 className="shrink-0" /> : <XCircle className="shrink-0" />}
+                <p>{quizFeedback}</p>
+              </div>
+            )}
+
+            <div className="mt-5 rounded-2xl bg-slate-50 px-4 py-3">
+              <div className="flex items-center justify-between text-xs font-black uppercase tracking-[0.14em] text-slate-500">
+                <span>Score</span>
+                <span>{quizCorrectCount}/{quizQuestions.length}</span>
+              </div>
+              <div className="mt-2 h-3 overflow-hidden rounded-full bg-white">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-amber-400"
+                  style={{ width: `${quizQuestions.length ? (quizCorrectCount / quizQuestions.length) * 100 : 0}%` }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full h-full bg-gradient-to-b from-amber-50 to-orange-50 flex flex-col overflow-hidden">
       {/* Header */}

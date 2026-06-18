@@ -204,6 +204,7 @@ export const READING_PASSAGES: ReadingPassage[] = [
 ];
 
 const SUCCESS_ROUND_DELAY_MS = 1800;
+const MATCH_SUCCESS_ROUND_DELAY_MS = 950;
 
 export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, level }) => {
   const [mode, setMode] = useState<Activity>('MATCH');
@@ -288,11 +289,17 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
       return;
     }
     const pool = getWordsForLevel();
-    const next = pickDailyItem(pool, `reading-${mode.toLowerCase()}-grade-${level}`, step);
+    const next = mode === 'MATCH'
+      ? shuffle(pool, `reading-match-six-round-queue-${level}`, 0)[step % pool.length]
+      : pickDailyItem(pool, `reading-${mode.toLowerCase()}-grade-${level}`, step);
     setCurrentWord(next);
 
     if (mode === 'MATCH') {
-      const distractors = shuffle(VOCABULARY.filter(v => v.word !== next.word), `reading-match-distractors-${level}-${next.word}`, step).slice(0, 3);
+      const distractors = shuffle(
+        pool.filter(v => v.word !== next.word),
+        `reading-match-distractors-${level}-${next.word}`,
+        step
+      ).slice(0, 3);
       const roundOptions = shuffle([next, ...distractors], `reading-match-options-${level}-${next.word}`, step).map(o => o.emoji);
       setOptions(roundOptions);
       void narrateRound(next, roundOptions);
@@ -344,10 +351,13 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
       if (mode === 'COMPREHENSION') {
         void speakCorrect(`Great reading. The text evidence is: ${currentPassage.answer}.`);
       } else {
-        void speakCorrect(`Great reading. ${currentWord.word}. ${currentWord.sentence}`);
+        void speakCorrect(mode === 'MATCH'
+          ? `Correct. ${currentWord.word}. Let's try the next match.`
+          : `Great reading. ${currentWord.word}. ${currentWord.sentence}`
+        );
       }
       onReward();
-      setTimeout(nextRound, SUCCESS_ROUND_DELAY_MS);
+      setTimeout(nextRound, mode === 'MATCH' ? MATCH_SUCCESS_ROUND_DELAY_MS : SUCCESS_ROUND_DELAY_MS);
     } else {
       playWrongBuzzer();
       setShowWrong(true);

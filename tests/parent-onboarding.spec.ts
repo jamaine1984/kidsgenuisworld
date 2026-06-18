@@ -163,8 +163,8 @@ test('parent access gate explains trial plans before paid sections unlock', asyn
   await expect(page.getByTestId('parent-access-gate')).toContainText('Start the 3-day parent-approved trial');
   await expect(page.getByTestId('parent-access-gate')).toContainText('What unlocks after trial starts');
   await expect(page.getByTestId('parent-access-gate')).toContainText('Transparent launch pricing');
-  await expect(page.getByTestId('parent-access-gate')).toContainText('Premium is optional');
-  await expect(page.getByTestId('parent-access-gate')).toContainText('no child-facing feature is hidden behind surprise upsells');
+  await expect(page.getByTestId('parent-access-gate')).toContainText('Premium adds priority curriculum drops');
+  await expect(page.getByTestId('parent-access-gate')).toContainText('keeping kids out of billing screens');
   await expect(page.getByTestId('parent-access-gate')).toContainText('Stripe handles payment details');
   await expect(page.getByRole('button', { name: 'Choose Starter plan' })).toBeEnabled();
   await expect(page.getByRole('button', { name: 'Choose Premium plan' })).toBeEnabled();

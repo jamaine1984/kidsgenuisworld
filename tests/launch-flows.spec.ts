@@ -80,7 +80,10 @@ test('world review quest and arcade are reachable on tablet', async ({ page }) =
 
   await expect(page.getByTestId('school-bell-strip')).toContainText('School Bell');
   await expect(page.getByTestId('school-bell-strip')).toContainText('Now');
-  await expect(page.getByTestId('school-bell-strip')).toContainText('Homeroom');
+  await expect(page.getByTestId('school-bell-strip')).toContainText('Period 1: Reading');
+  await expect(page.getByTestId('school-bell-strip')).toContainText('Period 2: Speech & Language');
+  await expect(page.getByTestId('school-bell-strip')).toContainText('Period 3: Math');
+  await expect(page.getByTestId('school-bell-strip')).toContainText('Last Period:');
   await expect(page.getByTestId('school-bell-strip')).toContainText('Locked');
   await expect(page.getByTestId('ai-homeroom-card')).toBeHidden();
   await expect(page.getByTestId('next-class-pass')).toBeHidden();
@@ -89,6 +92,10 @@ test('world review quest and arcade are reachable on tablet', async ({ page }) =
   await expect(page.getByTestId('teacher-assignment-cards')).toContainText('Mastery rubric');
   await expect(page.getByTestId('student-passport-conference')).toContainText('Teacher conference question');
   await expect(page.getByTestId('student-passport-conference')).toContainText('Next stamp target');
+  await expect(page.getByText('Passport Stamp Collection')).toBeVisible();
+  await expect(page.getByTestId('student-passport-conference')).toContainText('proof saved');
+  await expect(page.getByTestId('student-passport-conference')).toContainText('reflections');
+  await expect(page.getByTestId('student-passport-conference')).toContainText('mastered');
   await expect(page.getByTestId('student-teacher-conference-plan')).toContainText('Teacher conference plan');
   await expect(page.getByTestId('student-teacher-conference-plan')).toContainText('Teacher move');
   await expect(page.getByText('School Campus', { exact: true }).last()).toBeVisible();
@@ -100,6 +107,13 @@ test('world review quest and arcade are reachable on tablet', async ({ page }) =
   await page.getByLabel('Close Review Quest').click();
   await expect(page.getByRole('heading', { name: 'Explain it again' })).toBeHidden();
 
+  await page.getByRole('button', { name: /Offline Break/i }).click();
+  await expect(page.getByRole('heading', { name: /Plan a healthy break|Time to pause/i })).toBeVisible();
+  await expect(page.getByText('Break step 1')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'I Took a Break' })).toBeVisible();
+  await page.getByRole('button', { name: 'I Took a Break' }).click();
+  await expect(page.getByRole('heading', { name: /Plan a healthy break|Time to pause/i })).toBeHidden();
+
   await page.getByRole('button', { name: /Game Arcade/i }).click();
   await expect(page.getByRole('heading', { name: 'Game Arcade' })).toBeVisible();
   await expect(page.getByText('Daily Quest Board')).toBeVisible();
@@ -110,12 +124,14 @@ test('math room completion creates reward and parent-visible journal proof', asy
   await completeKidSetup(page);
   await page.getByTestId('room-card-MATH').click();
   await startTeacherLesson(page);
+  await page.getByRole('button', { name: 'Lesson Help' }).click();
   await expect(page.getByTestId('teacher-room-coach')).toContainText('Ms. Nova is teaching');
   await expect(page.getByTestId('teacher-room-coach')).toContainText('Exit ticket');
   await expect(page.getByTestId('teacher-lesson-path')).toContainText('Lesson path');
   await expect(page.getByTestId('teacher-lesson-path')).toContainText('Now');
   await expect(page.getByTestId('teacher-help-ladder')).toContainText('Teacher help ladder');
   await expect(page.getByTestId('teacher-help-ladder')).toContainText('Hint');
+  await page.getByLabel('Hide Mission Focus').click();
   await expect(page.getByTestId('math-question')).toBeVisible();
   await expect(page.getByTestId('guide-bubble')).toBeHidden();
   await page.getByLabel('Open guide message').click();
@@ -147,6 +163,8 @@ test('math room completion creates reward and parent-visible journal proof', asy
   await expect(page.getByTestId('parent-school-day-attendance')).toContainText('Reward:');
   await expect(page.getByText('answers required before next class opens')).toBeVisible();
   await expect(page.getByText('Monthly progress report')).toBeVisible();
+  await expect(page.getByText('All Classroom Activity')).toBeVisible();
+  await expect(page.getByText('Every period parents can track')).toBeVisible();
   await expect(page.getByTestId('parent-teacher-help-ladder')).toContainText('Teacher help ladder');
   await expect(page.getByTestId('parent-teacher-help-ladder')).toContainText('Teach Back');
   await expect(page.getByTestId('parent-teacher-assignments')).toContainText('Teacher assignment cards');
@@ -171,6 +189,7 @@ test('teacher coach starts compact on phone and expands on demand', async ({ pag
   await page.getByTestId('room-card-MATH').click();
   await startTeacherLesson(page);
 
+  await page.getByRole('button', { name: 'Lesson Help' }).click();
   await expect(page.getByTestId('teacher-room-coach-compact')).toContainText('Ms. Nova');
   await expect(page.getByTestId('teacher-room-coach-compact')).toContainText('mastery');
   await page.getByLabel('Show next teacher help step').click();
@@ -180,8 +199,8 @@ test('teacher coach starts compact on phone and expands on demand', async ({ pag
   await expect(page.getByTestId('teacher-lesson-path')).toContainText('Lesson path');
   await expect(page.getByTestId('teacher-help-ladder')).toContainText('Try Together');
   await expect(page.getByTestId('teacher-room-coach')).toContainText('Exit ticket');
-  await page.getByLabel('Collapse teacher coach').click();
-  await expect(page.getByTestId('teacher-room-coach-compact')).toBeVisible();
+  await page.getByLabel('Hide Mission Focus').click();
+  await expect(page.getByRole('button', { name: 'Lesson Help' })).toBeVisible();
 });
 
 test('browser voice fallback speaks when saved voice is off', async ({ page }) => {
@@ -235,6 +254,12 @@ test('reading room completion creates reward and parent-visible journal proof', 
 
 test('art studio finish review completes the room and creates journal proof', async ({ page }) => {
   await completeKidSetup(page);
+  await page.evaluate(() => {
+    const originalSetInterval = window.setInterval;
+    window.setInterval = ((handler: TimerHandler, timeout?: number, ...args: any[]) => (
+      originalSetInterval(handler, Math.min(Number(timeout) || 1, 1), ...args)
+    )) as typeof window.setInterval;
+  });
   await page.getByTestId('room-card-ART').click();
   await startTeacherLesson(page);
 
@@ -248,13 +273,11 @@ test('art studio finish review completes the room and creates journal proof', as
     await canvas.click({ position: { x: 80 + (stroke % 6) * 24, y: 100 + Math.floor(stroke / 6) * 24 } });
   }
 
-  while (await page.getByRole('button', { name: /Next studio step/i }).isEnabled()) {
-    await page.getByRole('button', { name: /Next studio step/i }).click();
-  }
+  await expect(page.getByText('Timed studio steps: 4/4')).toBeVisible({ timeout: 10_000 });
 
   await page.getByRole('button', { name: 'I can explain my choice' }).click();
   await page.getByRole('button', { name: /Finish artwork/i }).click();
-  await expect(page.getByText(/Studio complete/i)).toBeVisible();
+  await expect(page.getByText(/100\/100 studio score/i)).toBeVisible();
   await expect(page.getByText('Learning Reflection')).toBeVisible({ timeout: 7_500 });
   await page.getByRole('button', { name: /Teach it back/i }).click();
   await expect(page.getByText('Saved for parent review')).toBeVisible();
@@ -303,10 +326,18 @@ test('story time completion creates reward and parent-visible journal proof', as
 
   await expect(page.getByText('Small moments can be joyful.')).toBeVisible();
   await page.getByRole('button', { name: 'I Finished Reading' }).click();
+  await expect(page.getByRole('heading', { name: 'Story Check' })).toBeVisible();
+  await page.getByRole('button', { name: /Pip puts on tiny yellow boots/i }).click();
+  await expect(page.getByText('Correct. Nice evidence.')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Story Check' })).toBeVisible({ timeout: 5_000 });
+  await page.getByRole('button', { name: /Small moments can be joyful/i }).click();
   await expect(page.getByText('Learning Reflection')).toBeVisible({ timeout: 7_500 });
   await page.getByRole('button', { name: /Teach it back/i }).click();
   await expect(page.getByText('Saved for parent review')).toBeVisible();
-  await page.getByRole('button', { name: 'Next Class', exact: true }).click();
+  await page.getByRole('button', { name: 'Next Book', exact: true }).click();
+  await expect(page.getByRole('heading', { name: /Nora Finds a Nest|Story Library/i })).toBeVisible();
+  await page.getByLabel('Back to story library').click();
+  await page.getByLabel('Back to world map').click();
 
   await page.getByTitle('Settings').click();
   await page.getByLabel('Parent PIN').fill(PARENT_PIN);

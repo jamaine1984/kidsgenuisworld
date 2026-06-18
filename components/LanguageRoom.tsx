@@ -304,7 +304,7 @@ const EXPANDED_LANGUAGE_WORDS: { [key: string]: LanguageWord[] } = {
   japanese: LANGUAGE_EXPANSION_CONCEPTS.map(item => ({ gradeLevel: item.gradeLevel, english: item.english, translation: item.japanese[0], pronunciation: item.japanese[1], language: 'japanese', category: item.category })),
 };
 
-const getLanguageWords = (language: keyof typeof VOCABULARY) => [
+export const getLanguageWords = (language: keyof typeof VOCABULARY) => [
   ...VOCABULARY[language],
   ...(EXTRA_LANGUAGE_WORDS[language] || []),
   ...(EXPANDED_LANGUAGE_WORDS[language] || []),

@@ -920,7 +920,7 @@ const EXPANDED_CHALLENGES: Challenge[] = CODING_EXPANSION_THEMES.flatMap((theme,
   })).flat()
 );
 
-const ALL_CHALLENGES = [...CHALLENGES, ...EXPANDED_CHALLENGES];
+export const ALL_CHALLENGES = [...CHALLENGES, ...EXPANDED_CHALLENGES];
 
 const AVAILABLE_BLOCKS: CodeBlock[] = [
   { id: 'move', type: 'move', icon: <ChevronUp size={20} />, label: 'Move Forward', color: 'bg-green-500' },

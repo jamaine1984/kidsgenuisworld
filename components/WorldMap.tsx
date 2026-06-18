@@ -289,6 +289,7 @@ export const WorldMap: React.FC<WorldMapProps> = ({
     { type: RoomType.LANGUAGE, name: 'Language Lanterns', emoji: '🗣️', color: 'from-rose-500 to-red-500' },
     { type: RoomType.PUZZLE, name: 'Puzzle Pier', emoji: '🧩', color: 'from-teal-500 to-cyan-500' },
     { type: RoomType.STORYBOOK, name: 'Story Treehouse', emoji: '📖', color: 'from-amber-500 to-yellow-500' },
+    { type: RoomType.STUDY, name: 'Study Zone', emoji: '✨', color: 'from-slate-700 to-indigo-700' },
   ];
   const rooms = roomsBase.map(room => ({
     ...room,
@@ -307,6 +308,7 @@ export const WorldMap: React.FC<WorldMapProps> = ({
     [RoomType.MUSIC]: progress.musicScore || 0,
     [RoomType.ART]: visitedRooms.has(RoomType.ART) ? 1 : 0,
     [RoomType.PUZZLE]: visitedRooms.has(RoomType.PUZZLE) ? 1 : 0,
+    [RoomType.STUDY]: (progress.assignmentAttempts || []).filter(attempt => !attempt.correct).length,
   };
 
   const roomDetails: Record<RoomType, { land: string; action: string; detail: string; glow: string; scene?: string }> = {
@@ -321,6 +323,7 @@ export const WorldMap: React.FC<WorldMapProps> = ({
     [RoomType.LANGUAGE]: { land: 'lanterns', action: 'Say new words', detail: 'Spanish, French, Mandarin', glow: 'bg-rose-200/30', scene: 'language' },
     [RoomType.PUZZLE]: { land: 'pier', action: 'Solve challenges', detail: 'Memory, logic, strategy', glow: 'bg-teal-200/30', scene: 'puzzle' },
     [RoomType.STORYBOOK]: { land: 'treehouse', action: 'Read adventures', detail: 'Stories, morals, comprehension', glow: 'bg-yellow-200/30', scene: 'storybook' },
+    [RoomType.STUDY]: { land: 'study', action: 'Fix missed skills', detail: 'Personal review from missed answers', glow: 'bg-indigo-200/30' },
   };
   const schoolRoomDetails = {
     ...roomDetails,
@@ -335,6 +338,7 @@ export const WorldMap: React.FC<WorldMapProps> = ({
     [RoomType.LANGUAGE]: { ...roomDetails[RoomType.LANGUAGE], action: 'Language lesson', detail: getCampusRoom(RoomType.LANGUAGE).detail },
     [RoomType.PUZZLE]: { ...roomDetails[RoomType.PUZZLE], action: 'Strategy lesson', detail: getCampusRoom(RoomType.PUZZLE).detail },
     [RoomType.STORYBOOK]: { ...roomDetails[RoomType.STORYBOOK], action: 'Library lesson', detail: getCampusRoom(RoomType.STORYBOOK).detail },
+    [RoomType.STUDY]: { ...roomDetails[RoomType.STUDY], action: 'Study Zone', detail: getCampusRoom(RoomType.STUDY).detail },
   };
 
   const renderRoomScene = (room: RoomType) => {
@@ -450,6 +454,15 @@ export const WorldMap: React.FC<WorldMapProps> = ({
               <span className="tree-trunk" />
             </div>
             <div className="open-book" />
+          </div>
+        );
+      case RoomType.STUDY:
+        return (
+          <div className="room-art bg-gradient-to-br from-indigo-700 via-violet-700 to-fuchsia-600" aria-hidden="true">
+            <div className="absolute left-6 top-6 h-16 w-16 rounded-2xl bg-white/90 shadow-lg" />
+            <div className="absolute right-7 top-8 h-12 w-20 rounded-full bg-amber-300 shadow-lg" />
+            <div className="absolute bottom-7 left-8 h-16 w-28 rounded-3xl bg-white/80 shadow-lg" />
+            <div className="absolute bottom-9 right-8 h-20 w-20 rounded-full border-8 border-white/80" />
           </div>
         );
       default:

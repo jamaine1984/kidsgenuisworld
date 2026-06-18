@@ -13,7 +13,8 @@ export enum RoomType {
   GEOGRAPHY = 'GEOGRAPHY',
   CODING = 'CODING',
   LANGUAGE = 'LANGUAGE',
-  STORYBOOK = 'STORYBOOK'
+  STORYBOOK = 'STORYBOOK',
+  STUDY = 'STUDY'
 }
 
 export enum GradeLevel {

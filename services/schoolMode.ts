@@ -266,6 +266,14 @@ export const SCHOOL_CAMPUS_ROOMS: Partial<Record<RoomType, SchoolCampusRoom>> = 
     studentPromise: 'I can explain the pattern or rule.',
     detail: 'Logic, memory, patterns, strategy, and flexible thinking.',
   },
+  [RoomType.STUDY]: {
+    classroomName: 'Study Zone',
+    shortName: 'Study',
+    subject: 'missed answers, reteaching, review, and confidence building',
+    teacherAction: 'Bring back missed skills and explain the correct answer.',
+    studentPromise: 'I can fix mistakes and try again.',
+    detail: 'Personal review from missed answers across every classroom.',
+  },
 };
 
 export const getCampusRoom = (room: RoomType): SchoolCampusRoom => (

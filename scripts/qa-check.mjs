@@ -9,6 +9,7 @@ const requiredFiles = [
   'components/WorldMap.tsx',
   'components/AchievementsPanel.tsx',
   'components/GameArcade.tsx',
+  'components/StudyZone.tsx',
   'components/StoryBook.tsx',
   'services/curriculum.ts',
   'services/learningConstants.ts',
@@ -110,6 +111,7 @@ const readingRoomSource = fs.readFileSync(path.join(root, 'components/ReadingRoo
 const scienceRoomSource = fs.readFileSync(path.join(root, 'components/ScienceRoom.tsx'), 'utf8');
 const geographyRoomSource = fs.readFileSync(path.join(root, 'components/GeographyRoom.tsx'), 'utf8');
 const gameArcadeSource = fs.readFileSync(path.join(root, 'components/GameArcade.tsx'), 'utf8');
+const studyZoneSource = fs.readFileSync(path.join(root, 'components/StudyZone.tsx'), 'utf8');
 const languageRoomSource = fs.readFileSync(path.join(root, 'components/LanguageRoom.tsx'), 'utf8');
 const artRoomSource = fs.readFileSync(path.join(root, 'components/ArtRoom.tsx'), 'utf8');
 const puzzleRoomSource = fs.readFileSync(path.join(root, 'components/PuzzleRoom.tsx'), 'utf8');
@@ -141,6 +143,7 @@ const roomBackButtonSources = [
   ['MusicRoom', musicRoomSource],
   ['PuzzleRoom', puzzleRoomSource],
   ['StoryBook', storyBookSource],
+  ['StudyZone', studyZoneSource],
 ];
 
 const sourceFilesToScan = [
@@ -150,6 +153,7 @@ const sourceFilesToScan = [
   'components/CodingRoom.tsx',
   'components/GeographyRoom.tsx',
   'components/GameArcade.tsx',
+  'components/StudyZone.tsx',
   'components/Guide.tsx',
   'components/LanguageRoom.tsx',
   'components/MathRoom.tsx',
@@ -182,6 +186,18 @@ for (const file of sourceFilesToScan) {
 if (!appSource.includes('Parent Setup')) fail('Parent setup screen is not wired in App.tsx.');
 if (appSource.includes("components/Playground") || appSource.includes('RoomType.PLAYGROUND') || worldMapSource.includes('Free Play')) {
   fail('Playground should stay removed from the launch app surface.');
+}
+if (
+  !typesSource.includes("STUDY = 'STUDY'") ||
+  !appSource.includes("import('./components/StudyZone')") ||
+  !appSource.includes('handleStudyReviewComplete') ||
+  !worldMapSource.includes('RoomType.STUDY') ||
+  !studyZoneSource.includes('buildLatestMissedReviewQueue') ||
+  !studyZoneSource.includes('assignmentAttempts') ||
+  !studyZoneSource.includes('onReviewComplete') ||
+  !studyZoneSource.includes('Study Zone')
+) {
+  fail('Study Zone must be wired as a real missed-answer review room.');
 }
 if (packageJson.dependencies?.three || packageJson.dependencies?.['@types/three']) {
   fail('Three.js should not ship while Playground is removed.');

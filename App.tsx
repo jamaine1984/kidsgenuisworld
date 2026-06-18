@@ -25,6 +25,7 @@ import {
   DailyStats,
   LearningJournalEntry,
   ChildProfile,
+  AssignmentAttempt,
   createDefaultProgress,
   DEFAULT_LEARNING_PROFILE,
   DEFAULT_ACCESSIBILITY,
@@ -69,6 +70,7 @@ const ArtRoom = lazy(() => import('./components/ArtRoom').then(module => ({ defa
 const MusicRoom = lazy(() => import('./components/MusicRoom').then(module => ({ default: module.MusicRoom })));
 const PuzzleRoom = lazy(() => import('./components/PuzzleRoom').then(module => ({ default: module.PuzzleRoom })));
 const GameArcade = lazy(() => import('./components/GameArcade').then(module => ({ default: module.GameArcade })));
+const StudyZone = lazy(() => import('./components/StudyZone').then(module => ({ default: module.StudyZone })));
 
 const PROFILES_KEY = 'kidGeniusProfiles';
 const ACTIVE_PROFILE_KEY = 'kidGeniusActiveProfileId';
@@ -298,6 +300,7 @@ const roomReflectionLabels: Partial<Record<RoomType, string>> = {
   [RoomType.ART]: 'Art',
   [RoomType.MUSIC]: 'Music',
   [RoomType.PUZZLE]: 'Puzzle',
+  [RoomType.STUDY]: 'Study Zone',
 };
 
 const hasBalancedGradeMastery = (progress: UserProgress, level: number): boolean => {
@@ -2244,6 +2247,30 @@ const App: React.FC = () => {
     });
   };
 
+  const handleStudyReviewComplete = (attempt: AssignmentAttempt) => {
+    recordRoomAssignmentAttempt({
+      questionId: attempt.questionId,
+      skill: attempt.skill,
+      prompt: attempt.prompt,
+      selectedAnswer: attempt.correctAnswer || 'Reviewed in Study Zone',
+      correctAnswer: attempt.correctAnswer,
+      timeSpentMs: attempt.timeSpentMs,
+    }, true, attempt.room);
+
+    addSticker('study', RoomType.STUDY, {
+      title: 'Study Zone review',
+      objective: `Reviewed ${attempt.skill} from ${roomReflectionLabels[attempt.room] || 'class'}.`,
+      successCheck: attempt.correctAnswer ? `Explained why ${attempt.correctAnswer} is correct.` : 'Explained the missed skill again.',
+    }, false, {
+      questionId: `study-zone:${attempt.questionId}`,
+      skill: `Study Zone: ${attempt.skill}`,
+      prompt: `Reviewed missed answer: ${attempt.prompt}`,
+      selectedAnswer: attempt.correctAnswer || 'Reviewed',
+      correctAnswer: attempt.correctAnswer || 'Teacher-reviewed',
+      timeSpentMs: attempt.timeSpentMs,
+    });
+  };
+
   const handleReadingReward = (assignmentMeta?: AssignmentRewardMeta) => {
     setProgress(p => {
       const newProgress = { ...p, readingScore: p.readingScore + 1 };
@@ -3205,6 +3232,8 @@ const App: React.FC = () => {
         return <MusicRoom level={progress.currentLevel} onBack={handleBack} onReward={handleMusicReward} />;
       case RoomType.PUZZLE:
         return <PuzzleRoom level={progress.currentLevel} onBack={handleBack} onReward={(meta) => addSticker('puzzle', currentRoom, {}, false, meta)} />;
+      case RoomType.STUDY:
+        return <StudyZone progress={progress} onBack={handleBack} onOpenRoom={handleEnterRoom} onReviewComplete={handleStudyReviewComplete} />;
       case RoomType.HUB:
       default:
         return (

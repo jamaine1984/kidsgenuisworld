@@ -52,6 +52,10 @@ export const Guide: React.FC<GuideProps> = ({ room, trigger }) => {
       [RoomType.STORYBOOK]: [
         "Sit back and listen to the story page by page.",
       ],
+      [RoomType.STUDY]: [
+        "Let's fix missed answers and make them stronger.",
+        "Choose the answer, then listen to the reason.",
+      ],
     };
 
     const roomMessages = messages[currentRoom] || messages[RoomType.HUB];

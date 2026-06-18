@@ -2216,6 +2216,34 @@ const App: React.FC = () => {
     addSticker('math', undefined, {}, false, assignmentMeta);
   };
 
+  const recordRoomAssignmentAttempt = (
+    assignmentMeta: AssignmentRewardMeta,
+    correct: boolean,
+    roomOverride?: RoomType
+  ) => {
+    const attemptRoom = roomOverride || currentRoom;
+    setProgress(prev => {
+      const journalUnit = activeUnitId
+        ? getUnitsForGrade(prev.currentGrade).find(unit => unit.id === activeUnitId)
+        : undefined;
+      const roomLabel = roomReflectionLabels[attemptRoom] || assignmentMeta.skill || 'Learning';
+      const rawQuestionId = assignmentMeta.questionId;
+      const nextProgress = recordAssignmentAttempt(prev, {
+        questionId: rawQuestionId.includes(':') ? rawQuestionId : getQuestionKey(attemptRoom, rawQuestionId),
+        room: attemptRoom,
+        grade: prev.currentGrade,
+        unitId: journalUnit?.id,
+        skill: assignmentMeta.skill || journalUnit?.standardsFocus?.[0] || roomLabel,
+        prompt: assignmentMeta.prompt || journalUnit?.successCheck || `${roomLabel} practice`,
+        correct,
+        selectedAnswer: assignmentMeta.selectedAnswer,
+        correctAnswer: assignmentMeta.correctAnswer || journalUnit?.successCheck || journalUnit?.masteryTarget,
+        timeSpentMs: assignmentMeta.timeSpentMs,
+      });
+      return checkAchievements(nextProgress);
+    });
+  };
+
   const handleReadingReward = (assignmentMeta?: AssignmentRewardMeta) => {
     setProgress(p => {
       const newProgress = { ...p, readingScore: p.readingScore + 1 };
@@ -3158,17 +3186,17 @@ const App: React.FC = () => {
 
     switch (currentRoom) {
       case RoomType.MATH:
-        return <MathRoom level={progress.currentLevel} onBack={handleBack} onReward={handleMathReward} />;
+        return <MathRoom level={progress.currentLevel} onBack={handleBack} onReward={handleMathReward} onAttempt={(meta, correct) => recordRoomAssignmentAttempt(meta, correct, RoomType.MATH)} />;
       case RoomType.READING:
-        return <ReadingRoom level={progress.currentLevel} onBack={handleBack} onReward={handleReadingReward} />;
+        return <ReadingRoom level={progress.currentLevel} onBack={handleBack} onReward={handleReadingReward} onAttempt={(meta, correct) => recordRoomAssignmentAttempt(meta, correct, RoomType.READING)} />;
       case RoomType.SCIENCE:
-        return <ScienceRoom level={progress.currentLevel} onBack={handleBack} onReward={handleScienceReward} />;
+        return <ScienceRoom level={progress.currentLevel} onBack={handleBack} onReward={handleScienceReward} onAttempt={(meta, correct) => recordRoomAssignmentAttempt(meta, correct, RoomType.SCIENCE)} />;
       case RoomType.GEOGRAPHY:
-        return <GeographyRoom level={progress.currentLevel} onBack={handleBack} onReward={handleGeographyReward} />;
+        return <GeographyRoom level={progress.currentLevel} onBack={handleBack} onReward={handleGeographyReward} onAttempt={(meta, correct) => recordRoomAssignmentAttempt(meta, correct, RoomType.GEOGRAPHY)} />;
       case RoomType.CODING:
         return <CodingRoom level={progress.currentLevel} onBack={handleBack} onReward={handleCodingReward} />;
       case RoomType.LANGUAGE:
-        return <LanguageRoom level={progress.currentLevel} onBack={handleBack} onReward={handleLanguageReward} />;
+        return <LanguageRoom level={progress.currentLevel} onBack={handleBack} onReward={handleLanguageReward} onAttempt={(meta, correct) => recordRoomAssignmentAttempt(meta, correct, RoomType.LANGUAGE)} />;
       case RoomType.STORYBOOK:
         return <StoryBook level={progress.currentLevel} onBack={handleBack} onReward={handleStorybookReward} />;
       case RoomType.ART:

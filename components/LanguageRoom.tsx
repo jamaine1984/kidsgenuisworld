@@ -8,6 +8,7 @@ interface LanguageRoomProps {
   level: number;
   onBack: () => void;
   onReward: (meta?: { questionId: string; skill: string; prompt: string; selectedAnswer?: string; correctAnswer?: string }) => void;
+  onAttempt?: (meta: { questionId: string; skill: string; prompt: string; selectedAnswer?: string; correctAnswer?: string }, correct: boolean) => void;
 }
 
 // Grade-paced language vocabulary. Translations are romanized/ASCII so cached narration and UI labels stay stable.
@@ -327,7 +328,7 @@ const CATEGORY_LABELS: { [key: string]: string } = {
   places: 'Place',
   phrases: 'Phrase',
 };
-export const LanguageRoom: React.FC<LanguageRoomProps> = ({ level, onBack, onReward }) => {
+export const LanguageRoom: React.FC<LanguageRoomProps> = ({ level, onBack, onReward, onAttempt }) => {
   const [selectedLanguage, setSelectedLanguage] = useState<keyof typeof VOCABULARY>('spanish');
   const [currentWord, setCurrentWord] = useState<LanguageWord | null>(null);
   const [options, setOptions] = useState<string[]>([]);
@@ -417,6 +418,13 @@ export const LanguageRoom: React.FC<LanguageRoomProps> = ({ level, onBack, onRew
       }), 2000);
     } else {
       playWrongBuzzer();
+      onAttempt?.({
+        questionId: `language-${selectedLanguage}-${currentWord.category}-${currentWord.english}`,
+        skill: `${selectedLanguage} ${currentWord.category}`,
+        prompt: `Translate ${currentWord.english}`,
+        selectedAnswer: answer,
+        correctAnswer: currentWord.translation,
+      }, false);
       void speakWrong(`The answer is ${currentWord.translation}. It sounds like ${currentWord.pronunciation}.`);
     }
   };

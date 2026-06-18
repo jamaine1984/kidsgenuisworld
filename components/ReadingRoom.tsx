@@ -6,6 +6,7 @@ import { pickDailyItem, shuffleDailyItems } from '../services/dailyRotation';
 interface ReadingRoomProps {
   onBack: () => void;
   onReward: (meta?: { questionId: string; skill: string; prompt: string; selectedAnswer?: string; correctAnswer?: string }) => void;
+  onAttempt?: (meta: { questionId: string; skill: string; prompt: string; selectedAnswer?: string; correctAnswer?: string }, correct: boolean) => void;
   level: number; // 1-7 corresponds to grade levels
 }
 
@@ -264,7 +265,7 @@ const ALL_READING_PASSAGES = [...READING_PASSAGES, ...EXPANDED_READING_PASSAGES]
 const SUCCESS_ROUND_DELAY_MS = 1800;
 const MATCH_SUCCESS_ROUND_DELAY_MS = 950;
 
-export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, level }) => {
+export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, onAttempt, level }) => {
   const [mode, setMode] = useState<Activity>('MATCH');
   const [score, setScore] = useState(0);
   const [currentWord, setCurrentWord] = useState(ALL_VOCABULARY[0]);
@@ -458,6 +459,13 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
       playWrongBuzzer();
       setShowWrong(true);
       if (mode === 'MATCH') {
+        onAttempt?.({
+          questionId: `reading-match-${currentWord.word}`,
+          skill: 'match',
+          prompt: `Match ${currentWord.word}`,
+          selectedAnswer: val,
+          correctAnswer: currentWord.emoji,
+        }, false);
         setTeacherCheck({
           status: 'wrong',
           title: 'Look again at the word.',
@@ -467,6 +475,13 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
         });
         void speakWrong(`That is not ${currentWord.word}. Look again and find the matching picture.`);
       } else if (mode === 'RHYME') {
+        onAttempt?.({
+          questionId: `reading-rhyme-${currentWord.word}`,
+          skill: 'rhyme',
+          prompt: `What rhymes with ${currentWord.word}?`,
+          selectedAnswer: val,
+          correctAnswer: currentWord.rhyme,
+        }, false);
         setTeacherCheck({
           status: 'wrong',
           title: 'Listen for the ending sound.',
@@ -476,6 +491,13 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
         });
         void speakWrong(`${val} does not rhyme with ${currentWord.word}. The rhyming answer is ${currentWord.rhyme}.`);
       } else if (mode === 'COMPREHENSION') {
+        onAttempt?.({
+          questionId: `reading-comprehension-${currentPassage.id}`,
+          skill: currentPassage.skill,
+          prompt: currentPassage.question,
+          selectedAnswer: val,
+          correctAnswer: currentPassage.answer,
+        }, false);
         setTeacherCheck({
           status: 'wrong',
           title: 'Go back to the passage.',
@@ -519,6 +541,13 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, leve
       // Wrong spelling
       playWrongBuzzer();
       setShowWrong(true);
+      onAttempt?.({
+        questionId: `reading-spell-${currentWord.word}`,
+        skill: 'spelling',
+        prompt: `Spell ${currentWord.word}`,
+        selectedAnswer: newSpelled,
+        correctAnswer: currentWord.word.toUpperCase(),
+      }, false);
       setTeacherCheck({
         status: 'wrong',
         title: 'Let us spell it together.',

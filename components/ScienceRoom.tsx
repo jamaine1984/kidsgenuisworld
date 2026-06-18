@@ -8,6 +8,7 @@ interface ScienceRoomProps {
   level: number; // 1-7 corresponds to grade levels
   onBack: () => void;
   onReward: (meta?: { questionId: string; skill: string; prompt: string; selectedAnswer?: string; correctAnswer?: string }) => void;
+  onAttempt?: (meta: { questionId: string; skill: string; prompt: string; selectedAnswer?: string; correctAnswer?: string }, correct: boolean) => void;
 }
 
 // Science experiments/questions organized by grade level
@@ -511,7 +512,7 @@ const EXPANDED_SCIENCE_EXPERIMENTS: (ScienceExperiment & { gradeLevel: number })
 
 export const ALL_SCIENCE_EXPERIMENTS = [...SCIENCE_EXPERIMENTS, ...EXPANDED_SCIENCE_EXPERIMENTS];
 
-export const ScienceRoom: React.FC<ScienceRoomProps> = ({ level, onBack, onReward }) => {
+export const ScienceRoom: React.FC<ScienceRoomProps> = ({ level, onBack, onReward, onAttempt }) => {
   // Filter experiments by grade level
   const availableExperiments = ALL_SCIENCE_EXPERIMENTS.filter(e => e.gradeLevel <= level);
 
@@ -581,6 +582,13 @@ export const ScienceRoom: React.FC<ScienceRoomProps> = ({ level, onBack, onRewar
       }, 2500);
     } else {
       playWrongBuzzer();
+      onAttempt?.({
+        questionId: experiment.id,
+        skill: experiment.category,
+        prompt: experiment.question,
+        selectedAnswer: experiment.hypothesis[index],
+        correctAnswer: experiment.hypothesis[experiment.correctAnswer],
+      }, false);
       void speakWrong(`Let us learn it together. ${experiment.explanation}`);
     }
   };

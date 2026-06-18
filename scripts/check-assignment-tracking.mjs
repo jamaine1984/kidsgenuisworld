@@ -27,6 +27,22 @@ for (const file of roomFiles) {
   }
 }
 
+for (const file of [
+  'components/MathRoom.tsx',
+  'components/ReadingRoom.tsx',
+  'components/ScienceRoom.tsx',
+  'components/GeographyRoom.tsx',
+  'components/LanguageRoom.tsx',
+]) {
+  const text = fs.readFileSync(path.join(root, file), 'utf8');
+  if (!/onAttempt\?:\s*\(meta:/.test(text)) {
+    missing.push(`${file}: wrong-attempt callback is not exposed`);
+  }
+  if (!/onAttempt\?\.\(\{[\s\S]*?correctAnswer:/.test(text)) {
+    missing.push(`${file}: wrong answers are not recorded with review metadata`);
+  }
+}
+
 const appText = fs.readFileSync(path.join(root, 'App.tsx'), 'utf8');
 if (!appText.includes('assignmentMeta?: AssignmentRewardMeta')) {
   missing.push('App.tsx: addSticker does not accept assignment metadata');
@@ -34,9 +50,12 @@ if (!appText.includes('assignmentMeta?: AssignmentRewardMeta')) {
 if (!appText.includes('recordAssignmentAttempt(newProgress')) {
   missing.push('App.tsx: assignment attempts are not recorded in progress updates');
 }
+if (!appText.includes('recordRoomAssignmentAttempt')) {
+  missing.push('App.tsx: wrong assignment attempts are not recorded without rewards');
+}
 
 if (missing.length > 0) {
   throw new Error(`Assignment tracking check failed:\n${missing.join('\n')}`);
 }
 
-console.log(`Assignment tracking check passed: ${roomFiles.length} classrooms send exact question metadata.`);
+console.log(`Assignment tracking check passed: ${roomFiles.length} classrooms send exact question metadata and core rooms track wrong answers.`);

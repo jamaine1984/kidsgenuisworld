@@ -7,6 +7,7 @@ import { withSeededRandom } from '../services/dailyRotation';
 interface MathRoomProps {
   onBack: () => void;
   onReward: (meta?: { questionId: string; skill: string; prompt: string; selectedAnswer?: string; correctAnswer?: string }) => void;
+  onAttempt?: (meta: { questionId: string; skill: string; prompt: string; selectedAnswer?: string; correctAnswer?: string }, correct: boolean) => void;
   level: number; // 1-7 corresponds to grade levels
 }
 
@@ -525,7 +526,7 @@ const generateMathProblem = (level: number): MathProblem => {
     subject: 'math'
   };
 };
-export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, level }) => {
+export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, onAttempt, level }) => {
   const [problem, setProblem] = useState<MathProblem | null>(null);
   const [streak, setStreak] = useState(0);
   const [score, setScore] = useState(0);
@@ -628,6 +629,13 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, level }) =
       setFeedback('wrong');
       playWrongBuzzer();
       setStreak(0);
+      onAttempt?.({
+        questionId: `math-${level}-${problem.context || 'equation'}-${problem.operation}-${problem.question}`,
+        skill: problem.context || problem.operation,
+        prompt: problem.question,
+        selectedAnswer: String(val),
+        correctAnswer: String(problem.answer),
+      }, false);
 
       void speakWrong(`Let us learn it together. ${problem.explanation}`);
 

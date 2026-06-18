@@ -8,6 +8,7 @@ interface GeographyRoomProps {
   level: number; // 1-7 corresponds to grade levels
   onBack: () => void;
   onReward: (meta?: { questionId: string; skill: string; prompt: string; selectedAnswer?: string; correctAnswer?: string }) => void;
+  onAttempt?: (meta: { questionId: string; skill: string; prompt: string; selectedAnswer?: string; correctAnswer?: string }, correct: boolean) => void;
 }
 
 // Geography questions organized by grade level
@@ -167,7 +168,7 @@ const EXPANDED_GEOGRAPHY_QUESTIONS: (GeographyQuestion & { gradeLevel: number })
 
 export const ALL_GEOGRAPHY_QUESTIONS = [...GEOGRAPHY_QUESTIONS, ...EXPANDED_GEOGRAPHY_QUESTIONS];
 
-export const GeographyRoom: React.FC<GeographyRoomProps> = ({ level, onBack, onReward }) => {
+export const GeographyRoom: React.FC<GeographyRoomProps> = ({ level, onBack, onReward, onAttempt }) => {
   // Filter questions by grade level
   const availableQuestions = ALL_GEOGRAPHY_QUESTIONS.filter(q => q.gradeLevel <= level);
 
@@ -236,6 +237,13 @@ export const GeographyRoom: React.FC<GeographyRoomProps> = ({ level, onBack, onR
       }), 2000);
     } else {
       playWrongBuzzer();
+      onAttempt?.({
+        questionId: `geography-${level}-${question.type}-${question.question}`,
+        skill: question.type,
+        prompt: question.question,
+        selectedAnswer: answer,
+        correctAnswer: question.answer,
+      }, false);
       void speakWrong(`The answer is ${question.answer}. ${question.funFact}`);
     }
   };

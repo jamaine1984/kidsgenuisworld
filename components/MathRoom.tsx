@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { speakCorrect, speakWrong, playSuccess, playWrongBuzzer, speakMultipleChoiceQuestion } from '../services/audioService';
+import { speakAsync, speakCorrect, speakWrong, playSuccess, playWrongBuzzer, speakMultipleChoiceQuestion } from '../services/audioService';
 import { MathProblem } from '../types';
 import { Star, ArrowLeft, Volume2, RefreshCw, Calculator } from 'lucide-react';
 import { withSeededRandom } from '../services/dailyRotation';
@@ -580,9 +580,10 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, onAttempt,
       .replace(/-/g, 'minus')
       .replace(/=/g, 'equals')
       .replace(/\?/g, '');
+    await speakAsync(buildCoachTip(currentProblem), 0.82, 1.02, 'gentle');
     await speakMultipleChoiceQuestion(`What is ${spokenText}?`, currentProblem.options);
     setIsSpeaking(false);
-  }, []);
+  }, [buildCoachTip]);
   const loadProblem = useCallback(() => {
     setFeedback('idle');
     setSelectedChoice(null);

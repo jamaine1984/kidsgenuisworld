@@ -26,6 +26,10 @@ const ROOM_INTROS = [
   'Welcome to the Math Lab. Look for the operation clue.',
   'Welcome to the Math Lab. Use fact families and patterns.',
   'Welcome to the Math Lab. Estimate first, then solve carefully.',
+  'Welcome to Math Classroom. Count and picture the groups.',
+  'Welcome to Math Classroom. Look for the operation clue.',
+  'Welcome to Math Classroom. Use fact families and patterns.',
+  'Welcome to Math Classroom. Estimate first, then solve carefully.',
   'Welcome to the Reading Library. Look at the word, then find the picture that fits.',
   'Welcome to the Reading Library. Say each letter as you build the word.',
   'Welcome to the Reading Library. Listen for the ending sound.',
@@ -41,6 +45,34 @@ const ROOM_INTROS = [
   'Welcome to Coding Corner. Build the path one step at a time.',
   'Welcome to Coding Corner. Watch the robot direction before you add a turn.',
   'Welcome to Coding Corner. Plan the path first, then use repeat blocks to stay efficient.',
+];
+
+const HOMEROOM_TEACHER_TEXTS = [
+  'Good morning. I am Ms. Nova, your AI Homeroom Teacher.',
+  'Good morning. I am Ms. Nova, your AI Homeroom Teacher. Today we are going to start your learning mission.',
+  'Ms. Nova opens the day, teaches the lesson path, checks the exit ticket, and saves parent-visible progress.',
+  'Listen to the question, hear each answer choice, then choose the best answer.',
+  'After six strong practice rounds, I will move you to the next class period.',
+];
+
+const MATH_TEACHER_TEXTS = [
+  'Welcome to Math Classroom. Count and picture the groups.',
+  'Welcome to Math Classroom. Look for the operation clue.',
+  'Welcome to Math Classroom. Use fact families and patterns.',
+  'Welcome to Math Classroom. Estimate first, then solve carefully.',
+  'Underline the numbers, then decide what the story is asking.',
+  'Count coin values first, then add the cents.',
+  'Start at the clock time and count hours forward.',
+  'Think about equal pieces and subtract the pieces used.',
+  'Picture the shape and count each side once.',
+  'Touch each group and count all together.',
+  'Start with the big number, then count back.',
+  'Think of equal groups and skip count.',
+  'Split the total into equal groups.',
+  'Take your time and solve one step at a time.',
+  'Math teacher tip. Count carefully, then choose the answer.',
+  'That is correct. Great math thinking.',
+  'Good try. Look at the model and try the next one.',
 ];
 
 const GENERAL_FEEDBACK = [
@@ -219,6 +251,8 @@ export const getVoiceCacheTexts = (level: number): string[] => {
 
   return uniqueTexts([
     ...ROOM_INTROS,
+    ...HOMEROOM_TEACHER_TEXTS,
+    ...MATH_TEACHER_TEXTS,
     ...GENERAL_FEEDBACK,
     ...readingTexts,
     ...readingPassageTexts,
@@ -236,7 +270,7 @@ export const warmVoiceCache = async (
   accessibility: AccessibilitySettings
 ): Promise<VoiceWarmupResult> => {
   const texts = getVoiceCacheTexts(level);
-  if (typeof window !== 'undefined' && window.localStorage.getItem('kidGeniusAllowExternalVoice') !== 'true') {
+  if (typeof window !== 'undefined' && window.localStorage.getItem('kidGeniusAllowExternalVoice') === 'false') {
     return {
       requested: texts.length,
       hits: 0,

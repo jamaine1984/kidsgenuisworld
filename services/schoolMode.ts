@@ -321,14 +321,13 @@ export const getMasteryGateStatus = (progress: UserProgress, unit?: CurriculumUn
 };
 
 export const getTeacherScript = (unit: CurriculumUnit, progress: UserProgress) => {
-  const childName = progress.childName || 'learner';
   const campusRoom = getCampusRoom(unit.room);
   const practice = unit.practiceActivities || [];
   const checks = unit.endOfLessonChecks || [];
   const mastery = getMasteryGateStatus(progress, unit);
 
   return {
-    greeting: `Good morning, ${childName}. I am ${AI_TEACHER.name}, your ${AI_TEACHER.title}. Today we are going to ${unit.objective.toLowerCase()}`,
+    greeting: `Good morning. I am ${AI_TEACHER.name}, your ${AI_TEACHER.title}. Today we are going to ${unit.objective.toLowerCase()}`,
     objective: `Learning target: ${unit.objective}`,
     teach: practice[0] || `Teach: listen for the main idea in ${campusRoom.subject}.`,
     example: practice[1] || `Example: ${AI_TEACHER.name} works through one problem first and names the strategy.`,

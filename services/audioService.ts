@@ -62,7 +62,7 @@ const allowsExternalVoice = (): boolean => {
   if (typeof window === 'undefined') {
     return false;
   }
-  return window.localStorage.getItem('kidGeniusAllowExternalVoice') === 'true';
+  return window.localStorage.getItem('kidGeniusAllowExternalVoice') !== 'false';
 };
 
 const hasStaticVoiceCache = (): boolean => {

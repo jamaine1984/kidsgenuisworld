@@ -149,7 +149,7 @@ export const SCIENCE_EXPERIMENTS: (ScienceExperiment & { gradeLevel: number })[]
   {
     id: '2g3', gradeLevel: 4, title: 'The Moon',
     question: 'Why does the Moon change shape?',
-    hypothesis: ['It\'s magic', 'We see different parts lit by Sun', 'It actually changes', 'Clouds cover it'],
+    hypothesis: ['It makes its own light', 'We see different parts lit by Sun', 'It actually changes', 'Clouds cover it'],
     correctAnswer: 1,
     explanation: 'The Moon doesn\'t change - we just see different parts lit up by the Sun!',
     funFact: 'Astronauts have walked on the Moon! They left footprints that are still there!',
@@ -468,42 +468,148 @@ export const SCIENCE_EXPERIMENTS: (ScienceExperiment & { gradeLevel: number })[]
   { id: '5g10', gradeLevel: 7, title: 'Food Web Stability', question: 'What may happen if one species disappears from a food web?', hypothesis: ['Other species can be affected', 'Nothing can ever change', 'The sun turns off', 'All water freezes'], correctAnswer: 0, explanation: 'Food webs connect living things, so one change can affect many organisms.', funFact: 'Biodiversity can help ecosystems stay balanced.', category: 'biology', icon: '*' },
 ];
 
+const SCIENCE_LAB_CONTEXTS = [
+  'During a class observation',
+  'At the investigation table',
+  'While recording in a science notebook',
+  'During an outdoor walk',
+  'After comparing two samples',
+  'While testing a model',
+  'After watching the change carefully',
+  'During the exit-ticket discussion',
+];
+
 const SCIENCE_EXPANSION_TOPICS = [
-  { category: 'biology' as const, icon: '*', title: 'Plant Clue', answer: 'Sunlight, water, and air' },
-  { category: 'biology' as const, icon: '*', title: 'Animal Need', answer: 'Food, water, and a safe home' },
-  { category: 'physics' as const, icon: '*', title: 'Force Test', answer: 'A push or pull can change motion' },
-  { category: 'chemistry' as const, icon: '*', title: 'Matter Change', answer: 'Heating or cooling can change matter' },
-  { category: 'nature' as const, icon: '*', title: 'Weather Watch', answer: 'Weather can change during the day' },
-  { category: 'space' as const, icon: '*', title: 'Sky Pattern', answer: 'Objects in the sky follow patterns' },
-  { category: 'biology' as const, icon: '*', title: 'Body System', answer: 'Body parts work together' },
-  { category: 'physics' as const, icon: '*', title: 'Sound Lab', answer: 'Sound comes from vibrations' },
-  { category: 'nature' as const, icon: '*', title: 'Water Cycle', answer: 'Water moves and changes form' },
-  { category: 'chemistry' as const, icon: '*', title: 'Mixing Lab', answer: 'Some materials mix and some do not' },
-  { category: 'space' as const, icon: '*', title: 'Sun Energy', answer: 'The sun gives light and heat' },
-  { category: 'nature' as const, icon: '*', title: 'Earth Shape', answer: 'Land and water can change slowly' },
+  {
+    category: 'biology' as const, icon: '*', title: 'Plant Needs',
+    youngQuestion: 'A seedling has soil and water, but no light. What does it still need to grow well?',
+    middleQuestion: 'Which claim explains why the plant near the sunny window grew taller?',
+    advancedQuestion: 'Which evidence-based claim best explains healthy plant growth?',
+    answer: 'Plants need sunlight, water, and air',
+    distractors: ['Plants grow best in total darkness', 'Plants only need rocks', 'Plants do not need air'],
+    fact: 'Plants use sunlight, water, and air to make food and grow.',
+  },
+  {
+    category: 'biology' as const, icon: '*', title: 'Animal Needs',
+    youngQuestion: 'A rabbit has food and water, but no safe shelter. What does it still need?',
+    middleQuestion: 'Which answer explains what animals need to survive in a habitat?',
+    advancedQuestion: 'Which claim best describes why habitats matter for animal survival?',
+    answer: 'Animals need food, water, shelter, and space',
+    distractors: ['Animals need only toys', 'Animals survive without water', 'Animals need the same home everywhere'],
+    fact: 'A habitat gives animals the resources they need to live.',
+  },
+  {
+    category: 'physics' as const, icon: '*', title: 'Force and Motion',
+    youngQuestion: 'A student pushes a toy car. What can the push do?',
+    middleQuestion: 'Which explanation best describes how a force can affect an object?',
+    advancedQuestion: 'Which claim is supported when a stronger push makes a cart move farther?',
+    answer: 'A push or pull can change motion',
+    distractors: ['A force only changes color', 'Motion changes without any push or pull', 'A push makes objects disappear'],
+    fact: 'A force is a push or pull that can change speed, direction, or position.',
+  },
+  {
+    category: 'chemistry' as const, icon: '*', title: 'Matter Changes',
+    youngQuestion: 'Ice sits in a warm room and turns to water. What caused the change?',
+    middleQuestion: 'Which explanation fits melting ice or freezing water?',
+    advancedQuestion: 'Which claim best explains how temperature can change matter?',
+    answer: 'Heating or cooling can change matter',
+    distractors: ['Matter cannot change form', 'Only color changes matter', 'Matter changes only by magic'],
+    fact: 'Heating and cooling can change matter between solid, liquid, and gas.',
+  },
+  {
+    category: 'nature' as const, icon: '*', title: 'Weather Patterns',
+    youngQuestion: 'The morning is cloudy, but the afternoon is sunny. What does that show?',
+    middleQuestion: 'Which answer explains why students record weather more than once?',
+    advancedQuestion: 'Which claim is supported by a week of changing temperature and cloud data?',
+    answer: 'Weather can change during the day',
+    distractors: ['Weather is always the same', 'Weather is only a map symbol', 'Weather cannot be observed'],
+    fact: 'Weather describes what the air is like at a certain time and place.',
+  },
+  {
+    category: 'space' as const, icon: '*', title: 'Sky Patterns',
+    youngQuestion: 'The sun appears in the daytime sky again and again. What does that show?',
+    middleQuestion: 'Which answer explains why students track the moon for many nights?',
+    advancedQuestion: 'Which claim is supported by repeated observations of the sun, moon, and stars?',
+    answer: 'Objects in the sky follow patterns',
+    distractors: ['Sky objects have no patterns', 'The moon is always the same shape', 'Stars only appear indoors'],
+    fact: 'Scientists use repeated observations to find patterns in the sky.',
+  },
+  {
+    category: 'biology' as const, icon: '*', title: 'Body Systems',
+    youngQuestion: 'Your heart, lungs, and muscles all help your body. What does that show?',
+    middleQuestion: 'Which answer explains how body parts help a person move and breathe?',
+    advancedQuestion: 'Which claim best describes how body systems support survival?',
+    answer: 'Body parts work together',
+    distractors: ['Body parts work alone all the time', 'Only hair helps the body live', 'The body has no systems'],
+    fact: 'Body systems are groups of parts that work together.',
+  },
+  {
+    category: 'physics' as const, icon: '*', title: 'Sound Vibrations',
+    youngQuestion: 'A drum makes sound when it shakes. What causes the sound?',
+    middleQuestion: 'Which explanation fits a rubber band making a twang sound?',
+    advancedQuestion: 'Which claim is supported when faster vibrations make a different pitch?',
+    answer: 'Sound comes from vibrations',
+    distractors: ['Sound comes from stillness', 'Sound is made only by light', 'Sound cannot travel through air'],
+    fact: 'Sound begins when matter vibrates.',
+  },
+  {
+    category: 'nature' as const, icon: '*', title: 'Water Cycle',
+    youngQuestion: 'A puddle dries after a sunny day. Where can the water go?',
+    middleQuestion: 'Which answer explains how water can move between land, air, and clouds?',
+    advancedQuestion: 'Which claim best describes evaporation, condensation, and precipitation?',
+    answer: 'Water moves and changes form',
+    distractors: ['Water leaves Earth forever', 'Clouds are made of paper', 'Rain cannot return to land'],
+    fact: 'Water can evaporate, condense into clouds, and fall as precipitation.',
+  },
+  {
+    category: 'chemistry' as const, icon: '*', title: 'Mixing Materials',
+    youngQuestion: 'Sugar mixes into water, but sand settles at the bottom. What does that show?',
+    middleQuestion: 'Which explanation fits comparing salt water with sand water?',
+    advancedQuestion: 'Which claim is supported when some materials dissolve and others do not?',
+    answer: 'Some materials mix evenly and some do not',
+    distractors: ['All materials mix the same way', 'Nothing can dissolve in water', 'Sand always becomes invisible'],
+    fact: 'A solution forms when one material mixes evenly into another.',
+  },
+  {
+    category: 'space' as const, icon: '*', title: 'Sun Energy',
+    youngQuestion: 'A sunny sidewalk feels warmer than a shady sidewalk. What does the sun give?',
+    middleQuestion: 'Which answer explains why sunlight can warm land and water?',
+    advancedQuestion: 'Which claim best describes the sun as an energy source for Earth?',
+    answer: 'The sun gives light and heat',
+    distractors: ['The sun only gives sound', 'The sun makes Earth colder', 'The sun is a classroom lamp'],
+    fact: 'The sun is Earths main source of light and heat.',
+  },
+  {
+    category: 'nature' as const, icon: '*', title: 'Earth Changes',
+    youngQuestion: 'Water carries sand down a small hill. What can happen to land?',
+    middleQuestion: 'Which explanation fits wind or water moving soil over time?',
+    advancedQuestion: 'Which claim is supported by evidence of erosion and deposition?',
+    answer: 'Land and water can change Earth slowly',
+    distractors: ['Land never changes', 'Only animals can move soil', 'Rivers cannot shape land'],
+    fact: 'Wind and water can slowly change the shape of land.',
+  },
 ];
 
 const EXPANDED_SCIENCE_EXPERIMENTS: (ScienceExperiment & { gradeLevel: number })[] = SCIENCE_EXPANSION_TOPICS.flatMap((topic, topicIndex) =>
   Array.from({ length: 7 }, (_, gradeIndex) => Array.from({ length: 8 }, (_, variantIndex) => {
     const gradeLevel = gradeIndex + 1;
+    const context = SCIENCE_LAB_CONTEXTS[variantIndex % SCIENCE_LAB_CONTEXTS.length];
     return {
       id: `science-expanded-${topicIndex + 1}-g${gradeLevel}-v${variantIndex + 1}`,
       gradeLevel,
       title: `${topic.title} ${gradeLevel}.${variantIndex + 1}`,
       question: gradeLevel <= 2
-        ? `What should a young scientist notice in ${topic.title.toLowerCase()} example ${variantIndex + 1}?`
+        ? `${context}: ${topic.youngQuestion}`
         : gradeLevel <= 4
-          ? `Which explanation best fits the ${topic.title.toLowerCase()} evidence set ${variantIndex + 1}?`
-          : `Which claim is best supported by observations from the ${topic.title.toLowerCase()} investigation ${variantIndex + 1}?`,
+          ? `${context}: ${topic.middleQuestion}`
+          : `${context}: ${topic.advancedQuestion}`,
       hypothesis: [
         topic.answer,
-        gradeLevel <= 2 ? 'It happens by magic' : 'It happens without any cause',
-        gradeLevel <= 3 ? 'Only color matters' : 'The answer never changes',
-        gradeLevel <= 4 ? 'It is not something scientists observe' : 'It cannot be tested with evidence',
+        ...topic.distractors,
       ],
       correctAnswer: 0,
       explanation: `${topic.answer}. Scientists use observations and evidence before they choose an answer.`,
-      funFact: 'Scientists often repeat a test so they can see whether the same pattern happens again.',
+      funFact: topic.fact,
       category: topic.category,
       icon: topic.icon,
     };

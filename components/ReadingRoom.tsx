@@ -237,24 +237,48 @@ const READING_PASSAGE_TOPICS = [
   'sports strategy', 'art mural', 'bus route', 'space model', 'energy saver',
 ];
 
+const READING_DETAIL_BANK = [
+  { detail: 'a label beside the garden seeds', action: 'watering the dry soil first', evidence: 'plant notes and leaf changes' },
+  { detail: 'a name tag on the lunchbox', action: 'checking the cubby list before returning it', evidence: 'the name tag and classroom list' },
+  { detail: 'dark clouds over the playground', action: 'moving recess games under the covered area', evidence: 'cloud color and the rain chart' },
+  { detail: 'the robot stopped before the basket', action: 'changing one command and testing again', evidence: 'the first test and the new robot path' },
+  { detail: 'the book title matched the science unit', action: 'choosing the book with the strongest connection', evidence: 'the title and the unit question' },
+  { detail: 'two measurements in the science notebook', action: 'repeating the measurement before deciding', evidence: 'the first measurement and the retest' },
+  { detail: 'the map key showed a star for the library', action: 'following the symbols from school to library', evidence: 'the map key and street labels' },
+  { detail: 'a teammate shared the last marker', action: 'thanking the teammate and finishing together', evidence: 'the shared marker and completed poster' },
+  { detail: 'the bridge sagged in the middle', action: 'folding the paper before the next test', evidence: 'the sagging bridge and stronger folded bridge' },
+  { detail: 'the drum beat sped up', action: 'clapping the rhythm slowly first', evidence: 'the first beat and the corrected beat' },
+  { detail: 'the pond had shade and insects', action: 'choosing the habitat with food and shelter', evidence: 'the habitat notes and animal needs chart' },
+  { detail: 'the thermometer changed after lunch', action: 'recording weather at more than one time', evidence: 'morning and afternoon temperatures' },
+  { detail: 'each voter gave a reason', action: 'counting votes after hearing both ideas', evidence: 'the reasons and the final vote chart' },
+  { detail: 'the filter trapped sand in the cloth', action: 'adding another layer before retesting', evidence: 'the muddy cup and clearer cup' },
+  { detail: 'the new student stood alone by the door', action: 'inviting the student to join the table', evidence: 'the quiet student and kind invitation' },
+  { detail: 'the goalie blocked every straight kick', action: 'passing to open space on the side', evidence: 'blocked shots and the new passing lane' },
+  { detail: 'the mural sketch had one blank corner', action: 'adding a symbol that matched the theme', evidence: 'the theme card and revised sketch' },
+  { detail: 'the bus route passed the library first', action: 'using landmarks to check the correct stop', evidence: 'the route map and landmark list' },
+  { detail: 'the moon looked different each night', action: 'ordering the moon drawings by date', evidence: 'dated drawings and sky notes' },
+  { detail: 'the lights stayed on in an empty room', action: 'posting a reminder near the switch', evidence: 'the empty room and electricity chart' },
+];
+
 const EXPANDED_READING_PASSAGES: ReadingPassage[] = READING_PASSAGE_TOPICS.flatMap((topic, topicIndex) =>
   Array.from({ length: 7 }, (_, gradeIndex) => Array.from({ length: 5 }, (_, variantIndex) => {
     const level = gradeIndex + 1;
+    const detail = READING_DETAIL_BANK[(topicIndex + variantIndex) % READING_DETAIL_BANK.length];
     const title = `${topic.replace(/^\w/, letter => letter.toUpperCase())} Reader ${level}.${variantIndex + 1}`;
     const passage = level <= 2
-      ? `A child notices the ${topic}. The child looks closely at clue ${variantIndex + 1}. Then the child tells one detail.`
+      ? `A child studies the ${topic}. The child notices ${detail.detail}. Then the child tells that detail to the teacher.`
       : level <= 4
-        ? `The class worked on a ${topic}. First they made a plan. Then they checked clue ${variantIndex + 1} and changed one thing that helped.`
-        : `Students studied a ${topic} problem. They compared evidence set ${variantIndex + 1}, explained their claim, and revised the plan after a fair test.`;
-    const answer = level <= 2 ? 'The child tells one detail' : level <= 4 ? 'They checked clues and changed one thing' : 'They used evidence and revised the plan';
+        ? `The class worked on a ${topic}. First they made a plan. Then they tried ${detail.action}. The change helped their work make more sense.`
+        : `Students studied a ${topic} problem. They compared ${detail.evidence}, explained their claim, and revised the plan after a fair test.`;
+    const answer = level <= 2 ? detail.detail : level <= 4 ? detail.action : `They compared ${detail.evidence}`;
     return {
       id: `expanded-reading-${topicIndex + 1}-g${level}-v${variantIndex + 1}`,
       level,
       title,
       passage,
-      question: level <= 2 ? 'What does the child do?' : level <= 4 ? 'What helped the class improve?' : 'What made the students explanation stronger?',
+      question: level <= 2 ? 'What detail does the child notice?' : level <= 4 ? 'What helped the class improve?' : 'What made the students explanation stronger?',
       answer,
-      options: [answer, 'They ignored every clue', 'They stopped reading', 'They hid the notebook'],
+      options: [answer, 'They guessed without reading', 'They stopped before checking', 'They picked an unrelated idea'],
       skill: level <= 2 ? 'Remember key detail' : level <= 4 ? 'Sequence and cause' : 'Evidence and reasoning',
     };
   })).flat()

@@ -967,10 +967,34 @@ const STORY_EXPANSION_TOPICS: Array<{ title: string; category: Story['category']
   { title: 'The Compass Club', category: 'adventure', cover: 'NORTH', moral: 'Directions and landmarks help us find the way.' },
 ];
 
+const STORY_DETAIL_BANK = [
+  { clue: 'a dry seed tray near the window', evidence: 'the watered tray sprouted first', fix: 'move the tray into sunlight and water it gently' },
+  { clue: 'a robot waiting at a blocked square', evidence: 'the first command path hit the block', fix: 'turn before moving forward again' },
+  { clue: 'one empty seat beside a nervous classmate', evidence: 'the classmate smiled after being invited', fix: 'offer the seat and ask a friendly question' },
+  { clue: 'two ruler marks that did not match', evidence: 'the second measurement was more careful', fix: 'measure twice before cutting' },
+  { clue: 'rain clouds above the walking path', evidence: 'the map route crossed an uncovered field', fix: 'choose the covered path by the library' },
+  { clue: 'a bridge dipping under the first toy car', evidence: 'the folded bridge held more weight', fix: 'fold the paper into a stronger shape' },
+  { clue: 'a quiet reader pointing to one hard word', evidence: 'reading together helped the page make sense', fix: 'sound out the word and reread the sentence' },
+  { clue: 'a frog hiding beside a shallow puddle', evidence: 'the pond with shade had more insects', fix: 'choose a safer pond habitat' },
+  { clue: 'a band losing the beat during practice', evidence: 'the steady clap helped everyone restart', fix: 'count the rhythm together before playing' },
+  { clue: 'a moon drawing dated Monday', evidence: 'the shape changed later in the week', fix: 'record the sky pattern each night' },
+  { clue: 'muddy water still cloudy after one pour', evidence: 'another sand layer made it clearer', fix: 'revise the filter and test again' },
+  { clue: 'a puzzle path with too many choices', evidence: 'crossing out impossible doors left one route', fix: 'use a strategy to make the problem smaller' },
+  { clue: 'friends disagreeing about playground rules', evidence: 'listening helped them choose a fair plan', fix: 'let each person explain one reason' },
+  { clue: 'a weather chart showing warmer afternoons', evidence: 'several days showed the same pattern', fix: 'compare more than one day before predicting' },
+  { clue: 'code steps written in the wrong order', evidence: 'the robot reached the goal after the order changed', fix: 'put the commands in a clear sequence' },
+  { clue: 'a drawing with no clear main idea', evidence: 'one strong symbol made the mural easier to understand', fix: 'choose a focal point before adding details' },
+  { clue: 'two seed choices on the voting board', evidence: 'students gave reasons before voting', fix: 'use evidence instead of choosing quickly' },
+  { clue: 'a first prototype tipping over', evidence: 'a wider base made the model stand', fix: 'treat the first try as information' },
+  { clue: 'snacks split unevenly at the table', evidence: 'equal groups helped everyone feel respected', fix: 'count the shares before passing them out' },
+  { clue: 'a compass arrow pointing north', evidence: 'the group found the trail after matching landmarks', fix: 'use directions and landmarks together' },
+];
+
 const EXPANDED_STORIES: Story[] = STORY_EXPANSION_TOPICS.flatMap((topic, topicIndex) =>
   Array.from({ length: 7 }, (_, gradeIndex) => Array.from({ length: 2 }, (_, variantIndex) => {
     const gradeLevel = gradeIndex + 1;
     const title = `${topic.title} ${gradeLevel}.${variantIndex + 1}`;
+    const detail = STORY_DETAIL_BANK[(topicIndex + variantIndex) % STORY_DETAIL_BANK.length];
     return {
       id: `story-expanded-${topicIndex + 1}-g${gradeLevel}-v${variantIndex + 1}`,
       title,
@@ -981,23 +1005,23 @@ const EXPANDED_STORIES: Story[] = STORY_EXPANSION_TOPICS.flatMap((topic, topicIn
       pages: gradeLevel <= 2
         ? [
           `${title} begins with one small problem.`,
-          `The child looks closely at clue ${variantIndex + 1}.`,
+          `The child looks closely and notices ${detail.clue}.`,
           'A helper asks, "What can we try first?"',
-          'They try one careful step and notice what changes.',
+          `They ${detail.fix} and notice what changes.`,
           topic.moral,
         ]
         : gradeLevel <= 4
           ? [
             `${title} begins when the class notices a problem that needs a plan.`,
-            `They collect clue ${variantIndex + 1} and compare it with what they already know.`,
+            `They notice ${detail.clue} and compare it with what they already know.`,
             'One student suggests a strategy, and another student checks whether it is fair.',
-            'The group revises the plan after seeing new evidence.',
+            `The group revises the plan because ${detail.evidence}.`,
             topic.moral,
           ]
           : [
             `${title} opens with a claim that needs evidence before the group can decide.`,
-            `The students examine evidence set ${variantIndex + 1}, then separate facts from opinions.`,
-            'They test a solution, explain the strongest reason, and revise one weak part.',
+            `The students examine how ${detail.evidence}, then separate facts from opinions.`,
+            `They test a solution, explain the strongest reason, and ${detail.fix}.`,
             'By the end, the group can teach the lesson to a younger student.',
             topic.moral,
           ],

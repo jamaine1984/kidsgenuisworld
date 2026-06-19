@@ -37,7 +37,7 @@ export const GEOGRAPHY_QUESTIONS: (GeographyQuestion & { gradeLevel: number })[]
   { gradeLevel: 3, type: 'continent', question: 'Which is the largest continent?', answer: 'Asia', options: ['Asia', 'Africa', 'Europe', 'Australia'], funFact: 'Asia has the largest land area and the most people of any continent.' },
   { gradeLevel: 3, type: 'landmark', question: 'Where is the Eiffel Tower?', answer: 'France', options: ['France', 'Spain', 'Italy', 'Germany'], funFact: 'The Eiffel Tower is a famous landmark in Paris, France.' },
   { gradeLevel: 3, type: 'country', question: 'Which country is shaped like a boot?', answer: 'Italy', options: ['Italy', 'Greece', 'Spain', 'Norway'], funFact: 'Italy is a peninsula, which means water surrounds it on three sides.' },
-  { gradeLevel: 3, type: 'map', question: 'What does a map key explain?', answer: 'Map symbols', options: ['Map symbols', 'Lunch choices', 'Song words', 'Animal sounds'], funFact: 'A map key tells what symbols and colors mean on a map.' },
+  { gradeLevel: 3, type: 'map', question: 'What does a map key explain?', answer: 'Map symbols', options: ['Map symbols', 'Street names only', 'Song words', 'Animal sounds'], funFact: 'A map key tells what symbols and colors mean on a map.' },
   { gradeLevel: 3, type: 'nature', question: 'What do we call land with water on all sides?', answer: 'Island', options: ['Island', 'Valley', 'Hill', 'Road'], funFact: 'An island is land surrounded by water.' },
   { gradeLevel: 3, type: 'country', question: 'Which country is known as the Land of the Rising Sun?', answer: 'Japan', options: ['Japan', 'Egypt', 'Brazil', 'Canada'], funFact: 'Japan is an island country in East Asia.' },
   { gradeLevel: 3, type: 'continent', question: 'Which continent has the Sahara Desert?', answer: 'Africa', options: ['Africa', 'Europe', 'Australia', 'Antarctica'], funFact: 'The Sahara is the largest hot desert in the world.' },
@@ -121,46 +121,157 @@ export const GEOGRAPHY_QUESTIONS: (GeographyQuestion & { gradeLevel: number })[]
   { gradeLevel: 4, type: 'climate', question: 'Which place would likely have a polar climate?', answer: 'Near the North or South Pole', options: ['Near the North or South Pole', 'Near a warm beach', 'Inside a classroom', 'Beside a desert cactus'], funFact: 'Polar climates are very cold for much of the year.' },
   { gradeLevel: 4, type: 'map', question: 'What does elevation tell on a map?', answer: 'How high land is', options: ['How high land is', 'How sweet food tastes', 'How loud music is', 'How old a pencil is'], funFact: 'Elevation helps map readers understand mountains, hills, and valleys.' },
   { gradeLevel: 5, type: 'nature', question: 'What is a delta?', answer: 'Land formed where a river drops sediment near its mouth', options: ['Land formed where a river drops sediment near its mouth', 'A very tall building', 'A type of compass', 'A country border only'], funFact: 'Many deltas form where rivers meet larger bodies of water.' },
-  { gradeLevel: 5, type: 'map', question: 'What do contour lines show?', answer: 'Elevation and land shape', options: ['Elevation and land shape', 'Lunch choices', 'Animal sounds', 'Book titles'], funFact: 'Close contour lines can show steep land.' },
+  { gradeLevel: 5, type: 'map', question: 'What do contour lines show?', answer: 'Elevation and land shape', options: ['Elevation and land shape', 'Street names only', 'Animal sounds', 'Book titles'], funFact: 'Close contour lines can show steep land.' },
   { gradeLevel: 6, type: 'country', question: 'Which country has the city Cairo?', answer: 'Egypt', options: ['Egypt', 'Spain', 'Canada', 'Japan'], funFact: 'Cairo is near the Nile River.' },
   { gradeLevel: 6, type: 'continent', question: 'Which continent is mostly north of Africa and west of Asia?', answer: 'Europe', options: ['Europe', 'Australia', 'Antarctica', 'South America'], funFact: 'Europe has many countries and many languages.' },
   { gradeLevel: 7, type: 'map', question: 'Which tool uses latitude and longitude to give an exact location?', answer: 'Coordinates', options: ['Coordinates', 'A menu', 'A ruler only', 'A weather vane'], funFact: 'Coordinates can identify exact places on Earth.' },
   { gradeLevel: 7, type: 'climate', question: 'Why can mountains have colder climates than nearby lowlands?', answer: 'Higher elevation is usually cooler', options: ['Higher elevation is usually cooler', 'Mountains are always closer to deserts', 'Clouds only touch cities', 'Maps make mountains cold'], funFact: 'Elevation is one reason climate can change over short distances.' },
 ];
 
-const GEOGRAPHY_EXPANSION_TOPICS: Array<{ type: GeographyQuestion['type']; clue: string; answer: string; fact: string }> = [
-  { type: 'map', clue: 'map symbol', answer: 'It stands for a real place or feature', fact: 'Map symbols help people read maps faster.' },
-  { type: 'nature', clue: 'river system', answer: 'Water flows from higher land to lower land', fact: 'Rivers often connect mountains, valleys, lakes, and oceans.' },
-  { type: 'continent', clue: 'continent clue', answer: 'A continent is a very large land area', fact: 'Earth has seven continents.' },
-  { type: 'climate', clue: 'climate pattern', answer: 'Climate means usual weather over many years', fact: 'Climate is different from today weather.' },
-  { type: 'landmark', clue: 'landmark clue', answer: 'A landmark is a recognizable place', fact: 'Landmarks can be natural or human-made.' },
-  { type: 'country', clue: 'country clue', answer: 'A country has its own government and borders', fact: 'Countries can share borders, rivers, and regions.' },
-  { type: 'capital', clue: 'capital city', answer: 'A capital is where a government is based', fact: 'Some capital cities are not the largest city in the country.' },
-  { type: 'flag', clue: 'flag symbol', answer: 'Flags use colors and symbols to represent places', fact: 'Flags often connect to history, values, or geography.' },
-  { type: 'map', clue: 'direction clue', answer: 'Directions help describe where to go', fact: 'North, south, east, and west are cardinal directions.' },
-  { type: 'nature', clue: 'landform clue', answer: 'Landforms are natural shapes on Earth surface', fact: 'Mountains, valleys, plains, and islands are landforms.' },
-  { type: 'climate', clue: 'region clue', answer: 'Regions can be grouped by land, climate, or culture', fact: 'Geographers compare regions to understand places.' },
-  { type: 'map', clue: 'coordinate clue', answer: 'Coordinates help name an exact location', fact: 'Latitude and longitude are used for exact locations.' },
+const GEOGRAPHY_CONTEXTS = [
+  'On a classroom map',
+  'During a passport lesson',
+  'While comparing two places',
+  'At the map table',
+  'During a travel-planning activity',
+  'While reading a picture atlas',
+  'During a world-studies discussion',
+  'On the exit-ticket map',
+];
+
+const GEOGRAPHY_EXPANSION_TOPICS: Array<{
+  type: GeographyQuestion['type'];
+  youngQuestion: string;
+  middleQuestion: string;
+  advancedQuestion: string;
+  answer: string;
+  options: string[];
+  fact: string;
+}> = [
+  {
+    type: 'map',
+    youngQuestion: 'A star symbol marks the library. What does the symbol show?',
+    middleQuestion: 'Why does a map key explain symbols like stars, lines, and dots?',
+    advancedQuestion: 'Which claim best explains why map symbols help readers?',
+    answer: 'A symbol stands for a real place or feature',
+    options: ['A symbol stands for a real place or feature', 'A symbol shows the map title only', 'A symbol means every place is the same', 'A symbol is never part of a map'],
+    fact: 'Map symbols help people read maps faster.',
+  },
+  {
+    type: 'nature',
+    youngQuestion: 'A stream starts on a hill and moves toward a lake. Which way does water usually flow?',
+    middleQuestion: 'Which answer explains why rivers often move toward lakes or oceans?',
+    advancedQuestion: 'Which claim best describes how elevation affects river systems?',
+    answer: 'Water flows from higher land to lower land',
+    options: ['Water flows from higher land to lower land', 'Water always flows uphill', 'Rivers only move inside cities', 'Water flow is not connected to land shape'],
+    fact: 'Rivers often connect mountains, valleys, lakes, and oceans.',
+  },
+  {
+    type: 'continent',
+    youngQuestion: 'Africa, Asia, and North America are examples of what?',
+    middleQuestion: 'Which answer best describes a continent?',
+    advancedQuestion: 'Which claim correctly compares continents with countries?',
+    answer: 'A continent is a very large land area',
+    options: ['A continent is a very large land area', 'A continent is one tiny town', 'A continent is a weather tool', 'A continent is a single street'],
+    fact: 'Earth has seven continents.',
+  },
+  {
+    type: 'climate',
+    youngQuestion: 'A place is usually hot and rainy for many years. What word describes that pattern?',
+    middleQuestion: 'Which answer explains climate better than today weather?',
+    advancedQuestion: 'Which claim best distinguishes climate from daily weather?',
+    answer: 'Climate means usual weather over many years',
+    options: ['Climate means usual weather over many years', 'Climate means only today temperature', 'Climate is a type of road', 'Climate never uses observations'],
+    fact: 'Climate is different from todays weather.',
+  },
+  {
+    type: 'landmark',
+    youngQuestion: 'A visitor sees a tall clock tower and uses it to find the museum. What is the tower?',
+    middleQuestion: 'Why can places like bridges, statues, and mountains help people describe location?',
+    advancedQuestion: 'Which claim best explains how landmarks support navigation?',
+    answer: 'A landmark is a recognizable place',
+    options: ['A landmark is a recognizable place', 'A landmark is always hidden', 'A landmark is only a street name', 'A landmark cannot be natural'],
+    fact: 'Landmarks can be natural or human-made.',
+  },
+  {
+    type: 'country',
+    youngQuestion: 'Canada, Mexico, and Japan are examples of what kind of place?',
+    middleQuestion: 'Which answer explains what makes a country different from one city?',
+    advancedQuestion: 'Which claim best defines a country in world studies?',
+    answer: 'A country has its own government and borders',
+    options: ['A country has its own government and borders', 'A country is always one classroom', 'A country has no borders', 'A country is only a mountain'],
+    fact: 'Countries can share borders, rivers, and regions.',
+  },
+  {
+    type: 'capital',
+    youngQuestion: 'Washington, D.C. is where the United States government works. What kind of city is it?',
+    middleQuestion: 'Which answer explains why governments have capital cities?',
+    advancedQuestion: 'Which claim best describes the role of a capital city?',
+    answer: 'A capital is where a government is based',
+    options: ['A capital is where a government is based', 'A capital is always the smallest village', 'A capital is only a river', 'A capital has no connection to government'],
+    fact: 'Some capital cities are not the largest city in the country.',
+  },
+  {
+    type: 'flag',
+    youngQuestion: 'A flag has colors, shapes, or symbols for a country. What does a flag do?',
+    middleQuestion: 'Why do flags often use special colors and symbols?',
+    advancedQuestion: 'Which claim best explains how flags represent places?',
+    answer: 'Flags use colors and symbols to represent places',
+    options: ['Flags use colors and symbols to represent places', 'Flags are never connected to countries', 'Flags only show today weather', 'Flags are the same everywhere'],
+    fact: 'Flags often connect to history, values, or geography.',
+  },
+  {
+    type: 'map',
+    youngQuestion: 'A map says the park is north of the school. What does north help describe?',
+    middleQuestion: 'Which answer explains why north, south, east, and west matter?',
+    advancedQuestion: 'Which claim best describes cardinal directions?',
+    answer: 'Directions help describe where to go',
+    options: ['Directions help describe where to go', 'Directions are only food names', 'Directions make every place identical', 'Directions are not used on maps'],
+    fact: 'North, south, east, and west are cardinal directions.',
+  },
+  {
+    type: 'nature',
+    youngQuestion: 'Mountains, valleys, and islands are examples of what?',
+    middleQuestion: 'Which answer explains what landforms are?',
+    advancedQuestion: 'Which claim best compares different landforms?',
+    answer: 'Landforms are natural shapes on Earth surface',
+    options: ['Landforms are natural shapes on Earth surface', 'Landforms are always buildings', 'Landforms are only map colors', 'Landforms cannot be observed'],
+    fact: 'Mountains, valleys, plains, and islands are landforms.',
+  },
+  {
+    type: 'climate',
+    youngQuestion: 'A teacher groups places by desert, rainforest, and polar areas. What is she comparing?',
+    middleQuestion: 'Which answer explains how geographers group regions?',
+    advancedQuestion: 'Which claim best explains why regions help us compare places?',
+    answer: 'Regions can be grouped by land, climate, or culture',
+    options: ['Regions can be grouped by land, climate, or culture', 'Regions are only playground games', 'Regions never have patterns', 'Regions mean every place is the same'],
+    fact: 'Geographers compare regions to understand places.',
+  },
+  {
+    type: 'map',
+    youngQuestion: 'A map uses latitude and longitude to name one exact spot. What are those numbers called?',
+    middleQuestion: 'Which answer explains how coordinates help map readers?',
+    advancedQuestion: 'Which claim best describes the purpose of coordinates?',
+    answer: 'Coordinates help name an exact location',
+    options: ['Coordinates help name an exact location', 'Coordinates only tell the color of a flag', 'Coordinates make maps impossible to read', 'Coordinates are never numbers'],
+    fact: 'Latitude and longitude are used for exact locations.',
+  },
 ];
 
 const EXPANDED_GEOGRAPHY_QUESTIONS: (GeographyQuestion & { gradeLevel: number })[] = GEOGRAPHY_EXPANSION_TOPICS.flatMap((topic, topicIndex) =>
   Array.from({ length: 7 }, (_, gradeIndex) => Array.from({ length: 8 }, (_, variantIndex) => {
     const gradeLevel = gradeIndex + 1;
+    const context = GEOGRAPHY_CONTEXTS[variantIndex % GEOGRAPHY_CONTEXTS.length];
     return {
       gradeLevel,
       type: topic.type,
       question: gradeLevel <= 2
-        ? `What does this ${topic.clue} help us understand in example ${variantIndex + 1}?`
+        ? `${context}: ${topic.youngQuestion}`
         : gradeLevel <= 4
-          ? `Which answer best explains the ${topic.clue} in map set ${variantIndex + 1}?`
-          : `Which geography claim best fits the ${topic.clue} evidence set ${variantIndex + 1}?`,
+          ? `${context}: ${topic.middleQuestion}`
+          : `${context}: ${topic.advancedQuestion}`,
       answer: topic.answer,
-      options: [
-        topic.answer,
-        'It only tells a lunch choice',
-        'It is not connected to places',
-        'It means every place is the same',
-      ],
+      options: topic.options,
       funFact: topic.fact,
     };
   })).flat()

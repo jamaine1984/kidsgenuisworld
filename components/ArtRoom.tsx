@@ -157,9 +157,21 @@ const ART_EXPANSION_THEMES = [
   'books', 'kindness', 'seasons', 'maps', 'inventions',
 ];
 
+const ART_PLANNING_CHOICES = [
+  'one feeling',
+  'one important place',
+  'one main character',
+  'one helpful action',
+  'one pattern',
+  'one strong shape',
+  'one clear symbol',
+  'one story moment',
+];
+
 const EXPANDED_ART_MISSIONS = ART_EXPANSION_THEMES.flatMap((theme, themeIndex) =>
   Array.from({ length: 7 }, (_, gradeIndex) => Array.from({ length: 2 }, (_, variantIndex) => {
     const gradeLevel = gradeIndex + 1;
+    const planningChoice = ART_PLANNING_CHOICES[(themeIndex + variantIndex) % ART_PLANNING_CHOICES.length];
     return {
       gradeLevel,
       title: `${theme.replace(/^\w/, letter => letter.toUpperCase())} Studio ${gradeLevel}.${variantIndex + 1}`,
@@ -180,7 +192,7 @@ const EXPANDED_ART_MISSIONS = ART_EXPANSION_THEMES.flatMap((theme, themeIndex) =
           ? ['pattern', 'space', 'focal point', 'detail']
           : ['composition', 'contrast', 'audience', 'evidence'],
       lessonSteps: [
-        `Choose the main ${theme} idea ${variantIndex + 1} before drawing.`,
+        `Choose ${planningChoice} for the ${theme} artwork before drawing.`,
         'Draw the largest shape first so the picture has a clear plan.',
         'Add colors, patterns, or details that support the idea.',
         'Explain one choice that makes the artwork easier to understand.',

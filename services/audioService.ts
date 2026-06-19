@@ -134,6 +134,7 @@ const getStaticVoiceCandidates = async (text: string) => {
   const exactSettings = buildVoiceSettings();
   const legacyProfiles = [
     exactSettings,
+    { stability: 0.72, similarity_boost: 0.82, style: 0.2, use_speaker_boost: true, speed: 0.864 },
     { stability: 0.72, similarity_boost: 0.82, style: 0.2, use_speaker_boost: true, speed: 0.9024 },
     { stability: 0.72, similarity_boost: 0.82, style: 0.2, use_speaker_boost: true, speed: 0.94 },
     { stability: 0.58, similarity_boost: 0.9, style: 0.78, use_speaker_boost: true, speed: 0.811008 },

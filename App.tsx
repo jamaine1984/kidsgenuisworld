@@ -1397,6 +1397,7 @@ const App: React.FC = () => {
     resumeAudioContext().catch(error => {
       logDiagnosticEvent('warn', 'audio-start-resume', 'Audio context could not be resumed from Start Adventure.', error);
     });
+    speak("Welcome to Kid Genius World!");
     setHasStarted(true);
     setShowParentWelcome(true);
     setShowGradeSelection(false);
@@ -1913,7 +1914,7 @@ const App: React.FC = () => {
       memberId: activeProfileId,
     }));
 
-    speak(`Great! ${cleanChildName} is in ${grade}. Let's learn together!`);
+    speak(`Great! You are in ${grade}. Let us learn together!`);
     setShowGradeSelection(false);
 
     // If no pet, show pet selection next
@@ -1925,7 +1926,7 @@ const App: React.FC = () => {
   const handlePetSelected = (pet: VirtualPet) => {
     setProgress(prev => ({ ...prev, pet }));
     setShowPetSelection(false);
-    speak(`Welcome to Kid Genius World! ${pet.name} is excited to learn with you!`);
+    speak("Learning is an adventure!");
   };
 
   const resolveUnitForRoom = (room: RoomType, requestedUnitId?: string) => {

@@ -226,6 +226,24 @@ test('browser voice fallback speaks when saved voice is off', async ({ page }) =
   await expect.poll(async () => page.evaluate(() => (window as any).__kidGeniusSpeechCount || 0)).toBeGreaterThan(0);
 });
 
+test('saved human voice cache is requested during parent and child setup', async ({ page }) => {
+  const voiceResponses: Array<{ url: string; status: number }> = [];
+  page.on('response', response => {
+    if (response.url().includes('/voice-cache/') && response.url().endsWith('.mp3')) {
+      voiceResponses.push({ url: response.url(), status: response.status() });
+    }
+  });
+
+  await page.evaluate(() => {
+    window.localStorage.removeItem('kidGeniusAllowExternalVoice');
+  });
+  await completeKidSetup(page);
+
+  await expect.poll(() => voiceResponses.filter(response => response.status === 200).length, {
+    timeout: 10_000,
+  }).toBeGreaterThan(0);
+});
+
 test('saved human voice cache is requested during a teacher-led math lesson', async ({ page }) => {
   const voiceResponses: Array<{ url: string; status: number }> = [];
   page.on('response', response => {

@@ -313,7 +313,6 @@ export const PetSelection: React.FC<{ onSelect: (pet: VirtualPet) => void }> = (
       currentColor: 'default',
     };
 
-    speak(`Welcome, ${petName}! Let's learn and play together!`);
     onSelect(newPet);
   };
 

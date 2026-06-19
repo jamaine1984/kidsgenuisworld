@@ -242,20 +242,38 @@ export default defineConfig(({ mode }) => {
             });
 
             server.middlewares.use('/voice-cache', async (req, res) => {
-              if (req.method !== 'GET' || !req.url?.endsWith('.mp3')) {
+              if (req.method !== 'GET') {
                 res.statusCode = 404;
                 res.end('Not Found');
                 return;
               }
 
               const fileName = path.basename(req.url.split('?')[0]);
+              if (fileName === 'manifest.json') {
+                const manifestPath = path.join(__dirname, 'public', 'voice-cache', 'manifest.json');
+                if (!fs.existsSync(manifestPath)) {
+                  res.statusCode = 404;
+                  res.end('Not Found');
+                  return;
+                }
+
+                res.statusCode = 200;
+                res.setHeader('Content-Type', 'application/json');
+                res.setHeader('Cache-Control', 'public, max-age=300');
+                res.end(fs.readFileSync(manifestPath));
+                return;
+              }
+
               if (!/^[a-f0-9]{64}\.mp3$/.test(fileName)) {
                 res.statusCode = 404;
                 res.end('Not Found');
                 return;
               }
 
-              const audioPath = path.join(cacheDir, fileName);
+              const publicAudioPath = path.join(__dirname, 'public', 'voice-cache', fileName);
+              const audioPath = fs.existsSync(path.join(cacheDir, fileName))
+                ? path.join(cacheDir, fileName)
+                : publicAudioPath;
               if (!fs.existsSync(audioPath)) {
                 res.statusCode = 404;
                 res.end('Not Found');

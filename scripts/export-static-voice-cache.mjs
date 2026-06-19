@@ -14,10 +14,24 @@ const files = fs.existsSync(cacheDir)
       .sort()
   : [];
 
+for (const file of fs.readdirSync(publicVoiceDir)) {
+  if (/^[a-f0-9]{64}\.mp3$/.test(file) && !files.includes(file)) {
+    fs.rmSync(path.join(publicVoiceDir, file), { force: true });
+  }
+}
+
+for (const file of files) {
+  const sourcePath = path.join(cacheDir, file);
+  const destinationPath = path.join(publicVoiceDir, file);
+  if (!fs.existsSync(destinationPath) || fs.statSync(destinationPath).size !== fs.statSync(sourcePath).size) {
+    fs.copyFileSync(sourcePath, destinationPath);
+  }
+}
+
 const totalBytes = files.reduce((sum, file) => sum + fs.statSync(path.join(cacheDir, file)).size, 0);
 const manifest = {
   generatedAt: new Date().toISOString(),
-  storage: 'static',
+  storage: 'firebase-hosting',
   files,
   count: files.length,
   totalBytes,
@@ -29,4 +43,5 @@ console.log(JSON.stringify({
   manifest: path.relative(root, manifestPath),
   count: files.length,
   totalMB: Number((totalBytes / 1024 / 1024).toFixed(2)),
+  storage: manifest.storage,
 }, null, 2));

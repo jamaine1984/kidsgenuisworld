@@ -48,7 +48,7 @@ if (!apiKey) {
       message,
       action: message.includes('user_read')
         ? 'Create or update the ElevenLabs key with user_read permission so credits can be checked before cache warming.'
-        : 'Update the local and Cloudflare ElevenLabs secrets before warming voice cache.',
+        : 'Update the local ElevenLabs secret before warming the Firebase-hosted voice cache.',
     }, null, 2));
     process.exitCode = 1;
   } else {
@@ -66,7 +66,7 @@ if (!apiKey) {
     }, null, 2));
 
     if (remainingCharacters <= 0) {
-      console.error('The configured ElevenLabs key has no remaining characters. Update the local and Cloudflare secrets before warming voice cache.');
+      console.error('The configured ElevenLabs key has no remaining characters. Update the local ElevenLabs secret before warming the Firebase-hosted voice cache.');
       process.exitCode = 1;
     }
   }

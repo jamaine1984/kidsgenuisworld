@@ -1,9 +1,9 @@
-import { STORIES } from '../components/StoryBook';
-import { READING_PASSAGES, VOCABULARY as READING_VOCABULARY } from '../components/ReadingRoom';
+import { ALL_STORIES } from '../components/StoryBook';
+import { ALL_READING_PASSAGES, ALL_VOCABULARY as READING_VOCABULARY } from '../components/ReadingRoom';
 import { VOCABULARY as LANGUAGE_VOCABULARY, LANGUAGE_INFO } from '../components/LanguageRoom';
-import { SCIENCE_EXPERIMENTS } from '../components/ScienceRoom';
-import { GEOGRAPHY_QUESTIONS } from '../components/GeographyRoom';
-import { CHALLENGES } from '../components/CodingRoom';
+import { ALL_SCIENCE_EXPERIMENTS } from '../components/ScienceRoom';
+import { ALL_GEOGRAPHY_QUESTIONS } from '../components/GeographyRoom';
+import { ALL_CHALLENGES } from '../components/CodingRoom';
 import { AccessibilitySettings, GradeLevel, createDefaultProgress } from '../types';
 import { getUnitsForGrade } from './curriculum';
 import { getStaticVoiceManifestUrl } from './mediaApi';
@@ -166,7 +166,7 @@ export const getVoiceCacheTexts = (level: number): string[] => {
       ...word.segments.map(segment => `The sound is... ${segment}`),
     ]);
 
-  const readingPassageTexts = READING_PASSAGES
+  const readingPassageTexts = ALL_READING_PASSAGES
     .filter(passage => passage.level <= clampedLevel)
     .flatMap(passage => [
       passage.title,
@@ -177,7 +177,7 @@ export const getVoiceCacheTexts = (level: number): string[] => {
       `Look back at the passage. The best answer is ${passage.answer}.`,
     ]);
 
-  const scienceTexts = SCIENCE_EXPERIMENTS
+  const scienceTexts = ALL_SCIENCE_EXPERIMENTS
     .filter(experiment => experiment.gradeLevel <= clampedLevel)
     .flatMap(experiment => [
       experiment.title,
@@ -187,7 +187,7 @@ export const getVoiceCacheTexts = (level: number): string[] => {
       `${experiment.explanation} ${experiment.funFact}`,
     ]);
 
-  const geographyTexts = GEOGRAPHY_QUESTIONS
+  const geographyTexts = ALL_GEOGRAPHY_QUESTIONS
     .filter(question => question.gradeLevel <= clampedLevel)
     .flatMap(question => [
       sanitizeGeographyPrompt(question.question),
@@ -205,11 +205,11 @@ export const getVoiceCacheTexts = (level: number): string[] => {
     ])
   );
 
-  const codingTexts = CHALLENGES
+  const codingTexts = ALL_CHALLENGES
     .filter(challenge => challenge.gradeLevel <= clampedLevel)
     .flatMap(challenge => [challenge.story, challenge.hint]);
 
-  const storyTexts = STORIES
+  const storyTexts = ALL_STORIES
     .filter(story => story.gradeLevel <= clampedLevel)
     .flatMap(story => [
       `${story.title}. By ${story.author}.`,

@@ -2934,7 +2934,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 {
                   key: 'allowExternalVoice',
                   title: 'Saved voice narration',
-                  description: 'Plays pre-generated human lesson audio from the static voice cache. If unavailable, lessons use the free device browser voice so kids still hear guidance.',
+                  description: 'Plays pre-generated ElevenLabs human lesson audio from Firebase Hosting. If a saved clip is unavailable, lessons use the free device browser voice so kids still hear guidance.',
                 },
                 {
                   key: 'allowGeneratedStoryCovers',
@@ -3259,7 +3259,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 Voice Cache
               </h3>
               <p className="text-sm text-gray-600 mb-3">
-                Check saved lesson and story narration for this grade. MP3 files are reused from static storage, so child lessons do not call ElevenLabs.
+                Check saved lesson and story narration for this grade. MP3 files are reused from Firebase Hosting, so child lessons do not call ElevenLabs.
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3 text-xs">
                 <div className="rounded-lg bg-slate-50 border border-slate-100 p-2">
@@ -3268,7 +3268,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 </div>
                 <div className="rounded-lg bg-slate-50 border border-slate-100 p-2">
                   <p className="font-bold text-slate-700">2. Save audio</p>
-                  <p className="text-slate-500">The app stores MP3 files in Cloudflare R2.</p>
+                  <p className="text-slate-500">The app stores MP3 files in Firebase Hosting.</p>
                 </div>
                 <div className="rounded-lg bg-slate-50 border border-slate-100 p-2">
                   <p className="font-bold text-slate-700">3. Reuse cache</p>
@@ -3293,7 +3293,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                       setVoiceCacheSummary(`Voice cache had ${result.errors} errors. Saved files still work, but missing narration must be generated offline and redeployed.`);
                     } else if (result.misses > 0) {
                       setVoiceCacheTone('success');
-                      setVoiceCacheSummary(`Voice cache updated. Checked ${result.requested} phrases, reused ${result.hits}, and saved ${result.misses} new human voice files.`);
+                      setVoiceCacheSummary(`Voice cache needs offline generation. Checked ${result.requested} phrases, found ${result.hits} saved human voice files, and ${result.misses} clips still need ElevenLabs export and Firebase redeploy.`);
                     } else {
                       setVoiceCacheTone('success');
                       setVoiceCacheSummary(`Voice cache ready. Checked ${result.requested} phrases and reused ${result.hits} saved human voice files.`);

@@ -183,9 +183,6 @@ if (
 if (audioSource.includes('/api/tts') || storySource.includes('/api/story-cover') || storySource.includes('fetch(')) {
   fail('Child-facing media must load from static files, not runtime generation APIs.');
 }
-if (!cloudflareWorkerSource.includes('MEDIA_CACHE') || !cloudflareWorkerSource.includes('/voice-cache/') || !wranglerSource.includes('r2_buckets')) {
-  fail('Cloudflare deployment must serve static voice files from R2 storage.');
-}
 if (!firebaseJsonSource.includes('"public": "dist"') || !firebaseJsonSource.includes('"destination": "/index.html"') || !firebaseJsonSource.includes('"storage"')) {
   fail('Firebase Hosting must serve the Vite dist build with SPA rewrites and Storage rules config.');
 }

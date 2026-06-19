@@ -70,10 +70,10 @@ const resolveVoiceSettings = (input = {}) => {
   }
 
   const styleMap = {
-    gentle: { stability: 0.72, similarity_boost: 0.82, style: 0.2, speed: 0.94 },
+    gentle: { stability: 0.72, similarity_boost: 0.82, style: 0.2, speed: 0.9 },
     energetic: { stability: 0.45, similarity_boost: 0.88, style: 0.65, speed: 1.02 },
     phonics: { stability: 0.86, similarity_boost: 0.8, style: 0.05, speed: 0.82 },
-    story: { stability: 0.58, similarity_boost: 0.9, style: 0.78, speed: 0.96 },
+    story: { stability: 0.68, similarity_boost: 0.9, style: 0.56, speed: 0.82 },
   };
   const ageRateMap = { early: 0.88, elementary: 0.96, older: 1.0 };
   const selected = styleMap[input?.narrationStyle || 'gentle'] || styleMap.gentle;

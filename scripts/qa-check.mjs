@@ -544,16 +544,10 @@ if (!voiceWarmScript.includes('--max-chars=') || !voiceWarmScript.includes('erro
 if (!voiceCheckScript.includes('/v1/user/subscription') || !voiceCheckScript.includes('remainingCharacters') || !packageJson.scripts?.['voice:check']) {
   fail('ElevenLabs key validation script is missing.');
 }
-if (!wranglerSource.includes('"MEDIA_CACHE"') || !wranglerSource.includes('"kid-genius-world-media-cache"') || !wranglerSource.includes('"not_found_handling": "single-page-application"')) {
-  fail('Cloudflare Worker config must bind R2 storage and serve the SPA build.');
-}
-if (!cloudflareWorkerSource.includes('/voice-cache/') || !cloudflareWorkerSource.includes('MEDIA_CACHE.get(`tts/${fileName}`)') || !cloudflareWorkerSource.includes('Cache-Control')) {
-  fail('Cloudflare Worker must serve static voice MP3 files from R2 without child-facing generation calls.');
-}
 if (!viteConfigSource.includes('/voice-cache') || !viteConfigSource.includes('.tts-cache') || !viteConfigSource.includes('audio/mpeg')) {
   fail('Local dev must serve static voice MP3 files without runtime TTS generation.');
 }
-if (!packageJson.scripts?.['cf:deploy'] || !packageJson.scripts?.['voice:static'] || !packageJson.scripts?.['covers:static']) {
+if (!packageJson.scripts?.['firebase:deploy:hosting'] || !packageJson.scripts?.['voice:static'] || !packageJson.scripts?.['covers:static']) {
   fail('Static media export and deployment scripts are missing.');
 }
 if (!packageJson.scripts?.['qa:media'] || !packageJson.scripts?.qa?.includes('qa:media') || !staticMediaCheckSource.includes('MIN_STATIC_VOICE_FILES') || !staticMediaCheckSource.includes('Missing PNG story covers')) {
@@ -596,8 +590,8 @@ if (
 ) {
   fail('Kid-facing voice mode must use static saved MP3 files first and a browser voice fallback instead of runtime TTS APIs.');
 }
-if (!mediaApiSource.includes('VITE_MEDIA_API_BASE_URL') || !mediaApiSource.includes('getStaticMediaUrl') || !mediaApiSource.includes('getStaticVoiceManifestUrl') || !audioServiceSource.includes('getStaticVoiceManifestUrl()') || !voiceCacheSource.includes('getStaticVoiceManifestUrl()')) {
-  fail('Firebase-hosted builds must route static MP3 files through a configured media base URL while loading the static manifest from the app origin.');
+if (!mediaApiSource.includes('getStaticMediaUrl') || !mediaApiSource.includes("path.startsWith('/')") || mediaApiSource.includes('VITE_MEDIA_API_BASE_URL') || !audioServiceSource.includes('getStaticVoiceManifestUrl()') || !voiceCacheSource.includes('getStaticVoiceManifestUrl()')) {
+  fail('Firebase-hosted builds must load static MP3 files from the app origin without a runtime media API base URL.');
 }
 if (audioServiceSource.includes('/api/tts') || voiceCacheSource.includes('/api/tts-precache') || storyBookSource.includes('/api/story-cover') || storyBookSource.includes('fetch(')) {
   fail('Child-facing app code must not call runtime media generation APIs.');
@@ -605,8 +599,8 @@ if (audioServiceSource.includes('/api/tts') || voiceCacheSource.includes('/api/t
 if (!storyBookSource.includes('/story-covers/${story.id}.png') || !coversStaticScript.includes('sharp') || !coversStaticScript.includes('pngPath') || !coversStaticScript.includes('sceneFor')) {
   fail('Story covers must load from static saved files.');
 }
-if (!voiceStaticScript.includes('.tts-cache') || !voiceStaticScript.includes('manifest.json') || !voiceStaticScript.includes('files')) {
-  fail('Static voice cache manifest export is missing.');
+if (!voiceStaticScript.includes('fs.copyFileSync') || !voiceStaticScript.includes("storage: 'firebase-hosting'") || !staticMediaCheckSource.includes('Firebase-hosted voice files verified')) {
+  fail('Firebase Hosting voice cache export must copy MP3 files and verify they exist beside the manifest.');
 }
 if (!packageJson.scripts?.serve) fail('Production serve script is missing.');
 if (!distIndex.includes('/assets/')) fail('Production build output is missing bundled assets.');

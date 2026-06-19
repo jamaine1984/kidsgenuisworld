@@ -577,8 +577,8 @@ export const DEFAULT_ACCESSIBILITY: AccessibilitySettings = {
 };
 
 export const DEFAULT_PRIVACY_SETTINGS: PrivacySettings = {
-  allowExternalVoice: false,
-  allowGeneratedStoryCovers: false,
+  allowExternalVoice: true,
+  allowGeneratedStoryCovers: true,
   allowCloudSync: false,
 };
 

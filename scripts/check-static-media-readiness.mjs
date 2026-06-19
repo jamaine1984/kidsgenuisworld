@@ -57,8 +57,8 @@ if (exists(voiceManifestPath)) {
 const voiceFiles = Array.isArray(voiceManifest.files) ? voiceManifest.files : [];
 const invalidVoiceFileNames = voiceFiles.filter(file => !/^[a-f0-9]{64}\.mp3$/.test(file));
 
-if (voiceManifest.storage !== 'static') {
-  fail('Voice cache manifest must declare static storage.');
+if (voiceManifest.storage !== 'firebase-hosting') {
+  fail('Voice cache manifest must declare Firebase Hosting storage.');
 }
 
 if (voiceFiles.length < MIN_STATIC_VOICE_FILES) {
@@ -69,6 +69,11 @@ if (invalidVoiceFileNames.length) {
   fail(`Voice cache manifest has invalid MP3 names: ${invalidVoiceFileNames.slice(0, 5).join(', ')}`);
 }
 
+const missingVoiceFiles = voiceFiles.filter(file => !exists(path.join(root, 'public', 'voice-cache', file)));
+if (missingVoiceFiles.length) {
+  fail(`Voice cache manifest references MP3 files missing from Firebase Hosting public folder: ${missingVoiceFiles.slice(0, 10).join(', ')}${missingVoiceFiles.length > 10 ? '...' : ''}`);
+}
+
 if (failures.length) {
   console.error('Static media readiness failed:');
   for (const message of failures) {
@@ -77,4 +82,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log(`Static media readiness passed: ${uniqueStoryIds.length} stories, ${uniqueStoryIds.length * 2} cover assets, and ${voiceFiles.length} saved voice files verified.`);
+console.log(`Static media readiness passed: ${uniqueStoryIds.length} stories, ${uniqueStoryIds.length * 2} cover assets, and ${voiceFiles.length} Firebase-hosted voice files verified.`);

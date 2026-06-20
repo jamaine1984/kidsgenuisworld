@@ -473,6 +473,11 @@ export const getSchoolDayPlan = (progress: UserProgress) => {
   const todayKey = getTodayKey();
   const todayStats = (progress.dailyStats || []).find(day => day.date === todayKey);
   const todayJournalEntries = (progress.learningJournal || []).filter(entry => isToday(entry.createdAt));
+  const todayMasteredRooms = new Set<RoomType>(
+    todayJournalEntries
+      .filter(entry => entry.mastered)
+      .map(entry => entry.room)
+  );
   const todayRooms = new Set<RoomType>([
     ...(todayStats?.roomsVisited || []),
     ...todayJournalEntries.map(entry => entry.room),
@@ -569,11 +574,13 @@ export const getSchoolDayPlan = (progress: UserProgress) => {
     const card = cardByRoom.get(room);
     const campusRoom = getCampusRoom(room);
     const previousRooms = orderedPeriodRooms.slice(0, index);
-    const previousComplete = previousRooms.every(previousRoom => cardByRoom.get(previousRoom)?.status === 'done');
+    const previousComplete = previousRooms.every(previousRoom => todayMasteredRooms.has(previousRoom));
     const baseStatus: SchoolDayPeriodStatus = card?.status || 'ready';
-    const status: SchoolDayPeriodStatus = previousComplete
-      ? baseStatus
-      : 'locked';
+    const status: SchoolDayPeriodStatus = todayMasteredRooms.has(room)
+      ? 'done'
+      : previousComplete
+        ? baseStatus === 'done' ? 'ready' : baseStatus
+        : 'locked';
     const remaining = Math.max(0, MASTERED_PRACTICE_TARGET - Math.min(card?.practiceCount || 0, MASTERED_PRACTICE_TARGET));
 
     return {

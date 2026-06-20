@@ -141,9 +141,11 @@ test('math room completion creates reward and parent-visible journal proof', asy
 
   for (let round = 0; round < 6; round += 1) {
     await expect(page.getByTestId('math-question')).toBeVisible();
+    const currentQuestion = await page.getByTestId('math-question').innerText();
     await page.locator('[data-testid="math-answer-option"][data-math-correct="true"]').click();
     if (round < 5) {
-      await expect(page.getByTestId('math-answer-option').first()).toBeEnabled({ timeout: 5_000 });
+      await expect(page.getByTestId('math-question')).not.toHaveText(currentQuestion, { timeout: 7_500 });
+      await expect(page.locator('[data-testid="math-answer-option"][data-math-correct="true"]')).toBeEnabled();
     }
   }
 
@@ -283,6 +285,10 @@ test('reading room completion creates reward and parent-visible journal proof', 
   await page.getByRole('button', { name: /What strategy worked/i }).click();
   await expect(page.getByText('Saved for parent review')).toBeVisible();
   await page.getByRole('button', { name: 'Next Class', exact: true }).click();
+  await expect(page.getByTestId('school-day-tracker')).toContainText('Period 1: Reading');
+  await expect(page.getByTestId('school-day-tracker')).toContainText('Mastered');
+  const nextPeriodButton = page.getByRole('button', { name: /2 Now Period 2: Speech & Language/i });
+  await expect(nextPeriodButton).toBeEnabled();
 
   await page.getByTitle('Settings').click();
   await page.getByLabel('Parent PIN').fill(PARENT_PIN);

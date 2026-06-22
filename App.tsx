@@ -703,6 +703,7 @@ const getBillingAccessSummary = (access?: FamilyAccessRecord | null) => {
 const App: React.FC = () => {
   const [hasStarted, setHasStarted] = useState(false);
   const [showParentWelcome, setShowParentWelcome] = useState(false);
+  const [showSchoolTour, setShowSchoolTour] = useState(false);
   const [showGradeSelection, setShowGradeSelection] = useState(false);
   const [currentRoom, setCurrentRoom] = useState<RoomType>(RoomType.HUB);
   const [showDashboard, setShowDashboard] = useState(false);
@@ -2720,6 +2721,12 @@ const App: React.FC = () => {
       { title: '3rd Period', room: 'Science Lab', color: 'bg-emerald-100 text-emerald-900 border-emerald-200' },
       { title: 'Final Period', room: 'Art, Music, Review', color: 'bg-amber-100 text-amber-950 border-amber-200' },
     ];
+    const tourSteps = [
+      { icon: ShieldCheck, title: 'Parent opens the school', detail: 'The child experience stays locked until a grown-up signs in and confirms the safety setup.' },
+      { icon: Users, title: 'Choose the right student', detail: 'Each child profile keeps its own grade, stars, lessons, study zone, and parent progress history.' },
+      { icon: Brain, title: 'Mr. Atlas teaches the period', detail: 'Questions and answer choices are read aloud, then correct and missed answers get short explanations.' },
+      { icon: BarChart3, title: 'Progress saves for parents', detail: 'Completed periods, missed skills, review needs, rewards, and reports flow into the parent dashboard.' },
+    ];
 
     return (
       <div className="relative min-h-screen w-screen overflow-y-auto bg-[#f7fbff] text-slate-900">
@@ -2744,7 +2751,7 @@ const App: React.FC = () => {
                     <button
                       id="school-tour-preview"
                       type="button"
-                      onClick={() => document.getElementById('parent-account-panel')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+                      onClick={() => setShowSchoolTour(true)}
                       className="inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-indigo-200 hover:bg-indigo-700"
                     >
                       <Video size={18} />
@@ -2929,6 +2936,97 @@ const App: React.FC = () => {
             </aside>
           </div>
         </div>
+
+        {showSchoolTour && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 px-4 py-6 backdrop-blur-sm"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="school-tour-title"
+          >
+            <div className="max-h-full w-full max-w-4xl overflow-y-auto rounded-[28px] border border-white/80 bg-white shadow-2xl">
+              <div className="flex items-start justify-between gap-4 border-b border-slate-100 bg-gradient-to-br from-sky-50 via-white to-emerald-50 p-5 sm:p-6">
+                <div>
+                  <p className="inline-flex items-center gap-2 rounded-full bg-indigo-100 px-3 py-1 text-xs font-black uppercase tracking-[0.14em] text-indigo-700">
+                    <Video size={15} />
+                    School tour
+                  </p>
+                  <h2 id="school-tour-title" className="mt-3 text-3xl font-black text-slate-950 sm:text-4xl">
+                    See how a school day works
+                  </h2>
+                  <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-slate-600">
+                    Kid Genius World is built like a guided school day: parent first, student profile next, then teacher-led periods that save progress.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowSchoolTour(false)}
+                  aria-label="Close school tour"
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white text-slate-700 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50"
+                >
+                  <X size={22} />
+                </button>
+              </div>
+
+              <div className="grid gap-5 p-5 sm:p-6 lg:grid-cols-[0.85fr_1.15fr]">
+                <div className="rounded-3xl bg-slate-950 p-4 text-white">
+                  <div className="rounded-2xl bg-gradient-to-br from-sky-400 via-indigo-400 to-emerald-300 p-4 text-slate-950">
+                    <p className="text-xs font-black uppercase tracking-[0.16em] text-indigo-900">Today&apos;s campus preview</p>
+                    <div className="mt-4 grid gap-3">
+                      {classPreview.map(item => (
+                        <div key={`tour-${item.title}`} className={`rounded-2xl border px-4 py-3 shadow-sm ${item.color}`}>
+                          <p className="text-xs font-black uppercase tracking-[0.12em]">{item.title}</p>
+                          <p className="mt-1 text-base font-black">{item.room}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <p className="mt-4 text-sm font-semibold leading-6 text-white/75">
+                    Reading, speech, and math stay early in the day. Art, music, review, and rewards come later after core learning is handled.
+                  </p>
+                </div>
+
+                <div className="grid gap-3">
+                  {tourSteps.map(({ icon: Icon, title, detail }, index) => (
+                    <article key={title} className="flex gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white text-indigo-700 shadow-sm">
+                        <Icon size={21} />
+                      </div>
+                      <div>
+                        <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">Step {index + 1}</p>
+                        <h3 className="mt-1 text-base font-black text-slate-950">{title}</h3>
+                        <p className="mt-1 text-sm font-semibold leading-6 text-slate-600">{detail}</p>
+                      </div>
+                    </article>
+                  ))}
+
+                  <div className="mt-1 flex flex-wrap gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowSchoolTour(false);
+                        requestAnimationFrame(() => {
+                          document.getElementById('parent-account-panel')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        });
+                      }}
+                      className="inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-indigo-200 hover:bg-indigo-700"
+                    >
+                      <LockKeyhole size={18} />
+                      Start Parent Setup
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowSchoolTour(false)}
+                      className="inline-flex items-center justify-center rounded-2xl bg-slate-100 px-5 py-3 text-sm font-black text-slate-700 hover:bg-slate-200"
+                    >
+                      Keep Browsing
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }

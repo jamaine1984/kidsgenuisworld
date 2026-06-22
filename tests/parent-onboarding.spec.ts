@@ -39,6 +39,11 @@ test('start adventure shows parent sign in before child profile setup', async ({
 
   await page.getByRole('button', { name: /Start Adventure/i }).click();
   await expect(page.getByRole('heading', { name: 'Sign in or create account' })).toBeVisible();
+  await page.getByRole('button', { name: 'Watch School Tour' }).click();
+  await expect(page.getByRole('dialog', { name: 'See how a school day works' })).toBeVisible();
+  await expect(page.getByText('Parent opens the school')).toBeVisible();
+  await page.getByRole('button', { name: 'Start Parent Setup' }).click();
+  await expect(page.getByRole('dialog', { name: 'See how a school day works' })).toBeHidden();
   await expect(page.getByPlaceholder('Parent email')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Sign In Parent' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Create Account' })).toBeVisible();

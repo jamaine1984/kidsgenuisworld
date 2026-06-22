@@ -137,7 +137,7 @@ export const StudyZone: React.FC<StudyZoneProps> = ({ progress, onBack, onOpenRo
               </div>
               <h1 className="mt-4 text-4xl font-black leading-tight sm:text-5xl">Practice missed answers until they stick.</h1>
               <p className="mt-3 max-w-2xl text-lg font-semibold text-white/88">
-                Ms. Nova brings back anything missed in class so students can fix it, hear it again, and clear it from their review list.
+                Mr. Atlas brings back anything missed in class so students can fix it, hear it again, and clear it from their review list.
               </p>
               <div className="mt-6 grid gap-3 sm:grid-cols-3">
                 <div className="rounded-2xl bg-white/15 p-4">

@@ -4,7 +4,7 @@ import { VOCABULARY as LANGUAGE_VOCABULARY, LANGUAGE_INFO } from '../components/
 import { ALL_SCIENCE_EXPERIMENTS } from '../components/ScienceRoom';
 import { ALL_GEOGRAPHY_QUESTIONS } from '../components/GeographyRoom';
 import { ALL_CHALLENGES } from '../components/CodingRoom';
-import { AccessibilitySettings, GradeLevel, createDefaultProgress } from '../types';
+import { AccessibilitySettings, GradeLevel, RoomType, createDefaultProgress } from '../types';
 import { getUnitsForGrade } from './curriculum';
 import { getStaticVoiceManifestUrl } from './mediaApi';
 import { AI_TEACHER, SCHOOL_LESSON_PHASES, getTeacherScript } from './schoolMode';
@@ -48,9 +48,9 @@ const ROOM_INTROS = [
 ];
 
 const HOMEROOM_TEACHER_TEXTS = [
-  'Good morning. I am Ms. Nova, your AI Homeroom Teacher.',
-  'Good morning. I am Ms. Nova, your AI Homeroom Teacher. Today we are going to start your learning mission.',
-  'Ms. Nova opens the day, teaches the lesson path, checks the exit ticket, and saves parent-visible progress.',
+  'Good morning. I am Mr. Atlas, your AI Homeroom Teacher.',
+  'Good morning. I am Mr. Atlas, your AI Homeroom Teacher. Today we are going to start your learning mission.',
+  'Mr. Atlas opens the day, teaches the lesson path, checks the exit ticket, and saves parent-visible progress.',
   'Listen to the question, hear each answer choice, then choose the best answer.',
   'After six strong practice rounds, I will move you to the next class period.',
 ];
@@ -60,6 +60,10 @@ const MATH_TEACHER_TEXTS = [
   'Welcome to Math Classroom. Look for the operation clue.',
   'Welcome to Math Classroom. Use fact families and patterns.',
   'Welcome to Math Classroom. Estimate first, then solve carefully.',
+  'Mr. Atlas math lesson. Listen for the numbers and the operation.',
+  'Mr. Atlas will read one math problem. Think first, then choose the best answer.',
+  'First I will model the strategy. Then you choose the answer.',
+  'Look at answer A, B, C, and D before you tap.',
   'Underline the numbers, then decide what the story is asking.',
   'Count coin values first, then add the cents.',
   'Start at the clock time and count hours forward.',
@@ -177,6 +181,51 @@ const getTeacherVoiceTexts = (clampedLevel: number) => {
     ...lessonPhaseTexts,
     ...teacherLessonTexts,
   ];
+};
+
+export const getMathVoiceCacheTexts = (level: number): string[] => {
+  const clampedLevel = Math.min(Math.max(level, 1), 7);
+  const teacherProgress = createDefaultProgress('learner');
+
+  const mathLessonTexts = Array.from({ length: clampedLevel }, (_, index) => index + 1)
+    .flatMap(currentLevel => {
+      const currentGrade = gradeByLevel[currentLevel] || GradeLevel.FIFTH_GRADE;
+      const progressForGrade = {
+        ...teacherProgress,
+        currentLevel,
+        currentGrade,
+      };
+
+      return getUnitsForGrade(currentGrade)
+        .filter(unit => unit.room === RoomType.MATH)
+        .flatMap(unit => {
+          const script = getTeacherScript(unit, progressForGrade);
+          return [
+            script.greeting,
+            script.objective,
+            script.teach,
+            script.example,
+            script.guided,
+            script.independent,
+            script.exitTicket,
+            script.parentNote,
+            script.voiceStatus,
+          ];
+        });
+    });
+
+  return uniqueTexts([
+    'Welcome back to Kid Genius World!',
+    'Welcome to Kid Genius World!',
+    'Learning is an adventure!',
+    ...HOMEROOM_TEACHER_TEXTS,
+    ...ROOM_INTROS.filter(text => text.includes('Math')),
+    ...MATH_TEACHER_TEXTS,
+    `${AI_TEACHER.name} opens the day, teaches the lesson path, checks the exit ticket, and saves parent-visible progress.`,
+    `I am ${AI_TEACHER.name}, your ${AI_TEACHER.title}.`,
+    ...SCHOOL_LESSON_PHASES.flatMap(phase => [phase.label, phase.studentAction]),
+    ...mathLessonTexts,
+  ]);
 };
 
 export const getVoiceCacheTexts = (level: number): string[] => {

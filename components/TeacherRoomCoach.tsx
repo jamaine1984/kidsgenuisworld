@@ -201,7 +201,7 @@ export const TeacherRoomCoach: React.FC<TeacherRoomCoachProps> = ({
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.14em] text-indigo-600">Lesson path</p>
-                <p className="mt-1 text-xs font-bold text-slate-600">Ms. Nova moves from teaching to exit ticket before mastery is saved.</p>
+                <p className="mt-1 text-xs font-bold text-slate-600">Mr. Atlas moves from teaching to exit ticket before mastery is saved.</p>
               </div>
               <span className="rounded-full bg-indigo-100 px-3 py-1 text-[11px] font-black text-indigo-800">
                 Now: {activePhase.label}

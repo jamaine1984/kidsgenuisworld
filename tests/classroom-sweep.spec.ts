@@ -31,8 +31,12 @@ async function answerGeographyRound(page: Page) {
 
 async function answerLanguageRound(page: Page) {
   const words = getLanguageWords('spanish').filter(word => (word.gradeLevel ?? 1) <= TEST_LEVEL);
-  const visibleWord = await findVisibleItem(page, words, word => word.english);
-  await page.getByRole('button', { name: new RegExp(escapeRegExp(visibleWord.translation)) }).click();
+  const promptWord = (await page.getByTestId('language-quiz-word').innerText()).trim();
+  const visibleWord = words.find(word => word.english === promptWord);
+  if (!visibleWord) {
+    throw new Error(`No Spanish word found for visible language prompt "${promptWord}".`);
+  }
+  await page.getByTestId(`language-option-${visibleWord.translation}`).click();
   await expect(page.getByText('Correct translation.')).toBeVisible();
 }
 

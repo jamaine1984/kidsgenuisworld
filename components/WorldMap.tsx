@@ -737,7 +737,7 @@ export const WorldMap: React.FC<WorldMapProps> = ({
             <div className="p-5">
               <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div className="min-w-0">
-                  <p className="text-xs font-black uppercase tracking-[0.16em] text-indigo-600">Ms. Nova says</p>
+                  <p className="text-xs font-black uppercase tracking-[0.16em] text-indigo-600">Mr. Atlas says</p>
                   <p className="mt-2 text-lg font-black leading-snug text-slate-900">{nextSchoolStep.teacherPrompt}</p>
                   <div className="mt-3 flex flex-wrap gap-2">
                     <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-800">
@@ -843,7 +843,7 @@ export const WorldMap: React.FC<WorldMapProps> = ({
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.18em] text-indigo-600">Teacher Assignment Cards</p>
-              <h2 className="mt-1 text-2xl font-black text-slate-900">Ms. Nova assigned every classroom</h2>
+              <h2 className="mt-1 text-2xl font-black text-slate-900">Mr. Atlas assigned every classroom</h2>
               <p className="mt-1 text-sm font-semibold text-slate-600">
                 Each card has the objective, one worked-example cue, a mastery rubric, and a parent practice note.
               </p>

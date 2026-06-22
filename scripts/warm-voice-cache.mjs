@@ -8,6 +8,7 @@ const root = path.resolve(import.meta.dirname, '..');
 const dryRun = process.argv.includes('--dry-run');
 const allAges = process.argv.includes('--all-ages');
 const migrateOnly = process.argv.includes('--migrate-only');
+const mathOnly = process.argv.includes('--math-only');
 const maxCharsArg = process.argv.find(arg => arg.startsWith('--max-chars='));
 const maxChars = maxCharsArg ? Number(maxCharsArg.split('=')[1]) : 0;
 const endpointArg = process.argv.slice(2).find(arg => !arg.startsWith('--'));
@@ -31,14 +32,14 @@ execFileSync(process.execPath, [
   `--outfile=${bundledFile}`,
 ], { stdio: 'ignore' });
 
-const { getVoiceCacheTexts } = await import(pathToFileURL(bundledFile).href);
+const { getMathVoiceCacheTexts, getVoiceCacheTexts } = await import(pathToFileURL(bundledFile).href);
 
 const uniqueTexts = Array.from(
-  new Set(
-    Array.from({ length: 7 }, (_, index) => index + 1)
-      .flatMap(level => getVoiceCacheTexts(level))
-      .map(text => String(text || '').replace(/\s+/g, ' ').trim())
-      .filter(Boolean)
+    new Set(
+      Array.from({ length: 7 }, (_, index) => index + 1)
+        .flatMap(level => mathOnly ? getMathVoiceCacheTexts(level) : getVoiceCacheTexts(level))
+        .map(text => String(text || '').replace(/\s+/g, ' ').trim())
+        .filter(Boolean)
   )
 );
 
@@ -137,6 +138,7 @@ if (dryRun) {
   console.log(JSON.stringify({
     endpoint,
     dryRun: true,
+    mathOnly,
     uniqueTexts: uniqueTexts.length,
     profiles: profileStatus,
     maxRequestsIfEmpty: uniqueTexts.length * voiceProfiles.length,
@@ -199,6 +201,7 @@ const afterCount = fs.existsSync(cacheDir)
 console.log(JSON.stringify({
   endpoint,
   migrateOnly,
+  mathOnly,
   uniqueTexts: uniqueTexts.length,
   maxChars,
   profiles: results,

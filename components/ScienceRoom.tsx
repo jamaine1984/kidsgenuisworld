@@ -818,7 +818,7 @@ export const ScienceRoom: React.FC<ScienceRoomProps> = ({ level, onBack, onRewar
           >
             <p className="text-xs font-black uppercase tracking-[0.18em] text-teal-600">Drag-and-drop lab tray</p>
             <p className="mt-1 text-sm font-bold">
-              Drag an answer here, or tap an answer card. Ms. Nova will check your prediction.
+              Drag an answer here, or tap an answer card. Mr. Atlas will check your prediction.
             </p>
             {draggedAnswerIndex !== null && experiment.hypothesis[draggedAnswerIndex] && (
               <p className="mt-2 rounded-xl bg-white px-3 py-2 text-sm font-black text-teal-800 shadow-sm">

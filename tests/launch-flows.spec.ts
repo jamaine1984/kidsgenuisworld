@@ -125,7 +125,7 @@ test('math room completion creates reward and parent-visible journal proof', asy
   await page.getByTestId('room-card-MATH').click();
   await startTeacherLesson(page);
   await page.getByRole('button', { name: 'Lesson Help' }).click();
-  await expect(page.getByTestId('teacher-room-coach')).toContainText('Ms. Nova is teaching');
+  await expect(page.getByTestId('teacher-room-coach')).toContainText('Mr. Atlas is teaching');
   await expect(page.getByTestId('teacher-room-coach')).toContainText('Exit ticket');
   await expect(page.getByTestId('teacher-lesson-path')).toContainText('Lesson path');
   await expect(page.getByTestId('teacher-lesson-path')).toContainText('Now');
@@ -181,7 +181,7 @@ test('math room completion creates reward and parent-visible journal proof', asy
   await expect(page.getByTestId('parent-teacher-conference-plan')).toContainText('Teacher conference plan');
   await expect(page.getByTestId('parent-teacher-conference-plan')).toContainText('Student can say');
   await expect(page.getByText('Learning Journal')).toBeVisible();
-  await expect(page.getByText('Ms. Nova note').first()).toBeVisible();
+  await expect(page.getByText('Mr. Atlas note').first()).toBeVisible();
   await expect(page.getByText('Teach it back').first()).toBeVisible();
 });
 
@@ -192,7 +192,7 @@ test('teacher coach starts compact on phone and expands on demand', async ({ pag
   await startTeacherLesson(page);
 
   await page.getByRole('button', { name: 'Lesson Help' }).click();
-  await expect(page.getByTestId('teacher-room-coach-compact')).toContainText('Ms. Nova');
+  await expect(page.getByTestId('teacher-room-coach-compact')).toContainText('Mr. Atlas');
   await expect(page.getByTestId('teacher-room-coach-compact')).toContainText('mastery');
   await page.getByLabel('Show next teacher help step').click();
   await page.getByLabel('Show next teacher help step').click();

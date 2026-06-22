@@ -175,7 +175,7 @@ export const LegalInfo: React.FC<LegalInfoProps> = ({ type, onBack }) => {
               </section>
               <section>
                 <h2 className="text-xl font-black text-slate-900 mb-2">Educational Use</h2>
-                <p>Kid Genius World is an educational practice app for children with parent supervision. It does not replace a teacher, school curriculum, therapist, or medical professional.</p>
+                <p>Kid Genius World is an AI-powered educational practice app and parent-guided AI school experience for children with parent supervision. It is not accredited, is not a real school, does not issue grades, credits, diplomas, or transcripts, and does not replace a teacher, school curriculum, therapist, medical professional, or parent judgment.</p>
               </section>
               <section>
                 <h2 className="text-xl font-black text-slate-900 mb-2">Parent Responsibility</h2>

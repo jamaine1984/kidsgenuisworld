@@ -578,12 +578,18 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, onAttempt,
     const spokenText = currentProblem.question
       .replace(/\+/g, 'plus')
       .replace(/-/g, 'minus')
+      .replace(/×/g, 'times')
+      .replace(/÷/g, 'divided by')
       .replace(/=/g, 'equals')
       .replace(/\?/g, '');
+    if (lessonStep.current <= 1) {
+      await speakAsync(`Welcome to Math Classroom. ${lessonLabel}.`, 0.82, 1.02, 'gentle');
+      await speakAsync('Mr. Atlas math lesson. Listen for the numbers and the operation.', 0.82, 1.02, 'gentle');
+    }
     await speakAsync(buildCoachTip(currentProblem), 0.82, 1.02, 'gentle');
     await speakMultipleChoiceQuestion(`What is ${spokenText}?`, currentProblem.options);
     setIsSpeaking(false);
-  }, [buildCoachTip]);
+  }, [buildCoachTip, lessonLabel]);
   const loadProblem = useCallback(() => {
     setFeedback('idle');
     setSelectedChoice(null);

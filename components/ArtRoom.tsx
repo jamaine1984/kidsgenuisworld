@@ -224,7 +224,7 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => 
   const [isComplete, setIsComplete] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
   const [reflectionChoice, setReflectionChoice] = useState('');
-  const [studioFeedback, setStudioFeedback] = useState('Finish the studio steps, add enough drawing marks, then submit your artwork for Ms. Nova review.');
+  const [studioFeedback, setStudioFeedback] = useState('Finish the studio steps, add enough drawing marks, then submit your artwork for Mr. Atlas review.');
   const [artFocusSeconds, setArtFocusSeconds] = useState(0);
   const [hasStartedArtwork, setHasStartedArtwork] = useState(false);
   const [completedTimedSteps, setCompletedTimedSteps] = useState(0);
@@ -381,7 +381,7 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => 
       const missingSteps = [
         !hasEnoughDrawing ? `add ${mission.minStrokes - strokeCount} more drawing mark${mission.minStrokes - strokeCount === 1 ? '' : 's'}` : '',
         !hasEnoughFocusTime ? `finish ${mission.lessonSteps.length - completedTimedSteps} more timed studio step${mission.lessonSteps.length - completedTimedSteps === 1 ? '' : 's'}` : '',
-        !hasFinishedSteps ? 'let Ms. Nova guide you through each studio step' : '',
+        !hasFinishedSteps ? 'let Mr. Atlas guide you through each studio step' : '',
         !reflectionChoice ? 'choose one reflection sentence' : '',
       ].filter(Boolean);
 
@@ -498,7 +498,7 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => 
                   <div className="mb-3 rounded-2xl border border-emerald-100 bg-white px-3 py-3 shadow-sm">
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <p className="text-[10px] font-black uppercase tracking-[0.16em] text-emerald-700">Ms. Nova Review</p>
+                        <p className="text-[10px] font-black uppercase tracking-[0.16em] text-emerald-700">Mr. Atlas Review</p>
                         <p className="mt-1 text-sm font-black text-slate-900">{studioScore}/100 studio score</p>
                       </div>
                       {isComplete && <CheckCircle2 className="shrink-0 text-emerald-600" size={24} />}

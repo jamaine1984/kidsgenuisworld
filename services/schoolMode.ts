@@ -5,7 +5,7 @@ import { MASTERED_PRACTICE_TARGET } from './learningConstants';
 export { MASTERED_PRACTICE_TARGET };
 
 export const AI_TEACHER = {
-  name: 'Ms. Nova',
+  name: 'Mr. Atlas',
   title: 'AI Homeroom Teacher',
   school: 'Genius World School',
   room: 'Genius Hall',
@@ -55,7 +55,7 @@ export const TEACHER_HELP_LADDER = [
   {
     id: 'model',
     label: 'Model',
-    studentAction: 'Watch Ms. Nova work one similar example.',
+    studentAction: 'Watch Mr. Atlas work one similar example.',
     parentMeaning: 'The teacher shows the strategy before asking the child to try again.',
   },
   {

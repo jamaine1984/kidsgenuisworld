@@ -914,7 +914,7 @@ export const STORIES: Story[] = [
   },
   {
     id: 'g3-11', title: 'The Debate Board', author: 'Kid Genius Originals', cover: 'CLAIM', gradeLevel: 5, category: 'learning',
-    pages: ['The class debates whether recess should include a garden station.', 'One team says gardens teach science.', 'Another team says gardens need time and care.', 'Ms. Nova asks each team to add evidence to the board.', 'The final vote feels fair because everyone used reasons.'],
+    pages: ['The class debates whether recess should include a garden station.', 'One team says gardens teach science.', 'Another team says gardens need time and care.', 'Mr. Atlas asks each team to add evidence to the board.', 'The final vote feels fair because everyone used reasons.'],
     moral: 'Strong opinions need evidence.'
   },
   {
@@ -1121,7 +1121,7 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
     );
     const finishedTitle = currentStory.title;
     setLibraryCoachNotice(nextStory
-      ? `${finishedTitle} complete. Ms. Nova opened the next book: ${nextStory.title} (${nextRoundLabel}/6).`
+      ? `${finishedTitle} complete. Mr. Atlas opened the next book: ${nextStory.title} (${nextRoundLabel}/6).`
       : `${finishedTitle} complete. This shelf is ready for parent review.`);
     window.setTimeout(() => {
       setCurrentStory(nextStory || null);
@@ -1385,7 +1385,7 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
               <p className="text-xs font-black uppercase tracking-[0.16em] text-amber-600">Mini test before the next book</p>
               <h2 className="mt-2 text-2xl font-black text-slate-900">{activeQuestion?.question}</h2>
               <p className="mt-2 text-sm font-bold text-slate-600">
-                Answer the story questions. Ms. Nova will guide you to the next book when you finish.
+                Answer the story questions. Mr. Atlas will guide you to the next book when you finish.
               </p>
             </div>
 

@@ -57,7 +57,7 @@ import {
   getCampusRoom,
   getTeacherScript,
 } from './services/schoolMode';
-import { BookOpen, CheckCircle2, Lightbulb, LockKeyhole, MessageCircle, Play, ShieldCheck, Sparkles, Target, X } from 'lucide-react';
+import { BarChart3, BookOpen, Brain, CalendarCheck, CheckCircle2, GraduationCap, Lightbulb, LockKeyhole, MessageCircle, Play, School, ShieldCheck, Sparkles, Target, Users, Video, X } from 'lucide-react';
 
 const MathRoom = lazy(() => import('./components/MathRoom').then(module => ({ default: module.MathRoom })));
 const ReadingRoom = lazy(() => import('./components/ReadingRoom').then(module => ({ default: module.ReadingRoom })));
@@ -2556,6 +2556,9 @@ const App: React.FC = () => {
           <p className="mt-3 inline-flex rounded-full bg-white/85 px-4 py-2 text-sm font-black text-slate-700 shadow-lg">
             Kid Genius World by CrateShip Studios
           </p>
+          <p className="mt-2 text-sm sm:text-base font-bold text-white/95 drop-shadow-lg">
+            AI school practice for kids, guided by parents.
+          </p>
         </div>
 
         {/* Start Button */}
@@ -2706,50 +2709,128 @@ const App: React.FC = () => {
     pinDraft === pinConfirmDraft;
 
   if (showParentWelcome) {
+    const tourHighlights = [
+      { icon: School, title: 'AI school day', detail: 'Reading, speech, math, science, coding, stories, art, and music move through guided class periods.' },
+      { icon: Brain, title: 'Mr. Atlas teaches', detail: 'The teacher reads the question, gives answer choices, explains mistakes, and moves students forward after mastery.' },
+      { icon: BarChart3, title: 'Parent progress', detail: 'Skills, stars, review needs, weekly trends, and monthly reports stay tied to the signed-in parent account.' },
+    ];
+    const classPreview = [
+      { title: '1st Period', room: 'Reading & Speech', color: 'bg-rose-100 text-rose-900 border-rose-200' },
+      { title: '2nd Period', room: 'Math Classroom', color: 'bg-sky-100 text-sky-900 border-sky-200' },
+      { title: '3rd Period', room: 'Science Lab', color: 'bg-emerald-100 text-emerald-900 border-emerald-200' },
+      { title: 'Final Period', room: 'Art, Music, Review', color: 'bg-amber-100 text-amber-950 border-amber-200' },
+    ];
+
     return (
-      <div className="relative min-h-screen w-screen overflow-y-auto bg-gradient-to-b from-sky-300 via-indigo-300 to-emerald-300 p-4 text-slate-900">
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute left-[8%] top-10 text-7xl opacity-70">☁️</div>
-          <div className="absolute right-[10%] top-16 text-8xl opacity-70">🌈</div>
-          <div className="absolute bottom-12 left-[12%] text-7xl opacity-80">🎒</div>
-          <div className="absolute bottom-16 right-[14%] text-7xl opacity-80">⭐</div>
-        </div>
-        <div className="relative z-10 mx-auto flex min-h-screen max-w-6xl items-center">
-          <div className="grid w-full overflow-hidden rounded-[34px] border-4 border-white/80 bg-white shadow-2xl lg:grid-cols-[0.95fr_1.05fr]">
-            <div className="relative overflow-hidden bg-gradient-to-br from-indigo-700 via-sky-600 to-emerald-500 p-6 text-white">
-              <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-white/20 blur-3xl" />
-              <div className="relative">
-                <p className="text-xs font-black uppercase tracking-[0.18em] text-sky-100">Parent Welcome</p>
-                <h1 className="mt-2 text-4xl font-black leading-tight sm:text-5xl">Start with a grown-up account</h1>
-                <p className="mt-3 text-base font-semibold text-white/90">
-                  Parents sign in first. Then Kid Genius World loads the right child profile, lessons, stars, and progress for that family.
-                </p>
-                <div className="mt-6 grid gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
-                  {[
-                    ['1', 'Parent signs in'],
-                    ['2', 'Choose child profile'],
-                    ['3', 'Start school day'],
-                  ].map(([step, label]) => (
-                    <div key={step} className="rounded-2xl border border-white/20 bg-white/15 p-3">
-                      <p className="text-2xl font-black">{step}</p>
-                      <p className="mt-1 text-xs font-black uppercase tracking-[0.12em] text-sky-100">{label}</p>
-                    </div>
-                  ))}
+      <div className="relative min-h-screen w-screen overflow-y-auto bg-[#f7fbff] text-slate-900">
+        <div className="absolute inset-x-0 top-0 h-72 bg-gradient-to-br from-sky-200 via-indigo-200 to-emerald-200" />
+        <div className="relative z-10 mx-auto flex min-h-screen max-w-7xl items-center px-4 py-6 sm:px-6 lg:px-8">
+          <div className="grid w-full gap-5 lg:grid-cols-[1.12fr_0.88fr]">
+            <section className="overflow-hidden rounded-[28px] border border-white/80 bg-white shadow-2xl">
+              <div className="grid min-h-full lg:grid-cols-[1fr_0.92fr]">
+                <div className="p-5 sm:p-7 lg:p-8">
+                  <div className="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-indigo-700">
+                    <GraduationCap size={16} />
+                    Kid Genius World by CrateShip Studios
+                  </div>
+                  <h1 className="mt-5 max-w-2xl text-4xl font-black leading-tight text-slate-950 sm:text-5xl">
+                    Welcome to Genius World School
+                  </h1>
+                  <p className="mt-4 max-w-2xl text-base font-semibold leading-7 text-slate-600">
+                    A parent-controlled AI learning campus where children follow a school-day rhythm, hear guided instruction, and build daily progress across core subjects.
+                  </p>
+
+                  <div className="mt-6 flex flex-wrap gap-3">
+                    <button
+                      id="school-tour-preview"
+                      type="button"
+                      onClick={() => document.getElementById('parent-account-panel')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+                      className="inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-indigo-200 hover:bg-indigo-700"
+                    >
+                      <Video size={18} />
+                      Watch School Tour
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => document.getElementById('parent-account-panel')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+                      className="inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-800 hover:border-indigo-200 hover:bg-indigo-50"
+                    >
+                      <Users size={18} />
+                      Create Parent Account
+                    </button>
+                  </div>
+
+                  <div className="mt-7 grid gap-3 md:grid-cols-3">
+                    {tourHighlights.map(({ icon: Icon, title, detail }) => (
+                      <article key={title} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-indigo-700 shadow-sm">
+                          <Icon size={20} />
+                        </div>
+                        <h2 className="mt-3 text-sm font-black text-slate-950">{title}</h2>
+                        <p className="mt-2 text-xs font-semibold leading-5 text-slate-600">{detail}</p>
+                      </article>
+                    ))}
+                  </div>
                 </div>
-                <div className="mt-6 rounded-3xl border border-white/20 bg-white/15 p-4">
-                  <p className="text-sm font-black">Kid Genius World by CrateShip Studios</p>
-                  <p className="mt-1 text-xs font-semibold text-white/80">Child setup, billing, and progress stay parent-controlled.</p>
+
+                <div className="relative bg-slate-950 p-5 text-white sm:p-7">
+                  <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-emerald-400/30 to-transparent" />
+                  <div className="relative rounded-3xl border border-white/15 bg-white/10 p-4 shadow-2xl">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-xs font-black uppercase tracking-[0.16em] text-sky-200">Live school tour</p>
+                        <h2 className="mt-1 text-2xl font-black">Meet Mr. Atlas</h2>
+                      </div>
+                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-300 text-slate-950">
+                        <School size={25} />
+                      </div>
+                    </div>
+                    <div className="mt-5 rounded-3xl border border-white/15 bg-gradient-to-br from-sky-500 to-emerald-400 p-4 text-slate-950">
+                      <div className="rounded-2xl bg-white/85 p-4">
+                        <p className="text-xs font-black uppercase tracking-[0.14em] text-indigo-700">Today&apos;s campus path</p>
+                        <div className="mt-4 grid gap-3">
+                          {classPreview.map(item => (
+                            <div key={item.title} className={`rounded-2xl border px-4 py-3 ${item.color}`}>
+                              <p className="text-xs font-black uppercase tracking-[0.12em]">{item.title}</p>
+                              <p className="mt-1 text-base font-black">{item.room}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                      <div className="rounded-2xl border border-white/15 bg-white/10 p-3">
+                        <CalendarCheck size={18} className="text-emerald-200" />
+                        <p className="mt-2 text-sm font-black">Daily class periods</p>
+                        <p className="mt-1 text-xs font-semibold text-white/70">Students complete six mastery rounds before the next period opens.</p>
+                      </div>
+                      <div className="rounded-2xl border border-white/15 bg-white/10 p-3">
+                        <ShieldCheck size={18} className="text-sky-200" />
+                        <p className="mt-2 text-sm font-black">Parent first</p>
+                        <p className="mt-1 text-xs font-semibold text-white/70">No child profile starts until a parent signs in and accepts the setup terms.</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
+            </section>
 
-            <div className="p-5 sm:p-6">
+            <aside id="parent-account-panel" className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-2xl sm:p-6">
               <div className="mb-5 flex items-center gap-3">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-yellow-100 text-3xl shadow-sm">🎓</div>
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-100 text-amber-800 shadow-sm">
+                  <LockKeyhole size={26} />
+                </div>
                 <div>
                   <h2 className="text-2xl font-black text-slate-950">Sign in or create account</h2>
-                  <p className="text-sm font-semibold text-slate-600">This is for parents only. Kids start after the account is ready.</p>
+                  <p className="text-sm font-semibold text-slate-600">Parents unlock the school, then kids start inside the right family profile.</p>
                 </div>
+              </div>
+
+              <div className="mb-5 rounded-2xl border border-indigo-100 bg-indigo-50 p-4">
+                <p className="text-xs font-black uppercase tracking-[0.16em] text-indigo-700">What happens next</p>
+                <p className="mt-2 text-sm font-semibold leading-6 text-indigo-950">
+                  Create or sign into the parent account, confirm the child-safety setup, then choose the child profile that should start school today.
+                </p>
               </div>
 
               {parentCloudSession.signedIn ? (
@@ -2764,7 +2845,7 @@ const App: React.FC = () => {
                   <button
                     onClick={continueAfterParentWelcome}
                     disabled={setupParentAuthBusy}
-                    className="rounded-2xl bg-indigo-600 px-5 py-4 text-sm font-black text-white shadow-lg hover:bg-indigo-700"
+                    className="rounded-2xl bg-indigo-600 px-5 py-4 text-sm font-black text-white shadow-lg hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-300"
                   >
                     Continue as Parent
                   </button>
@@ -2775,7 +2856,7 @@ const App: React.FC = () => {
                       setSetupParentAuthStatus('Signed out. Choose a parent account to continue.');
                     }}
                     disabled={setupParentAuthBusy}
-                    className="rounded-2xl bg-slate-100 px-5 py-4 text-sm font-black text-slate-700 shadow-sm hover:bg-slate-200"
+                    className="rounded-2xl bg-slate-100 px-5 py-4 text-sm font-black text-slate-700 shadow-sm hover:bg-slate-200 disabled:cursor-not-allowed disabled:text-slate-400"
                   >
                     Use Different Account
                   </button>
@@ -2845,12 +2926,13 @@ const App: React.FC = () => {
                   </button>
                 ))}
               </div>
-            </div>
+            </aside>
           </div>
         </div>
       </div>
     );
   }
+
 
   if (!parentOnboarded) {
     return (
@@ -2891,7 +2973,7 @@ const App: React.FC = () => {
             </div>
             <div className="px-6 pb-6">
               <div className="rounded-2xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-900 mb-5">
-                Kid Genius World is a CrateShip Studios learning app. Parent setup keeps the child experience gated while families review privacy, local progress storage, optional Firebase sync, saved media, and parent-only billing. Parent support is available at crateshipstudios@gmail.com.
+                Kid Genius World is a CrateShip Studios AI-powered learning app and parent-guided AI school experience. It is not accredited, is not a real school, and does not issue grades, credits, diplomas, or transcripts. Parent setup keeps the child experience gated while families review privacy, local progress storage, optional Firebase sync, saved media, and parent-only billing. Parent support is available at crateshipstudios@gmail.com.
               </div>
               <div className="flex justify-center gap-4 mb-4 text-sm font-bold text-indigo-700">
                 <button onClick={() => setLegalView('privacy')} className="underline">Read Privacy Notice</button>
@@ -3182,7 +3264,7 @@ const App: React.FC = () => {
                   className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-slate-100 px-5 py-4 text-sm font-black text-slate-800 shadow hover:bg-slate-200"
                 >
                   <MessageCircle size={20} />
-                  Listen to Ms. Nova
+                  Listen to Mr. Atlas
                 </button>
                 <button
                   onClick={handleStartTeacherLesson}

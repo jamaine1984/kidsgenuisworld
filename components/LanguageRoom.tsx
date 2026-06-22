@@ -535,7 +535,7 @@ export const LanguageRoom: React.FC<LanguageRoomProps> = ({ level, onBack, onRew
               {/* English Word */}
               <div className="bg-gradient-to-r from-blue-100 to-cyan-100 rounded-xl p-6 mb-4">
                 <p className="text-sm text-gray-500 mb-1">English</p>
-                <p className="text-4xl font-bold text-gray-800">{currentWord.english}</p>
+                <p data-testid="language-learn-english" className="text-4xl font-bold text-gray-800">{currentWord.english}</p>
               </div>
 
               {/* Translation */}
@@ -568,7 +568,7 @@ export const LanguageRoom: React.FC<LanguageRoomProps> = ({ level, onBack, onRew
               {/* Question */}
               <div className="bg-gradient-to-r from-blue-100 to-cyan-100 rounded-xl p-6 mb-6 text-center">
                 <p className="text-sm text-gray-500 mb-2">How do you say this in {langInfo.name}?</p>
-                <p className="text-4xl font-bold text-gray-800">{currentWord.english}</p>
+                <p data-testid="language-quiz-word" className="text-4xl font-bold text-gray-800">{currentWord.english}</p>
               </div>
 
               {/* Answer Options */}
@@ -589,6 +589,7 @@ export const LanguageRoom: React.FC<LanguageRoomProps> = ({ level, onBack, onRew
                   return (
                     <button
                       key={index}
+                      data-testid={`language-option-${option}`}
                       onClick={() => handleAnswer(option)}
                       disabled={showResult}
                       className={`flex min-h-[88px] items-center gap-3 rounded-xl p-4 text-left text-lg font-bold transition-all transform hover:scale-105 shadow-md ${buttonClass}`}

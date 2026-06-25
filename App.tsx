@@ -2727,6 +2727,25 @@ const App: React.FC = () => {
       { icon: Brain, title: 'Mr. Atlas teaches the period', detail: 'Questions and answer choices are read aloud, then correct and missed answers get short explanations.' },
       { icon: BarChart3, title: 'Progress saves for parents', detail: 'Completed periods, missed skills, review needs, rewards, and reports flow into the parent dashboard.' },
     ];
+    const scrollToParentAccountPanel = () => {
+      window.setTimeout(() => {
+        const panel = document.getElementById('parent-account-panel');
+        if (!panel) return;
+
+        const targetTop = Math.max(0, panel.getBoundingClientRect().top + window.scrollY - 16);
+        window.scrollTo({ top: targetTop, behavior: 'smooth' });
+
+        window.setTimeout(() => {
+          const rect = panel.getBoundingClientRect();
+          const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
+          if (!isVisible) {
+            window.scrollTo({ top: targetTop, behavior: 'auto' });
+            document.documentElement.scrollTop = targetTop;
+            document.body.scrollTop = targetTop;
+          }
+        }, 500);
+      }, 180);
+    };
 
     return (
       <div className="relative min-h-screen w-screen overflow-y-auto bg-[#f7fbff] text-slate-900">
@@ -2759,7 +2778,7 @@ const App: React.FC = () => {
                     </button>
                     <button
                       type="button"
-                      onClick={() => document.getElementById('parent-account-panel')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+                      onClick={scrollToParentAccountPanel}
                       className="inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-800 hover:border-indigo-200 hover:bg-indigo-50"
                     >
                       <Users size={18} />
@@ -3005,9 +3024,7 @@ const App: React.FC = () => {
                       type="button"
                       onClick={() => {
                         setShowSchoolTour(false);
-                        requestAnimationFrame(() => {
-                          document.getElementById('parent-account-panel')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        });
+                        scrollToParentAccountPanel();
                       }}
                       className="inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-indigo-200 hover:bg-indigo-700"
                     >

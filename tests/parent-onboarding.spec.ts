@@ -62,6 +62,28 @@ test('start adventure shows parent welcome even when already signed in', async (
   await expect(page.getByRole('heading', { name: 'Create your child profile' })).toBeHidden();
 });
 
+test('school tour start setup scrolls to parent account panel on phone', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  await page.evaluate(() => {
+    window.localStorage.clear();
+  });
+  await page.reload();
+
+  await page.getByRole('button', { name: /Start Adventure/i }).click();
+  await expect(page.getByRole('heading', { name: 'Sign in or create account' })).toBeVisible();
+  await page.getByRole('button', { name: 'Watch School Tour' }).click();
+  await expect(page.getByRole('dialog', { name: 'See how a school day works' })).toBeVisible();
+  await page.getByRole('button', { name: 'Start Parent Setup' }).click();
+  await expect(page.getByRole('dialog', { name: 'See how a school day works' })).toBeHidden();
+
+  await expect.poll(async () => page.evaluate(() => {
+    const panel = document.getElementById('parent-account-panel');
+    const rect = panel?.getBoundingClientRect();
+    return !!rect && rect.top < window.innerHeight && rect.bottom > 0;
+  })).toBe(true);
+});
+
 test('returning parent with child profile continues without creating another child', async ({ page }) => {
   await page.goto('/');
   await page.evaluate(() => {

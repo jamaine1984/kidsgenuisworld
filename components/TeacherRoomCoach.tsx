@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { BookOpen, CheckCircle2, ChevronDown, ChevronUp, GraduationCap, Lightbulb, Volume2 } from 'lucide-react';
+import { CheckCircle2, ChevronDown, ChevronUp, GraduationCap, Lightbulb, Volume2, X } from 'lucide-react';
 import { UserProgress } from '../types';
 import type { CurriculumUnit } from '../services/curriculum';
 import {
@@ -16,14 +16,14 @@ interface TeacherRoomCoachProps {
   unit: CurriculumUnit;
   progress: UserProgress;
   practiceCount: number;
-  onOpenLessonBoard: () => void;
+  onClose: () => void;
 }
 
 export const TeacherRoomCoach: React.FC<TeacherRoomCoachProps> = ({
   unit,
   progress,
   practiceCount,
-  onOpenLessonBoard,
+  onClose,
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(() => (
     typeof window !== 'undefined'
@@ -102,11 +102,11 @@ export const TeacherRoomCoach: React.FC<TeacherRoomCoachProps> = ({
               </p>
             </div>
             <button
-              onClick={onOpenLessonBoard}
-              aria-label="Open teacher lesson board"
+              onClick={() => setIsCollapsed(false)}
+              aria-label="Expand teacher coach"
               className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white shadow"
             >
-              <BookOpen size={17} />
+              <ChevronDown size={17} />
             </button>
             <button
               onClick={readTeacherPrompt}
@@ -122,13 +122,7 @@ export const TeacherRoomCoach: React.FC<TeacherRoomCoachProps> = ({
             >
               <Lightbulb size={17} />
             </button>
-            <button
-              onClick={() => setIsCollapsed(false)}
-              aria-label="Expand teacher coach"
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-700 shadow"
-            >
-              <ChevronDown size={19} />
-            </button>
+            <button onClick={onClose} aria-label="Hide Mission Focus" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-rose-50 text-rose-700 shadow"><X size={18} /></button>
           </div>
         </div>
       </div>
@@ -160,13 +154,7 @@ export const TeacherRoomCoach: React.FC<TeacherRoomCoachProps> = ({
               <p className="text-lg font-black text-indigo-800">{safePracticeCount}/{MASTERED_PRACTICE_TARGET}</p>
               <p className="text-[10px] font-black uppercase tracking-[0.12em] text-indigo-500">mastery</p>
             </div>
-            <button
-              onClick={onOpenLessonBoard}
-              className="pointer-events-auto inline-flex items-center justify-center gap-1 rounded-2xl bg-slate-950 px-3 py-2 text-xs font-black text-white shadow hover:bg-indigo-700"
-            >
-              <BookOpen size={15} />
-              Board
-            </button>
+            <button onClick={onClose} aria-label="Hide Mission Focus" className="pointer-events-auto inline-flex items-center justify-center gap-1 rounded-2xl bg-slate-950 px-3 py-2 text-xs font-black text-white shadow hover:bg-indigo-700"><X size={15} /> Close</button>
             <button
               onClick={readTeacherPrompt}
               className="pointer-events-auto inline-flex items-center justify-center gap-1 rounded-2xl bg-emerald-100 px-3 py-2 text-xs font-black text-emerald-900 shadow hover:bg-emerald-200"

@@ -249,7 +249,7 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => 
 
   // Fixed canvas size (A4-ish ratio)
   const CANVAS_WIDTH = 800;
-  const CANVAS_HEIGHT = 1000;
+  const CANVAS_HEIGHT = 600;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -408,7 +408,7 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => 
   };
 
   return (
-    <div className="h-full w-full bg-[radial-gradient(circle_at_top_left,#fde68a_0,#f9a8d4_34%,#c084fc_68%,#60a5fa_100%)] flex flex-col">
+    <div className="academy-room-surface h-full w-full flex flex-col" style={{ '--academy-room-scene': "url('/academy/rooms/art.webp')" } as React.CSSProperties}>
       <header className="p-4 flex justify-between items-center bg-white/35 backdrop-blur-md shadow-md z-20 shrink-0">
         <button onClick={onBack} aria-label="Back to world map" className="bg-white p-2 rounded-full hover:bg-pink-50 shadow-sm">
           <ArrowLeft className="text-pink-600" />
@@ -426,40 +426,23 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => 
              >
                 <CheckCircle2 />
              </button>
-             <button onClick={clearCanvas} className="p-2 bg-white rounded-full text-red-500 hover:bg-red-50"><Eraser /></button>
-             <button onClick={download} className="p-2 bg-white rounded-full text-blue-500 hover:bg-blue-50"><Download /></button>
+             <button onClick={clearCanvas} aria-label="Clear canvas" title="Clear canvas" className="p-2 bg-white rounded-full text-red-500 hover:bg-red-50"><Eraser /></button>
+             <button onClick={download} aria-label="Save artwork image" title="Save artwork image" className="p-2 bg-white rounded-full text-blue-500 hover:bg-blue-50"><Download /></button>
         </div>
       </header>
 
       <div className="flex flex-1 overflow-hidden relative">
         {/* Sidebar Tools */}
-        <div className="w-24 bg-white/95 shadow-xl z-20 flex flex-col items-center py-4 gap-4 overflow-y-auto kid-scroll shrink-0">
-            <div className="rounded-2xl bg-pink-50 px-2 py-3 text-center text-[10px] font-black uppercase tracking-wide text-pink-700 ring-1 ring-pink-100">
-              Creative Studio Mission
-              <div className="mt-1 text-[9px] normal-case tracking-normal text-pink-500">{mission.title}</div>
-            </div>
-            <div className="w-20 rounded-2xl bg-indigo-50 px-2 py-3 text-left ring-1 ring-indigo-100">
-              <div className="mb-2 flex items-center gap-1 text-[9px] font-black uppercase tracking-wide text-indigo-700">
-                <Target size={12} />
-                Lesson
-              </div>
-              <div className="space-y-1">
-                {mission.lessonSteps.map((step, index) => (
-                  <div
-                    key={step}
-                    aria-current={activeStep === index ? 'step' : undefined}
-                    className={`w-full rounded-xl px-2 py-1 text-left text-[9px] font-bold leading-tight ${activeStep === index ? 'bg-indigo-600 text-white' : index < completedTimedSteps ? 'bg-emerald-50 text-emerald-800' : 'bg-white text-indigo-800'}`}
-                  >
-                    {index + 1}. {step}
-                  </div>
-                ))}
-              </div>
+        <div className="z-20 flex w-20 shrink-0 flex-col items-center gap-3 overflow-y-auto bg-white/95 py-4 shadow-xl kid-scroll sm:w-24">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-pink-50 text-pink-700 ring-1 ring-pink-100" title={mission.title}>
+              <Target size={22} />
             </div>
             {colors.map(c => (
                 <button 
                     key={c}
                     onClick={() => setColor(c)}
-                    className={`w-12 h-12 rounded-full border-4 shadow-sm transition-transform hover:scale-110 ${color === c ? 'border-gray-800 scale-110' : 'border-transparent'}`}
+                    aria-label={`Use ${c} paint`}
+                    className={`h-9 w-9 rounded-full border-4 shadow-sm transition-transform hover:scale-110 sm:h-10 sm:w-10 ${color === c ? 'border-gray-800 scale-110' : 'border-transparent'}`}
                     style={{backgroundColor: c}}
                 />
             ))}
@@ -477,8 +460,8 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => 
         </div>
 
         {/* Canvas Container - SCROLLABLE */}
-        <div className="flex-1 bg-white/25 overflow-auto p-8 flex flex-col items-center justify-start gap-5 shadow-inner cursor-crosshair kid-scroll xl:flex-row xl:items-start xl:justify-center">
-            <div className="hidden w-full max-w-5xl shrink-0 rounded-2xl bg-white/92 p-3 shadow-lg ring-1 ring-pink-100 md:block xl:max-w-md">
+        <div className="flex flex-1 cursor-crosshair flex-col items-center justify-start gap-5 overflow-auto bg-white/25 p-4 shadow-inner kid-scroll sm:p-6">
+            <div className="w-full max-w-5xl shrink-0 rounded-2xl bg-white/95 p-4 shadow-lg ring-1 ring-pink-100">
               <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                 <div className="min-w-0">
                   <div className="text-xs font-black uppercase tracking-[0.22em] text-pink-600">Teacher-Led Art Lesson</div>
@@ -542,7 +525,7 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => 
                 </div>
               </div>
             </div>
-            <div className="shadow-2xl relative">
+            <div className="relative aspect-[4/3] w-full max-w-[800px] overflow-hidden rounded-xl bg-white shadow-2xl ring-1 ring-slate-200">
                 <canvas
                     ref={canvasRef}
                     onMouseDown={startDrawing}
@@ -551,8 +534,8 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => 
                     onTouchStart={startDrawing}
                     onTouchEnd={stopDrawing}
                     onTouchMove={draw}
-                    className="bg-white cursor-crosshair touch-none"
-                    style={{ width: '800px', height: '1000px' }} // CSS display size matches logic size
+                    className="h-full w-full cursor-crosshair touch-none bg-white"
+                    style={{ width: '100%', height: '100%' }}
                 />
             </div>
         </div>

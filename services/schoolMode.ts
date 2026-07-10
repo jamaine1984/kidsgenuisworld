@@ -1,5 +1,5 @@
 import { RoomType, UserProgress, type LearningJournalEntry } from '../types';
-import { getDailyMission, getUnitsForGrade, getWeeklyLearningPlan, type CurriculumUnit } from './curriculum';
+import { getCurrentGradeUnits, getDailyMission, getUnitsForGrade, getWeeklyLearningPlan, type CurriculumUnit } from './curriculum';
 import { MASTERED_PRACTICE_TARGET } from './learningConstants';
 
 export { MASTERED_PRACTICE_TARGET };
@@ -362,7 +362,7 @@ export const getTeacherHelpLadder = (unit: CurriculumUnit): TeacherHelpStep[] =>
 export const getTeacherAssignmentCards = (progress: UserProgress): TeacherAssignmentCard[] => {
   const completedUnitIds = new Set(progress.completedUnitIds || []);
   const unitPracticeCounts = progress.unitPracticeCounts || {};
-  const currentGradeUnits = getUnitsForGrade(progress.currentGrade);
+  const currentGradeUnits = getCurrentGradeUnits(progress.currentGrade);
 
   return SCHOOL_ASSIGNMENT_ROOMS
     .map<TeacherAssignmentCard | null>(room => {
@@ -426,7 +426,7 @@ const formatLastPracticed = (timestamp?: number) => {
 
 export const getTeacherGradebookRows = (progress: UserProgress): TeacherGradebookRow[] => {
   const unitsById = new Map(
-    getUnitsForGrade(progress.currentGrade).map(unit => [unit.id, unit])
+    getCurrentGradeUnits(progress.currentGrade).map(unit => [unit.id, unit])
   );
 
   return getTeacherAssignmentCards(progress).map(card => {

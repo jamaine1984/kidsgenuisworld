@@ -45,7 +45,7 @@ export async function completeKidSetup(page: Page) {
 }
 
 export async function startTeacherLesson(page: Page) {
-  await expect(page.getByTestId('teacher-lesson-start')).toContainText('Teacher-led lesson start');
+  await expect(page.getByTestId('teacher-lesson-start')).toContainText("Today's lesson path");
   await expect(page.getByTestId('teacher-lesson-start')).toContainText('Learning target');
   await expect(page.getByTestId('teacher-lesson-start')).toContainText('Exit ticket');
   await page.getByRole('button', { name: /Start guided practice/i }).click();

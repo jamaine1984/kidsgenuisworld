@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowLeft, Code, Play, RotateCcw, Star, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Repeat, Zap, Volume2 } from 'lucide-react';
+import { ArrowLeft, Bot, Box, Code, Lightbulb, Play, RotateCcw, Star, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Repeat, Zap, Volume2, X } from 'lucide-react';
 import { speakAsync, speakCorrect, speakWrong, playSuccess, playError, playWrongBuzzer } from '../services/audioService';
 
 interface CodingRoomProps {
@@ -1161,19 +1161,8 @@ export const CodingRoom: React.FC<CodingRoomProps> = ({ level, onBack, onReward 
     }
   };
 
-  const getCategoryEmoji = (category: string) => {
-    switch (category) {
-      case 'basic': return '🌟';
-      case 'turns': return '🔄';
-      case 'loops': return '🔁';
-      case 'maze': return '🏰';
-      case 'advanced': return '🚀';
-      default: return '⭐';
-    }
-  };
-
   return (
-    <div className="w-full h-full bg-[radial-gradient(circle_at_top_left,#22d3ee_0,#6366f1_34%,#a855f7_68%,#db2777_100%)] flex flex-col relative">
+    <div className="academy-room-surface academy-room-surface-dark w-full h-full flex flex-col relative" style={{ '--academy-room-scene': "url('/academy/rooms/coding.webp')" } as React.CSSProperties}>
       {/* Header */}
       <div className="flex items-center justify-between p-4 bg-white/20 backdrop-blur-sm">
         <button onClick={onBack} aria-label="Back to world map" className="p-2 bg-white/30 rounded-full hover:bg-white/50 transition">
@@ -1197,8 +1186,8 @@ export const CodingRoom: React.FC<CodingRoomProps> = ({ level, onBack, onReward 
           <div className="bg-white/95 rounded-2xl p-4 shadow-lg ring-1 ring-white/60">
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                {getCategoryEmoji(challenge.category)}
-                Level {currentChallengeIndex + 1}: {challenge.name}
+                <Code size={20} className="text-indigo-600" />
+                Robot Mission: {challenge.name}
               </h2>
               <button
                 onClick={speakHint}
@@ -1209,7 +1198,7 @@ export const CodingRoom: React.FC<CodingRoomProps> = ({ level, onBack, onReward 
             </div>
             <p className="text-gray-600">{challenge.story}</p>
             <p className="text-sm text-indigo-900 font-semibold mt-2">Coach Tip: {coachTip}</p>
-            <p className="text-indigo-600 mt-2 font-medium">💡 {challenge.hint}</p>
+            <p className="mt-2 flex items-start gap-2 font-medium text-indigo-700"><Lightbulb size={18} className="mt-0.5 shrink-0" /> {challenge.hint}</p>
             <div className="mt-4 rounded-2xl bg-gradient-to-r from-indigo-50 via-white to-pink-50 p-3 ring-1 ring-indigo-100">
               <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                 <div>
@@ -1243,8 +1232,8 @@ export const CodingRoom: React.FC<CodingRoomProps> = ({ level, onBack, onReward 
           </div>
 
           {/* Game Grid */}
-          <div className="bg-white/95 rounded-2xl p-4 shadow-lg flex-1 flex items-center justify-center ring-1 ring-white/60">
-            <div className="inline-grid gap-1" style={{
+          <div className="flex flex-1 items-center justify-center rounded-2xl bg-white/95 p-5 shadow-lg ring-1 ring-white/60">
+            <div className="grid w-full max-w-[34rem] gap-2" style={{
               gridTemplateColumns: `repeat(${challenge.grid[0].length}, minmax(0, 1fr))`
             }}>
               {challenge.grid.map((row, y) =>
@@ -1255,17 +1244,17 @@ export const CodingRoom: React.FC<CodingRoomProps> = ({ level, onBack, onReward 
                   return (
                     <div
                       key={`${x}-${y}`}
-                      className={`w-14 h-14 md:w-16 md:h-16 rounded-lg flex items-center justify-center text-2xl md:text-3xl relative transition-all
+                      className={`relative flex aspect-square min-w-0 items-center justify-center rounded-xl border transition-all
                         ${cell.type === 'obstacle' ? 'bg-gray-700' : 'bg-indigo-100'}
-                        ${cell.type === 'goal' ? 'bg-yellow-200' : ''}
-                        ${isPath && !isRobot ? 'bg-green-200' : ''}
+                        ${cell.type === 'goal' ? 'border-amber-300 bg-yellow-200' : 'border-indigo-200'}
+                        ${isPath && !isRobot ? 'border-emerald-300 bg-green-200' : ''}
                       `}
                     >
-                      {cell.type === 'goal' && <span className="text-2xl md:text-3xl">⭐</span>}
-                      {cell.type === 'obstacle' && <span className="text-2xl md:text-3xl">🧱</span>}
+                      {cell.type === 'goal' && <Star className="h-7 w-7 text-amber-600 sm:h-9 sm:w-9" fill="currentColor" />}
+                      {cell.type === 'obstacle' && <Box className="h-7 w-7 text-slate-200 sm:h-9 sm:w-9" />}
                       {isRobot && (
-                        <div className={`text-2xl md:text-3xl transform ${getDirectionRotation(robotPos.direction)} transition-transform`}>
-                          🤖
+                        <div className={`transform text-indigo-700 ${getDirectionRotation(robotPos.direction)} transition-transform`}>
+                          <Bot className="h-8 w-8 sm:h-11 sm:w-11" strokeWidth={2.5} />
                         </div>
                       )}
                     </div>
@@ -1317,7 +1306,7 @@ export const CodingRoom: React.FC<CodingRoomProps> = ({ level, onBack, onReward 
                       {block.icon}
                       <span className="text-sm">{block.label}</span>
                     </div>
-                    <span className="text-xs opacity-70">×</span>
+                    <X size={15} className="opacity-80" />
                   </div>
                 ))
               )}
@@ -1363,7 +1352,7 @@ export const CodingRoom: React.FC<CodingRoomProps> = ({ level, onBack, onReward 
           {/* Challenge Progress */}
           <div className="bg-white/95 rounded-2xl p-3 shadow-lg ring-1 ring-white/60">
             <p className="text-sm text-gray-600 text-center">
-              Challenge {currentChallengeIndex + 1} of {availableChallenges.length}
+              School-year mission {currentChallengeIndex + 1} of {availableChallenges.length}
             </p>
             <div className="flex gap-1 mt-2 justify-center flex-wrap">
               {availableChallenges.slice(0, 10).map((_, i) => (
@@ -1387,7 +1376,7 @@ export const CodingRoom: React.FC<CodingRoomProps> = ({ level, onBack, onReward 
               onClick={nextChallenge}
               className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:from-yellow-500 hover:to-orange-600 transition animate-bounce"
             >
-              🎉 Next Challenge! →
+              <span className="inline-flex items-center justify-center gap-2">Next Challenge <ChevronRight size={20} /></span>
             </button>
           )}
         </div>

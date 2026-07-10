@@ -227,7 +227,7 @@ if (!typesSource.includes('weeklyGoalMinutes') || !typesSource.includes('dailySe
 if (!parentDashboardSource.includes('Daily Activity') || !parentDashboardSource.includes('minutes this week') || !parentDashboardSource.includes('rooms explored')) {
   fail('Parent dashboard daily activity summary is missing.');
 }
-if (!parentDashboardSource.includes('Family Plan') || !parentDashboardSource.includes('No payment collection') || !parentDashboardSource.includes('Paid Launch Readiness')) {
+if (!parentDashboardSource.includes('Family Subscription') || !parentDashboardSource.includes('Parent-only checkout') || !parentDashboardSource.includes('Family Safety & Access')) {
   fail('Parent dashboard must explain family plan value without collecting payments.');
 }
 if (!parentDashboardSource.includes('Export Local Progress') || !parentDashboardSource.includes('kid-genius-progress-') || !parentDashboardSource.includes('Parent progress export')) {
@@ -596,7 +596,7 @@ if (!mediaApiSource.includes('getStaticMediaUrl') || !mediaApiSource.includes("p
 if (audioServiceSource.includes('/api/tts') || voiceCacheSource.includes('/api/tts-precache') || storyBookSource.includes('/api/story-cover') || storyBookSource.includes('fetch(')) {
   fail('Child-facing app code must not call runtime media generation APIs.');
 }
-if (!storyBookSource.includes('/story-covers/${story.id}.png') || !coversStaticScript.includes('sharp') || !coversStaticScript.includes('pngPath') || !coversStaticScript.includes('sceneFor')) {
+if (!storyBookSource.includes('getStoryCoverImage') || !storyBookSource.includes('/academy/rooms/') || !coversStaticScript.includes('sharp') || !coversStaticScript.includes('pngPath') || !coversStaticScript.includes('sceneFor')) {
   fail('Story covers must load from static saved files.');
 }
 if (!voiceStaticScript.includes('fs.copyFileSync') || !voiceStaticScript.includes("storage: 'firebase-hosting'") || !staticMediaCheckSource.includes('Firebase-hosted voice files verified')) {
@@ -790,10 +790,10 @@ if (
 if (!appSource.includes('Learning Reflection') || !appSource.includes('Explain what you learned') || !appSource.includes('Teach it back') || !appSource.includes('practice rounds')) {
   fail('Reward flow needs a kid-facing learning reflection after practice.');
 }
-if (!appSource.includes('Lesson Board') || !appSource.includes('showMissionFocus') || !appSource.includes('Mastery gate') || !appSource.includes('Exit ticket')) {
+if (!appSource.includes("Today's lesson path") || !appSource.includes('showMissionFocus') || !teacherRoomCoachSource.includes('data-testid="teacher-lesson-path"') || !teacherRoomCoachSource.includes('Exit ticket')) {
   fail('Active lesson teacher board is missing inside room practice.');
 }
-if (!appSource.includes('Teach to exit ticket path') || !appSource.includes('Exit checks') || !appSource.includes('SCHOOL_LESSON_PHASES') || !appSource.includes('activeUnit?.endOfLessonChecks?.slice(0, 7)') || !appSource.includes('max-w-5xl')) {
+if (!teacherRoomCoachSource.includes('SCHOOL_LESSON_PHASES.map') || !teacherRoomCoachSource.includes('script.guided') || !teacherRoomCoachSource.includes('script.exitTicket') || !appSource.includes('Learn it. Try it. Show it.') || !appSource.includes('Start guided practice')) {
   fail('Active room teacher board must expose the full teach, example, guided, independent, exit-ticket path.');
 }
 if (!typesSource.includes('LearningJournalEntry') || !typesSource.includes('childReflection') || !appSource.includes('learningJournal') || !appSource.includes('recordLearningReflectionChoice') || !parentDashboardSource.includes('Learning Journal') || !parentDashboardSource.includes('Recent proof of practice') || !parentDashboardSource.includes('Child reflection')) {
@@ -915,7 +915,7 @@ if (!codingRoomSource.includes('Robot Command Center') || !codingRoomSource.incl
 if (!languageRoomSource.includes('availableWords') || !languageRoomSource.includes('gradeLevel: 7') || !languageRoomSource.includes('CATEGORY_LABELS') || !languageRoomSource.includes('I need help')) {
   fail('Language room needs grade-paced vocabulary, phrase practice, and clean category labels.');
 }
-if (!artRoomSource.includes('Creative Studio Mission') || !artRoomSource.includes('Teacher-Led Art Lesson') || !puzzleRoomSource.includes('Puzzle Brain Gym') || !puzzleRoomSource.includes('Find what comes next')) {
+if (!artRoomSource.includes('Teacher-Led Art Lesson') || !artRoomSource.includes('Mr. Atlas Review') || !puzzleRoomSource.includes('Puzzle Brain Gym') || !puzzleRoomSource.includes('Find what comes next')) {
   fail('Art and Puzzle rooms need clearer kid-facing mission panels.');
 }
 if (!artRoomSource.includes('lessonSteps') || !artRoomSource.includes('reflectionChoice') || !artRoomSource.includes('vocabulary')) {

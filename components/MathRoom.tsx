@@ -653,8 +653,14 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, onAttempt,
   const renderMathManipulatives = () => {
     if (!problem) return null;
     const numbers = problem.question.match(/\d+/g)?.map(Number) || [];
+    const numberBondMatch = problem.question.match(/^(\d+)\s*\+\s*\?\s*=\s*(\d+)$/);
+    const isNumberBond = Boolean(numberBondMatch);
+    const firstValue = isNumberBond ? Number(numberBondMatch?.[1] || 0) : (numbers[0] || 0);
+    const secondValue = isNumberBond ? problem.answer : (numbers[1] || 0);
+    const numberBondTotal = isNumberBond ? Number(numberBondMatch?.[2] || 0) : 0;
     const operation =
-      problem.context === 'money' ? 'count coins'
+      isNumberBond ? `make ${numberBondTotal}`
+        : problem.context === 'money' ? 'count coins'
         : problem.context === 'time' ? 'count hours'
           : problem.context === 'fraction' ? 'equal pieces'
             : problem.context === 'geometry' ? 'count sides'
@@ -663,10 +669,10 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, onAttempt,
                   : problem.operation === 'multiplication' ? 'groups'
                     : problem.operation === 'division' ? 'share'
                       : 'solve';
-    const firstCount = Math.min(numbers[0] || 0, 12);
-    const secondCount = Math.min(numbers[1] || 0, 12);
-    const firstLabel = numbers[0] && numbers[0] > 12 ? `${numbers[0]} total` : `${numbers[0] || 0}`;
-    const secondLabel = numbers[1] && numbers[1] > 12 ? `${numbers[1]} total` : `${numbers[1] || 0}`;
+    const firstCount = Math.min(firstValue, 20);
+    const secondCount = Math.min(secondValue, 20);
+    const firstLabel = isNumberBond ? `${firstValue} known` : firstValue > 20 ? `${firstValue} total` : `${firstValue}`;
+    const secondLabel = isNumberBond ? '? more' : secondValue > 20 ? `${secondValue} total` : `${secondValue}`;
     const isTakeAway = problem.operation === 'subtraction' || (
       problem.context === 'word-problem' && /left|eat|eats|uses|puts away|take away|minus|cuts off/i.test(problem.question)
     );
@@ -676,7 +682,7 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, onAttempt,
       <div className="mb-8 grid grid-cols-1 gap-3 rounded-[28px] bg-gradient-to-r from-sky-50 to-indigo-50 p-4 text-left sm:grid-cols-[1fr_auto_1fr]">
         <div className="rounded-2xl bg-white p-3 shadow-sm">
           <p className="mb-2 text-xs font-black uppercase tracking-[0.18em] text-sky-600">
-            {isTakeAway ? 'Start with' : 'First number'}
+            {isTakeAway ? 'Start with' : isNumberBond ? 'Known part' : 'First number'}
           </p>
           <div className="flex flex-wrap gap-1.5" aria-label={isTakeAway ? 'Starting group with crossed-out counters for take away' : 'First number counters'}>
             {[...Array(visibleFirstCount)].map((_, index) => (
@@ -701,11 +707,11 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, onAttempt,
         </div>
         <div className="rounded-2xl bg-white p-3 shadow-sm">
           <p className="mb-2 text-xs font-black uppercase tracking-[0.18em] text-violet-600">
-            {isTakeAway ? 'Take away' : 'Second number'}
+            {isTakeAway ? 'Take away' : isNumberBond ? 'Count the empty spaces' : 'Second number'}
           </p>
           <div className="flex flex-wrap gap-1.5">
             {[...Array(Math.max(secondCount, 1))].map((_, index) => (
-              <span key={index} className={`h-7 w-7 rounded-lg shadow-sm ${isTakeAway ? 'bg-rose-400' : 'bg-violet-400'}`} />
+              <span key={index} className={`h-7 w-7 rounded-lg shadow-sm ${isTakeAway ? 'bg-rose-400' : isNumberBond ? 'border-2 border-violet-500 bg-white/80' : 'bg-violet-400'}`} />
             ))}
           </div>
           <p className="mt-2 text-sm font-black text-violet-900">{secondLabel}</p>
@@ -715,6 +721,14 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, onAttempt,
             <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">Picture model</p>
             <p className="mt-1 text-sm font-bold text-emerald-900">
               Cross out {numbers[1] || 0}. Count what is not crossed out to find what is left.
+            </p>
+          </div>
+        )}
+        {isNumberBond && (
+          <div className="rounded-2xl bg-amber-50 p-3 text-center shadow-sm sm:col-span-3">
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-700">Number bond model</p>
+            <p className="mt-1 text-sm font-bold text-amber-950">
+              Start at {firstValue}. Count the outlined spaces until the whole reaches {numberBondTotal}.
             </p>
           </div>
         )}
@@ -745,13 +759,8 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, onAttempt,
   };
 
   return (
-    <div className="h-full w-full bg-indigo-50 p-6 flex flex-col relative overflow-hidden">
-       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,#fef3c7_0%,#dbeafe_28%,#c7d2fe_62%,#eef2ff_100%)]"></div>
-       <div className="absolute top-0 left-0 w-full h-64 bg-indigo-200/70 rounded-b-full"></div>
-       <div className="absolute top-10 left-10 text-indigo-300 text-9xl font-bold opacity-20 rotate-12 pointer-events-none">123</div>
-       <div className="absolute bottom-10 right-10 text-blue-300 text-9xl font-bold opacity-20 -rotate-12 pointer-events-none">+</div>
-       <div className="absolute bottom-16 left-12 h-24 w-24 rounded-[28px] bg-yellow-300/50 rotate-12 shadow-xl"></div>
-       <div className="absolute right-24 top-28 h-20 w-20 rounded-full bg-pink-300/40 shadow-xl"></div>
+    <div className="academy-room-surface h-full w-full bg-indigo-50 p-6 flex flex-col relative overflow-hidden" style={{ '--academy-room-scene': "url('/academy/rooms/math.webp')" } as React.CSSProperties}>
+       <div className="absolute inset-0 bg-white/40 backdrop-blur-[1px]"></div>
 
       <header className="flex justify-between items-center mb-8 z-10">
         <button onClick={onBack} aria-label="Back to world map" className="bg-white p-3 rounded-full shadow-lg hover:bg-gray-50 border-2 border-indigo-100">

@@ -158,6 +158,65 @@ const EXPANDED_VOCABULARY = READING_EXPANSION_WORDS.flatMap(([word, emoji, baseL
 
 export const ALL_VOCABULARY = [...VOCABULARY, ...EXPANDED_VOCABULARY];
 
+const PICTURE_SYMBOLS: Record<string, string> = {
+  ABOUT: '🎯',
+  BASKET: '🧺',
+  BELL: '🔔',
+  BRUSH: '🖌️',
+  BUILD: '🧱',
+  CLAIM: '💬',
+  CLOCK: '🕒',
+  CLUE: '🔎',
+  DAD: '👨',
+  DUCK: '🦆',
+  FOX: '🦊',
+  GARDEN: '🌻',
+  GEAR: '⚙️',
+  HELP: '🤝',
+  HILL: '⛰️',
+  IDEA: '💡',
+  JAM: '🍓',
+  LIGHT: '💡',
+  LOG: '🪵',
+  MAP: '🗺️',
+  MARKET: '🛒',
+  MATH: '➗',
+  MOM: '👩',
+  MOVE: '🐦',
+  NEST: '🪹',
+  NET: '🥅',
+  NORTH: '🧭',
+  PLAN: '📝',
+  POCKET: '👖',
+  POND: '🐸',
+  PUZZLE: '🧩',
+  RAIN: '🌧️',
+  ROCKET: '🚀',
+  RULER: '📏',
+  RUN: '🏃',
+  SCALE: '⚖️',
+  SHIP: '🚢',
+  SHOP: '🏪',
+  SIT: '🪑',
+  SKY: '🌤️',
+  TEACH: '🧑‍🏫',
+  TEST: '🧪',
+  THINK: '💭',
+  TOP: '🔝',
+  VIEW: '👀',
+  VOTE: '🗳️',
+  WATER: '💧',
+  WHY: '❓',
+  WIND: '🌬️',
+  WINDOW: '🪟',
+  WORLD: '🌍',
+};
+
+const getPictureSymbol = (picture: string) => PICTURE_SYMBOLS[picture] || picture;
+const getPictureLabel = (picture: string) => (
+  ALL_VOCABULARY.find(item => item.emoji === picture)?.word || picture.toLowerCase()
+);
+
 type Activity = 'MATCH' | 'SPELL' | 'RHYME' | 'PHONICS' | 'COMPREHENSION';
 
 interface ReadingPassage {
@@ -329,7 +388,7 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, onAt
   const narrateRound = useCallback(async (word: typeof ALL_VOCABULARY[number], roundOptions: string[]) => {
     switch (mode) {
       case 'MATCH':
-        await speakMultipleChoiceQuestion(`Which picture shows ${word.word}?`, roundOptions);
+        await speakMultipleChoiceQuestion(`Which picture shows ${word.word}?`, roundOptions.map(getPictureLabel));
         break;
       case 'SPELL':
         await speakAsync(`Spell ${word.word}.`, 0.86, 1.04);
@@ -442,7 +501,7 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, onAt
       const correctAnswer = mode === 'COMPREHENSION'
         ? currentPassage.answer
         : mode === 'MATCH'
-          ? currentWord.emoji
+          ? currentWord.word
           : currentWord.rhyme;
       setTeacherCheck({
         status: 'correct',
@@ -452,7 +511,7 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, onAt
           : mode === 'MATCH'
             ? `${currentWord.word} matches that picture.`
             : `${val} rhymes with ${currentWord.word}.`,
-        selectedAnswer: val,
+        selectedAnswer: mode === 'MATCH' ? getPictureLabel(val) : val,
         correctAnswer,
       });
       if (mode === 'COMPREHENSION') {
@@ -475,8 +534,8 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, onAt
           questionId: `reading-${mode.toLowerCase()}-${currentWord.word}`,
           skill: mode.toLowerCase(),
           prompt: mode === 'MATCH' ? `Match ${currentWord.word}` : `What rhymes with ${currentWord.word}?`,
-          selectedAnswer: val,
-          correctAnswer: mode === 'MATCH' ? currentWord.emoji : currentWord.rhyme,
+          selectedAnswer: mode === 'MATCH' ? getPictureLabel(val) : val,
+          correctAnswer: mode === 'MATCH' ? currentWord.word : currentWord.rhyme,
         });
       setTimeout(nextRound, mode === 'MATCH' ? MATCH_SUCCESS_ROUND_DELAY_MS : SUCCESS_ROUND_DELAY_MS);
     } else {
@@ -487,15 +546,15 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, onAt
           questionId: `reading-match-${currentWord.word}`,
           skill: 'match',
           prompt: `Match ${currentWord.word}`,
-          selectedAnswer: val,
-          correctAnswer: currentWord.emoji,
+          selectedAnswer: getPictureLabel(val),
+          correctAnswer: currentWord.word,
         }, false);
         setTeacherCheck({
           status: 'wrong',
           title: 'Look again at the word.',
-          detail: `${currentWord.word} matches the picture ${currentWord.emoji}.`,
-          selectedAnswer: val,
-          correctAnswer: currentWord.emoji,
+          detail: `${currentWord.word} matches the picture of ${currentWord.word.toLowerCase()}.`,
+          selectedAnswer: getPictureLabel(val),
+          correctAnswer: currentWord.word,
         });
         void speakWrong(`That is not ${currentWord.word}. Look again and find the matching picture.`);
       } else if (mode === 'RHYME') {
@@ -640,18 +699,15 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, onAt
   ];
 
   return (
-    <div className="h-full w-full bg-orange-50 flex flex-col items-center relative overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,#fff7ed_0%,#fed7aa_34%,#fdba74_64%,#fb923c_100%)]"></div>
-      <div className="absolute top-0 w-full h-64 bg-orange-200/80 rounded-b-[50%] z-0"></div>
-      <div className="absolute left-8 top-28 h-28 w-20 rotate-[-10deg] rounded-xl bg-white/40 shadow-xl"></div>
-      <div className="absolute right-10 bottom-16 h-24 w-32 rotate-6 rounded-[28px] bg-yellow-200/50 shadow-xl"></div>
+    <div className="academy-room-surface h-full w-full bg-orange-50 flex flex-col items-center relative overflow-hidden" style={{ '--academy-room-scene': "url('/academy/rooms/reading.webp')" } as React.CSSProperties}>
+      <div className="absolute inset-0 bg-white/35 backdrop-blur-[1px]"></div>
 
       <header className="w-full p-4 flex justify-between items-center z-10 flex-wrap gap-2">
         <button onClick={onBack} aria-label="Back to world map" className="bg-white p-3 rounded-full shadow-lg hover:bg-orange-100">
           <ArrowLeft className="text-orange-600" />
         </button>
 
-        <div className="flex bg-white/80 p-1 rounded-2xl backdrop-blur-sm overflow-x-auto max-w-[60vw] shadow-sm">
+        <div className="flex max-w-[60vw] overflow-x-auto rounded-2xl border border-white/60 bg-white/90 p-1 shadow-lg backdrop-blur-md">
           {(['MATCH', 'SPELL', 'RHYME', 'PHONICS', 'COMPREHENSION'] as const).map(m => (
             <button
               key={m}
@@ -747,7 +803,7 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, onAt
             </div>
           ) : (
             <div className="mb-5 rounded-[28px] bg-gradient-to-br from-orange-100 to-yellow-50 p-5 shadow-inner">
-              <div className="text-7xl mb-3">{currentWord.emoji}</div>
+              <div className="text-7xl mb-3">{getPictureSymbol(currentWord.emoji)}</div>
               <p className="text-5xl font-black text-orange-700">{currentWord.word}</p>
               <p className="mt-3 rounded-2xl bg-white/80 px-4 py-2 text-sm font-bold text-orange-900">{currentWord.sentence}</p>
             </div>
@@ -760,7 +816,7 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, onAt
           {/* PHONICS VIEW */}
           {mode === 'PHONICS' && (
             <div className="flex flex-col items-center">
-              <div className="text-6xl mb-4">{currentWord.emoji}</div>
+              <div className="text-6xl mb-4">{getPictureSymbol(currentWord.emoji)}</div>
 
               {/* Segmented Word */}
               <div className="flex gap-2 mb-8 flex-wrap justify-center">
@@ -829,13 +885,14 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, onAt
                   key={i}
                   data-testid="reading-answer-option"
                   data-reading-correct={isCorrect ? 'true' : 'false'}
+                  aria-label={mode === 'MATCH' ? `${String.fromCharCode(65 + i)}. Picture of ${getPictureLabel(opt)}` : undefined}
                   onClick={() => handleOptionClick(opt)}
                   className={`${mode === 'COMPREHENSION' ? 'min-h-24 px-4 text-base leading-snug' : 'min-h-28 text-4xl'} bg-white rounded-3xl font-bold flex items-center justify-center gap-3 text-center shadow-lg hover:bg-orange-50 border-b-8 border-orange-100 active:border-b-0 active:translate-y-2 transition-all`}
                 >
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-orange-100 text-base font-black text-orange-700">
                     {String.fromCharCode(65 + i)}
                   </span>
-                  <span>{opt}</span>
+                  <span aria-hidden={mode === 'MATCH' ? 'true' : undefined}>{mode === 'MATCH' ? getPictureSymbol(opt) : opt}</span>
                 </button>
               );
             })}

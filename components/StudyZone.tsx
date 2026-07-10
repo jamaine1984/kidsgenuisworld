@@ -112,7 +112,7 @@ export const StudyZone: React.FC<StudyZoneProps> = ({ progress, onBack, onOpenRo
   };
 
   return (
-    <div className="min-h-full overflow-y-auto bg-[radial-gradient(circle_at_top_left,#fff7ad_0%,#b7f0ff_26%,#d3c8ff_58%,#f8b7d4_100%)] p-4 sm:p-6 kid-scroll">
+    <div className="academy-room-surface min-h-full overflow-y-auto p-4 sm:p-6 kid-scroll" style={{ '--academy-room-scene': "url('/academy/rooms/puzzle.webp')" } as React.CSSProperties}>
       <div className="mx-auto flex max-w-6xl flex-col gap-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <button

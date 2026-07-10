@@ -35,16 +35,17 @@ const MUSIC_EXPANSION_THEMES = [
 const EXPANDED_MUSIC_MISSIONS = MUSIC_EXPANSION_THEMES.flatMap((theme, themeIndex) =>
   Array.from({ length: 7 }, (_, gradeIndex) => Array.from({ length: 2 }, (_, variantIndex) => {
     const gradeLevel = gradeIndex + 1;
+    const article = /^[aeiou]/i.test(theme) ? 'an' : 'a';
     return {
       gradeLevel,
       title: `${theme.replace(/^\w/, letter => letter.toUpperCase())} Music ${variantIndex + 1}`,
       noteGoal: 5 + gradeLevel + (themeIndex % 3) + variantIndex,
       loopGoal: Math.min(5, 1 + Math.ceil(gradeLevel / 2)),
       prompt: gradeLevel <= 2
-        ? `Make a ${theme} sound using high notes, low notes, and one repeated beat.`
+        ? `Make ${article} ${theme} sound using high notes, low notes, and one repeated beat.`
         : gradeLevel <= 4
-          ? `Build a ${theme} pattern with a steady beat and a short melody answer.`
-          : `Compose a ${theme} performance with layers, contrast, and a clear ending.`,
+          ? `Build ${article} ${theme} pattern with a steady beat and a short melody answer.`
+          : `Compose ${article} ${theme} performance with layers, contrast, and a clear ending.`,
     };
   })).flat()
 );
@@ -175,7 +176,7 @@ export const MusicRoom: React.FC<MusicRoomProps> = ({ onBack, onReward, level })
   };
 
   return (
-    <div className="h-full w-full bg-[radial-gradient(circle_at_top,#7c3aed_0,#4c1d95_48%,#111827_100%)] flex flex-col items-center relative overflow-hidden">
+    <div className="academy-room-surface academy-room-surface-dark h-full w-full flex flex-col items-center relative overflow-hidden" style={{ '--academy-room-scene': "url('/academy/rooms/music.webp')" } as React.CSSProperties}>
       <div className="absolute inset-0 opacity-40 [background-image:radial-gradient(circle_at_20%_20%,rgba(255,255,255,.35)_0_2px,transparent_3px),radial-gradient(circle_at_70%_35%,rgba(255,255,255,.25)_0_2px,transparent_3px),radial-gradient(circle_at_40%_75%,rgba(255,255,255,.2)_0_2px,transparent_3px)]"></div>
       <div className="absolute bottom-0 left-0 w-32 h-96 bg-yellow-400 opacity-20 blur-2xl transform rotate-12 origin-bottom"></div>
       <div className="absolute bottom-0 right-0 w-32 h-96 bg-blue-400 opacity-20 blur-2xl transform -rotate-12 origin-bottom"></div>

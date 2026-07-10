@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowLeft, FlaskConical, Lightbulb, Star, Sparkles, Volume2, X, Check } from 'lucide-react';
+import { ArrowLeft, Atom, FlaskConical, HeartPulse, Leaf, Lightbulb, Star, Sparkles, Telescope, Volume2, X, Check } from 'lucide-react';
 import { ScienceExperiment } from '../types';
 import { speakCorrect, speakWrong, playSuccess, playWrongBuzzer, speakMultipleChoiceQuestion } from '../services/audioService';
 import { pickDailyItem } from '../services/dailyRotation';
@@ -10,6 +10,21 @@ interface ScienceRoomProps {
   onReward: (meta?: { questionId: string; skill: string; prompt: string; selectedAnswer?: string; correctAnswer?: string }) => void;
   onAttempt?: (meta: { questionId: string; skill: string; prompt: string; selectedAnswer?: string; correctAnswer?: string }, correct: boolean) => void;
 }
+
+const getScienceGradeLabel = (level: number) => {
+  const labels = ['Pre-K', 'Kindergarten', '1st Grade', '2nd Grade', '3rd Grade', '4th Grade', '5th Grade'];
+  return labels[Math.min(Math.max(level, 1), 7) - 1];
+};
+
+const getScienceCategoryIcon = (category: string) => {
+  switch (category) {
+    case 'biology': return HeartPulse;
+    case 'nature': return Leaf;
+    case 'physics': return Atom;
+    case 'space': return Telescope;
+    default: return FlaskConical;
+  }
+};
 
 // Science experiments/questions organized by grade level
 export const SCIENCE_EXPERIMENTS: (ScienceExperiment & { gradeLevel: number })[] = [
@@ -719,11 +734,12 @@ export const ScienceRoom: React.FC<ScienceRoomProps> = ({ level, onBack, onRewar
   };
 
   if (!experiment) return null;
+  const CategoryIcon = getScienceCategoryIcon(experiment.category);
 
   return (
-    <div className="w-full h-full bg-[radial-gradient(circle_at_top_left,#bef264_0,#14b8a6_32%,#0891b2_68%,#0f766e_100%)] flex flex-col overflow-auto relative">
+    <div className="academy-room-surface w-full h-full flex flex-col overflow-auto relative" style={{ '--academy-room-scene': "url('/academy/rooms/science.webp')" } as React.CSSProperties}>
       {/* Header */}
-      <div className="flex items-center justify-between p-4 bg-white/20 backdrop-blur-sm">
+      <div className="flex items-center justify-between border-b border-white/15 bg-slate-950/75 p-4 backdrop-blur-md">
         <button onClick={onBack} aria-label="Back to world map" className="p-2 bg-white/30 rounded-full hover:bg-white/50 transition">
           <ArrowLeft className="text-white" size={24} />
         </button>
@@ -737,19 +753,13 @@ export const ScienceRoom: React.FC<ScienceRoomProps> = ({ level, onBack, onRewar
         </div>
       </div>
 
-      <div className="pointer-events-none absolute left-4 top-24 h-24 w-24 rounded-full bg-lime-200/30 blur-sm" />
-      <div className="pointer-events-none absolute right-10 top-36 h-16 w-16 rounded-full bg-cyan-100/40 blur-sm" />
-      <div className="pointer-events-none absolute bottom-20 left-16 h-20 w-20 rounded-full bg-white/20 blur-sm" />
-
       {/* Main Content */}
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="bg-white rounded-3xl shadow-2xl p-5 sm:p-6 max-w-2xl w-full relative overflow-hidden">
-          <div className="absolute -right-16 -top-16 h-44 w-44 rounded-full bg-teal-100/70" />
-          <div className="absolute -left-10 bottom-20 h-28 w-28 rounded-full bg-lime-100/80" />
           {/* Experiment Icon & Category */}
           <div className="text-center mb-4 relative">
-            <div className={`inline-block text-6xl p-4 rounded-2xl bg-gradient-to-br ${getCategoryColor(experiment.category)} shadow-lg animate-bounce`}>
-              {experiment.icon}
+            <div className={`inline-flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br ${getCategoryColor(experiment.category)} text-white shadow-lg`}>
+              <CategoryIcon size={40} strokeWidth={2.3} />
             </div>
             <div className="mt-2 flex items-center justify-center gap-2">
               <span className={`text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-gradient-to-r ${getCategoryColor(experiment.category)} text-white`}>
@@ -776,7 +786,7 @@ export const ScienceRoom: React.FC<ScienceRoomProps> = ({ level, onBack, onRewar
                 <div className="text-lg font-black text-slate-800">Try the scientist steps</div>
               </div>
               <div className="rounded-full bg-white px-3 py-1 text-xs font-black uppercase text-teal-700 shadow-sm">
-                Grade {level}
+                {getScienceGradeLabel(level)}
               </div>
             </div>
             <div className="grid grid-cols-3 gap-2">
@@ -844,6 +854,8 @@ export const ScienceRoom: React.FC<ScienceRoomProps> = ({ level, onBack, onRewar
                 <button
                   key={index}
                   onClick={() => handleAnswer(index)}
+                  data-testid="science-answer-option"
+                  data-science-correct={index === experiment.correctAnswer ? 'true' : 'false'}
                   draggable={!showResult}
                   onDragStart={() => setDraggedAnswerIndex(index)}
                   onDragEnd={() => setDraggedAnswerIndex(null)}

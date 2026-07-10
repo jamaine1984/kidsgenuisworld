@@ -3,7 +3,6 @@ import { completeKidSetup, startTeacherLesson, PARENT_PIN, resetApp } from './he
 import { ALL_CHALLENGES } from '../components/CodingRoom';
 import { ALL_GEOGRAPHY_QUESTIONS } from '../components/GeographyRoom';
 import { getLanguageWords } from '../components/LanguageRoom';
-import { ALL_SCIENCE_EXPERIMENTS } from '../components/ScienceRoom';
 
 test.beforeEach(async ({ page }) => {
   await resetApp(page);
@@ -18,8 +17,7 @@ async function saveReflection(page: Page) {
 }
 
 async function answerScienceRound(page: Page) {
-  const visibleExperiment = await findVisibleItem(page, ALL_SCIENCE_EXPERIMENTS.filter(item => item.gradeLevel <= TEST_LEVEL), item => item.question);
-  await page.getByRole('button', { name: new RegExp(escapeRegExp(visibleExperiment.hypothesis[visibleExperiment.correctAnswer])) }).click();
+  await page.locator('[data-testid="science-answer-option"][data-science-correct="true"]').click();
   await expect(page.getByText('Correct prediction.')).toBeVisible();
 }
 
@@ -176,16 +174,13 @@ test('puzzle room solves shape and pattern activities without blocking progress'
 
   await page.locator('header button').nth(3).click();
   await expect(page.getByRole('heading', { name: 'Find the matching shape!' })).toBeVisible();
-  const firstShapeTarget = await page.locator('h2 + div').innerText();
-  await page.locator('button.w-20.h-20').filter({ hasText: firstShapeTarget }).first().click();
-  await expect.poll(async () => page.locator('h2 + div').innerText()).not.toBe(firstShapeTarget);
+  const firstShapeTarget = await page.getByTestId('shape-target').getAttribute('data-shape');
+  await page.locator('[data-testid="shape-answer"][data-shape-correct="true"]').click();
+  await expect.poll(async () => page.getByTestId('shape-target').getAttribute('data-shape')).not.toBe(firstShapeTarget);
 
   await page.locator('header button').nth(2).click();
   await expect(page.getByText('What comes next?')).toBeVisible();
-  for (let index = 0; index < 6; index += 1) {
-    await page.locator('button.w-24.h-24').nth(index % 4).click();
-    if (await page.getByText(/Correct/i).isVisible().catch(() => false)) return;
-  }
+  await page.locator('[data-testid="pattern-answer"][data-pattern-correct="true"]').click();
   await expect(page.getByText(/Correct/i)).toBeVisible();
 });
 

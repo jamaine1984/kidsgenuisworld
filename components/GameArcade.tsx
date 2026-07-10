@@ -681,7 +681,7 @@ export const GameArcade: React.FC<GameArcadeProps> = ({ progress, onBack, onOpen
 
   return (
     <div className="h-screen w-screen overflow-y-auto bg-sky-50 text-slate-950">
-      <div className="min-h-full bg-[linear-gradient(135deg,#e0f2fe_0%,#fef3c7_32%,#fce7f3_64%,#dcfce7_100%)]">
+      <div className="academy-room-surface min-h-full" style={{ '--academy-room-scene': "url('/academy/rooms/coding.webp')" } as React.CSSProperties}>
         <header className="sticky top-0 z-20 border-b border-white/70 bg-white/86 px-4 py-3 shadow-sm backdrop-blur-xl">
           <div className="mx-auto flex max-w-7xl items-center justify-between gap-3">
             <button onClick={onBack} className="rounded-2xl bg-cyan-100 p-3 text-cyan-800 hover:bg-cyan-200" aria-label="Back to world map">

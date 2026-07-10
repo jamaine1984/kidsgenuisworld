@@ -176,7 +176,8 @@ if (
   !audioSource.includes('kidGeniusAllowExternalVoice') ||
   !audioSource.includes('playBrowserVoiceSpeech') ||
   !audioSource.includes('window.speechSynthesis.speak(utterance)') ||
-  !storySource.includes('/story-covers/${story.id}.png')
+  !storySource.includes('getStoryCoverImage') ||
+  !storySource.includes('/academy/rooms/')
 ) {
   fail('Saved voice, browser voice fallback, and static cover features must be wired before launch.');
 }

@@ -434,7 +434,7 @@ export const LanguageRoom: React.FC<LanguageRoomProps> = ({ level, onBack, onRew
   if (!currentWord) return null;
 
   return (
-    <div className="w-full h-full bg-[radial-gradient(circle_at_top_left,#f9a8d4_0,#a855f7_34%,#6366f1_68%,#312e81_100%)] flex flex-col overflow-auto relative">
+    <div className="academy-room-surface w-full h-full flex flex-col overflow-auto relative" style={{ '--academy-room-scene': "url('/academy/rooms/language.webp')" } as React.CSSProperties}>
       {/* Header */}
       <div className="flex items-center justify-between p-4 bg-white/20 backdrop-blur-sm">
         <button onClick={onBack} aria-label="Back to world map" className="p-2 bg-white/30 rounded-full hover:bg-white/50 transition">

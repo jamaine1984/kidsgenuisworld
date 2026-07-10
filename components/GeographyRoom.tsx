@@ -390,7 +390,7 @@ export const GeographyRoom: React.FC<GeographyRoomProps> = ({ level, onBack, onR
   if (!question) return null;
 
   return (
-    <div className="w-full h-full bg-[radial-gradient(circle_at_top_left,#fef08a_0,#38bdf8_28%,#14b8a6_62%,#2563eb_100%)] flex flex-col overflow-auto relative">
+    <div className="academy-room-surface w-full h-full flex flex-col overflow-auto relative" style={{ '--academy-room-scene': "url('/academy/rooms/geography.webp')" } as React.CSSProperties}>
       {/* Header */}
       <div className="flex items-center justify-between p-4 bg-white/20 backdrop-blur-sm">
         <button onClick={onBack} aria-label="Back to world map" className="p-2 bg-white/30 rounded-full hover:bg-white/50 transition">

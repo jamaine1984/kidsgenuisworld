@@ -1072,8 +1072,11 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
 
   if (requireParentGate && !isParentVerified) {
     return (
-      <div className="w-full h-full bg-gradient-to-br from-indigo-700 via-purple-700 to-slate-900 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+      <div
+        className="academy-room-surface h-full w-full flex items-center justify-center p-4"
+        style={{ '--academy-room-scene': "url('/academy/academy-atrium-hero.webp')" } as React.CSSProperties}
+      >
+        <div className="max-w-md w-full rounded-2xl border border-white/70 bg-white/95 p-6 shadow-2xl backdrop-blur-md">
           <button onClick={onBack} aria-label="Back to world map" className="mb-4 p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition">
             <ArrowLeft size={22} />
           </button>
@@ -1124,9 +1127,9 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
   }
 
   return (
-    <div className="w-full h-screen min-h-0 bg-gray-50 flex flex-col overflow-hidden">
+    <div className="w-full h-screen min-h-0 bg-[#eef4f3] flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="shrink-0 bg-gradient-to-r from-indigo-600 to-purple-600 p-4 text-white">
+      <div className="shrink-0 border-b border-[#d3b45c]/50 bg-[#123c48] p-4 text-white shadow-lg">
         <div className="flex items-center justify-between gap-3 mb-4">
           <button onClick={onBack} aria-label="Back to world map" className="p-2 bg-white/20 rounded-full hover:bg-white/30 transition shrink-0">
             <ArrowLeft size={24} />
@@ -1139,16 +1142,16 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
         </div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div className="bg-white/20 rounded-xl p-3 text-center">
+        <div className="grid grid-cols-3 gap-3">
+          <div className="rounded-xl border border-white/20 bg-white/10 p-3 text-center backdrop-blur-sm">
             <p className="text-3xl font-bold">{progress.currentLevel}</p>
             <p className="text-xs opacity-80">Level</p>
           </div>
-          <div className="bg-white/20 rounded-xl p-3 text-center">
+          <div className="rounded-xl border border-white/20 bg-white/10 p-3 text-center backdrop-blur-sm">
             <p className="text-3xl font-bold">{totalProblems}</p>
             <p className="text-xs opacity-80">Problems Solved</p>
           </div>
-          <div className="bg-white/20 rounded-xl p-3 text-center">
+          <div className="rounded-xl border border-white/20 bg-white/10 p-3 text-center backdrop-blur-sm">
             <p className="text-3xl font-bold">{progress.stickers.length}</p>
             <p className="text-xs opacity-80">Stickers</p>
           </div>
@@ -1169,7 +1172,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
             onClick={() => setActiveTab(tab.id as ParentDashboardTab)}
             className={`py-3 px-2 flex items-center justify-center gap-2 font-semibold transition text-sm sm:text-base ${
               activeTab === tab.id
-                ? 'text-indigo-600 border-b-2 border-indigo-600'
+                ? 'border-b-2 border-[#b18a2e] bg-[#f7f1df] text-[#123c48]'
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -3197,23 +3200,6 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                           Start $9.99/mo
                         </button>
                       </div>
-                      <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
-                        <p className="text-xs font-black uppercase tracking-[0.12em] text-amber-700">Owner checkout test</p>
-                        <p className="mt-1 text-xs font-bold text-amber-900">
-                          Temporary live Stripe test. Charges $0.50 today, creates a real invoice, then can be canceled in Stripe before the next renewal.
-                        </p>
-                        <button
-                          onClick={() => runBillingAction(
-                            () => onStartStripeCheckout?.('checkout_test') || Promise.resolve(),
-                            'Stripe $0.50 test checkout could not be opened.'
-                          )}
-                          disabled={isBillingBusy}
-                          className="mt-3 w-full py-3 rounded-lg bg-amber-400 text-slate-950 font-semibold hover:bg-amber-300 disabled:bg-gray-200 disabled:text-gray-500 transition flex items-center justify-center gap-2"
-                        >
-                          <CreditCard size={18} />
-                          Start $0.50 Test Checkout
-                        </button>
-                      </div>
                     </div>
                   )}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -3380,10 +3366,10 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
             <div className="bg-white rounded-xl p-4 shadow-sm border border-indigo-100">
               <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
                 <Award size={20} className="text-indigo-500" />
-                Paid Launch Readiness
+                Family Safety & Access
               </h3>
               <p className="text-sm text-gray-600 mb-4">
-                Use this as the parent-facing launch checklist. Families can use the learning path now, and subscription actions stay in parent-only billing screens.
+                Review how the family account protects child profiles, progress, media, and billing access.
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
                 <div className="rounded-xl bg-emerald-50 border border-emerald-100 p-3">
@@ -3410,7 +3396,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 </div>
               </div>
               <div className="rounded-xl bg-slate-50 border border-slate-200 p-3">
-                <p className="text-xs font-bold text-slate-700">No payment collection</p>
+                <p className="text-xs font-bold text-slate-700">Parent-only checkout</p>
                 <p className="text-xs text-slate-500 mt-1">
                   The child learning area does not collect card data or create subscriptions. Keep checkout, receipts, cancellation, and account changes in parent-controlled billing screens.
                 </p>

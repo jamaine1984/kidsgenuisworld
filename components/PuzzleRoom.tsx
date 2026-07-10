@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useState, useEffect } from 'react';
-import { ArrowLeft, RefreshCw, Shapes, Grid3X3, BrainCircuit } from 'lucide-react';
+import { ArrowLeft, BrainCircuit, Circle, Diamond, Fish, Flower2, Gift, Grid3X3, Hexagon, RefreshCw, Rocket, Shapes, Square, Star, Triangle } from 'lucide-react';
 import { playSuccess, playError, playPop } from '../services/audioService';
 import { pickDailyItem, shuffleDailyItems } from '../services/dailyRotation';
 
@@ -10,6 +10,26 @@ interface PuzzleRoomProps {
 }
 
 type PuzzleMode = 'MEMORY' | 'PATTERN' | 'SHAPES';
+
+const renderPuzzleIcon = (item: string, className = 'h-10 w-10') => {
+  const iconProps = { className, strokeWidth: 2.4 };
+  switch (item) {
+    case 'rocket': return <Rocket {...iconProps} className={`${className} text-indigo-600`} />;
+    case 'gift': return <Gift {...iconProps} className={`${className} text-rose-600`} />;
+    case 'flower': return <Flower2 {...iconProps} className={`${className} text-pink-600`} />;
+    case 'fish': return <Fish {...iconProps} className={`${className} text-cyan-700`} />;
+    case 'star': return <Star {...iconProps} className={`${className} text-amber-600`} fill="currentColor" />;
+    case 'diamond': return <Diamond {...iconProps} className={`${className} text-violet-600`} fill="currentColor" />;
+    case 'circle': return <Circle {...iconProps} className={`${className} text-orange-500`} fill="currentColor" />;
+    case 'square': return <Square {...iconProps} className={`${className} text-blue-600`} fill="currentColor" />;
+    case 'triangle': return <Triangle {...iconProps} className={`${className} text-emerald-600`} fill="currentColor" />;
+    case 'hexagon': return <Hexagon {...iconProps} className={`${className} text-teal-600`} fill="currentColor" />;
+    case '?': return <span className="text-4xl font-black text-teal-700">?</span>;
+    default: return <Shapes {...iconProps} className={`${className} text-slate-600`} />;
+  }
+};
+
+const formatPuzzleItem = (item: string) => item.charAt(0).toUpperCase() + item.slice(1);
 
 const PUZZLE_MISSIONS = [
   { gradeLevel: 1, title: 'Memory Match', pairCount: 3, patternLength: 4, prompt: 'Match pictures and notice what repeats.' },
@@ -74,8 +94,8 @@ export const PuzzleRoom: React.FC<PuzzleRoomProps> = ({ onBack, onReward, level 
   const [teacherFeedback, setTeacherFeedback] = useState('Teacher Check: look carefully, name your strategy, then solve the puzzle.');
   const puzzleStep = useRef(0);
 
-  const ITEMS = ['🦄', '🦕', '🍕', '🚀', '🎈', '🎁'];
-  const SHAPES = ['🟥', '🟦', '🟩', '🟨', '🟠', '🟣'];
+  const ITEMS = ['rocket', 'gift', 'flower', 'fish', 'star', 'diamond'];
+  const SHAPES = ['circle', 'square', 'triangle', 'diamond', 'hexagon', 'star'];
 
   const mission = useMemo(() => {
     const missionPool = ALL_PUZZLE_MISSIONS.filter(item => item.gradeLevel <= Math.min(Math.max(level, 1), 7));
@@ -136,7 +156,7 @@ export const PuzzleRoom: React.FC<PuzzleRoomProps> = ({ onBack, onReward, level 
         const [c1, c2] = newCards.filter(c => newFlipped.includes(c.id));
         if (c1.emoji === c2.emoji) {
             playSuccess();
-            setTeacherFeedback(`Correct match. You found two ${c1.emoji} cards. Keep scanning slowly.`);
+            setTeacherFeedback(`Correct match. You found two ${formatPuzzleItem(c1.emoji)} cards. Keep scanning slowly.`);
             setCards(prev => prev.map(c => newFlipped.includes(c.id) ? { ...c, isMatched: true } : c));
             setFlipped([]);
             setIsLocked(false);
@@ -166,7 +186,7 @@ export const PuzzleRoom: React.FC<PuzzleRoomProps> = ({ onBack, onReward, level 
       if (opt === patternAnswer) {
           playSuccess();
           setSequence(prev => prev.map(p => p === '?' ? opt : p));
-          setTeacherFeedback(`Correct. ${opt} completes the pattern because the rule repeats.`);
+          setTeacherFeedback(`Correct. ${formatPuzzleItem(opt)} completes the pattern because the rule repeats.`);
           setTimeout(() => {
               onReward({
                 questionId: `puzzle-pattern-${mission.title}-${sequence.join('')}`,
@@ -179,14 +199,14 @@ export const PuzzleRoom: React.FC<PuzzleRoomProps> = ({ onBack, onReward, level 
           }, 1000);
       } else {
           playError();
-          setTeacherFeedback(`Try again. ${opt} does not fit the rule yet. Look at the first two or three items and repeat the pattern.`);
+          setTeacherFeedback(`Try again. ${formatPuzzleItem(opt)} does not fit the rule yet. Look at the first two or three items and repeat the pattern.`);
       }
   };
 
   const handleShapeClick = (opt: string) => {
       if (opt === targetShape) {
           playSuccess();
-          setTeacherFeedback(`Correct. ${opt} matches the target shape exactly.`);
+          setTeacherFeedback(`Correct. ${formatPuzzleItem(opt)} matches the target shape exactly.`);
           onReward({
             questionId: `puzzle-shape-${mission.title}-${targetShape}`,
             skill: 'visual discrimination',
@@ -197,32 +217,39 @@ export const PuzzleRoom: React.FC<PuzzleRoomProps> = ({ onBack, onReward, level 
           initGame();
       } else {
           playError();
-          setTeacherFeedback(`Try again. ${opt} is not the target. Compare color and shape before tapping.`);
+          setTeacherFeedback(`Try again. ${formatPuzzleItem(opt)} is not the target. Compare color and shape before tapping.`);
       }
   }
 
+  const modeTitle = mode === 'MEMORY' ? 'Memory Match' : mode === 'PATTERN' ? 'Pattern Builder' : 'Shape Detective';
+  const modePrompt = mode === 'MEMORY'
+    ? `Find ${mission.pairCount} matching pairs. Remember where each picture is hiding.`
+    : mode === 'PATTERN'
+      ? 'Name the repeating rule, then choose what comes next.'
+      : 'Compare every detail and find the exact matching shape.';
+
   return (
-    <div className="h-full w-full bg-[radial-gradient(circle_at_top_left,#bef264_0,#14b8a6_34%,#0f766e_70%,#134e4a_100%)] flex flex-col p-4 relative overflow-auto">
+    <div className="academy-room-surface h-full w-full flex flex-col p-4 relative overflow-auto" style={{ '--academy-room-scene': "url('/academy/rooms/puzzle.webp')" } as React.CSSProperties}>
       <header className="flex justify-between items-center mb-4 z-10">
         <button onClick={onBack} aria-label="Back to world map" className="bg-white p-2 rounded-full shadow-lg">
           <ArrowLeft className="text-teal-600" />
         </button>
         
         <div className="flex bg-teal-900/50 p-1 rounded-xl backdrop-blur-md shadow-lg">
-            <button onClick={() => setMode('MEMORY')} className={`p-2 rounded-lg ${mode==='MEMORY'?'bg-white text-teal-800':'text-white'}`}><Grid3X3 /></button>
-            <button onClick={() => setMode('PATTERN')} className={`p-2 rounded-lg ${mode==='PATTERN'?'bg-white text-teal-800':'text-white'}`}><BrainCircuit /></button>
-            <button onClick={() => setMode('SHAPES')} className={`p-2 rounded-lg ${mode==='SHAPES'?'bg-white text-teal-800':'text-white'}`}><Shapes /></button>
+            <button aria-label="Memory Match" title="Memory Match" onClick={() => setMode('MEMORY')} className={`p-2 rounded-lg ${mode==='MEMORY'?'bg-white text-teal-800':'text-white'}`}><Grid3X3 /></button>
+            <button aria-label="Pattern Builder" title="Pattern Builder" onClick={() => setMode('PATTERN')} className={`p-2 rounded-lg ${mode==='PATTERN'?'bg-white text-teal-800':'text-white'}`}><BrainCircuit /></button>
+            <button aria-label="Shape Detective" title="Shape Detective" onClick={() => setMode('SHAPES')} className={`p-2 rounded-lg ${mode==='SHAPES'?'bg-white text-teal-800':'text-white'}`}><Shapes /></button>
         </div>
 
-        <button onClick={initGame} className="bg-teal-800 p-2 rounded-full text-white hover:bg-teal-700">
+        <button onClick={initGame} aria-label="New puzzle" title="New puzzle" className="bg-teal-800 p-2 rounded-full text-white hover:bg-teal-700">
            <RefreshCw size={20} />
         </button>
       </header>
 
       <div className="mx-auto mb-4 max-w-3xl rounded-2xl bg-white/95 p-4 text-center shadow-lg ring-1 ring-teal-100">
         <div className="text-xs font-black uppercase tracking-[0.22em] text-teal-600">Puzzle Brain Gym</div>
-        <div className="mt-1 text-lg font-black text-slate-800">{mission.title}</div>
-        <div className="text-xs font-bold text-slate-500">{mission.prompt}</div>
+        <div className="mt-1 text-lg font-black text-slate-800">{modeTitle}</div>
+        <div className="text-xs font-bold text-slate-500">{modePrompt}</div>
         <div className="mt-3 rounded-xl bg-white px-4 py-3 text-sm font-black text-teal-900 shadow-sm ring-1 ring-teal-100">
           {teacherFeedback}
         </div>
@@ -245,16 +272,16 @@ export const PuzzleRoom: React.FC<PuzzleRoomProps> = ({ onBack, onReward, level 
         {mode === 'MEMORY' && (
             <div className="grid grid-cols-3 md:grid-cols-4 gap-4 max-w-2xl w-full aspect-square md:aspect-auto">
                 {cards.map(card => (
-                    <div key={card.id} onClick={() => handleMemoryClick(card.id)} className="relative w-full h-24 perspective-1000 cursor-pointer group">
+                    <button type="button" aria-label={`Memory card ${card.id + 1}`} key={card.id} onClick={() => handleMemoryClick(card.id)} className="group relative h-24 w-full cursor-pointer perspective-1000">
                         <div className={`w-full h-full transition-all duration-500 transform style-preserve-3d ${card.isFlipped ? 'rotate-y-180' : ''}`}>
                             <div className="absolute inset-0 bg-teal-800 rounded-xl border-4 border-teal-400 flex items-center justify-center backface-hidden shadow-lg">
-                                <span className="text-4xl opacity-50">❓</span>
+                                <span className="text-4xl font-black text-teal-100/80">?</span>
                             </div>
                             <div className="absolute inset-0 bg-white rounded-xl border-4 border-yellow-400 flex items-center justify-center backface-hidden rotate-y-180 shadow-xl">
-                                <span className="text-5xl">{card.emoji}</span>
+                                {renderPuzzleIcon(card.emoji, 'h-12 w-12')}
                             </div>
                         </div>
-                    </div>
+                    </button>
                 ))}
             </div>
         )}
@@ -265,14 +292,14 @@ export const PuzzleRoom: React.FC<PuzzleRoomProps> = ({ onBack, onReward, level 
                 <div className="flex gap-4 p-6 bg-white/20 rounded-2xl">
                     {sequence.map((item, i) => (
                         <div key={i} className="w-20 h-20 bg-white rounded-xl flex items-center justify-center text-5xl shadow-lg">
-                            {item}
+                            {renderPuzzleIcon(item, 'h-12 w-12')}
                         </div>
                     ))}
                 </div>
                 <div className="flex gap-4">
                     {patternOptions.map((opt, i) => (
-                        <button key={i} onClick={() => handlePatternClick(opt)} className="w-24 h-24 bg-yellow-400 hover:bg-yellow-300 rounded-xl text-5xl shadow-[0_6px_0_rgb(200,150,0)] active:translate-y-2 active:shadow-none transition-all">
-                            {opt}
+                        <button key={i} aria-label={`Choose ${formatPuzzleItem(opt)}`} data-testid="pattern-answer" data-pattern-correct={opt === patternAnswer ? 'true' : 'false'} onClick={() => handlePatternClick(opt)} className="w-24 h-24 bg-yellow-400 hover:bg-yellow-300 rounded-xl text-5xl shadow-[0_6px_0_rgb(200,150,0)] active:translate-y-2 active:shadow-none transition-all">
+                            {renderPuzzleIcon(opt, 'h-12 w-12')}
                         </button>
                     ))}
                 </div>
@@ -282,13 +309,13 @@ export const PuzzleRoom: React.FC<PuzzleRoomProps> = ({ onBack, onReward, level 
         {mode === 'SHAPES' && (
             <div className="flex flex-col items-center gap-12">
                 <h2 className="text-white text-2xl font-bold uppercase">Find the matching shape!</h2>
-                <div className="w-40 h-40 bg-white rounded-full flex items-center justify-center text-8xl shadow-[0_0_50px_white] animate-bounce">
-                    {targetShape}
+                <div data-testid="shape-target" data-shape={targetShape} className="w-40 h-40 bg-white rounded-full flex items-center justify-center text-8xl shadow-[0_0_50px_white] animate-bounce">
+                    {renderPuzzleIcon(targetShape, 'h-20 w-20')}
                 </div>
                 <div className="grid grid-cols-4 gap-6">
                      {shapeOptions.map((opt, i) => (
-                         <button key={i} onClick={() => handleShapeClick(opt)} className="w-20 h-20 bg-teal-800 hover:bg-teal-700 rounded-xl text-4xl border-b-4 border-teal-900 active:border-b-0 active:translate-y-1">
-                             {opt}
+                         <button key={i} aria-label={`Choose ${formatPuzzleItem(opt)}`} data-testid="shape-answer" data-shape-correct={opt === targetShape ? 'true' : 'false'} onClick={() => handleShapeClick(opt)} className="w-20 h-20 bg-teal-800 hover:bg-teal-700 rounded-xl text-4xl border-b-4 border-teal-900 active:border-b-0 active:translate-y-1">
+                             {renderPuzzleIcon(opt, 'h-10 w-10')}
                          </button>
                      ))}
                 </div>

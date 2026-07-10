@@ -1,5 +1,5 @@
-import React, { Suspense, lazy, useState, useEffect } from 'react';
-import { WorldMap } from './components/WorldMap';
+import React, { Suspense, lazy, useState, useEffect, useRef } from 'react';
+import { AcademyCampus } from './components/AcademyCampus';
 import { Guide } from './components/Guide';
 import { Dashboard } from './components/Dashboard';
 import { VirtualPetPanel, PetSelection } from './components/VirtualPet';
@@ -7,6 +7,9 @@ import { AchievementsPanel, AchievementUnlockToast } from './components/Achievem
 import { ParentDashboard } from './components/ParentDashboard';
 import { LegalInfo, type LegalPageType } from './components/LegalInfo';
 import { InstallAppButton } from './components/InstallAppButton';
+import { AcademyLanding } from './components/AcademyLanding';
+import { ParentAcademyWelcome } from './components/ParentAcademyWelcome';
+import { SchoolTourDialog } from './components/SchoolTourDialog';
 import { TeacherRoomCoach } from './components/TeacherRoomCoach';
 import { LessonErrorBoundary } from './components/LessonErrorBoundary';
 import { getUnitsForGrade } from './services/curriculum';
@@ -232,19 +235,6 @@ const SUBSCRIPTION_PLANS: Array<{
       'Priority access to new books, voices, and seasonal lesson packs',
       'Best choice for families using multiple child profiles',
     ],
-  },
-  {
-    id: 'checkout_test',
-    label: 'Checkout Test',
-    price: '$0.50',
-    badge: 'Temporary',
-    description: 'Owner-only live Stripe verification charge. This plan will be removed after checkout testing.',
-    highlights: [
-      'Charges immediately so payment and invoice can be verified',
-      'Confirms Firebase webhook subscription unlock',
-      'Cancel in Stripe to stop the next monthly renewal',
-    ],
-    temporary: true,
   },
 ];
 
@@ -776,7 +766,12 @@ const App: React.FC = () => {
     const activeProfile = loadedProfiles.find(profile => profile.id === activeId) || loadedProfiles[0];
     return loadProgressForProfile(activeProfile, scope);
   });
+  const progressRef = useRef(progress);
   const billingAccessSummary = getBillingAccessSummary(familyAccess);
+
+  useEffect(() => {
+    progressRef.current = progress;
+  }, [progress]);
 
   useEffect(() => {
     const handleWindowError = (event: ErrorEvent) => {
@@ -2017,10 +2012,11 @@ const App: React.FC = () => {
     roomOverride?: RoomType,
     reflectionOverride: LearningReflectionOverride = {}
   ): LearningReflection => {
+    const latestProgress = progressRef.current;
     const activeUnit = activeUnitId
-      ? getUnitsForGrade(progress.currentGrade).find(unit => unit.id === activeUnitId)
+      ? getUnitsForGrade(latestProgress.currentGrade).find(unit => unit.id === activeUnitId)
       : undefined;
-    const currentPracticeCount = activeUnitId ? (progress.unitPracticeCounts?.[activeUnitId] || 0) : 0;
+    const currentPracticeCount = activeUnitId ? (latestProgress.unitPracticeCounts?.[activeUnitId] || 0) : 0;
     const nextPracticeCount = activeUnitId ? Math.min(currentPracticeCount + 1, MASTERED_PRACTICE_TARGET) : 1;
     const reflectionRoom = roomOverride || currentRoom;
     const roomLabel = roomReflectionLabels[reflectionRoom] || (subject ? subject.replace(/^\w/, letter => letter.toUpperCase()) : 'Learning');
@@ -2189,6 +2185,7 @@ const App: React.FC = () => {
       };
 
       newProgress = checkAchievements(newProgress);
+      progressRef.current = newProgress;
       return newProgress;
     });
     const isClassroomPracticeUnit = Boolean(activeUnitId && currentRoom !== RoomType.STORYBOOK);
@@ -2453,6 +2450,22 @@ const App: React.FC = () => {
   }
 
   // Start Screen
+  if (!hasStarted) {
+    return (
+      <AcademyLanding
+        onStart={handleStart}
+        onTour={() => {
+          handleStart();
+          setShowSchoolTour(true);
+        }}
+        onOpenPrivacy={() => setLegalView('privacy')}
+        onOpenTerms={() => setLegalView('terms')}
+        onOpenSupport={() => setLegalView('support')}
+      />
+    );
+  }
+
+  // Retained temporarily as a safe fallback while the academy shell is rolled across every route.
   if (!hasStarted) {
     return (
       <div className="w-screen h-screen bg-gradient-to-b from-sky-400 via-sky-300 to-green-300 flex items-center justify-center flex-col gap-5 overflow-hidden relative px-4">
@@ -2732,20 +2745,71 @@ const App: React.FC = () => {
         const panel = document.getElementById('parent-account-panel');
         if (!panel) return;
 
-        const targetTop = Math.max(0, panel.getBoundingClientRect().top + window.scrollY - 16);
-        window.scrollTo({ top: targetTop, behavior: 'smooth' });
+        const scrollContainer = panel.closest<HTMLElement>('.parent-academy-welcome');
+        const targetTop = scrollContainer
+          ? Math.max(0, panel.offsetTop - 16)
+          : Math.max(0, panel.getBoundingClientRect().top + window.scrollY - 16);
+
+        if (scrollContainer) {
+          scrollContainer.scrollTo({ top: targetTop, behavior: 'smooth' });
+        } else {
+          window.scrollTo({ top: targetTop, behavior: 'smooth' });
+        }
 
         window.setTimeout(() => {
           const rect = panel.getBoundingClientRect();
           const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
           if (!isVisible) {
-            window.scrollTo({ top: targetTop, behavior: 'auto' });
-            document.documentElement.scrollTop = targetTop;
-            document.body.scrollTop = targetTop;
+            if (scrollContainer) {
+              scrollContainer.scrollTo({ top: targetTop, behavior: 'auto' });
+            } else {
+              window.scrollTo({ top: targetTop, behavior: 'auto' });
+              document.documentElement.scrollTop = targetTop;
+              document.body.scrollTop = targetTop;
+            }
           }
         }, 500);
       }, 180);
     };
+
+    return (
+      <>
+        <ParentAcademyWelcome
+          signedIn={parentCloudSession.signedIn}
+          signedInEmail={parentCloudSession.email}
+          authBusy={setupParentAuthBusy}
+          authStatus={setupParentAuthStatus}
+          email={setupParentEmail}
+          password={setupParentPassword}
+          onEmailChange={setSetupParentEmail}
+          onPasswordChange={setSetupParentPassword}
+          onSignIn={handleSetupSignInParentAccount}
+          onCreateAccount={handleSetupCreateParentAccount}
+          onGoogleSignIn={handleSetupSignInWithGoogle}
+          onContinue={continueAfterParentWelcome}
+          onUseDifferentAccount={async () => {
+            setSetupParentAuthStatus('Signing out...');
+            await handleSignOutParentAccount();
+            setSetupParentAuthStatus('Signed out. Choose a parent account to continue.');
+          }}
+          onOpenTour={() => setShowSchoolTour(true)}
+          onScrollToAccount={scrollToParentAccountPanel}
+          onOpenPrivacy={() => setLegalView('privacy')}
+          onOpenTerms={() => setLegalView('terms')}
+          onOpenSupport={() => setLegalView('support')}
+        />
+        <SchoolTourDialog
+          open={showSchoolTour}
+          classPreview={classPreview}
+          tourSteps={tourSteps}
+          onClose={() => setShowSchoolTour(false)}
+          onStartSetup={() => {
+            setShowSchoolTour(false);
+            scrollToParentAccountPanel();
+          }}
+        />
+      </>
+    );
 
     return (
       <div className="relative min-h-screen w-screen overflow-y-auto bg-[#f7fbff] text-slate-900">
@@ -3271,14 +3335,11 @@ const App: React.FC = () => {
   const reflectionPrimaryActionLabel = learningReflection?.roomLabel === 'Story Time'
     ? (learningReflection.mastered ? 'Next Class' : 'Next Book')
     : 'Review My Reflection';
-  const reflectionSecondaryActionLabel = learningReflection?.roomLabel === 'Story Time'
-    ? (learningReflection.mastered ? 'Back to School' : 'Choose Next Book')
-    : 'Next Class';
+  const reflectionSecondaryActionLabel = 'Next Class';
   const activeUnit = activeUnitId
     ? getUnitsForGrade(progress.currentGrade).find(unit => unit.id === activeUnitId)
     : undefined;
   const activeUnitPracticeCount = activeUnitId ? Math.min(progress.unitPracticeCounts?.[activeUnitId] || 0, MASTERED_PRACTICE_TARGET) : 0;
-  const activeUnitEndChecks = activeUnit?.endOfLessonChecks?.slice(0, 7) || [];
   const activeTeacherScript = activeUnit ? getTeacherScript(activeUnit, progress) : undefined;
   const activeSchoolLessonSteps = activeTeacherScript ? [
     { phase: SCHOOL_LESSON_PHASES[0], prompt: activeTeacherScript.teach },
@@ -3291,113 +3352,102 @@ const App: React.FC = () => {
 
   const handleStartTeacherLesson = () => {
     setShowLessonIntro(false);
-    if (activeTeacherScript) {
-      void speakAsync(activeTeacherScript.greeting, 0.9, 1.1, 'gentle');
-    }
+    stopSpeaking();
   };
 
   const renderTeacherLessonStart = () => {
     if (!activeUnit || !activeTeacherScript) return null;
     const campusRoom = getCampusRoom(activeUnit.room);
     const safePracticeCount = Math.min(activeUnitPracticeCount, MASTERED_PRACTICE_TARGET);
+    const roomScene = activeUnit.room.toLowerCase();
 
     return (
       <div
         data-testid="teacher-lesson-start"
-        className="h-full w-full overflow-y-auto bg-[radial-gradient(circle_at_top,#fff7ad_0%,#a8dcff_34%,#81d8bd_68%,#77cf71_100%)] p-4 kid-scroll"
+        className="relative h-full w-full overflow-y-auto bg-slate-950 kid-scroll"
       >
-        <div className="mx-auto flex min-h-full max-w-6xl items-center">
-          <div className="grid w-full overflow-hidden rounded-[32px] border-4 border-white/80 bg-white shadow-2xl lg:grid-cols-[0.92fr_1.08fr]">
-            <div className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-indigo-950 to-sky-800 p-6 text-white">
-              <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-white/15 blur-3xl" />
-              <div className="absolute bottom-0 right-0 h-40 w-56 rounded-tl-[80px] bg-white/10" />
-              <div className="relative">
-                <p className="text-xs font-black uppercase tracking-[0.18em] text-sky-200">Teacher-led lesson start</p>
-                <h1 className="mt-2 text-3xl font-black leading-tight sm:text-4xl">{activeUnit.title}</h1>
-                <p className="mt-3 text-sm font-semibold leading-relaxed text-slate-200">
-                  {activeTeacherScript.greeting}
-                </p>
+        <img src={`/academy/rooms/${roomScene}.webp`} alt="" className="fixed inset-0 h-full w-full object-cover" />
+        <div className="fixed inset-0 bg-[linear-gradient(90deg,rgba(5,16,29,0.94)_0%,rgba(5,16,29,0.79)_43%,rgba(5,16,29,0.35)_68%,rgba(5,16,29,0.55)_100%)]" aria-hidden="true" />
 
-                <div className="mt-5 flex items-center gap-3 rounded-3xl border border-white/15 bg-white/10 p-3">
-                  <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-3xl bg-white text-2xl font-black text-indigo-700 shadow-lg">
-                    MN
-                  </div>
-                  <div>
-                    <p className="text-lg font-black">{AI_TEACHER.name}</p>
-                    <p className="text-sm font-semibold text-white/80">{campusRoom.classroomName}</p>
-                    <p className="mt-1 text-xs font-bold text-sky-100">{AI_TEACHER.voicePack}</p>
-                  </div>
-                </div>
+        <div className="relative mx-auto grid min-h-full max-w-[1480px] items-stretch lg:grid-cols-[0.92fr_1.08fr]">
+          <section className="flex min-h-[48vh] flex-col justify-end px-5 pb-8 pt-20 text-white sm:px-8 lg:min-h-screen lg:px-12 lg:pb-14">
+            <p className="inline-flex w-fit items-center gap-2 rounded-full border border-white/30 bg-slate-950/40 px-3 py-2 text-xs font-black uppercase tracking-[0.14em] backdrop-blur-md">
+              <GraduationCap size={17} /> {campusRoom.classroomName}
+            </p>
+            <h1 className="mt-5 max-w-2xl text-4xl font-black leading-[1.02] drop-shadow-xl sm:text-5xl lg:text-6xl">{activeUnit.title}</h1>
+            <p className="mt-4 max-w-xl text-base font-bold leading-7 text-white/90 drop-shadow-md sm:text-lg">{activeTeacherScript.objective}</p>
 
-                <div className="mt-5 grid grid-cols-2 gap-3">
-                  <div className="rounded-2xl border border-white/15 bg-white/10 p-3 text-center">
-                    <p className="text-2xl font-black">{safePracticeCount}/{MASTERED_PRACTICE_TARGET}</p>
-                    <p className="text-[10px] font-black uppercase tracking-[0.12em] text-sky-200">mastery rounds</p>
-                  </div>
-                  <div className="rounded-2xl border border-white/15 bg-white/10 p-3 text-center">
-                    <p className="text-2xl font-black">{activeSchoolLessonSteps.length}</p>
-                    <p className="text-[10px] font-black uppercase tracking-[0.12em] text-sky-200">lesson phases</p>
-                  </div>
-                </div>
-              </div>
+            <div className="mt-7 flex flex-wrap gap-3">
+              <span className="rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-sm font-black backdrop-blur-md">{safePracticeCount}/{MASTERED_PRACTICE_TARGET} mastery rounds</span>
+              <span className="rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-sm font-black backdrop-blur-md">{activeSchoolLessonSteps.length} lesson phases</span>
             </div>
 
-            <div className="p-5">
-              <div className="rounded-[24px] border border-indigo-100 bg-indigo-50 p-4">
-                <p className="text-xs font-black uppercase tracking-[0.16em] text-indigo-600">Learning target</p>
-                <h2 className="mt-1 text-2xl font-black text-slate-950">{activeTeacherScript.objective}</h2>
-                <p className="mt-2 text-sm font-semibold text-indigo-900">{campusRoom.teacherAction}</p>
+            <div className="mt-7 flex items-center gap-3">
+              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-indigo-500 shadow-lg"><GraduationCap size={24} /></span>
+              <div>
+                <p className="font-black">{AI_TEACHER.name}</p>
+                <p className="text-sm font-semibold text-white/75">Model first, then practice one step at a time.</p>
+              </div>
+            </div>
+          </section>
+
+          <section className="bg-white px-5 pb-8 pt-7 sm:px-8 lg:min-h-screen lg:px-10 lg:py-10">
+            <div className="mx-auto flex h-full max-w-2xl flex-col justify-center">
+              <div className="border-b border-slate-200 pb-5">
+                <p className="text-xs font-black uppercase tracking-[0.15em] text-indigo-600">Today's lesson path</p>
+                <h2 className="mt-2 text-2xl font-black text-slate-950 sm:text-3xl">Learn it. Try it. Show it.</h2>
+                <p className="mt-2 text-sm font-semibold leading-6 text-slate-600">{campusRoom.teacherAction}</p>
               </div>
 
-              <div className="mt-4 grid gap-2 sm:grid-cols-5">
+              <ol className="mt-4 divide-y divide-slate-200" aria-label="Lesson phases">
                 {activeSchoolLessonSteps.map((step, index) => (
-                  <div key={`${activeUnit.id}-intro-${step.phase.id}`} className="rounded-2xl bg-slate-50 p-3">
-                    <p className="text-[10px] font-black uppercase tracking-[0.14em] text-indigo-600">
-                      {index + 1}. {step.phase.label}
-                    </p>
-                    <p className="mt-1 line-clamp-4 text-xs font-bold text-slate-700">{step.prompt}</p>
-                  </div>
+                  <li key={`${activeUnit.id}-intro-${step.phase.id}`} className="grid grid-cols-[2.5rem_1fr] gap-3 py-3">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-indigo-50 text-sm font-black text-indigo-700">{index + 1}</span>
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-[0.12em] text-indigo-600">{step.phase.label}</p>
+                      <p className="mt-1 line-clamp-2 text-sm font-bold leading-5 text-slate-700">{step.prompt}</p>
+                    </div>
+                  </li>
                 ))}
+              </ol>
+
+              <div className="mt-4 grid gap-3 border-y border-slate-200 py-4 sm:grid-cols-2">
+                <div>
+                  <p className="text-xs font-black uppercase tracking-[0.12em] text-emerald-700">Exit ticket</p>
+                  <p className="mt-1 text-sm font-bold leading-5 text-slate-800">{activeTeacherScript.exitTicket}</p>
+                </div>
+                <div className="sm:border-l sm:border-slate-200 sm:pl-4">
+                  <p className="text-xs font-black uppercase tracking-[0.12em] text-amber-700">Saved for parents</p>
+                  <p className="mt-1 text-sm font-bold leading-5 text-slate-800">{activeTeacherScript.parentNote}</p>
+                </div>
               </div>
 
-              <div className="mt-4 grid gap-3 md:grid-cols-[1fr_1fr]">
-                <div className="rounded-[22px] border border-emerald-100 bg-emerald-50 p-4">
-                  <p className="text-xs font-black uppercase tracking-[0.14em] text-emerald-700">Exit ticket</p>
-                  <p className="mt-1 text-sm font-black text-emerald-950">{activeTeacherScript.exitTicket}</p>
-                </div>
-                <div className="rounded-[22px] border border-amber-100 bg-amber-50 p-4">
-                  <p className="text-xs font-black uppercase tracking-[0.14em] text-amber-700">Parent proof</p>
-                  <p className="mt-1 text-sm font-black text-amber-950">{activeTeacherScript.parentNote}</p>
-                </div>
-              </div>
-
-              <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+              <div className="mt-5 grid gap-3 sm:grid-cols-2">
                 <button
-                  onClick={() => {
-                    if (activeTeacherScript) speak(activeTeacherScript.greeting, 0.9, 1.1);
-                  }}
-                  className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-slate-100 px-5 py-4 text-sm font-black text-slate-800 shadow hover:bg-slate-200"
+                  type="button"
+                  onClick={() => speak(activeTeacherScript.greeting, 0.9, 1.1)}
+                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-800 transition hover:bg-slate-50"
                 >
-                  <MessageCircle size={20} />
-                  Listen to Mr. Atlas
+                  <MessageCircle size={20} /> Hear lesson preview
                 </button>
                 <button
+                  type="button"
                   onClick={handleStartTeacherLesson}
-                  className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-5 py-4 text-sm font-black text-white shadow-lg hover:bg-indigo-700"
+                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-indigo-600 px-5 py-3 text-sm font-black text-white shadow-lg transition hover:bg-indigo-700"
                 >
-                  <Play size={20} />
-                  Start guided practice
+                  <Play size={20} /> Start guided practice
                 </button>
               </div>
 
               <button
+                type="button"
                 onClick={handleBack}
-                className="mt-3 w-full rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-600 hover:bg-slate-50"
+                className="mt-3 min-h-11 w-full rounded-lg px-5 py-3 text-sm font-black text-slate-500 transition hover:bg-slate-50 hover:text-slate-800"
               >
-                Back to school map
+                Back to school campus
               </button>
             </div>
-          </div>
+          </section>
         </div>
       </div>
     );
@@ -3435,7 +3485,7 @@ const App: React.FC = () => {
       case RoomType.HUB:
       default:
         return (
-          <WorldMap
+          <AcademyCampus
             onEnterRoom={handleEnterRoom}
             onOpenDashboard={() => {
               stopSpeaking();
@@ -3511,78 +3561,19 @@ const App: React.FC = () => {
           unit={activeUnit}
           progress={progress}
           practiceCount={activeUnitPracticeCount}
-          onOpenLessonBoard={() => setShowMissionFocus(true)}
+          onClose={() => setShowMissionFocus(false)}
         />
       )}
 
       {showActiveMissionFocus && activeUnit && !showMissionFocus && (
         <button
           onClick={() => setShowMissionFocus(true)}
-          className="fixed right-3 top-3 z-30 rounded-2xl bg-white/95 px-3 py-2 text-xs font-black text-slate-800 shadow-lg ring-2 ring-indigo-100 hover:bg-indigo-50"
+          aria-label="Lesson Help"
+          title="Lesson Help"
+          className="fixed bottom-20 right-3 z-30 flex h-12 w-12 items-center justify-center rounded-full bg-white/95 text-indigo-700 shadow-lg ring-2 ring-indigo-100 transition hover:-translate-y-0.5 hover:bg-indigo-50"
         >
-          Lesson Help
+          <BookOpen size={20} />
         </button>
-      )}
-
-      {showActiveMissionFocus && activeUnit && showMissionFocus && (
-        <div className="fixed bottom-4 left-4 right-4 z-40 mx-auto max-w-5xl">
-            <div className="max-h-[78vh] overflow-y-auto rounded-[24px] border-4 border-white bg-white/95 p-4 shadow-2xl backdrop-blur">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-xs font-black uppercase tracking-[0.16em] text-indigo-600">{AI_TEACHER.name} Lesson Board</p>
-                  <h3 className="mt-1 text-lg font-black text-slate-900">{activeUnit.title}</h3>
-                  <p className="mt-1 text-sm font-semibold text-slate-700">{activeTeacherScript?.greeting || activeUnit.objective}</p>
-                  {activeSchoolLessonSteps.length > 0 && (
-                    <>
-                      <p className="mt-3 text-xs font-black uppercase tracking-[0.14em] text-indigo-600">Teach to exit ticket path</p>
-                      <div className="mt-2 grid gap-2 sm:grid-cols-2 xl:grid-cols-5">
-                        {activeSchoolLessonSteps.map((step, index) => (
-                          <div key={`${activeUnit.id}-school-phase-${step.phase.id}`} className="rounded-2xl bg-indigo-50 px-3 py-2 text-xs font-bold text-indigo-900">
-                            <p className="text-[10px] font-black uppercase tracking-[0.12em] text-indigo-500">{index + 1}. {step.phase.label}</p>
-                            <p className="mt-1">{step.prompt}</p>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="mt-3 rounded-2xl border border-sky-100 bg-sky-50 px-3 py-2">
-                        <p className="text-xs font-black text-sky-800">Teacher voice status</p>
-                        <p className="mt-1 text-xs font-bold text-sky-900">{activeTeacherScript?.voiceStatus}</p>
-                      </div>
-                    </>
-                  )}
-                </div>
-                <button
-                  onClick={() => setShowMissionFocus(false)}
-                  className="rounded-full bg-slate-100 p-2 text-slate-600 hover:bg-slate-200"
-                  aria-label="Hide Mission Focus"
-                >
-                  <X size={18} />
-                </button>
-              </div>
-              <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-[0.8fr_1.2fr]">
-                <div className="rounded-2xl bg-indigo-50 px-3 py-2">
-                  <p className="text-xs font-black text-indigo-700">Mastery gate</p>
-                  <p className="text-xl font-black text-indigo-900">{activeUnitPracticeCount}/{MASTERED_PRACTICE_TARGET}</p>
-                  <p className="mt-1 text-xs font-bold text-indigo-700">{activeTeacherScript?.masteryLabel}</p>
-                </div>
-                <div className="rounded-2xl bg-emerald-50 px-3 py-2">
-                  <p className="text-xs font-black text-emerald-700">Exit ticket</p>
-                  <p className="text-sm font-bold text-emerald-900">{activeTeacherScript?.exitTicket || activeUnit.successCheck}</p>
-                  {activeUnitEndChecks.length > 0 && (
-                    <div className="mt-2">
-                      <p className="text-[10px] font-black uppercase tracking-[0.12em] text-emerald-700">Exit checks</p>
-                      <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                        {activeUnitEndChecks.map((check, index) => (
-                          <p key={`${activeUnit.id}-focus-check-${index}`} className="rounded-xl bg-white/80 px-3 py-2 text-xs font-bold text-emerald-900">
-                            Check {index + 1}: {check}
-                          </p>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-        </div>
       )}
 
       {showAccessGate && (
@@ -3735,7 +3726,7 @@ const App: React.FC = () => {
                       <p className="font-black">Choose the trial plan</p>
                     </div>
                     <p className="mt-2 text-sm font-semibold text-indigo-900">
-                      Starter and Premium start a 3-day free trial now. The temporary checkout test charges $0.50 today so we can verify live Stripe invoices and webhooks.
+                      Starter and Premium include a 3-day free trial. Billing begins monthly after the trial unless the parent cancels first.
                     </p>
                   </div>
                   <div className="rounded-2xl bg-white px-3 py-2 text-center shadow-sm">
@@ -3744,10 +3735,9 @@ const App: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="mt-4 grid gap-3 md:grid-cols-3">
+                <div className="mt-4 grid gap-3 md:grid-cols-2">
                   {SUBSCRIPTION_PLANS.map(plan => {
                     const isPremium = plan.id === 'premium';
-                    const isTemporary = Boolean(plan.temporary);
                     return (
                       <button
                         key={plan.id}
@@ -3755,33 +3745,31 @@ const App: React.FC = () => {
                         disabled={!parentCloudSession.signedIn}
                         aria-label={`Choose ${plan.label} plan`}
                         className={`rounded-[22px] p-4 text-left shadow-lg ring-2 transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60 ${
-                          isTemporary
-                            ? 'bg-amber-50 text-slate-950 ring-amber-200 hover:ring-amber-400'
-                            : isPremium
-                              ? 'bg-slate-950 text-white ring-indigo-200 hover:ring-indigo-400'
-                              : 'bg-white text-slate-900 ring-indigo-100 hover:ring-indigo-300'
+                          isPremium
+                            ? 'bg-slate-950 text-white ring-indigo-200 hover:ring-indigo-400'
+                            : 'bg-white text-slate-900 ring-indigo-100 hover:ring-indigo-300'
                         }`}
                       >
                         <div className="flex items-start justify-between gap-2">
                           <div>
-                            <p className={`text-xs font-black uppercase tracking-[0.14em] ${isTemporary ? 'text-amber-700' : isPremium ? 'text-sky-200' : 'text-indigo-600'}`}>{plan.label}</p>
+                            <p className={`text-xs font-black uppercase tracking-[0.14em] ${isPremium ? 'text-sky-200' : 'text-indigo-600'}`}>{plan.label}</p>
                             <p className="mt-1 text-3xl font-black">{plan.price}</p>
-                            <p className={`text-xs font-bold ${isTemporary ? 'text-amber-800' : isPremium ? 'text-slate-300' : 'text-slate-500'}`}>
-                              {isTemporary ? 'charged today for testing' : 'per month after 3 days'}
+                            <p className={`text-xs font-bold ${isPremium ? 'text-slate-300' : 'text-slate-500'}`}>
+                              per month after 3 days
                             </p>
                           </div>
                           <span className={`rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-[0.1em] ${
-                            isTemporary ? 'bg-amber-200 text-amber-950' : isPremium ? 'bg-sky-200 text-slate-950' : 'bg-indigo-100 text-indigo-700'
+                            isPremium ? 'bg-sky-200 text-slate-950' : 'bg-indigo-100 text-indigo-700'
                           }`}>
                             {plan.badge}
                           </span>
                         </div>
-                        <p className={`mt-3 text-sm font-bold ${isTemporary ? 'text-amber-950' : isPremium ? 'text-slate-200' : 'text-slate-700'}`}>{plan.description}</p>
+                        <p className={`mt-3 text-sm font-bold ${isPremium ? 'text-slate-200' : 'text-slate-700'}`}>{plan.description}</p>
                         <div className="mt-3 space-y-2">
                           {plan.highlights.map(item => (
                             <div key={item} className="flex items-start gap-2">
-                              <CheckCircle2 size={15} className={`mt-0.5 shrink-0 ${isTemporary ? 'text-amber-600' : isPremium ? 'text-emerald-200' : 'text-emerald-600'}`} />
-                              <p className={`text-xs font-bold ${isTemporary ? 'text-amber-950' : isPremium ? 'text-slate-200' : 'text-slate-700'}`}>{item}</p>
+                              <CheckCircle2 size={15} className={`mt-0.5 shrink-0 ${isPremium ? 'text-emerald-200' : 'text-emerald-600'}`} />
+                              <p className={`text-xs font-bold ${isPremium ? 'text-slate-200' : 'text-slate-700'}`}>{item}</p>
                             </div>
                           ))}
                         </div>
@@ -3986,17 +3974,17 @@ const App: React.FC = () => {
               >
                 {reflectionPrimaryActionLabel}
               </button>
-              <button
-                onClick={() => {
-                  setLearningReflection(null);
-                  if (learningReflection.roomLabel !== 'Story Time' || learningReflection.mastered) {
+              {learningReflection.roomLabel !== 'Story Time' && (
+                <button
+                  onClick={() => {
+                    setLearningReflection(null);
                     handleBack();
-                  }
-                }}
-                className="flex-1 rounded-2xl bg-slate-100 px-5 py-3 font-black text-slate-700 hover:bg-slate-200"
-              >
-                {reflectionSecondaryActionLabel}
-              </button>
+                  }}
+                  className="flex-1 rounded-2xl bg-slate-100 px-5 py-3 font-black text-slate-700 hover:bg-slate-200"
+                >
+                  {reflectionSecondaryActionLabel}
+                </button>
+              )}
             </div>
           </div>
         </div>

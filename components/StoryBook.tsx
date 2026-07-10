@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, BookOpen, Play, Pause, ChevronLeft, ChevronRight, Star, Volume2, Mic2, Heart, CheckCircle2, XCircle } from 'lucide-react';
 import { speakAsync, stopSpeaking, isSpeaking, playSuccess } from '../services/audioService';
+import { shuffleDailyItems } from '../services/dailyRotation';
 
 interface StoryBookProps {
   level: number; // 1-7 corresponds to grade levels
@@ -12,7 +13,7 @@ interface Story {
   id: string;
   title: string;
   author: string;
-  cover: string; // emoji
+  cover: string; // Legacy story marker retained for saved content compatibility.
   gradeLevel: number;
   pages: string[];
   moral?: string;
@@ -29,6 +30,29 @@ const getStoryShelfLabel = (gradeLevel: number) => {
   if (gradeLevel === 1) return 'Pre-K';
   if (gradeLevel === 2) return 'Kindergarten';
   return `Grade ${gradeLevel - 2}`;
+};
+
+const getStoryCoverImage = (story: Story) => {
+  const title = story.title.toLowerCase();
+
+  if (/robot|code|program/.test(title)) return '/academy/rooms/coding.webp';
+  if (/music|drum|song|parade/.test(title)) return '/academy/rooms/music.webp';
+  if (/art|color|paint|shape/.test(title)) return '/academy/rooms/art.webp';
+  if (/number|count|measure|snack problem/.test(title)) return '/academy/rooms/math.webp';
+  if (/map|compass|weather|rain|water/.test(title)) return '/academy/rooms/geography.webp';
+  if (/seed|garden|frog|fish|bug|cat|dog|nest/.test(title)) return '/academy/rooms/science.webp';
+  if (/library|book|reading|notebook/.test(title)) return '/academy/rooms/storybook.webp';
+
+  const categoryScenes: Record<Story['category'], string> = {
+    adventure: 'geography',
+    animals: 'science',
+    friendship: 'language',
+    family: 'reading',
+    nature: 'science',
+    fantasy: 'storybook',
+    learning: 'puzzle',
+  };
+  return `/academy/rooms/${categoryScenes[story.category]}.webp`;
 };
 
 const getStoryQuizTargetCount = (level: number) => {
@@ -1033,7 +1057,20 @@ const EXPANDED_STORIES: Story[] = STORY_EXPANSION_TOPICS.flatMap((topic, topicIn
 export const ALL_STORIES = [...STORIES, ...EXPANDED_STORIES];
 
 export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward }) => {
-  const availableStories = useMemo(() => ALL_STORIES.filter(s => s.gradeLevel <= level), [level]);
+  const availableStories = useMemo(() => {
+    const eligibleStories = ALL_STORIES.filter(story => story.gradeLevel <= level);
+    const gradeShelf = shuffleDailyItems(
+      eligibleStories.filter(story => story.gradeLevel === level),
+      `library-grade-${level}`,
+      0,
+    ).slice(0, 14);
+    const reviewShelf = shuffleDailyItems(
+      eligibleStories.filter(story => story.gradeLevel < level),
+      `library-review-${level}`,
+      0,
+    ).slice(0, 4);
+    return [...gradeShelf, ...reviewShelf];
+  }, [level]);
 
   const [currentStory, setCurrentStory] = useState<Story | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
@@ -1302,7 +1339,7 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
   // Library View
   if (!currentStory) {
     return (
-      <div className="w-full h-full bg-gradient-to-b from-amber-100 via-orange-100 to-yellow-100 flex flex-col overflow-hidden">
+      <div className="academy-room-surface w-full h-full flex flex-col overflow-hidden" style={{ '--academy-room-scene': "url('/academy/rooms/storybook.webp')" } as React.CSSProperties}>
         {/* Header */}
         <div className="flex items-center justify-between p-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white">
           <button onClick={onBack} aria-label="Back to world map" className="p-2 bg-white/20 rounded-full hover:bg-white/30 transition">
@@ -1320,7 +1357,10 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
 
         {/* Story Grid */}
         <div className="flex-1 overflow-auto p-4">
-          <p className="text-center text-gray-600 mb-4">Choose a story to read. New shelves open as your grade level grows.</p>
+          <div className="mx-auto mb-5 max-w-3xl rounded-2xl border border-white/70 bg-white/90 px-4 py-3 text-center shadow-lg backdrop-blur-md">
+            <p className="text-xs font-black uppercase tracking-[0.14em] text-amber-700">Today&apos;s Library Shelf</p>
+            <p className="mt-1 text-sm font-bold text-slate-700">Choose from {availableStories.length} grade-matched books. A fresh shelf arrives each day, with a few review favorites mixed in.</p>
+          </div>
           {libraryCoachNotice && (
             <div className="mx-auto mb-4 max-w-3xl rounded-2xl border-2 border-emerald-200 bg-emerald-50 px-4 py-3 text-center text-sm font-black text-emerald-900 shadow-sm">
               {libraryCoachNotice}
@@ -1331,6 +1371,8 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
               <button
                 key={story.id}
                 onClick={() => selectStory(story)}
+                data-testid="story-book-option"
+                data-story-grade={story.gradeLevel}
                 className="bg-white rounded-2xl p-4 shadow-lg hover:shadow-xl hover:scale-105 transition-all text-left relative overflow-hidden"
               >
                 {completedStories.has(story.id) && (
@@ -1339,14 +1381,7 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
                   </div>
                 )}
                 <div className="mb-3 rounded-2xl overflow-hidden aspect-[3/4] bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center shadow-inner">
-                  <img
-                    src={`/story-covers/${story.id}.png`}
-                    alt={story.title}
-                    className="w-full h-full object-cover"
-                    onError={(event) => {
-                      event.currentTarget.src = `/story-covers/${story.id}.svg`;
-                    }}
-                  />
+                  <img src={getStoryCoverImage(story)} alt="" className="h-full w-full object-cover" />
                 </div>
                 <h3 className="font-bold text-gray-800 text-sm mb-1 line-clamp-2">{story.title}</h3>
                 <p className="text-xs text-gray-500 mb-2">{getStoryShelfLabel(story.gradeLevel)} • {story.pages.length} pages</p>
@@ -1365,7 +1400,7 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
   if (mode === 'quiz' && currentStory) {
     const activeQuestion = quizQuestions[quizIndex];
     return (
-      <div className="w-full h-full bg-gradient-to-b from-amber-50 to-orange-100 flex flex-col overflow-hidden">
+      <div className="academy-room-surface w-full h-full flex flex-col overflow-hidden" style={{ '--academy-room-scene': "url('/academy/rooms/storybook.webp')" } as React.CSSProperties}>
         <div className="flex items-center justify-between p-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white">
           <button onClick={goToLibrary} aria-label="Back to story library" className="p-2 bg-white/20 rounded-full hover:bg-white/30 transition">
             <ArrowLeft size={24} />
@@ -1395,6 +1430,8 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
                   key={`${activeQuestion.question}-${option}`}
                   onClick={() => answerQuiz(option)}
                   disabled={Boolean(quizFeedback)}
+                  data-testid="story-quiz-answer"
+                  data-story-correct={option === activeQuestion.answer ? 'true' : 'false'}
                   className="rounded-2xl border-2 border-amber-100 bg-white px-4 py-4 text-left text-base font-black text-slate-800 shadow-sm transition hover:border-amber-300 hover:bg-amber-50 disabled:cursor-not-allowed disabled:opacity-70"
                 >
                   <span className="mr-3 inline-flex h-8 w-8 items-center justify-center rounded-full bg-amber-100 text-amber-800">
@@ -1451,7 +1488,7 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
   }
 
   return (
-    <div className="w-full h-full bg-gradient-to-b from-amber-50 to-orange-50 flex flex-col overflow-hidden">
+    <div className="academy-room-surface w-full h-full flex flex-col overflow-hidden" style={{ '--academy-room-scene': "url('/academy/rooms/storybook.webp')" } as React.CSSProperties}>
       {/* Header */}
       <div className="flex items-center justify-between p-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white">
         <button onClick={goToLibrary} aria-label="Back to story library" className="p-2 bg-white/20 rounded-full hover:bg-white/30 transition">
@@ -1468,7 +1505,10 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
               mode === 'listen' ? 'bg-white text-orange-600' : 'bg-white/20'
             }`}
           >
-            {mode === 'listen' ? '🎧 Listen' : '📖 Read'}
+            <span className="inline-flex items-center gap-2">
+              {mode === 'listen' ? <Volume2 size={16} /> : <BookOpen size={16} />}
+              {mode === 'listen' ? 'Listen' : 'Read'}
+            </span>
           </button>
         </div>
       </div>
@@ -1491,9 +1531,8 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
               </span>
             </div>
 
-            {/* Story emoji */}
-            <div className="text-6xl text-center mb-6 animate-bounce">
-              {currentStory.cover}
+            <div className="mx-auto mb-6 aspect-[16/9] w-full max-w-sm overflow-hidden rounded-2xl bg-amber-100 shadow-inner">
+              <img src={getStoryCoverImage(currentStory)} alt="" className="h-full w-full object-cover" />
             </div>
 
             {/* Story text */}
@@ -1510,8 +1549,8 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
             {/* Moral at the end */}
             {currentPage === currentStory.pages.length - 1 && currentStory.moral && (
               <div className="mt-6 p-4 bg-amber-100 rounded-xl">
-                <p className="text-center text-amber-800 font-semibold">
-                  ✨ {currentStory.moral}
+                <p className="flex items-center justify-center gap-2 text-center font-semibold text-amber-800">
+                  <Star size={18} fill="currentColor" /> {currentStory.moral}
                 </p>
               </div>
             )}

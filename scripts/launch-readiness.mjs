@@ -149,7 +149,8 @@ if (
   !appSource.includes("import('./components/StudyZone')") ||
   !appSource.includes('handleStudyReviewComplete') ||
   !worldMapSource.includes('RoomType.STUDY') ||
-  !studyZoneSource.includes('buildLatestMissedReviewQueue') ||
+  !studyZoneSource.includes('buildSpacedReviewSchedule') ||
+  !studyZoneSource.includes('scheduledReviews') ||
   !studyZoneSource.includes('assignmentAttempts') ||
   !studyZoneSource.includes('onReviewComplete')
 ) {

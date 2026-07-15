@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, CheckCircle2, Disc, Piano, Speaker } from 'lucide-react';
 import { playNote, playSuccess, playError, playPop, speakAsync } from '../services/audioService';
+import { EarlyMusicLesson } from './music/EarlyMusicLesson';
 
 interface MusicRoomProps {
   onBack: () => void;
   onReward: (meta?: { questionId: string; skill: string; prompt: string; selectedAnswer?: string; correctAnswer?: string }) => void;
+  onAttempt?: (meta: { questionId: string; skill: string; prompt: string; selectedAnswer?: string; correctAnswer?: string }, correct: boolean) => void;
   level: number;
 }
 
@@ -52,7 +54,7 @@ const EXPANDED_MUSIC_MISSIONS = MUSIC_EXPANSION_THEMES.flatMap((theme, themeInde
 
 const ALL_MUSIC_MISSIONS = [...MUSIC_MISSIONS, ...EXPANDED_MUSIC_MISSIONS];
 
-export const MusicRoom: React.FC<MusicRoomProps> = ({ onBack, onReward, level }) => {
+const AdvancedMusicRoom: React.FC<MusicRoomProps> = ({ onBack, onReward, level }) => {
   const [tab, setTab] = useState<'PIANO' | 'DJ'>('PIANO');
   const [instrument, setInstrument] = useState<'PIANO' | 'SYNTH' | '8BIT'>('PIANO');
   const [notesPlayed, setNotesPlayed] = useState(0);
@@ -78,7 +80,9 @@ export const MusicRoom: React.FC<MusicRoomProps> = ({ onBack, onReward, level })
     { id: 6, note: 'B', freq: 493.88, color: 'bg-indigo-500', border: 'border-indigo-700' },
     { id: 7, note: 'C2', freq: 523.25, color: 'bg-purple-500', border: 'border-purple-700' },
   ];
-  const missionPool = ALL_MUSIC_MISSIONS.filter(item => item.gradeLevel <= Math.min(Math.max(level, 1), 7));
+  const normalizedLevel = Math.min(Math.max(level, 1), 7);
+  const exactGradeMissions = ALL_MUSIC_MISSIONS.filter(item => item.gradeLevel === normalizedLevel);
+  const missionPool = exactGradeMissions.length > 0 ? exactGradeMissions : ALL_MUSIC_MISSIONS;
   const mission = missionPool[(new Date().getDate() + sessionRound) % missionPool.length] || ALL_MUSIC_MISSIONS[0];
 
   const djPads = [
@@ -297,4 +301,9 @@ export const MusicRoom: React.FC<MusicRoomProps> = ({ onBack, onReward, level })
       
     </div>
   );
+};
+
+export const MusicRoom: React.FC<MusicRoomProps> = (props) => {
+  if (props.level <= 7) return <EarlyMusicLesson {...props} />;
+  return <AdvancedMusicRoom {...props} />;
 };

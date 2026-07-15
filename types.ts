@@ -435,13 +435,46 @@ export interface ChildProfile {
 // ============================================
 export interface MathProblem {
   question: string;
-  answer: number;
-  options: number[];
-  operation: 'addition' | 'subtraction' | 'multiplication' | 'division' | 'money' | 'time' | 'fraction' | 'geometry';
+  answer: number | string;
+  options: Array<number | string>;
+  operation: 'counting' | 'comparison' | 'classification' | 'pattern' | 'spatial' | 'addition' | 'subtraction' | 'multiplication' | 'division' | 'money' | 'time' | 'fraction' | 'geometry';
   difficulty: number;
   explanation?: string;
   subject?: string;
-  context?: 'equation' | 'word-problem' | 'money' | 'time' | 'fraction' | 'geometry';
+  context?: 'counting' | 'comparison' | 'classification' | 'pattern' | 'spatial' | 'equation' | 'word-problem' | 'money' | 'time' | 'fraction' | 'geometry';
+  skill?: string;
+  visualModel?: {
+    kind: 'counters' | 'compare-groups' | 'color-set' | 'shape' | 'pattern' | 'position' | 'number-path' | 'base-ten' | 'clock' | 'coins' | 'fraction' | 'measurement' | 'array' | 'bar-model' | 'data-chart' | 'area-model' | 'coordinate' | 'angle';
+    leftCount?: number;
+    rightCount?: number;
+    color?: string;
+    secondaryColor?: string;
+    shape?: 'circle' | 'square' | 'triangle' | 'rectangle' | 'hexagon' | 'cube' | 'sphere' | 'cone' | 'cylinder';
+    items?: string[];
+    relation?: 'above' | 'below' | 'inside' | 'beside';
+    start?: number;
+    end?: number;
+    tens?: number;
+    ones?: number;
+    hour?: number;
+    minutes?: number;
+    coins?: Array<'penny' | 'nickel' | 'dime' | 'quarter'>;
+    numerator?: number;
+    denominator?: number;
+    leftLength?: number;
+    rightLength?: number;
+    rows?: number;
+    columns?: number;
+    segments?: number;
+    filledSegments?: number;
+    labels?: string[];
+    values?: number[];
+    width?: number;
+    height?: number;
+    pointX?: number;
+    pointY?: number;
+    angleDegrees?: number;
+  };
 }
 
 export interface ReadingChallenge {

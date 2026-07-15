@@ -3,6 +3,7 @@ import { GradeLevel, RoomType, type AssignmentAttempt, type DailyAssignmentItem,
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const RECENT_REPEAT_WINDOW_DAYS = 14;
+const REVIEW_INTERVAL_DAYS = [0, 1, 3, 7] as const;
 
 export interface AssignmentCandidate {
   questionId: string;
@@ -189,4 +190,56 @@ export const getMasteryPeriodSummary = (
     nextRecommendedLesson,
     parentExplanation,
   };
+};
+
+export interface SpacedReviewItem {
+  attempt: AssignmentAttempt;
+  stage: number;
+  dueAt: number;
+  status: 'ready' | 'scheduled';
+  remainingReviews: number;
+}
+
+export const buildSpacedReviewSchedule = (
+  attempts: AssignmentAttempt[],
+  now = Date.now()
+): SpacedReviewItem[] => {
+  const attemptsByQuestion = new Map<string, AssignmentAttempt[]>();
+  attempts
+    .filter(attempt => attempt.room !== RoomType.STUDY)
+    .forEach((attempt) => {
+      const questionAttempts = attemptsByQuestion.get(attempt.questionId) || [];
+      questionAttempts.push(attempt);
+      attemptsByQuestion.set(attempt.questionId, questionAttempts);
+    });
+
+  return Array.from(attemptsByQuestion.values())
+    .map((questionAttempts): SpacedReviewItem | null => {
+      const ordered = [...questionAttempts].sort((a, b) => a.createdAt - b.createdAt);
+      let latestMissIndex = -1;
+      ordered.forEach((attempt, index) => {
+        if (!attempt.correct) latestMissIndex = index;
+      });
+      if (latestMissIndex < 0) return null;
+
+      const latestMiss = ordered[latestMissIndex];
+      const successfulReviews = ordered.slice(latestMissIndex + 1).filter(attempt => attempt.correct);
+      const stage = successfulReviews.length;
+      if (stage >= REVIEW_INTERVAL_DAYS.length) return null;
+
+      const latestEvidenceAt = successfulReviews.at(-1)?.createdAt || latestMiss.createdAt;
+      const dueAt = latestEvidenceAt + REVIEW_INTERVAL_DAYS[stage] * DAY_MS;
+      return {
+        attempt: latestMiss,
+        stage,
+        dueAt,
+        status: dueAt <= now ? 'ready' : 'scheduled',
+        remainingReviews: REVIEW_INTERVAL_DAYS.length - stage,
+      };
+    })
+    .filter((item): item is SpacedReviewItem => Boolean(item))
+    .sort((a, b) => {
+      if (a.status !== b.status) return a.status === 'ready' ? -1 : 1;
+      return a.dueAt - b.dueAt;
+    });
 };

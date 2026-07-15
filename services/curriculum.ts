@@ -1,5 +1,6 @@
 import { GradeLevel, RoomType, UserProgress } from '../types';
 import { MASTERED_PRACTICE_TARGET, SCHOOL_YEAR_PACING } from './learningConstants';
+import { EARLY_YEARS_SCHOOL_YEAR } from './curriculum/yearPlan';
 
 export interface CurriculumUnit {
   id: string;
@@ -748,9 +749,45 @@ const enrichCurriculumUnit = (unit: CurriculumUnit): CurriculumUnit => ({
   parentExplanation: unit.parentExplanation || `${unit.title} builds ${unit.standardsFocus.slice(0, 2).join(' and ').toLowerCase()} through repeated practice, a teach-back check, spiral review, and a short at-home connection.`,
 });
 
+const EARLY_YEARS_CURRICULUM_UNITS: CurriculumUnit[] = Object.values(EARLY_YEARS_SCHOOL_YEAR)
+  .flat()
+  .filter(focus => focus.phase === 'foundation')
+  .map(focus => ({
+    id: `school-year-${focus.topic.id}`,
+    grade: focus.grade,
+    room: focus.room,
+    title: focus.topic.title,
+    objective: focus.topic.objective,
+    prerequisite: focus.topic.id.endsWith('-1') ? undefined : 'Earlier grade-level work in this classroom',
+    masteryTarget: focus.masteryCheck,
+    standardsFocus: [focus.topic.standard, ...focus.topic.vocabulary].filter(Boolean),
+    reviewCycleDays: focus.grade === GradeLevel.PRE_K ? 2 : 3,
+    parentActivity: `Use safe household objects or conversation to practice ${focus.topic.title.toLowerCase()} for five minutes. Ask the child to show or explain the answer instead of guessing.`,
+    successCheck: `Child completes the six-item ${focus.topic.title.toLowerCase()} check and explains one answer.`,
+    practiceActivities: [
+      `Teacher models one ${focus.topic.title.toLowerCase()} example with pictures or objects.`,
+      `Child completes one example with a teacher clue.`,
+      `Child completes two varied examples with less help.`,
+      `Child applies ${focus.topic.title.toLowerCase()} in a picture, story, movement, or real-world task.`,
+      'A previously learned skill returns for spiral review.',
+      `Child completes an independent ${focus.topic.title.toLowerCase()} exit ticket.`,
+    ],
+    endOfLessonChecks: [
+      'All six lesson interactions are completed.',
+      'The child answers at least five correctly across a mastery session.',
+      'A missed item is explained and scheduled for later review.',
+      'The child identifies the important clue or strategy.',
+      'The final item is completed with no answer revealed in advance.',
+      'A parent-visible skill record is saved.',
+    ],
+    masteryGate: 'Complete all six interactions, earn at least five correct answers across two sessions, and explain one strategy or observation.',
+    parentExplanation: `${focus.topic.title} is part of the ${focus.grade} 36-week sequence. The first week builds the skill with modeling and guided practice; the second week applies it independently and checks retention.`,
+  }));
+
 export const CURRICULUM_UNITS: CurriculumUnit[] = [
   ...CORE_CURRICULUM_UNITS,
   ...EVERY_ROOM_CURRICULUM_UNITS,
+  ...EARLY_YEARS_CURRICULUM_UNITS,
 ].map(enrichCurriculumUnit);
 
 const gradeOrder = [

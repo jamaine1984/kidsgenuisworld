@@ -3,6 +3,7 @@ import { ArrowLeft, BookOpen, CheckCircle2, Lightbulb, RotateCcw, Sparkles, Targ
 import { RoomType, type AssignmentAttempt, type UserProgress } from '../types';
 import { playSuccess, playWrongBuzzer, speakAsync } from '../services/audioService';
 import { getCampusRoom } from '../services/schoolMode';
+import { buildSpacedReviewSchedule } from '../services/assignmentTracking';
 
 interface StudyZoneProps {
   progress: UserProgress;
@@ -24,21 +25,6 @@ const reviewRooms = [
   RoomType.PUZZLE,
 ];
 
-const buildLatestMissedReviewQueue = (attempts: AssignmentAttempt[]) => {
-  const latestByQuestion = new Map<string, AssignmentAttempt>();
-  [...attempts]
-    .sort((a, b) => b.createdAt - a.createdAt)
-    .forEach((attempt) => {
-      if (!latestByQuestion.has(attempt.questionId)) {
-        latestByQuestion.set(attempt.questionId, attempt);
-      }
-    });
-
-  return Array.from(latestByQuestion.values())
-    .filter((attempt) => !attempt.correct && attempt.room !== RoomType.STUDY)
-    .slice(0, 18);
-};
-
 const makeAnswerChoices = (attempt?: AssignmentAttempt) => {
   if (!attempt) return [];
   const choices = [
@@ -50,29 +36,42 @@ const makeAnswerChoices = (attempt?: AssignmentAttempt) => {
   return Array.from(new Set(choices)).slice(0, 3);
 };
 
+const formatDueLabel = (dueAt: number) => {
+  const dueDate = new Date(dueAt);
+  const today = new Date();
+  const tomorrow = new Date();
+  tomorrow.setDate(today.getDate() + 1);
+  if (dueDate.toDateString() === today.toDateString()) return 'later today';
+  if (dueDate.toDateString() === tomorrow.toDateString()) return 'tomorrow';
+  return dueDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+};
+
 export const StudyZone: React.FC<StudyZoneProps> = ({ progress, onBack, onOpenRoom, onReviewComplete }) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [completedIds, setCompletedIds] = useState<string[]>([]);
   const [feedback, setFeedback] = useState('');
   const [hintOpen, setHintOpen] = useState(false);
 
-  const reviewQueue = useMemo(
-    () => buildLatestMissedReviewQueue(progress.assignmentAttempts || []),
+  const reviewSchedule = useMemo(
+    () => buildSpacedReviewSchedule(progress.assignmentAttempts || []).slice(0, 18),
     [progress.assignmentAttempts]
   );
-  const openQueue = reviewQueue.filter((attempt) => !completedIds.includes(attempt.questionId));
+  const readyReviewQueue = reviewSchedule.filter(item => item.status === 'ready').map(item => item.attempt);
+  const scheduledReviews = reviewSchedule.filter(item => item.status === 'scheduled');
+  const openQueue = readyReviewQueue.filter((attempt) => !completedIds.includes(attempt.questionId));
   const activeAttempt = openQueue[Math.min(activeIndex, Math.max(0, openQueue.length - 1))];
   const answerChoices = makeAnswerChoices(activeAttempt);
+  const nextScheduledReview = scheduledReviews[0];
 
   const focusByRoom = useMemo(() => {
     const counts = new Map<RoomType, number>();
-    reviewQueue.forEach((attempt) => {
+    reviewSchedule.forEach(({ attempt }) => {
       counts.set(attempt.room, (counts.get(attempt.room) || 0) + 1);
     });
     return Array.from(counts.entries())
       .sort((a, b) => b[1] - a[1])
       .slice(0, 4);
-  }, [reviewQueue]);
+  }, [reviewSchedule]);
 
   const readReview = async () => {
     if (!activeAttempt) return;
@@ -124,7 +123,7 @@ export const StudyZone: React.FC<StudyZoneProps> = ({ progress, onBack, onOpenRo
             School Map
           </button>
           <div className="rounded-full bg-slate-900 px-4 py-2 text-sm font-black text-white shadow-lg">
-            {openQueue.length} review skills waiting
+            {openQueue.length} review skills ready now
           </div>
         </div>
 
@@ -141,16 +140,16 @@ export const StudyZone: React.FC<StudyZoneProps> = ({ progress, onBack, onOpenRo
               </p>
               <div className="mt-6 grid gap-3 sm:grid-cols-3">
                 <div className="rounded-2xl bg-white/15 p-4">
-                  <div className="text-3xl font-black">{reviewQueue.length}</div>
-                  <div className="text-sm font-bold text-white/80">Total focus items</div>
+                  <div className="text-3xl font-black">{readyReviewQueue.length}</div>
+                  <div className="text-sm font-bold text-white/80">Ready now</div>
                 </div>
                 <div className="rounded-2xl bg-white/15 p-4">
                   <div className="text-3xl font-black">{completedIds.length}</div>
                   <div className="text-sm font-bold text-white/80">Cleared today</div>
                 </div>
                 <div className="rounded-2xl bg-white/15 p-4">
-                  <div className="text-3xl font-black">{Math.max(0, reviewQueue.length - completedIds.length)}</div>
-                  <div className="text-sm font-bold text-white/80">Still to review</div>
+                  <div className="text-3xl font-black">{scheduledReviews.length}</div>
+                  <div className="text-sm font-bold text-white/80">Scheduled later</div>
                 </div>
               </div>
             </div>
@@ -208,11 +207,15 @@ export const StudyZone: React.FC<StudyZoneProps> = ({ progress, onBack, onOpenRo
               ) : (
                 <div className="flex h-full min-h-[320px] flex-col items-center justify-center text-center">
                   <CheckCircle2 className="text-emerald-500" size={64} />
-                  <h2 className="mt-4 text-3xl font-black text-slate-900">Study Zone is clear.</h2>
+                  <h2 className="mt-4 text-3xl font-black text-slate-900">
+                    {nextScheduledReview ? 'Next review is scheduled.' : 'Study Zone is clear.'}
+                  </h2>
                   <p className="mt-2 max-w-md text-base font-semibold text-slate-600">
-                    No missed answers are waiting. Pick a classroom to keep learning fresh.
+                    {nextScheduledReview
+                      ? `${nextScheduledReview.attempt.skill} returns ${formatDueLabel(nextScheduledReview.dueAt)} so the memory gets another chance to grow.`
+                      : 'No missed answers are waiting. Pick a classroom to keep learning fresh.'}
                   </p>
-                  {reviewQueue.length > 0 && (
+                  {readyReviewQueue.length > 0 && (
                     <button onClick={resetSession} className="mt-4 inline-flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-3 text-sm font-black text-white shadow-md">
                       <RotateCcw size={17} />
                       Review again

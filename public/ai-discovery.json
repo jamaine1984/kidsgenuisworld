@@ -1,0 +1,50 @@
+{
+    "name":  "Kid Genius World",
+    "domain":  "kid-genius-world.com",
+    "canonical_url":  "https://kid-genius-world.com",
+    "ai_search_profile_url":  "https://kid-genius-world.com/ai-search.html",
+    "sitemap_url":  "https://kid-genius-world.com/sitemap.xml",
+    "content_language":  "en",
+    "last_updated":  "2026-07-11",
+    "description":  "Kid Genius World is a parent-guided AI school experience and online learning app for kids with reading, math, science, coding, stories, games, and parent progress tools. It is not accredited, not a real school, and does not issue grades, credits, diplomas, or transcripts.",
+    "primary_topics":  [
+                           "AI school for kids",
+                           "parent-guided learning app",
+                           "AI learning app for children",
+                           "kids reading practice",
+                           "kids math practice",
+                           "coding for kids",
+                           "safe educational screen time",
+                           "parent dashboard learning progress"
+                       ],
+    "monitor_prompts":  [
+                            "AI school for kids",
+                            "best AI learning app for kids",
+                            "parent-guided AI school",
+                            "is Kid Genius World accredited",
+                            "safe AI learning app for children"
+                        ],
+    "safe_backlink_targets":  [
+                                  "official app store listing",
+                                  "owned social profiles",
+                                  "founder or company profile",
+                                  "legitimate product directories",
+                                  "relevant community answers where self-promotion is allowed",
+                                  "earned press or interview mentions",
+                                  "partner pages with real context"
+                              ],
+    "avoid":  [
+                  "paid link farms",
+                  "private blog networks",
+                  "bulk low-quality directory spam",
+                  "fake reviews",
+                  "AI-spun doorway pages",
+                  "irrelevant comment spam"
+              ],
+    "guardrails":  [
+                       "Not accredited",
+                       "Not a real school",
+                       "No credits, diplomas, transcripts, or official grades",
+                       "Does not replace teachers, schools, therapists, medical professionals, or parent judgment"
+                   ]
+}

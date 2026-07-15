@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, BookOpen, Play, Pause, ChevronLeft, ChevronRight, Star, Volume2, Mic2, Heart, CheckCircle2, XCircle } from 'lucide-react';
+import { ArrowLeft, BookOpen, Play, Pause, ChevronLeft, ChevronRight, Star, Volume2, Mic2, Heart, CheckCircle2, XCircle, LibraryBig, ListChecks, LockKeyhole } from 'lucide-react';
 import { speakAsync, stopSpeaking, isSpeaking, playSuccess } from '../services/audioService';
-import { shuffleDailyItems } from '../services/dailyRotation';
+import { getDailySeed, shuffleDailyItems } from '../services/dailyRotation';
 
 interface StoryBookProps {
   level: number; // 1-7 corresponds to grade levels
@@ -55,7 +55,7 @@ const getStoryCoverImage = (story: Story) => {
   return `/academy/rooms/${categoryScenes[story.category]}.webp`;
 };
 
-const getStoryQuizTargetCount = (level: number) => {
+export const getStoryQuizTargetCount = (level: number) => {
   if (level <= 2) return 2;
   if (level <= 4) return 4;
   if (level === 5) return 6;
@@ -78,7 +78,7 @@ const shuffleQuizOptions = (options: string[], seed: string) => {
     .map(entry => entry.item);
 };
 
-const buildStoryQuiz = (story: Story, level: number): StoryQuizQuestion[] => {
+export const buildStoryQuiz = (story: Story, level: number): StoryQuizQuestion[] => {
   const targetCount = getStoryQuizTargetCount(level);
   const pageAnswers = story.pages.map(page => page.replace(/[.!?"]+$/g, '').trim()).filter(Boolean);
   const shortTitle = story.title;
@@ -1014,6 +1014,87 @@ const STORY_DETAIL_BANK = [
   { clue: 'a compass arrow pointing north', evidence: 'the group found the trail after matching landmarks', fix: 'use directions and landmarks together' },
 ];
 
+const DAILY_STORY_CHARACTERS = ['Ari', 'Maya', 'Leo', 'Nia', 'Omar', 'Zoe', 'Kai', 'Luna', 'Noah', 'Jada', 'Milo', 'Tessa'];
+const DAILY_STORY_SETTINGS = [
+  'the school garden', 'the library makerspace', 'the neighborhood park', 'the science table',
+  'the art studio', 'the music room', 'the community center', 'the class reading corner',
+  'the playground workshop', 'the weather station', 'the school kitchen', 'the nature trail',
+];
+const DAILY_STORY_GOALS = [
+  'help a classmate', 'solve a mystery', 'improve a first design', 'explain a discovery',
+  'prepare for family night', 'protect a living thing', 'make a fair plan', 'teach a younger student',
+  'organize a team project', 'test a prediction', 'practice a new skill', 'share an idea clearly',
+];
+
+export const buildDailyLibraryStories = (level: number): Story[] => {
+  const normalizedLevel = Math.min(Math.max(level, 1), 7);
+  const dateKey = getDailySeed(`daily-library-grade-${normalizedLevel}`).split('::')[0];
+  const topics = shuffleDailyItems(STORY_EXPANSION_TOPICS, `daily-library-topics-${normalizedLevel}`);
+  const details = shuffleDailyItems(STORY_DETAIL_BANK, `daily-library-details-${normalizedLevel}`);
+  const characters = shuffleDailyItems(DAILY_STORY_CHARACTERS, `daily-library-characters-${normalizedLevel}`);
+  const settings = shuffleDailyItems(DAILY_STORY_SETTINGS, `daily-library-settings-${normalizedLevel}`);
+  const goals = shuffleDailyItems(DAILY_STORY_GOALS, `daily-library-goals-${normalizedLevel}`);
+
+  return Array.from({ length: 6 }, (_, index) => {
+    const topic = topics[index % topics.length];
+    const detail = details[index % details.length];
+    const character = characters[index % characters.length];
+    const setting = settings[index % settings.length];
+    const goal = goals[index % goals.length];
+    const titleCore = topic.title.replace(/^The /, '');
+    const title = `${character} and the ${titleCore}`;
+    const shared = {
+      id: `daily-${dateKey}-g${normalizedLevel}-${index + 1}`,
+      title,
+      author: 'Kid Genius Originals',
+      cover: topic.cover,
+      gradeLevel: normalizedLevel,
+      category: topic.category,
+      moral: topic.moral,
+    };
+
+    if (normalizedLevel <= 2) {
+      return {
+        ...shared,
+        pages: [
+          `${character} visits ${setting}.`,
+          `${character} wants to ${goal}.`,
+          `${character} notices ${detail.clue}.`,
+          `A teacher asks, "What can we try?" ${character} decides to ${detail.fix}.`,
+          `${character} sees a helpful change. ${topic.moral}`,
+        ],
+      };
+    }
+
+    if (normalizedLevel <= 4) {
+      return {
+        ...shared,
+        pages: [
+          `${character} arrives at ${setting} with a goal: ${goal}.`,
+          `The first clue is ${detail.clue}. ${character} writes it down instead of guessing.`,
+          `A partner asks what the clue might mean, so they compare it with what they already know.`,
+          `They decide to ${detail.fix}, then pause to observe the result.`,
+          `Their strongest evidence is that ${detail.evidence}. That evidence helps them revise the plan.`,
+          `${character} explains the solution to the class. ${topic.moral}`,
+        ],
+      };
+    }
+
+    return {
+      ...shared,
+      pages: [
+        `${character} begins a project at ${setting} to ${goal}, but the team needs evidence before choosing a plan.`,
+        `They document ${detail.clue}, separate observations from assumptions, and identify what information is still missing.`,
+        `The group compares two possible solutions and predicts which one will address the cause rather than only the symptom.`,
+        `They test the stronger plan by choosing to ${detail.fix}, while keeping the other conditions as consistent as possible.`,
+        `The results show that ${detail.evidence}. ${character} uses that evidence to support a revised claim.`,
+        `The team presents its reasoning, answers a question from the audience, and names one limitation of the test.`,
+        `${character} records the next investigation the class should try. ${topic.moral}`,
+      ],
+    };
+  });
+};
+
 const EXPANDED_STORIES: Story[] = STORY_EXPANSION_TOPICS.flatMap((topic, topicIndex) =>
   Array.from({ length: 7 }, (_, gradeIndex) => Array.from({ length: 2 }, (_, variantIndex) => {
     const gradeLevel = gradeIndex + 1;
@@ -1058,18 +1139,19 @@ export const ALL_STORIES = [...STORIES, ...EXPANDED_STORIES];
 
 export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward }) => {
   const availableStories = useMemo(() => {
+    const dailyStories = buildDailyLibraryStories(level);
     const eligibleStories = ALL_STORIES.filter(story => story.gradeLevel <= level);
     const gradeShelf = shuffleDailyItems(
       eligibleStories.filter(story => story.gradeLevel === level),
       `library-grade-${level}`,
       0,
-    ).slice(0, 14);
+    ).slice(0, 8);
     const reviewShelf = shuffleDailyItems(
       eligibleStories.filter(story => story.gradeLevel < level),
       `library-review-${level}`,
       0,
     ).slice(0, 4);
-    return [...gradeShelf, ...reviewShelf];
+    return [...dailyStories, ...gradeShelf, ...reviewShelf];
   }, [level]);
 
   const [currentStory, setCurrentStory] = useState<Story | null>(null);
@@ -1089,6 +1171,15 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
     correctAnswer: string;
     detail: string;
   } | null>(null);
+  const requiredStories = useMemo(() => availableStories.slice(0, 6), [availableStories]);
+  const extraStories = useMemo(() => availableStories.slice(6), [availableStories]);
+  const completedRequiredCount = requiredStories.filter(story => completedStories.has(story.id)).length;
+  const currentRequiredIndex = currentStory
+    ? requiredStories.findIndex(story => story.id === currentStory.id)
+    : -1;
+  const currentBookPathLabel = currentRequiredIndex >= 0
+    ? `Book ${currentRequiredIndex + 1} of ${requiredStories.length}`
+    : 'Free reading';
 
   useEffect(() => {
     const handleNarrationStatus = (event: Event) => {
@@ -1145,21 +1236,19 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
       selectedAnswer: `${finalCorrectCount}/${quizQuestions.length} correct`,
       correctAnswer: currentStory.moral || currentStory.title,
     });
-    const nextStory = availableStories.find(story => !completedStoryIds.has(story.id) && story.id !== currentStory.id);
-    const completedCount = completedStoryIds.size;
-    const nextRoundLabel = Math.min(completedCount + 1, 6);
-    await speakAsync(
-      nextStory
-        ? `Story complete. You got ${finalCorrectCount} correct. I am opening the next book, ${nextRoundLabel} out of 6: ${nextStory.title}.`
-        : `Story complete. You got ${finalCorrectCount} correct. You finished the available books for this shelf.`,
-      0.76,
-      1.02,
-      'story'
-    );
+    const nextCompletedRequiredCount = requiredStories.filter(story => completedStoryIds.has(story.id)).length;
+    const nextStory = nextCompletedRequiredCount < requiredStories.length
+      ? requiredStories.find(story => !completedStoryIds.has(story.id) && story.id !== currentStory.id)
+      : undefined;
+    const nextRoundLabel = Math.min(nextCompletedRequiredCount + 1, requiredStories.length);
+    const completionMessage = nextStory
+      ? `Story complete. You got ${finalCorrectCount} correct. I am opening the next book, ${nextRoundLabel} out of 6: ${nextStory.title}.`
+      : `Story complete. You got ${finalCorrectCount} correct. You finished all six books. Your mastery summary is ready.`;
+    void speakAsync(completionMessage, 0.76, 1.02, 'story');
     const finishedTitle = currentStory.title;
     setLibraryCoachNotice(nextStory
       ? `${finishedTitle} complete. Mr. Atlas opened the next book: ${nextStory.title} (${nextRoundLabel}/6).`
-      : `${finishedTitle} complete. This shelf is ready for parent review.`);
+      : `${finishedTitle} complete. All six books are finished and your mastery summary is ready.`);
     window.setTimeout(() => {
       setCurrentStory(nextStory || null);
       setCurrentPage(0);
@@ -1340,56 +1429,146 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
   if (!currentStory) {
     return (
       <div className="academy-room-surface w-full h-full flex flex-col overflow-hidden" style={{ '--academy-room-scene': "url('/academy/rooms/storybook.webp')" } as React.CSSProperties}>
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white">
+        <div className="flex items-center justify-between bg-gradient-to-r from-amber-600 via-orange-500 to-rose-500 p-4 text-white">
           <button onClick={onBack} aria-label="Back to world map" className="p-2 bg-white/20 rounded-full hover:bg-white/30 transition">
             <ArrowLeft size={24} />
           </button>
           <div className="flex items-center gap-2">
-            <BookOpen size={28} />
-            <span className="text-2xl font-bold drop-shadow">Story Library</span>
+            <LibraryBig size={28} />
+            <span className="text-2xl font-bold drop-shadow">School Library</span>
           </div>
           <div className="flex items-center gap-2 bg-white/20 px-4 py-2 rounded-full">
             <Heart className="text-red-200 fill-red-200" size={20} />
-            <span className="font-bold">{completedStories.size}</span>
+            <span className="font-bold">{completedRequiredCount}/6</span>
           </div>
         </div>
 
-        {/* Story Grid */}
-        <div className="flex-1 overflow-auto p-4">
-          <div className="mx-auto mb-5 max-w-3xl rounded-2xl border border-white/70 bg-white/90 px-4 py-3 text-center shadow-lg backdrop-blur-md">
-            <p className="text-xs font-black uppercase tracking-[0.14em] text-amber-700">Today&apos;s Library Shelf</p>
-            <p className="mt-1 text-sm font-bold text-slate-700">Choose from {availableStories.length} grade-matched books. A fresh shelf arrives each day, with a few review favorites mixed in.</p>
-          </div>
-          {libraryCoachNotice && (
-            <div className="mx-auto mb-4 max-w-3xl rounded-2xl border-2 border-emerald-200 bg-emerald-50 px-4 py-3 text-center text-sm font-black text-emerald-900 shadow-sm">
-              {libraryCoachNotice}
-            </div>
-          )}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {availableStories.map(story => (
-              <button
-                key={story.id}
-                onClick={() => selectStory(story)}
-                data-testid="story-book-option"
-                data-story-grade={story.gradeLevel}
-                className="bg-white rounded-2xl p-4 shadow-lg hover:shadow-xl hover:scale-105 transition-all text-left relative overflow-hidden"
-              >
-                {completedStories.has(story.id) && (
-                  <div className="absolute top-2 right-2 bg-green-500 text-white rounded-full p-1">
-                    <Star size={16} fill="white" />
+        <div className="flex-1 overflow-auto p-4 pr-20">
+          <div className="mx-auto max-w-6xl">
+            <section className="overflow-hidden rounded-[28px] border-2 border-white/80 bg-white/95 shadow-2xl backdrop-blur-md">
+              <div className="grid gap-5 bg-gradient-to-br from-amber-50 via-white to-rose-50 p-5 md:grid-cols-[1.35fr_1fr] md:p-7">
+                <div>
+                  <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-amber-700">
+                    <ListChecks size={18} /> Today&apos;s guided reading path
                   </div>
-                )}
-                <div className="mb-3 rounded-2xl overflow-hidden aspect-[3/4] bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center shadow-inner">
-                  <img src={getStoryCoverImage(story)} alt="" className="h-full w-full object-cover" />
+                  <h2 className="mt-2 text-2xl font-black text-slate-900 md:text-3xl">Read six books. Prove what you understood.</h2>
+                  <p className="mt-2 max-w-2xl text-sm font-bold leading-relaxed text-slate-600">
+                    Each book ends with a story check. Mr. Atlas opens the next book automatically until today&apos;s library period is complete.
+                  </p>
                 </div>
-                <h3 className="font-bold text-gray-800 text-sm mb-1 line-clamp-2">{story.title}</h3>
-                <p className="text-xs text-gray-500 mb-2">{getStoryShelfLabel(story.gradeLevel)} • {story.pages.length} pages</p>
-                <span className={`text-xs px-2 py-1 rounded-full bg-gradient-to-r ${getCategoryColor(story.category)} text-white`}>
-                  {story.category}
-                </span>
-              </button>
-            ))}
+                <div className="rounded-2xl bg-slate-950 p-4 text-white shadow-xl">
+                  <div className="flex items-center justify-between text-xs font-black uppercase tracking-[0.14em] text-amber-200">
+                    <span>Reading path</span>
+                    <span>{completedRequiredCount} of 6 complete</span>
+                  </div>
+                  <div className="mt-4 grid grid-cols-6 gap-2" aria-label={`${completedRequiredCount} of 6 books complete`}>
+                    {requiredStories.map((story, index) => {
+                      const isComplete = completedStories.has(story.id);
+                      const isNext = index === completedRequiredCount;
+                      return (
+                        <div
+                          key={`path-${story.id}`}
+                          title={`Book ${index + 1}: ${story.title}`}
+                          className={`flex aspect-square items-center justify-center rounded-xl text-sm font-black transition ${
+                            isComplete
+                              ? 'bg-emerald-400 text-emerald-950'
+                              : isNext
+                                ? 'bg-amber-300 text-amber-950 ring-4 ring-amber-300/30'
+                                : 'bg-white/15 text-white/70'
+                          }`}
+                        >
+                          {isComplete ? <CheckCircle2 size={18} /> : index + 1}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {libraryCoachNotice && (
+              <div className="my-4 rounded-2xl border-2 border-emerald-200 bg-emerald-50 px-4 py-3 text-center text-sm font-black text-emerald-900 shadow-sm">
+                {libraryCoachNotice}
+              </div>
+            )}
+
+            <section className="py-6">
+              <div className="mb-4 flex items-end justify-between gap-3">
+                <div>
+                  <p className="text-xs font-black uppercase tracking-[0.16em] text-amber-700">Required shelf</p>
+                  <h2 className="text-xl font-black text-slate-900">Today&apos;s six books</h2>
+                </div>
+                <span className="rounded-full bg-white/90 px-3 py-2 text-xs font-black text-slate-600 shadow-sm">Fresh daily</span>
+              </div>
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
+                {requiredStories.map((story, index) => {
+                  const isComplete = completedStories.has(story.id);
+                  const isCurrent = index === completedRequiredCount;
+                  const isLocked = index > completedRequiredCount;
+                  return (
+                    <button
+                      key={story.id}
+                      onClick={() => selectStory(story)}
+                      disabled={isLocked}
+                      data-testid="story-book-option"
+                      data-story-grade={story.gradeLevel}
+                      data-story-sequence={index + 1}
+                      className={`group relative min-w-0 text-left transition ${isLocked ? 'cursor-not-allowed opacity-70' : 'hover:-translate-y-1'}`}
+                    >
+                      <div className={`relative aspect-[3/4] overflow-hidden rounded-2xl border-4 bg-amber-100 shadow-xl transition ${
+                        isComplete
+                          ? 'border-emerald-400'
+                          : isCurrent
+                            ? 'border-amber-400 ring-4 ring-amber-300/30'
+                            : 'border-white'
+                      }`}>
+                        <img src={getStoryCoverImage(story)} alt="" className="h-full w-full object-cover transition group-hover:scale-105" />
+                        <span className="absolute left-2 top-2 rounded-full bg-slate-950/85 px-2 py-1 text-[10px] font-black text-white">Book {index + 1}</span>
+                        {isComplete && <CheckCircle2 className="absolute right-2 top-2 rounded-full bg-white text-emerald-600" size={24} />}
+                        {isLocked && <LockKeyhole className="absolute right-2 top-2 rounded-full bg-white p-1 text-slate-700" size={24} />}
+                      </div>
+                      <div className="mt-2 rounded-xl bg-white/90 p-2 shadow-sm">
+                        <h3 className="line-clamp-2 text-sm font-black leading-tight text-slate-900">{story.title}</h3>
+                        <p className="mt-1 text-xs font-bold text-slate-500">{getStoryShelfLabel(story.gradeLevel)} • {story.pages.length} pages</p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+
+            <section className="border-t-2 border-white/70 py-6">
+              <div className="mb-4 flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-xs font-black uppercase tracking-[0.16em] text-rose-700">Free-reading shelf</p>
+                  <h2 className="text-xl font-black text-slate-900">More books for curious readers</h2>
+                </div>
+                {completedRequiredCount < 6 && (
+                  <span className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-3 py-2 text-xs font-black text-white">
+                    <LockKeyhole size={14} /> Finish today&apos;s six
+                  </span>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">
+                {extraStories.map(story => (
+                  <button
+                    key={story.id}
+                    onClick={() => selectStory(story)}
+                    disabled={completedRequiredCount < 6}
+                    data-testid="free-reading-book-option"
+                    className="min-w-0 text-left transition hover:-translate-y-1 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
+                  >
+                    <div className="aspect-[3/4] overflow-hidden rounded-2xl border-4 border-white bg-amber-100 shadow-lg">
+                      <img src={getStoryCoverImage(story)} alt="" className="h-full w-full object-cover" />
+                    </div>
+                    <div className="mt-2 rounded-xl bg-white/90 p-2 shadow-sm">
+                      <h3 className="line-clamp-2 text-sm font-black leading-tight text-slate-900">{story.title}</h3>
+                      <p className="mt-1 text-xs font-bold text-slate-500">{getStoryShelfLabel(story.gradeLevel)} • {story.pages.length} pages</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </section>
           </div>
         </div>
       </div>
@@ -1407,7 +1586,7 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
           </button>
           <div className="text-center">
             <h1 className="font-bold text-lg drop-shadow">Story Check</h1>
-            <p className="text-xs text-white/85">{currentStory.title}</p>
+            <p className="text-xs text-white/85">{currentStory.title} • {currentBookPathLabel}</p>
           </div>
           <div className="rounded-full bg-white/20 px-3 py-2 text-sm font-black">
             {Math.min(quizIndex + 1, quizQuestions.length)}/{quizQuestions.length}
@@ -1496,7 +1675,7 @@ export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward })
         </button>
         <div className="text-center">
           <h1 className="font-bold text-lg drop-shadow">{currentStory.title}</h1>
-          <p className="text-xs text-white/80">by {currentStory.author}</p>
+          <p className="text-xs text-white/80">by {currentStory.author} • {currentBookPathLabel}</p>
         </div>
         <div className="flex gap-2">
           <button

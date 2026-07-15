@@ -1,0 +1,36 @@
+# Kid Genius World
+
+Canonical URL: https://kid-genius-world.com
+Domain: kid-genius-world.com
+Last updated: 2026-07-11
+
+## Summary
+Kid Genius World is a parent-guided AI school experience and online learning app for kids with reading, math, science, coding, stories, games, and parent progress tools. It is not accredited, not a real school, and does not issue grades, credits, diplomas, or transcripts.
+
+## Primary topics
+- AI school for kids
+- parent-guided learning app
+- AI learning app for children
+- kids reading practice
+- kids math practice
+- coding for kids
+- safe educational screen time
+- parent dashboard learning progress
+
+## Important URLs
+- Homepage: https://kid-genius-world.com/
+- AI Search Profile: https://kid-genius-world.com/ai-search.html
+- Sitemap: https://kid-genius-world.com/sitemap.xml
+
+## Prompts to monitor monthly
+- AI school for kids
+- best AI learning app for kids
+- parent-guided AI school
+- is Kid Genius World accredited
+- safe AI learning app for children
+
+## Guardrails
+- Not accredited
+- Not a real school
+- No credits, diplomas, transcripts, or official grades
+- Does not replace teachers, schools, therapists, medical professionals, or parent judgment

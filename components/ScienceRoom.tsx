@@ -3,6 +3,7 @@ import { ArrowLeft, Atom, FlaskConical, HeartPulse, Leaf, Lightbulb, Star, Spark
 import { ScienceExperiment } from '../types';
 import { speakCorrect, speakWrong, playSuccess, playWrongBuzzer, speakMultipleChoiceQuestion } from '../services/audioService';
 import { pickDailyItem } from '../services/dailyRotation';
+import { EarlyScienceLesson } from './science/EarlyScienceLesson';
 
 interface ScienceRoomProps {
   level: number; // 1-7 corresponds to grade levels
@@ -633,9 +634,10 @@ const EXPANDED_SCIENCE_EXPERIMENTS: (ScienceExperiment & { gradeLevel: number })
 
 export const ALL_SCIENCE_EXPERIMENTS = [...SCIENCE_EXPERIMENTS, ...EXPANDED_SCIENCE_EXPERIMENTS];
 
-export const ScienceRoom: React.FC<ScienceRoomProps> = ({ level, onBack, onReward, onAttempt }) => {
+const AdvancedScienceRoom: React.FC<ScienceRoomProps> = ({ level, onBack, onReward, onAttempt }) => {
   // Filter experiments by grade level
-  const availableExperiments = ALL_SCIENCE_EXPERIMENTS.filter(e => e.gradeLevel <= level);
+  const exactGradeExperiments = ALL_SCIENCE_EXPERIMENTS.filter(e => e.gradeLevel === level);
+  const availableExperiments = exactGradeExperiments.length > 0 ? exactGradeExperiments : ALL_SCIENCE_EXPERIMENTS;
 
   const [experiment, setExperiment] = useState<typeof ALL_SCIENCE_EXPERIMENTS[0] | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
@@ -934,4 +936,11 @@ export const ScienceRoom: React.FC<ScienceRoomProps> = ({ level, onBack, onRewar
       </div>
     </div>
   );
+};
+
+export const ScienceRoom: React.FC<ScienceRoomProps> = (props) => {
+  if (props.level <= 7) {
+    return <EarlyScienceLesson {...props} />;
+  }
+  return <AdvancedScienceRoom {...props} />;
 };

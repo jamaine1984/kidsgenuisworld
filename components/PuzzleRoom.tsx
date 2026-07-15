@@ -2,10 +2,12 @@ import React, { useMemo, useRef, useState, useEffect } from 'react';
 import { ArrowLeft, BrainCircuit, Circle, Diamond, Fish, Flower2, Gift, Grid3X3, Hexagon, RefreshCw, Rocket, Shapes, Square, Star, Triangle } from 'lucide-react';
 import { playSuccess, playError, playPop } from '../services/audioService';
 import { pickDailyItem, shuffleDailyItems } from '../services/dailyRotation';
+import { EarlyPuzzleLesson } from './puzzle/EarlyPuzzleLesson';
 
 interface PuzzleRoomProps {
   onBack: () => void;
   onReward: (meta?: { questionId: string; skill: string; prompt: string; selectedAnswer?: string; correctAnswer?: string }) => void;
+  onAttempt?: (meta: { questionId: string; skill: string; prompt: string; selectedAnswer?: string; correctAnswer?: string }, correct: boolean) => void;
   level: number;
 }
 
@@ -74,7 +76,7 @@ const EXPANDED_PUZZLE_MISSIONS = PUZZLE_EXPANSION_THEMES.flatMap((theme, themeIn
 
 const ALL_PUZZLE_MISSIONS = [...PUZZLE_MISSIONS, ...EXPANDED_PUZZLE_MISSIONS];
 
-export const PuzzleRoom: React.FC<PuzzleRoomProps> = ({ onBack, onReward, level }) => {
+const AdvancedPuzzleRoom: React.FC<PuzzleRoomProps> = ({ onBack, onReward, level }) => {
   const [mode, setMode] = useState<PuzzleMode>('MEMORY');
   
   // Memory State
@@ -98,7 +100,9 @@ export const PuzzleRoom: React.FC<PuzzleRoomProps> = ({ onBack, onReward, level 
   const SHAPES = ['circle', 'square', 'triangle', 'diamond', 'hexagon', 'star'];
 
   const mission = useMemo(() => {
-    const missionPool = ALL_PUZZLE_MISSIONS.filter(item => item.gradeLevel <= Math.min(Math.max(level, 1), 7));
+    const normalizedLevel = Math.min(Math.max(level, 1), 7);
+    const exactGradeMissions = ALL_PUZZLE_MISSIONS.filter(item => item.gradeLevel === normalizedLevel);
+    const missionPool = exactGradeMissions.length > 0 ? exactGradeMissions : ALL_PUZZLE_MISSIONS;
     return pickDailyItem(missionPool, `puzzle-mission-grade-${level}`) || ALL_PUZZLE_MISSIONS[0];
   }, [level]);
 
@@ -326,4 +330,9 @@ export const PuzzleRoom: React.FC<PuzzleRoomProps> = ({ onBack, onReward, level 
       <style>{`.style-preserve-3d { transform-style: preserve-3d; } .rotate-y-180 { transform: rotateY(180deg); } .backface-hidden { backface-visibility: hidden; }`}</style>
     </div>
   );
+};
+
+export const PuzzleRoom: React.FC<PuzzleRoomProps> = (props) => {
+  if (props.level <= 7) return <EarlyPuzzleLesson {...props} />;
+  return <AdvancedPuzzleRoom {...props} />;
 };

@@ -2188,7 +2188,7 @@ const App: React.FC = () => {
       progressRef.current = newProgress;
       return newProgress;
     });
-    const isClassroomPracticeUnit = Boolean(activeUnitId && currentRoom !== RoomType.STORYBOOK);
+    const isClassroomPracticeUnit = Boolean(activeUnitId);
     if (showReflectionNow || !isClassroomPracticeUnit || completedReflection.mastered) {
       setLearningReflection(completedReflection);
     }
@@ -3469,7 +3469,7 @@ const App: React.FC = () => {
       case RoomType.GEOGRAPHY:
         return <GeographyRoom level={progress.currentLevel} onBack={handleBack} onReward={handleGeographyReward} onAttempt={(meta, correct) => recordRoomAssignmentAttempt(meta, correct, RoomType.GEOGRAPHY)} />;
       case RoomType.CODING:
-        return <CodingRoom level={progress.currentLevel} onBack={handleBack} onReward={handleCodingReward} />;
+        return <CodingRoom level={progress.currentLevel} onBack={handleBack} onReward={handleCodingReward} onAttempt={(meta, correct) => recordRoomAssignmentAttempt(meta, correct, RoomType.CODING)} />;
       case RoomType.LANGUAGE:
         return <LanguageRoom level={progress.currentLevel} onBack={handleBack} onReward={handleLanguageReward} onAttempt={(meta, correct) => recordRoomAssignmentAttempt(meta, correct, RoomType.LANGUAGE)} />;
       case RoomType.STORYBOOK:
@@ -3477,9 +3477,9 @@ const App: React.FC = () => {
       case RoomType.ART:
         return <ArtRoom level={progress.currentLevel} onBack={handleBack} onReward={(meta) => handleCreativeReward('art', meta)} />;
       case RoomType.MUSIC:
-        return <MusicRoom level={progress.currentLevel} onBack={handleBack} onReward={handleMusicReward} />;
+        return <MusicRoom level={progress.currentLevel} onBack={handleBack} onReward={handleMusicReward} onAttempt={(meta, correct) => recordRoomAssignmentAttempt(meta, correct, RoomType.MUSIC)} />;
       case RoomType.PUZZLE:
-        return <PuzzleRoom level={progress.currentLevel} onBack={handleBack} onReward={(meta) => addSticker('puzzle', currentRoom, {}, false, meta)} />;
+        return <PuzzleRoom level={progress.currentLevel} onBack={handleBack} onReward={(meta) => addSticker('puzzle', currentRoom, {}, false, meta)} onAttempt={(meta, correct) => recordRoomAssignmentAttempt(meta, correct, RoomType.PUZZLE)} />;
       case RoomType.STUDY:
         return <StudyZone progress={progress} onBack={handleBack} onOpenRoom={handleEnterRoom} onReviewComplete={handleStudyReviewComplete} />;
       case RoomType.HUB:

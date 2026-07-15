@@ -3,6 +3,7 @@ import { ArrowLeft, Languages, Star, Volume2, Heart } from 'lucide-react';
 import { LanguageWord } from '../types';
 import { speakAsync, speakCorrect, speakWrong, playSuccess, playWrongBuzzer } from '../services/audioService';
 import { pickDailyItem, shuffleDailyItems } from '../services/dailyRotation';
+import { EarlySpeechLesson } from './language/EarlySpeechLesson';
 
 interface LanguageRoomProps {
   level: number;
@@ -328,7 +329,7 @@ const CATEGORY_LABELS: { [key: string]: string } = {
   places: 'Place',
   phrases: 'Phrase',
 };
-export const LanguageRoom: React.FC<LanguageRoomProps> = ({ level, onBack, onReward, onAttempt }) => {
+const AdvancedLanguageRoom: React.FC<LanguageRoomProps> = ({ level, onBack, onReward, onAttempt }) => {
   const [selectedLanguage, setSelectedLanguage] = useState<keyof typeof VOCABULARY>('spanish');
   const [currentWord, setCurrentWord] = useState<LanguageWord | null>(null);
   const [options, setOptions] = useState<string[]>([]);
@@ -343,7 +344,7 @@ export const LanguageRoom: React.FC<LanguageRoomProps> = ({ level, onBack, onRew
 
   const availableWords = useMemo(() => {
     const allWords = getLanguageWords(selectedLanguage);
-    const words = allWords.filter(word => (word.gradeLevel ?? 1) <= level);
+    const words = allWords.filter(word => (word.gradeLevel ?? 1) === level);
     return words.length >= 4 ? words : allWords.slice(0, 4);
   }, [level, selectedLanguage]);
 
@@ -646,4 +647,11 @@ export const LanguageRoom: React.FC<LanguageRoomProps> = ({ level, onBack, onRew
       </div>
     </div>
   );
+};
+
+export const LanguageRoom: React.FC<LanguageRoomProps> = (props) => {
+  if (props.level <= 7) {
+    return <EarlySpeechLesson {...props} />;
+  }
+  return <AdvancedLanguageRoom {...props} />;
 };

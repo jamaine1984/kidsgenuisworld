@@ -362,4 +362,9 @@
     <priority>0.8</priority>
     <image:image><image:loc>https://kid-genius-world.com/blog/images/parent-guided-online-learning-for-every-schedule.jpg</image:loc></image:image>
   </url>
-</urlset>
+  <url>
+    <loc>https://kid-genius-world.com/ai-search.html</loc>
+    <lastmod>2026-07-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url></urlset>

@@ -318,7 +318,7 @@ test('art studio finish review completes the room and creates journal proof', as
     await canvas.click({ position: { x: 80 + (stroke % 6) * 24, y: 100 + Math.floor(stroke / 6) * 24 } });
   }
 
-  await expect(page.getByText('Timed studio steps: 4/4')).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByText('Timed studio steps: 6/6')).toBeVisible({ timeout: 10_000 });
 
   await page.getByRole('button', { name: 'I can explain my choice' }).click();
   await page.getByRole('button', { name: /Finish artwork/i }).click();
@@ -361,36 +361,39 @@ test('story time completion creates reward and parent-visible journal proof', as
   await completeKidSetup(page);
   await page.getByTestId('room-card-STORYBOOK').click();
   await startTeacherLesson(page);
-  await expect(page.getByText('Story Library')).toBeVisible();
+  await expect(page.getByText('School Library')).toBeVisible();
   const firstStory = page.getByTestId('story-book-option').first();
   const firstStoryTitle = (await firstStory.getByRole('heading').textContent())?.trim() || '';
   await firstStory.click();
   await expect(page.getByRole('heading', { name: firstStoryTitle, exact: true })).toBeVisible();
 
-  for (let pageIndex = 0; pageIndex < 4; pageIndex += 1) {
-    await page.getByLabel('Next story page').click();
-  }
+  for (let bookIndex = 0; bookIndex < 6; bookIndex += 1) {
+    await expect(page.getByText(`Book ${bookIndex + 1} of 6`, { exact: false })).toBeVisible({ timeout: 7_500 });
+    const nextPageButton = page.getByLabel('Next story page');
+    while (await nextPageButton.isEnabled()) {
+      await nextPageButton.click();
+    }
 
-  await page.getByRole('button', { name: 'I Finished Reading' }).click();
-  await expect(page.getByRole('heading', { name: 'Story Check' })).toBeVisible();
-  for (let questionIndex = 0; questionIndex < 2; questionIndex += 1) {
-    await page.locator('[data-testid="story-quiz-answer"][data-story-correct="true"]').click();
-    await expect(page.getByText('Correct. Nice evidence.')).toBeVisible();
-    if (questionIndex < 1) {
-      await expect(page.getByText('Correct. Nice evidence.')).toBeHidden({ timeout: 5_000 });
+    await page.getByRole('button', { name: 'I Finished Reading' }).click();
+    await expect(page.getByRole('heading', { name: 'Story Check' })).toBeVisible();
+    for (let questionIndex = 0; questionIndex < 2; questionIndex += 1) {
+      await page.locator('[data-testid="story-quiz-answer"][data-story-correct="true"]').click();
+      await expect(page.getByText('Correct. Nice evidence.')).toBeVisible();
+      if (questionIndex < 1) {
+        await expect(page.getByText('Correct. Nice evidence.')).toBeHidden({ timeout: 5_000 });
+      }
     }
   }
+
   await expect(page.getByText('Learning Reflection')).toBeVisible({ timeout: 7_500 });
   await page.getByRole('button', { name: /Teach it back/i }).click();
   await expect(page.getByText('Saved for parent review')).toBeVisible();
-  await page.getByRole('button', { name: 'Next Book', exact: true }).click();
-  await expect(page.getByRole('heading').first()).toBeVisible();
-  await page.getByLabel('Back to story library').click();
-  await page.getByLabel('Back to world map').click();
+  await page.getByRole('button', { name: 'Next Class', exact: true }).click();
+  await expect(page.getByText('School Campus', { exact: true }).last()).toBeVisible();
 
   await page.getByTitle('Settings').click();
   await page.getByLabel('Parent PIN').fill(PARENT_PIN);
   await page.getByRole('button', { name: 'Unlock Parent Dashboard' }).click();
   await expect(page.getByText('Learning Journal')).toBeVisible();
-  await expect(page.getByText('Teach it back')).toBeVisible();
+  await expect(page.getByText('Teach it back').first()).toBeVisible();
 });

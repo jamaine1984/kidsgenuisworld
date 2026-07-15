@@ -34,7 +34,7 @@ import {
 } from '../services/schoolMode';
 import { clearDiagnosticEvents, exportDiagnosticEvents, getDiagnosticEvents } from '../services/diagnosticsService';
 import type { StripeBillingPlan } from '../services/stripeBilling';
-import { getLocalDateKey, getMasteryPeriodSummary } from '../services/assignmentTracking';
+import { buildSpacedReviewSchedule, getLocalDateKey, getMasteryPeriodSummary } from '../services/assignmentTracking';
 
 interface BillingAccessSummary {
   billingAccessActive?: boolean;
@@ -534,8 +534,12 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
   const monthlyAssignmentCorrect = monthlyAssignmentAttempts.filter(attempt => attempt.correct).length;
   const weeklyAssignmentAccuracy = weeklyAssignmentAttempts.length > 0 ? Math.round((weeklyAssignmentCorrect / weeklyAssignmentAttempts.length) * 100) : 0;
   const monthlyAssignmentAccuracy = monthlyAssignmentAttempts.length > 0 ? Math.round((monthlyAssignmentCorrect / monthlyAssignmentAttempts.length) * 100) : 0;
-  const reviewReadyAttempts = assignmentAttempts.filter(attempt => !attempt.correct).slice(0, 6);
-  const weeklyMissedSkills = Array.from(new Set(weeklyAssignmentAttempts.filter(attempt => !attempt.correct).map(attempt => attempt.skill))).slice(0, 3);
+  const spacedReviewSchedule = buildSpacedReviewSchedule(assignmentAttempts);
+  const reviewReadyAttempts = spacedReviewSchedule.filter(item => item.status === 'ready').map(item => item.attempt).slice(0, 6);
+  const scheduledReviewItems = spacedReviewSchedule.filter(item => item.status === 'scheduled');
+  const nextScheduledReviewLabel = scheduledReviewItems[0]
+    ? new Date(scheduledReviewItems[0].dueAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+    : '';
   const monthlyMissedSkills = Array.from(new Set(monthlyAssignmentAttempts.filter(attempt => !attempt.correct).map(attempt => attempt.skill))).slice(0, 4);
   const latestAssignmentEvidence = [...assignmentAttempts].sort((a, b) => b.createdAt - a.createdAt).slice(0, 5);
   const masterySummaryByRoom = Object.values(RoomType)
@@ -790,8 +794,10 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
       label: 'Review queue',
       value: `${reviewReadyAttempts.length}`,
       detail: reviewReadyAttempts.length > 0
-        ? `${weeklyMissedSkills[0] || reviewReadyAttempts[0].skill} should come back before harder work.`
-        : 'No missed assignment attempts are waiting for review.',
+        ? `${reviewReadyAttempts[0].skill} is ready now before harder work.`
+        : scheduledReviewItems.length > 0
+          ? `${scheduledReviewItems.length} retrieval review${scheduledReviewItems.length === 1 ? '' : 's'} scheduled; next due ${nextScheduledReviewLabel}.`
+          : 'No missed assignment attempts are waiting for review.',
     },
   ];
   const monthlyReportCards = [
@@ -1603,10 +1609,10 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                   <div className="rounded-lg bg-white p-3 shadow-sm">
                     <p className="text-[10px] font-black uppercase tracking-[0.12em] text-amber-600">Priority review</p>
                     <p className="mt-1 text-sm font-black text-slate-900">
-                      {reviewReadyAttempts[0]?.skill || priorityMasterySummary?.missedSkills[0] || 'No review needed yet'}
+                      {reviewReadyAttempts[0]?.skill || scheduledReviewItems[0]?.attempt.skill || priorityMasterySummary?.missedSkills[0] || 'No review needed yet'}
                     </p>
                     <p className="mt-1 text-xs font-semibold text-slate-600">
-                      {reviewReadyAttempts[0]?.prompt || priorityMasterySummary?.parentExplanation || 'Keep one light review question in each session.'}
+                      {reviewReadyAttempts[0]?.prompt || (scheduledReviewItems[0] ? `Returns ${nextScheduledReviewLabel} for the next spaced retrieval.` : priorityMasterySummary?.parentExplanation) || 'Keep one light review question in each session.'}
                     </p>
                   </div>
                   <div className="rounded-lg bg-white p-3 shadow-sm">
@@ -1620,9 +1626,9 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                   </div>
                   <div className="rounded-lg bg-white p-3 shadow-sm">
                     <p className="text-[10px] font-black uppercase tracking-[0.12em] text-amber-600">Review questions</p>
-                    <p className="mt-1 text-sm font-black text-slate-900">{reviewReadyAttempts.length} ready</p>
+                    <p className="mt-1 text-sm font-black text-slate-900">{reviewReadyAttempts.length} ready, {scheduledReviewItems.length} scheduled</p>
                     <p className="mt-1 text-xs font-semibold text-slate-600">
-                      Saved missed questions are kept in the assignment history for future reteach cycles.
+                      Corrected misses return after 1, 3, and 7 days before leaving the active review cycle.
                     </p>
                   </div>
                 </div>

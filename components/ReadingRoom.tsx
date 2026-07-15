@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowLeft, Check, Star, Type, Image as ImageIcon, Volume2, Mic2, Sparkles, Book, Ear, X } from 'lucide-react';
 import { playSuccess, playWrongBuzzer, playPop, speak, speakAsync, speakCorrect, speakWrong, speakMultipleChoiceQuestion } from '../services/audioService';
 import { pickDailyItem, shuffleDailyItems } from '../services/dailyRotation';
+import { EarlyReadingLesson } from './reading/EarlyReadingLesson';
 
 interface ReadingRoomProps {
   onBack: () => void;
@@ -348,7 +349,7 @@ export const ALL_READING_PASSAGES = [...READING_PASSAGES, ...EXPANDED_READING_PA
 const SUCCESS_ROUND_DELAY_MS = 1800;
 const MATCH_SUCCESS_ROUND_DELAY_MS = 950;
 
-export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, onAttempt, level }) => {
+const AdvancedReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, onAttempt, level }) => {
   const [mode, setMode] = useState<Activity>('MATCH');
   const [score, setScore] = useState(0);
   const [currentWord, setCurrentWord] = useState(ALL_VOCABULARY[0]);
@@ -406,13 +407,13 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, onAt
 
   const getWordsForLevel = () => {
     const maxLvl = Math.min(Math.max(level, 1), 7);
-    const list = ALL_VOCABULARY.filter(v => v.level <= maxLvl);
+    const list = ALL_VOCABULARY.filter(v => v.level === maxLvl);
     return list.length > 0 ? list : ALL_VOCABULARY;
   };
 
   const getPassagesForLevel = () => {
     const maxLvl = Math.min(Math.max(level, 1), 7);
-    const list = ALL_READING_PASSAGES.filter(p => p.level <= maxLvl);
+    const list = ALL_READING_PASSAGES.filter(p => p.level === maxLvl);
     return list.length > 0 ? list : ALL_READING_PASSAGES;
   };
 
@@ -946,3 +947,7 @@ export const ReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, onAt
     </div>
   );
 };
+
+export const ReadingRoom: React.FC<ReadingRoomProps> = (props) => (
+  props.level <= 7 ? <EarlyReadingLesson {...props} /> : <AdvancedReadingRoom {...props} />
+);

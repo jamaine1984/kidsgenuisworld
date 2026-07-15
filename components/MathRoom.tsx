@@ -1,8 +1,12 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { speakAsync, speakCorrect, speakWrong, playSuccess, playWrongBuzzer, speakMultipleChoiceQuestion } from '../services/audioService';
+import { speakCorrect, speakWrong, playSuccess, playWrongBuzzer, speakMultipleChoiceQuestion } from '../services/audioService';
 import { MathProblem } from '../types';
 import { Star, ArrowLeft, Volume2, RefreshCw, Calculator } from 'lucide-react';
 import { withSeededRandom } from '../services/dailyRotation';
+import { generateEarlyMathProblem } from '../services/curriculum/earlyMath';
+import { generateElementaryMathProblem } from '../services/curriculum/elementaryMath';
+import { generateUpperElementaryMathProblem } from '../services/curriculum/upperElementaryMath';
+import { EarlyMathModel } from './math/EarlyMathModel';
 
 interface MathRoomProps {
   onBack: () => void;
@@ -533,18 +537,38 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, onAttempt,
   const [feedback, setFeedback] = useState<'idle' | 'correct' | 'wrong'>('idle');
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [coachTip, setCoachTip] = useState('');
-  const [selectedChoice, setSelectedChoice] = useState<number | null>(null);
+  const [selectedChoice, setSelectedChoice] = useState<number | string | null>(null);
   const lessonStep = React.useRef(0);
   const choiceLabels = ['A', 'B', 'C', 'D'];
 
   const lessonLabel = useMemo(() => {
-    if (level <= 2) return 'Count and picture the groups';
-    if (level <= 4) return 'Look for the operation clue';
-    if (level <= 5) return 'Use fact families and patterns';
-    return 'Estimate first, then solve carefully';
+    if (level === 1) return 'Touch, count, compare, and name what you see';
+    if (level === 2) return 'Build numbers with pictures, shapes, and stories';
+    if (level === 3) return 'Build facts, place value, time, money, and measurement with models';
+    if (level === 4) return 'Connect place value to two-step problems and real-world math';
+    if (level === 5) return 'Model multiplication, division, fractions, area, and data';
+    if (level === 6) return 'Connect multi-digit operations, factors, fractions, and measurement';
+    return 'Reason with decimals, fractions, volume, coordinates, and expressions';
   }, [level]);
 
   const buildCoachTip = useCallback((currentProblem: MathProblem) => {
+    const skill = currentProblem.skill || '';
+    if (/decimal/i.test(skill)) return 'Line up the decimal points first, then work one place value at a time.';
+    if (/unlike denominators/i.test(skill)) return 'Rename both fractions with a common denominator before combining them.';
+    if (/fraction/i.test(skill)) return 'Use equal-size parts, then compare or combine the numerators carefully.';
+    if (/order of operations/i.test(skill)) return 'Complete multiplication or division before addition or subtraction.';
+    if (/volume/i.test(skill)) return 'Count cubic layers by multiplying length, width, and height.';
+    if (/area/i.test(skill)) return 'Count square units by multiplying the rectangle length and width.';
+    if (/perimeter/i.test(skill)) return 'Trace the outside edge and add every side exactly once.';
+    if (/coordinate|ordered pair/i.test(skill)) return 'Read x first by moving right, then read y by moving up.';
+    if (/data|graph|line plot/i.test(skill)) return 'Read the labels and scale before comparing the data values.';
+    if (/multi-step/i.test(skill)) return 'Write the result of the first step, then use it in the second step.';
+    if (/conversion/i.test(skill)) return 'Name the unit relationship first, then multiply or divide by the conversion factor.';
+    if (currentProblem.skill === 'color recognition') return 'Say the color name, then check every counter.';
+    if (currentProblem.context === 'comparison') return 'Match one counter from each group before deciding which has more.';
+    if (currentProblem.context === 'pattern') return 'Say the repeating part aloud, then start the pattern again.';
+    if (currentProblem.context === 'spatial') return 'Look at the blue circle first, then describe where it is.';
+    if (currentProblem.context === 'counting') return 'Touch each counter once and let the last number tell how many.';
     if (currentProblem.context === 'word-problem') return 'Underline the numbers, then decide what the story is asking.';
     if (currentProblem.context === 'money') return 'Count coin values first, then add the cents.';
     if (currentProblem.context === 'time') return 'Start at the clock time and count hours forward.';
@@ -569,7 +593,8 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, onAttempt,
       .replace(/=/g, 'equals')
       .replace(/\?/g, '');
 
-    void speakMultipleChoiceQuestion(`What is ${spokenText}?`, currentProblem.options)
+    const prompt = currentProblem.context === 'equation' ? `What is ${spokenText}?` : spokenText;
+    void speakMultipleChoiceQuestion(prompt, currentProblem.options)
       .finally(() => setIsSpeaking(false));
   }, [isSpeaking]);
 
@@ -582,20 +607,22 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, onAttempt,
       .replace(/÷/g, 'divided by')
       .replace(/=/g, 'equals')
       .replace(/\?/g, '');
-    if (lessonStep.current <= 1) {
-      await speakAsync(`Welcome to Math Classroom. ${lessonLabel}.`, 0.82, 1.02, 'gentle');
-      await speakAsync('Mr. Atlas math lesson. Listen for the numbers and the operation.', 0.82, 1.02, 'gentle');
-    }
-    await speakAsync(buildCoachTip(currentProblem), 0.82, 1.02, 'gentle');
-    await speakMultipleChoiceQuestion(`What is ${spokenText}?`, currentProblem.options);
+    const prompt = currentProblem.context === 'equation' ? `What is ${spokenText}?` : spokenText;
+    await speakMultipleChoiceQuestion(prompt, currentProblem.options);
     setIsSpeaking(false);
-  }, [buildCoachTip, lessonLabel]);
+  }, []);
   const loadProblem = useCallback(() => {
     setFeedback('idle');
     setSelectedChoice(null);
     const step = lessonStep.current;
     lessonStep.current += 1;
-    const p = withSeededRandom(`math-grade-${level}`, step, () => generateMathProblem(level));
+    const p = level <= 2
+      ? generateEarlyMathProblem(level as 1 | 2, step)
+      : level <= 4
+        ? generateElementaryMathProblem(level as 3 | 4, step)
+        : level <= 7
+          ? generateUpperElementaryMathProblem(level as 5 | 6 | 7, step)
+          : withSeededRandom(`math-grade-${level}`, step, () => generateMathProblem(level));
     setProblem(p);
     setCoachTip(buildCoachTip(p));
   }, [level, buildCoachTip]);
@@ -610,7 +637,7 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, onAttempt,
     loadProblem();
   }, [lessonLabel, loadProblem]);
 
-  const handleAnswer = (val: number) => {
+  const handleAnswer = (val: number | string) => {
     if (!problem || feedback !== 'idle') return;
     setSelectedChoice(val);
 
@@ -652,6 +679,14 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, onAttempt,
 
   const renderMathManipulatives = () => {
     if (!problem) return null;
+    if (problem.visualModel) {
+      return (
+        <div className="mb-7 rounded-[28px] bg-gradient-to-br from-sky-50 via-white to-amber-50 p-4 ring-2 ring-indigo-100">
+          <p className="mb-3 text-xs font-black uppercase tracking-[0.16em] text-indigo-600">Math model</p>
+          <EarlyMathModel model={problem.visualModel} />
+        </div>
+      );
+    }
     const numbers = problem.question.match(/\d+/g)?.map(Number) || [];
     const numberBondMatch = problem.question.match(/^(\d+)\s*\+\s*\?\s*=\s*(\d+)$/);
     const isNumberBond = Boolean(numberBondMatch);
@@ -750,6 +785,19 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, onAttempt,
   };
 
   const getMissionLabel = (currentProblem: MathProblem) => {
+    const skill = currentProblem.skill || '';
+    if (/decimal/i.test(skill)) return 'Decimal Lab';
+    if (/fraction/i.test(skill)) return 'Fraction Reasoning';
+    if (/area|perimeter|volume/i.test(skill)) return 'Measurement Lab';
+    if (/coordinate|ordered pair/i.test(skill)) return 'Coordinate Lab';
+    if (/data|graph|line plot/i.test(skill)) return 'Data Lab';
+    if (/multi-step/i.test(skill)) return 'Multi-Step Mission';
+    if (/factor|multiple/i.test(skill)) return 'Number Structure';
+    if (currentProblem.context === 'counting') return 'Counting Lab';
+    if (currentProblem.context === 'comparison') return 'Compare Groups';
+    if (currentProblem.context === 'classification') return 'Sort and Name';
+    if (currentProblem.context === 'pattern') return 'Pattern Lab';
+    if (currentProblem.context === 'spatial') return 'Position Words';
     if (currentProblem.context === 'word-problem') return 'Word Problem';
     if (currentProblem.context === 'money') return 'Money Math';
     if (currentProblem.context === 'time') return 'Time Math';
@@ -783,9 +831,17 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, onAttempt,
 
       <div className="flex-1 flex flex-col items-center justify-center z-10">
         {problem ? (
-          <div className="bg-white/95 p-8 rounded-[40px] shadow-2xl w-full max-w-3xl text-center border-b-8 border-indigo-300 relative animate-pop-in">
+          <div className="w-full max-w-4xl overflow-hidden rounded-[32px] border border-indigo-200 bg-white/95 text-center shadow-2xl animate-pop-in">
+            <div className="flex flex-col gap-2 bg-indigo-950 px-5 py-4 text-left text-white sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-300">Today's math focus</p>
+                <p className="mt-1 text-lg font-black capitalize">{problem.skill || getMissionLabel(problem)}</p>
+              </div>
+              <p className="max-w-xl text-sm font-semibold text-indigo-100">{lessonLabel}</p>
+            </div>
+            <div className="relative p-5 sm:p-8">
             <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-indigo-500 text-white px-6 py-2 rounded-full font-bold shadow-md text-sm uppercase tracking-widest">
-                Flash Card
+                Question {Math.min(score + 1, 6)} of 6
             </div>
             <button
                 onClick={() => speakMathQuestion(problem)}
@@ -805,7 +861,7 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, onAttempt,
             </div>
             <h2
               data-testid="math-question"
-              className={`${problem.context === 'equation' ? 'text-6xl sm:text-7xl font-mono tracking-wider' : 'text-2xl sm:text-3xl leading-snug'} font-bold text-indigo-900 mb-12 mt-8`}
+              className={`${problem.context === 'equation' ? 'text-5xl sm:text-7xl font-mono tracking-wider' : 'text-2xl sm:text-3xl leading-snug'} mb-7 mt-8 font-bold text-indigo-950`}
             >
               {problem.question}
             </h2>
@@ -829,7 +885,7 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, onAttempt,
                   <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/95 text-2xl font-black text-indigo-700 shadow-sm">
                     {choiceLabels[idx]}
                   </span>
-                  <span className="text-4xl font-black leading-none sm:text-5xl">{opt}</span>
+                  <span className="min-w-0 break-words text-2xl font-black leading-tight sm:text-4xl">{opt}</span>
                 </button>
               ))}
             </div>
@@ -845,6 +901,7 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, onAttempt,
                     <div className="mt-2 text-2xl font-black">The answer is {problem.answer}. {problem.explanation}</div>
                 </div>
             )}
+            </div>
           </div>
         ) : (
            <button onClick={loadProblem} className="flex items-center gap-2 text-indigo-600 bg-white px-6 py-3 rounded-full shadow-lg font-bold">

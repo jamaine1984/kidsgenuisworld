@@ -1,11 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, Bot, Box, Code, Lightbulb, Play, RotateCcw, Star, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Repeat, Zap, Volume2, X } from 'lucide-react';
 import { speakAsync, speakCorrect, speakWrong, playSuccess, playError, playWrongBuzzer } from '../services/audioService';
+import { EarlyCodingLesson } from './coding/EarlyCodingLesson';
 
 interface CodingRoomProps {
   level: number; // 1-7 corresponds to Pre-K through 5th grade
   onBack: () => void;
   onReward: (meta?: { questionId: string; skill: string; prompt: string; selectedAnswer?: string; correctAnswer?: string }) => void;
+  onAttempt?: (meta: { questionId: string; skill: string; prompt: string; selectedAnswer?: string; correctAnswer?: string }, correct: boolean) => void;
 }
 
 interface GridCell {
@@ -929,9 +931,10 @@ const AVAILABLE_BLOCKS: CodeBlock[] = [
   { id: 'repeat', type: 'repeat', icon: <Repeat size={20} />, label: 'Repeat 2x', color: 'bg-orange-500', repeatCount: 2 },
 ];
 
-export const CodingRoom: React.FC<CodingRoomProps> = ({ level, onBack, onReward }) => {
+const AdvancedCodingRoom: React.FC<CodingRoomProps> = ({ level, onBack, onReward }) => {
   // Filter challenges by grade level
-  const availableChallenges = ALL_CHALLENGES.filter(c => c.gradeLevel <= level);
+  const exactGradeChallenges = ALL_CHALLENGES.filter(c => c.gradeLevel === level);
+  const availableChallenges = exactGradeChallenges.length > 0 ? exactGradeChallenges : ALL_CHALLENGES;
   const dailyChallengeIndex = useMemo(() => {
     const dayKey = new Date().toISOString().slice(0, 10);
     const seed = [...dayKey].reduce((total, char) => total + char.charCodeAt(0), 0);
@@ -1383,4 +1386,9 @@ export const CodingRoom: React.FC<CodingRoomProps> = ({ level, onBack, onReward 
       </div>
     </div>
   );
+};
+
+export const CodingRoom: React.FC<CodingRoomProps> = (props) => {
+  if (props.level <= 7) return <EarlyCodingLesson {...props} />;
+  return <AdvancedCodingRoom {...props} />;
 };

@@ -3,6 +3,7 @@ import { ArrowLeft, Globe2, MapPin, Star, Plane, Volume2 } from 'lucide-react';
 import { GeographyQuestion } from '../types';
 import { speakCorrect, speakWrong, playSuccess, playWrongBuzzer, speakMultipleChoiceQuestion } from '../services/audioService';
 import { pickDailyItem, shuffleDailyItems } from '../services/dailyRotation';
+import { EarlyWorldLesson } from './geography/EarlyWorldLesson';
 
 interface GeographyRoomProps {
   level: number; // 1-7 corresponds to grade levels
@@ -279,9 +280,10 @@ const EXPANDED_GEOGRAPHY_QUESTIONS: (GeographyQuestion & { gradeLevel: number })
 
 export const ALL_GEOGRAPHY_QUESTIONS = [...GEOGRAPHY_QUESTIONS, ...EXPANDED_GEOGRAPHY_QUESTIONS];
 
-export const GeographyRoom: React.FC<GeographyRoomProps> = ({ level, onBack, onReward, onAttempt }) => {
+const AdvancedGeographyRoom: React.FC<GeographyRoomProps> = ({ level, onBack, onReward, onAttempt }) => {
   // Filter questions by grade level
-  const availableQuestions = ALL_GEOGRAPHY_QUESTIONS.filter(q => q.gradeLevel <= level);
+  const exactGradeQuestions = ALL_GEOGRAPHY_QUESTIONS.filter(q => q.gradeLevel === level);
+  const availableQuestions = exactGradeQuestions.length > 0 ? exactGradeQuestions : ALL_GEOGRAPHY_QUESTIONS;
 
   const [question, setQuestion] = useState<typeof ALL_GEOGRAPHY_QUESTIONS[0] | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
@@ -544,4 +546,9 @@ export const GeographyRoom: React.FC<GeographyRoomProps> = ({ level, onBack, onR
       </div>
     </div>
   );
+};
+
+export const GeographyRoom: React.FC<GeographyRoomProps> = (props) => {
+  if (props.level <= 7) return <EarlyWorldLesson {...props} />;
+  return <AdvancedGeographyRoom {...props} />;
 };

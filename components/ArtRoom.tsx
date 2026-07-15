@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { ArrowLeft, CheckCircle2, Download, Eraser, Palette, Target } from 'lucide-react';
 import { playPop, speakAsync } from '../services/audioService';
 
@@ -168,41 +168,60 @@ const ART_PLANNING_CHOICES = [
   'one story moment',
 ];
 
+const ART_TECHNIQUES = [
+  'layered lines', 'shape building', 'warm and cool color', 'repeating texture', 'overlapping forms',
+  'large and small contrast', 'symmetry', 'foreground and background', 'pattern rhythm', 'light and shadow',
+];
+
+const ART_PURPOSES = [
+  'show a feeling', 'tell a short story', 'teach one fact', 'guide the viewer', 'celebrate a memory',
+  'solve a design problem', 'show movement', 'compare two ideas', 'highlight one detail', 'invite a helpful action',
+];
+
 const EXPANDED_ART_MISSIONS = ART_EXPANSION_THEMES.flatMap((theme, themeIndex) =>
-  Array.from({ length: 7 }, (_, gradeIndex) => Array.from({ length: 2 }, (_, variantIndex) => {
+  Array.from({ length: 7 }, (_, gradeIndex) => Array.from({ length: 10 }, (_, variantIndex) => {
     const gradeLevel = gradeIndex + 1;
     const planningChoice = ART_PLANNING_CHOICES[(themeIndex + variantIndex) % ART_PLANNING_CHOICES.length];
+    const technique = ART_TECHNIQUES[(themeIndex * 3 + variantIndex) % ART_TECHNIQUES.length];
+    const purpose = ART_PURPOSES[(themeIndex + variantIndex * 2) % ART_PURPOSES.length];
     return {
       gradeLevel,
       title: `${theme.replace(/^\w/, letter => letter.toUpperCase())} Studio ${gradeLevel}.${variantIndex + 1}`,
       prompt: gradeLevel <= 2
-        ? `Draw a ${theme} picture with big shapes, clear colors, and one favorite detail.`
+        ? `Create a ${theme} picture with ${technique} to ${purpose}.`
         : gradeLevel <= 4
-          ? `Create a ${theme} scene with foreground, background, pattern, and a clear focal point.`
-          : `Design a ${theme} artwork that communicates an idea using layout, contrast, labels, and evidence details.`,
-      minStrokes: 8 + gradeLevel + (themeIndex % 4) + variantIndex,
+          ? `Create a ${theme} scene using ${technique}, a clear focal point, and details that ${purpose}.`
+          : `Design a ${theme} artwork using ${technique}, purposeful layout, and evidence details to ${purpose}.`,
+      minStrokes: 8 + gradeLevel + (themeIndex % 4) + (variantIndex % 3),
       focus: gradeLevel <= 2
-        ? 'Artists use simple marks to show an idea clearly.'
+        ? `Artists can use ${technique} to make an idea clear.`
         : gradeLevel <= 4
-          ? 'Artists organize details so the viewer understands the scene.'
-          : 'Artists make design choices that communicate a message to an audience.',
+          ? `Artists organize ${technique} so the viewer understands the scene.`
+          : `Artists choose ${technique} to communicate a message to an audience.`,
       vocabulary: gradeLevel <= 2
-        ? ['shape', 'color', 'detail']
+        ? ['shape', 'color', 'detail', technique]
         : gradeLevel <= 4
-          ? ['pattern', 'space', 'focal point', 'detail']
-          : ['composition', 'contrast', 'audience', 'evidence'],
+          ? ['pattern', 'space', 'focal point', technique]
+          : ['composition', 'contrast', 'audience', technique],
       lessonSteps: [
         `Choose ${planningChoice} for the ${theme} artwork before drawing.`,
-        'Draw the largest shape first so the picture has a clear plan.',
-        'Add colors, patterns, or details that support the idea.',
-        'Explain one choice that makes the artwork easier to understand.',
+        `Draw the largest shape first, then begin using ${technique}.`,
+        `Add colors, patterns, or details that help the artwork ${purpose}.`,
+        `Explain how ${technique} makes the ${theme} idea easier to understand.`,
       ],
-      checks: ['Main idea', 'Large shape', 'Helpful details', 'Artist explanation'],
+      checks: ['Main idea', technique, 'Helpful details', 'Artist explanation'],
     };
   })).flat()
 );
 
-const ALL_ART_MISSIONS = [...ART_MISSIONS, ...EXPANDED_ART_MISSIONS];
+export const ALL_ART_MISSIONS = [...ART_MISSIONS, ...EXPANDED_ART_MISSIONS];
+
+const getAnnualLessonIndex = () => {
+  const today = new Date();
+  const startOfYear = Date.UTC(today.getFullYear(), 0, 0);
+  const currentDay = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+  return Math.max(0, Math.floor((currentDay - startOfYear) / 86400000) - 1);
+};
 
 const ART_FOCUS_SECONDS = 30;
 
@@ -230,11 +249,29 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => 
   const [completedTimedSteps, setCompletedTimedSteps] = useState(0);
 
   const colors = ['#FF5733', '#FFBD33', '#DBFF33', '#75FF33', '#33FF57', '#33FFBD', '#33DBFF', '#3357FF', '#7533FF', '#FF33BD', '#000000', '#FFFFFF'];
-  const missionPool = ALL_ART_MISSIONS.filter(item => item.gradeLevel <= Math.min(Math.max(level, 1), 7));
-  const mission = missionPool[new Date().getDate() % missionPool.length] || ALL_ART_MISSIONS[0];
+  const normalizedLevel = Math.min(Math.max(level, 1), 7);
+  const exactGradeMissions = ALL_ART_MISSIONS.filter(item => item.gradeLevel === normalizedLevel);
+  const missionPool = exactGradeMissions.length > 0 ? exactGradeMissions : ALL_ART_MISSIONS;
+  const mission = missionPool[getAnnualLessonIndex() % missionPool.length] || ALL_ART_MISSIONS[0];
+  const studioSteps = useMemo(() => [
+    mission.lessonSteps[0],
+    mission.lessonSteps[1],
+    mission.lessonSteps[2],
+    'Pause and look at the whole artwork. Add one finishing detail that supports the main idea.',
+    'Revise one choice on purpose by changing a line, color, shape, or texture.',
+    mission.lessonSteps[3],
+  ], [mission]);
+  const studioChecks = useMemo(() => [
+    mission.checks[0],
+    mission.checks[1],
+    mission.checks[2],
+    'Finishing detail',
+    'One revision',
+    mission.checks[3],
+  ], [mission]);
   const hasEnoughDrawing = strokeCount >= mission.minStrokes;
-  const hasEnoughFocusTime = completedTimedSteps >= mission.lessonSteps.length;
-  const hasFinishedSteps = activeStep >= mission.lessonSteps.length - 1;
+  const hasEnoughFocusTime = completedTimedSteps >= studioSteps.length;
+  const hasFinishedSteps = activeStep >= studioSteps.length - 1;
   const canComplete = hasEnoughDrawing && hasEnoughFocusTime && hasFinishedSteps && Boolean(reflectionChoice) && !isComplete;
   const drawingProgress = Math.min(strokeCount, mission.minStrokes);
   const focusProgress = Math.min(artFocusSeconds, ART_FOCUS_SECONDS);
@@ -242,8 +279,8 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => 
   const stepProgress = activeStep + 1;
   const studioScore = Math.round((
     (hasEnoughDrawing ? 30 : (drawingProgress / mission.minStrokes) * 30) +
-    (hasEnoughFocusTime ? 20 : (completedTimedSteps / mission.lessonSteps.length) * 20) +
-    (hasFinishedSteps ? 30 : (stepProgress / mission.lessonSteps.length) * 30) +
+    (hasEnoughFocusTime ? 20 : (completedTimedSteps / studioSteps.length) * 20) +
+    (hasFinishedSteps ? 30 : (stepProgress / studioSteps.length) * 30) +
     (reflectionChoice ? 20 : 0)
   ));
 
@@ -268,8 +305,8 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => 
   }, []);
 
   useEffect(() => {
-    void speakAsync(`Welcome to Art Studio. Today we are learning ${mission.title}. ${mission.focus} ${mission.lessonSteps[0]}`, 0.86, 1.03);
-  }, [mission]);
+    void speakAsync(`Today's art lesson is ${mission.title}. ${mission.focus} Step one: ${studioSteps[0]}`, 0.86, 1.03);
+  }, [mission, studioSteps]);
 
   useEffect(() => {
     if (!hasStartedArtwork || isComplete || artFocusSeconds >= ART_FOCUS_SECONDS) {
@@ -291,13 +328,13 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => 
     const completedStepCount = Math.max(completedTimedSteps, activeStep + 1);
     setCompletedTimedSteps(completedStepCount);
 
-    if (activeStep < mission.lessonSteps.length - 1) {
+    if (activeStep < studioSteps.length - 1) {
       const nextStep = activeStep + 1;
       setActiveStep(nextStep);
       setArtFocusSeconds(0);
       setHasStartedArtwork(false);
       const encouragement = ART_TEACHER_PRAISE[nextStep % ART_TEACHER_PRAISE.length];
-      const feedback = `${encouragement} Now step ${nextStep + 1}: ${mission.lessonSteps[nextStep]} Draw for 30 seconds and I will move you again.`;
+      const feedback = `${encouragement} Now step ${nextStep + 1}: ${studioSteps[nextStep]} Draw for 30 seconds and I will move you again.`;
       setStudioFeedback(feedback);
       void speakAsync(feedback, 0.86, 1.02);
       return;
@@ -307,7 +344,7 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => 
     setHasStartedArtwork(false);
     setStudioFeedback(feedback);
     void speakAsync(feedback, 0.86, 1.02);
-  }, [activeStep, artFocusSeconds, completedTimedSteps, hasStartedArtwork, isComplete, mission.lessonSteps]);
+  }, [activeStep, artFocusSeconds, completedTimedSteps, hasStartedArtwork, isComplete, studioSteps]);
 
   const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
     setIsDrawing(true);
@@ -380,7 +417,7 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => 
 
       const missingSteps = [
         !hasEnoughDrawing ? `add ${mission.minStrokes - strokeCount} more drawing mark${mission.minStrokes - strokeCount === 1 ? '' : 's'}` : '',
-        !hasEnoughFocusTime ? `finish ${mission.lessonSteps.length - completedTimedSteps} more timed studio step${mission.lessonSteps.length - completedTimedSteps === 1 ? '' : 's'}` : '',
+        !hasEnoughFocusTime ? `finish ${studioSteps.length - completedTimedSteps} more timed studio step${studioSteps.length - completedTimedSteps === 1 ? '' : 's'}` : '',
         !hasFinishedSteps ? 'let Mr. Atlas guide you through each studio step' : '',
         !reflectionChoice ? 'choose one reflection sentence' : '',
       ].filter(Boolean);
@@ -402,7 +439,7 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => 
         skill: mission.focus,
         prompt: mission.prompt,
         selectedAnswer: reflectionChoice,
-        correctAnswer: mission.checks.join(', '),
+        correctAnswer: studioChecks.join(', '),
         timeSpentMs: completedTimedSteps * ART_FOCUS_SECONDS * 1000,
       });
   };
@@ -466,7 +503,12 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => 
                 <div className="min-w-0">
                   <div className="text-xs font-black uppercase tracking-[0.22em] text-pink-600">Teacher-Led Art Lesson</div>
                   <p className="mt-1 text-sm font-black text-slate-900">{mission.prompt}</p>
-                  <p className="mt-1 text-xs font-bold text-slate-600">Now: {mission.lessonSteps[activeStep]}</p>
+                  <p className="mt-1 text-xs font-bold text-slate-600">Now: {studioSteps[activeStep]}</p>
+                  <div className="mt-3 flex items-center gap-2" aria-label={`Studio step ${stepProgress} of ${studioSteps.length}`}>
+                    {studioSteps.map((_, index) => (
+                      <span key={index} className={`h-2 flex-1 rounded-full ${index < activeStep ? 'bg-emerald-500' : index === activeStep ? 'bg-pink-500' : 'bg-pink-100'}`} />
+                    ))}
+                  </div>
                   <div className="mt-2 flex flex-wrap gap-2 text-xs font-bold text-slate-600">
                     {mission.vocabulary.map(word => (
                       <span key={word} className="rounded-full bg-indigo-50 px-3 py-1 text-indigo-700">{word}</span>
@@ -489,15 +531,15 @@ export const ArtRoom: React.FC<ArtRoomProps> = ({ onBack, onReward, level }) => 
                     <div className="mt-3 grid gap-2 text-[11px] font-black text-slate-700">
                       <p className={hasEnoughDrawing ? 'text-emerald-700' : 'text-amber-700'}>Drawing effort: {drawingProgress}/{mission.minStrokes}</p>
                       <p className={hasEnoughFocusTime ? 'text-emerald-700' : 'text-amber-700'}>
-                        Timed studio steps: {completedTimedSteps}/{mission.lessonSteps.length}
+                        Timed studio steps: {completedTimedSteps}/{studioSteps.length}
                       </p>
-                      <p className={hasFinishedSteps ? 'text-emerald-700' : 'text-amber-700'}>Current step: {stepProgress}/{mission.lessonSteps.length}</p>
+                      <p className={hasFinishedSteps ? 'text-emerald-700' : 'text-amber-700'}>Current step: {stepProgress}/{studioSteps.length}</p>
                       <p className={reflectionChoice ? 'text-emerald-700' : 'text-amber-700'}>Reflection: {reflectionChoice ? 'ready' : 'choose one'}</p>
                     </div>
                     <p className="mt-3 rounded-xl bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-900">{studioFeedback}</p>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {mission.checks.map((check, index) => (
+                    {studioChecks.map((check, index) => (
                       <span key={check} className={`rounded-full px-3 py-1 text-xs font-black ${index <= activeStep ? 'bg-pink-500 text-white' : 'bg-pink-50 text-pink-700'}`}>{check}</span>
                     ))}
                   </div>

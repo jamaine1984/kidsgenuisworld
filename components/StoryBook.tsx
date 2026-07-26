@@ -1140,14 +1140,13 @@ export const ALL_STORIES = [...STORIES, ...EXPANDED_STORIES];
 export const StoryBook: React.FC<StoryBookProps> = ({ level, onBack, onReward }) => {
   const availableStories = useMemo(() => {
     const dailyStories = buildDailyLibraryStories(level);
-    const eligibleStories = ALL_STORIES.filter(story => story.gradeLevel <= level);
     const gradeShelf = shuffleDailyItems(
-      eligibleStories.filter(story => story.gradeLevel === level),
+      ALL_STORIES.filter(story => story.gradeLevel === level),
       `library-grade-${level}`,
       0,
     ).slice(0, 8);
     const reviewShelf = shuffleDailyItems(
-      eligibleStories.filter(story => story.gradeLevel < level),
+      ALL_STORIES.filter(story => story.gradeLevel === level - 1),
       `library-review-${level}`,
       0,
     ).slice(0, 4);

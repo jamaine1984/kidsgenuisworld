@@ -367,6 +367,9 @@ const speakAndWait = (text: string, rate: number, pitch: number, runId: number):
     stopActiveSpeechPlayback();
 
     if (hasStaticVoiceCache()) {
+      // Voice ladder: pre-generated static mp3 -> device voice. Lessons never
+      // call a TTS API at runtime; narration for new lines is baked offline via
+      // `npm run voice:cache` + `npm run voice:static`. See README.
       playStaticVoiceSpeech(text)
         .then(resolve)
         .catch(() => {

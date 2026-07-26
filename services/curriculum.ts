@@ -42,6 +42,18 @@ const CORE_CURRICULUM_UNITS: CurriculumUnit[] = [
     successCheck: 'Child counts each group and correctly points to more, less, or same.',
   },
   {
+    id: 'prek-shapes-colors',
+    grade: GradeLevel.PRE_K,
+    room: RoomType.MATH,
+    title: 'Shapes and Colors',
+    objective: 'Name circles, squares, triangles, stars, and hearts, and identify common colors.',
+    masteryTarget: 'Point to and name four shapes and six colors.',
+    standardsFocus: ['Shape recognition', 'Color identification', 'Visual discrimination'],
+    reviewCycleDays: 2,
+    parentActivity: 'Go on a shape hunt at home: find something round, something square, and something red.',
+    successCheck: 'Child names the shape and color of everyday objects without help.',
+  },
+  {
     id: 'prek-picture-words',
     grade: GradeLevel.PRE_K,
     room: RoomType.READING,
@@ -801,8 +813,12 @@ const gradeOrder = [
 ];
 
 export const getUnitsForGrade = (grade: GradeLevel) => {
-  const gradeIndex = gradeOrder.indexOf(grade);
-  return CURRICULUM_UNITS.filter((unit) => gradeOrder.indexOf(unit.grade) <= Math.max(gradeIndex, 0));
+  // GRADE PURITY: return only this grade's units. Previously this returned every
+  // unit at or below the grade, so a 2nd grader was served Pre-K lessons too.
+  const exact = CURRICULUM_UNITS.filter((unit) => unit.grade === grade);
+  if (exact.length > 0) return exact;
+  const gradeIndex = Math.max(gradeOrder.indexOf(grade), 0);
+  return CURRICULUM_UNITS.filter((unit) => gradeOrder.indexOf(unit.grade) === gradeIndex);
 };
 
 export const getCurrentGradeUnits = (grade: GradeLevel) =>

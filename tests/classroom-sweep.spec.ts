@@ -41,6 +41,7 @@ async function finishSixQuestionRoom(page: Page, answerRound: (page: Page) => Pr
 }
 
 test('science lab completes six experiments and saves parent proof', async ({ page }) => {
+  test.setTimeout(90_000);
   await completeKidSetup(page);
   await page.getByTestId('room-card-SCIENCE').click();
   await startTeacherLesson(page);

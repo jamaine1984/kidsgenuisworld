@@ -348,6 +348,15 @@ export interface UserProgress {
   // Basic info
   currentLevel: number; // 1 to 7
   currentGrade: GradeLevel;
+  /**
+   * Set when a child masters their grade. The grade does NOT change until a
+   * parent approves it in the Parent Dashboard, so content stays locked to the
+   * grade the parent chose.
+   */
+  pendingPromotion?: {
+    toGrade: GradeLevel;
+    earnedAt: number;
+  };
   xp: number;
   totalXP: number;
 
@@ -475,6 +484,10 @@ export interface MathProblem {
     pointY?: number;
     angleDegrees?: number;
   };
+  /** Friendly hint spoken/shown after the first wrong try, before revealing the answer */
+  hint?: string;
+  /** Step-by-step walkthrough shown when the answer is revealed */
+  steps?: string[];
 }
 
 export interface ReadingChallenge {
@@ -638,6 +651,7 @@ export const createDefaultProgress = (childName = 'Learner'): UserProgress => ({
   childName,
   currentLevel: 1,
   currentGrade: GradeLevel.KINDERGARTEN,
+  pendingPromotion: undefined,
   xp: 0,
   totalXP: 0,
   mathScore: 0,

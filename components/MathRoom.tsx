@@ -530,14 +530,23 @@ const generateMathProblem = (level: number): MathProblem => {
     subject: 'math'
   };
 };
+
+const ENCOURAGEMENTS = [
+  'Good try! You are so close.',
+  'Almost! Great thinking - let us try one more time.',
+  'Nice try! Your brain is growing every time you practice.',
+  'You can do this! Take a deep breath and try again.',
+];
+
 export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, onAttempt, level }) => {
   const [problem, setProblem] = useState<MathProblem | null>(null);
   const [streak, setStreak] = useState(0);
   const [score, setScore] = useState(0);
-  const [feedback, setFeedback] = useState<'idle' | 'correct' | 'wrong'>('idle');
+  const [feedback, setFeedback] = useState<'idle' | 'correct' | 'hint' | 'wrong'>('idle');
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [coachTip, setCoachTip] = useState('');
   const [selectedChoice, setSelectedChoice] = useState<number | string | null>(null);
+  const [wrongTries, setWrongTries] = useState(0);
   const lessonStep = React.useRef(0);
   const choiceLabels = ['A', 'B', 'C', 'D'];
 
@@ -614,6 +623,7 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, onAttempt,
   const loadProblem = useCallback(() => {
     setFeedback('idle');
     setSelectedChoice(null);
+    setWrongTries(0);
     const step = lessonStep.current;
     lessonStep.current += 1;
     const p = level <= 2
@@ -660,7 +670,9 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, onAttempt,
 
       setTimeout(loadProblem, 2500);
     } else {
-      setFeedback('wrong');
+      const isFirstMiss = wrongTries === 0;
+      setWrongTries(previous => previous + 1);
+      setFeedback(isFirstMiss ? 'hint' : 'wrong');
       playWrongBuzzer();
       setStreak(0);
       onAttempt?.({
@@ -671,9 +683,17 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, onAttempt,
         correctAnswer: String(problem.answer),
       }, false);
 
-      void speakWrong(`Let us learn it together. ${problem.explanation}`);
-
-      setTimeout(() => setFeedback('idle'), 3000);
+      if (isFirstMiss) {
+        const encouragement = ENCOURAGEMENTS[Math.floor(Math.random() * ENCOURAGEMENTS.length)];
+        void speakWrong(`${encouragement} Here is a hint. ${problem.hint || coachTip}`);
+        setTimeout(() => {
+          setFeedback('idle');
+          setSelectedChoice(null);
+        }, 3500);
+      } else {
+        void speakWrong(`That is okay. Let us solve it together. ${problem.explanation}`);
+        setTimeout(() => setFeedback('idle'), 5000);
+      }
     }
   };
 
@@ -879,6 +899,7 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, onAttempt,
                     ${feedback === 'correct' && opt === problem.answer ? 'bg-green-500 animate-pulse ring-4 ring-green-300' : ''}
                     ${feedback === 'wrong' && opt === problem.answer ? 'bg-green-500' : ''}
                     ${feedback === 'wrong' && opt !== problem.answer ? (selectedChoice === opt ? 'bg-orange-400 ring-4 ring-orange-200' : 'bg-gray-300 cursor-not-allowed') : ''}
+                    ${feedback === 'hint' ? (selectedChoice === opt ? 'bg-orange-400 ring-4 ring-orange-200' : 'bg-indigo-500 opacity-80') : ''}
                     ${feedback === 'idle' ? 'bg-indigo-500 hover:bg-indigo-400 shadow-[0_6px_0_rgb(55,48,163)] active:shadow-none active:translate-y-2' : ''}
                   `}
                 >
@@ -895,10 +916,27 @@ export const MathRoom: React.FC<MathRoomProps> = ({ onBack, onReward, onAttempt,
                     <div className="mt-2 text-2xl font-black">Correct. {problem.explanation}</div>
                 </div>
             )}
+            {feedback === 'hint' && (
+                <div className="mt-6 rounded-[28px] border-2 border-sky-200 bg-sky-50 p-5 text-left text-sky-800 shadow-sm">
+                    <div className="text-xs font-black uppercase tracking-[0.18em] text-sky-600">Good Try - Here Is A Hint</div>
+                    <div className="mt-2 text-2xl font-black">{problem.hint || coachTip}</div>
+                    <div className="mt-2 text-sm font-bold text-sky-600">Take another look and try again.</div>
+                </div>
+            )}
             {feedback === 'wrong' && (
                 <div className="mt-6 rounded-[28px] border-2 border-orange-200 bg-orange-50 p-5 text-left text-orange-800 shadow-sm">
-                    <div className="text-xs font-black uppercase tracking-[0.18em] text-orange-600">Teacher Check</div>
+                    <div className="text-xs font-black uppercase tracking-[0.18em] text-orange-600">Let Us Learn It Together</div>
                     <div className="mt-2 text-2xl font-black">The answer is {problem.answer}. {problem.explanation}</div>
+                    {problem.steps && problem.steps.length > 0 && (
+                      <ol className="mt-3 space-y-2">
+                        {problem.steps.map((step, index) => (
+                          <li key={`${step}-${index}`} className="flex items-start gap-3 rounded-2xl bg-white/70 p-3 text-base font-bold text-orange-900">
+                            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-orange-400 text-sm font-black text-white">{index + 1}</span>
+                            {step}
+                          </li>
+                        ))}
+                      </ol>
+                    )}
                 </div>
             )}
             </div>

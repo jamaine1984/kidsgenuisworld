@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, Bot, Box, Code, Lightbulb, Play, RotateCcw, Star, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Repeat, Zap, Volume2, X } from 'lucide-react';
 import { speakAsync, speakCorrect, speakWrong, playSuccess, playError, playWrongBuzzer } from '../services/audioService';
 import { EarlyCodingLesson } from './coding/EarlyCodingLesson';
+import { generateCodingChallenge } from '../services/questionGenerators';
 
 interface CodingRoomProps {
   level: number; // 1-7 corresponds to Pre-K through 5th grade
@@ -932,9 +933,11 @@ const AVAILABLE_BLOCKS: CodeBlock[] = [
 ];
 
 const AdvancedCodingRoom: React.FC<CodingRoomProps> = ({ level, onBack, onReward }) => {
-  // Filter challenges by grade level
-  const exactGradeChallenges = ALL_CHALLENGES.filter(c => c.gradeLevel === level);
-  const availableChallenges = exactGradeChallenges.length > 0 ? exactGradeChallenges : ALL_CHALLENGES;
+  // Show this grade, falling back to one grade below for review.
+  const exactGrade = ALL_CHALLENGES.filter(c => c.gradeLevel === level);
+  const availableChallenges = exactGrade.length > 0
+    ? exactGrade
+    : ALL_CHALLENGES.filter(c => c.gradeLevel === level || c.gradeLevel === level - 1);
   const dailyChallengeIndex = useMemo(() => {
     const dayKey = new Date().toISOString().slice(0, 10);
     const seed = [...dayKey].reduce((total, char) => total + char.charCodeAt(0), 0);
@@ -1132,9 +1135,15 @@ const AdvancedCodingRoom: React.FC<CodingRoomProps> = ({ level, onBack, onReward
   };
 
   const nextChallenge = () => {
-    const nextIndex = (currentChallengeIndex + 1) % availableChallenges.length;
+    const nextIndex = currentChallengeIndex + 1;
     setCurrentChallengeIndex(nextIndex);
-    const nextChallenge = availableChallenges[nextIndex];
+
+    // Every other puzzle is generated for this exact grade, seeded by the day.
+    // Generated puzzles are guaranteed solvable: the goal is always placed on a
+    // reachable square and walls never block the path from start to goal.
+    const generated = nextIndex % 2 === 1 ? generateCodingChallenge(level, nextIndex) : null;
+    const nextChallenge = (generated as unknown as Challenge)
+      || availableChallenges[nextIndex % availableChallenges.length];
     setChallenge(nextChallenge);
     setRobotPos({ ...nextChallenge.startPos });
     setPath([]);

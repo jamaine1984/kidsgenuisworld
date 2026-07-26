@@ -405,16 +405,19 @@ const AdvancedReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, onA
     }
   }, [mode]);
 
+  // Use the child's exact grade. Only fall back one grade for review.
   const getWordsForLevel = () => {
-    const maxLvl = Math.min(Math.max(level, 1), 7);
-    const list = ALL_VOCABULARY.filter(v => v.level === maxLvl);
-    return list.length > 0 ? list : ALL_VOCABULARY;
+    const lvl = Math.min(Math.max(level, 1), 7);
+    const exact = ALL_VOCABULARY.filter(v => v.level === lvl);
+    if (exact.length > 0) return exact;
+    return ALL_VOCABULARY.filter(v => v.level === lvl || v.level === lvl - 1);
   };
 
   const getPassagesForLevel = () => {
-    const maxLvl = Math.min(Math.max(level, 1), 7);
-    const list = ALL_READING_PASSAGES.filter(p => p.level === maxLvl);
-    return list.length > 0 ? list : ALL_READING_PASSAGES;
+    const lvl = Math.min(Math.max(level, 1), 7);
+    const exact = ALL_READING_PASSAGES.filter(p => p.level === lvl);
+    if (exact.length > 0) return exact;
+    return ALL_READING_PASSAGES.filter(p => p.level === lvl || p.level === lvl - 1);
   };
 
   const narratePassageRound = useCallback(async (passage: ReadingPassage) => {
@@ -463,7 +466,8 @@ const AdvancedReadingRoom: React.FC<ReadingRoomProps> = ({ onBack, onReward, onA
       return;
 
     } else if (mode === 'RHYME') {
-      const distractors = shuffle(ALL_VOCABULARY.filter(v => v.rhyme !== next.rhyme && v.word !== next.word), `reading-rhyme-distractors-${level}-${next.word}`, step).slice(0, 2);
+      // GRADE PURITY: distractors must come from this grade's pool, not ALL_VOCABULARY
+      const distractors = shuffle(pool.filter(v => v.rhyme !== next.rhyme && v.word !== next.word), `reading-rhyme-distractors-${level}-${next.word}`, step).slice(0, 2);
       const correctRhyme = next.rhyme;
       const wrongRhymes = distractors.map(d => d.rhyme);
       const roundOptions = shuffle([correctRhyme, ...wrongRhymes], `reading-rhyme-options-${level}-${next.word}`, step);

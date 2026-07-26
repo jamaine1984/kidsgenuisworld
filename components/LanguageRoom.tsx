@@ -344,8 +344,13 @@ const AdvancedLanguageRoom: React.FC<LanguageRoomProps> = ({ level, onBack, onRe
 
   const availableWords = useMemo(() => {
     const allWords = getLanguageWords(selectedLanguage);
-    const words = allWords.filter(word => (word.gradeLevel ?? 1) === level);
-    return words.length >= 4 ? words : allWords.slice(0, 4);
+    // Use the child's exact grade. Only fall back one grade for review.
+    const exactGrade = allWords.filter(word => (word.gradeLevel ?? 1) === level);
+    if (exactGrade.length > 0) return exactGrade;
+    return allWords.filter(word => {
+      const wordGrade = word.gradeLevel ?? 1;
+      return wordGrade === level || wordGrade === level - 1;
+    });
   }, [level, selectedLanguage]);
 
   const languageTip = useMemo(() => {

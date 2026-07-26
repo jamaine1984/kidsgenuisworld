@@ -68,6 +68,8 @@ interface ParentDashboardProps {
   onCreateChildProfile?: (name: string, grade: GradeLevel) => void;
   onSwitchChildProfile?: (profileId: string) => void;
   onUpdateChildProfile?: (profileId: string, name: string, grade: GradeLevel) => void;
+  onApprovePromotion?: () => void;
+  onDeclinePromotion?: () => void;
   onUpdatePrivacy?: (settings: PrivacySettings) => void;
   onUpdateLearningGoals?: (weeklyGoalMinutes: number, dailySessionLimitMinutes: number) => void;
   requireParentGate?: boolean;
@@ -219,6 +221,8 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
   onCreateChildProfile,
   onSwitchChildProfile,
   onUpdateChildProfile,
+  onApprovePromotion,
+  onDeclinePromotion,
   onUpdatePrivacy,
   onUpdateLearningGoals,
   requireParentGate = true,
@@ -1146,6 +1150,38 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
           </h1>
           <div className="w-10 shrink-0" /> {/* Spacer */}
         </div>
+
+        {/* Grade promotion approval - parent decides when the grade changes */}
+        {progress.pendingPromotion && (
+          <div className="mb-4 rounded-2xl border-2 border-amber-300 bg-amber-50 p-4 text-left shadow-lg">
+            <div className="flex items-start gap-3">
+              <span className="text-3xl" aria-hidden="true">&#127891;</span>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-700">Ready to move up</p>
+                <p className="mt-1 text-base font-black text-amber-900">
+                  {progress.childName} finished {progress.currentGrade} and is ready for {progress.pendingPromotion.toGrade}.
+                </p>
+                <p className="mt-1 text-sm font-semibold text-amber-800">
+                  Lessons stay at {progress.currentGrade} until you approve. You can always change the grade later in Child Profiles.
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button
+                    onClick={() => onApprovePromotion?.()}
+                    className="rounded-full bg-emerald-600 px-5 py-2 text-sm font-black text-white shadow hover:bg-emerald-700 transition"
+                  >
+                    Move up to {progress.pendingPromotion.toGrade}
+                  </button>
+                  <button
+                    onClick={() => onDeclinePromotion?.()}
+                    className="rounded-full bg-white px-5 py-2 text-sm font-black text-amber-800 shadow hover:bg-amber-100 transition"
+                  >
+                    Stay in {progress.currentGrade} for now
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Quick Stats */}
         <div className="grid grid-cols-3 gap-3">

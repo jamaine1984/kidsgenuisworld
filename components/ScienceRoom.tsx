@@ -4,6 +4,7 @@ import { ScienceExperiment } from '../types';
 import { speakCorrect, speakWrong, playSuccess, playWrongBuzzer, speakMultipleChoiceQuestion } from '../services/audioService';
 import { pickDailyItem } from '../services/dailyRotation';
 import { EarlyScienceLesson } from './science/EarlyScienceLesson';
+import { generateScienceQuestion } from '../services/questionGenerators';
 
 interface ScienceRoomProps {
   level: number; // 1-7 corresponds to grade levels
@@ -635,9 +636,11 @@ const EXPANDED_SCIENCE_EXPERIMENTS: (ScienceExperiment & { gradeLevel: number })
 export const ALL_SCIENCE_EXPERIMENTS = [...SCIENCE_EXPERIMENTS, ...EXPANDED_SCIENCE_EXPERIMENTS];
 
 const AdvancedScienceRoom: React.FC<ScienceRoomProps> = ({ level, onBack, onReward, onAttempt }) => {
-  // Filter experiments by grade level
-  const exactGradeExperiments = ALL_SCIENCE_EXPERIMENTS.filter(e => e.gradeLevel === level);
-  const availableExperiments = exactGradeExperiments.length > 0 ? exactGradeExperiments : ALL_SCIENCE_EXPERIMENTS;
+  // Show this grade, falling back to one grade below for review.
+  const exactGrade = ALL_SCIENCE_EXPERIMENTS.filter(e => e.gradeLevel === level);
+  const availableExperiments = exactGrade.length > 0
+    ? exactGrade
+    : ALL_SCIENCE_EXPERIMENTS.filter(e => e.gradeLevel === level || e.gradeLevel === level - 1);
 
   const [experiment, setExperiment] = useState<typeof ALL_SCIENCE_EXPERIMENTS[0] | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
@@ -657,10 +660,26 @@ const AdvancedScienceRoom: React.FC<ScienceRoomProps> = ({ level, onBack, onRewa
   }, [level]);
 
   const getNewExperiment = () => {
-    const freshPool = availableExperiments.filter(exp => !recentExperimentIds.current.includes(exp.id));
-    const pool = freshPool.length > 0 ? freshPool : availableExperiments;
     const step = lessonStep.current;
     lessonStep.current += 1;
+
+    // Alternate between the hand-written bank and generated questions. The
+    // generator is grade-locked and daily-seeded, so the child keeps getting
+    // fresh, on-grade questions long after the fixed bank would have repeated.
+    const generated = step % 2 === 1 ? generateScienceQuestion(level, step) : null;
+    if (generated) {
+      setExperiment(generated);
+      setSelectedAnswer(null);
+      setShowResult(false);
+      setShowFunFact(false);
+      setCoachTip(scienceTip);
+      setDraggedAnswerIndex(null);
+      void speakMultipleChoiceQuestion(generated.question, generated.hypothesis);
+      return;
+    }
+
+    const freshPool = availableExperiments.filter(exp => !recentExperimentIds.current.includes(exp.id));
+    const pool = freshPool.length > 0 ? freshPool : availableExperiments;
     const randomExp = pickDailyItem(pool, `science-grade-${level}`, step);
     recentExperimentIds.current = [randomExp.id, ...recentExperimentIds.current].slice(0, Math.min(8, availableExperiments.length - 1));
     setExperiment(randomExp);
@@ -714,7 +733,7 @@ const AdvancedScienceRoom: React.FC<ScienceRoomProps> = ({ level, onBack, onRewa
         selectedAnswer: experiment.hypothesis[index],
         correctAnswer: experiment.hypothesis[experiment.correctAnswer],
       }, false);
-      void speakWrong(`Let us learn it together. ${experiment.explanation}`);
+      void speakWrong(`Good try! Mistakes help us learn. Here is the secret: ${experiment.explanation}`);
     }
   };
 
@@ -887,7 +906,7 @@ const AdvancedScienceRoom: React.FC<ScienceRoomProps> = ({ level, onBack, onRewa
                     Teacher Check
                   </div>
                   <div className={`text-lg font-black ${isCorrect ? 'text-green-800' : 'text-orange-800'}`}>
-                    {isCorrect ? 'Correct prediction.' : 'Good try. Let us fix it.'}
+                    {isCorrect ? 'Correct prediction.' : 'Good try! Mistakes help your brain grow. Here is what happens:'}
                   </div>
                 </div>
               </div>

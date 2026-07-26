@@ -553,8 +553,12 @@ const mergeCloudProgressForProfile = (
     ...baseProgress,
     ...patch,
     childName: profile.name,
+    // GRADE PURITY: the profile's grade is the single source of truth.
+    // currentLevel is always derived from it, never restored from saved
+    // progress -- otherwise a promoted level drifts away from the shown grade
+    // and a Pre-K profile starts serving 2nd-grade work.
     currentGrade: profile.grade,
-    currentLevel: patch.currentLevel || gradeToLevel[profile.grade],
+    currentLevel: gradeToLevel[profile.grade],
     memberId: profile.id,
     accessibility: {
       ...DEFAULT_ACCESSIBILITY,
@@ -1894,6 +1898,30 @@ const App: React.FC = () => {
     }
   };
 
+  // Parent approves the pending promotion: this is the ONLY path (besides an
+  // explicit profile edit) that changes a child's grade.
+  const handleApprovePromotion = () => {
+    const promotion = progress.pendingPromotion;
+    if (!promotion) return;
+    const nextGrade = promotion.toGrade;
+    setProfiles(prev => prev.map(profile => (
+      profile.id === activeProfileId
+        ? { ...profile, grade: nextGrade, lastActiveAt: Date.now() }
+        : profile
+    )));
+    setProgress(prev => ({
+      ...prev,
+      currentGrade: nextGrade,
+      currentLevel: gradeToLevel[nextGrade],
+      pendingPromotion: undefined,
+    }));
+  };
+
+  // Parent keeps the child at their current grade for more practice.
+  const handleDeclinePromotion = () => {
+    setProgress(prev => ({ ...prev, pendingPromotion: undefined }));
+  };
+
   // Handle grade selection
   const handleGradeSelected = (grade: GradeLevel) => {
     const cleanChildName = childProfileNameDraft.trim() || 'Learner';
@@ -2112,19 +2140,24 @@ const App: React.FC = () => {
         stickers: newStickers,
       };
 
+      // GRADE PURITY: mastery no longer changes the grade on its own. It raises
+      // a pending promotion that a parent approves in the Parent Dashboard.
+      // The child keeps working at their current grade until then.
+      let nextPendingPromotion = prev.pendingPromotion;
       if (
+        !nextPendingPromotion &&
         newStickers.length >= stickersNeeded &&
         hasBalancedGradeMastery(progressForMasteryCheck, prev.currentLevel) &&
         hasVisitedEveryRoomForGrade(progressForMasteryCheck, prev.currentLevel) &&
         prev.currentLevel < 7
       ) {
-        newLevel = Math.min(prev.currentLevel + 1, 7);
         const grades = [
           GradeLevel.PRE_K, GradeLevel.KINDERGARTEN, GradeLevel.FIRST_GRADE,
           GradeLevel.SECOND_GRADE, GradeLevel.THIRD_GRADE, GradeLevel.FOURTH_GRADE, GradeLevel.FIFTH_GRADE
         ];
-        newGrade = grades[newLevel - 1] || GradeLevel.FIFTH_GRADE;
-        speak(`Congratulations! You are now in ${newGrade}!`);
+        const promotionGrade = grades[Math.min(prev.currentLevel, 6)] || GradeLevel.FIFTH_GRADE;
+        nextPendingPromotion = { toGrade: promotionGrade, earnedAt: Date.now() };
+        speak(`Amazing work! You finished ${prev.currentGrade}. Ask your grown-up to unlock ${promotionGrade}!`);
       }
 
       let updatedPet = prev.pet;
@@ -2150,6 +2183,7 @@ const App: React.FC = () => {
         learningJournal: nextLearningJournal,
         currentLevel: newLevel,
         currentGrade: newGrade,
+        pendingPromotion: nextPendingPromotion,
         xp: prev.xp + 10,
         totalXP: (prev.totalXP || 0) + 10,
         pet: updatedPet,
@@ -3311,6 +3345,8 @@ const App: React.FC = () => {
         onCreateChildProfile={handleCreateChildProfile}
         onSwitchChildProfile={handleSwitchChildProfile}
         onUpdateChildProfile={handleUpdateChildProfile}
+        onApprovePromotion={handleApprovePromotion}
+        onDeclinePromotion={handleDeclinePromotion}
         onUpdatePrivacy={handleUpdatePrivacy}
         onUpdateLearningGoals={handleUpdateLearningGoals}
         cloudSession={parentCloudSession}

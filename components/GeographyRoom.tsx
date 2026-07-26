@@ -4,6 +4,7 @@ import { GeographyQuestion } from '../types';
 import { speakCorrect, speakWrong, playSuccess, playWrongBuzzer, speakMultipleChoiceQuestion } from '../services/audioService';
 import { pickDailyItem, shuffleDailyItems } from '../services/dailyRotation';
 import { EarlyWorldLesson } from './geography/EarlyWorldLesson';
+import { generateGeographyQuestion } from '../services/questionGenerators';
 
 interface GeographyRoomProps {
   level: number; // 1-7 corresponds to grade levels
@@ -281,9 +282,11 @@ const EXPANDED_GEOGRAPHY_QUESTIONS: (GeographyQuestion & { gradeLevel: number })
 export const ALL_GEOGRAPHY_QUESTIONS = [...GEOGRAPHY_QUESTIONS, ...EXPANDED_GEOGRAPHY_QUESTIONS];
 
 const AdvancedGeographyRoom: React.FC<GeographyRoomProps> = ({ level, onBack, onReward, onAttempt }) => {
-  // Filter questions by grade level
-  const exactGradeQuestions = ALL_GEOGRAPHY_QUESTIONS.filter(q => q.gradeLevel === level);
-  const availableQuestions = exactGradeQuestions.length > 0 ? exactGradeQuestions : ALL_GEOGRAPHY_QUESTIONS;
+  // Show this grade, falling back to one grade below for review.
+  const exactGrade = ALL_GEOGRAPHY_QUESTIONS.filter(q => q.gradeLevel === level);
+  const availableQuestions = exactGrade.length > 0
+    ? exactGrade
+    : ALL_GEOGRAPHY_QUESTIONS.filter(q => q.gradeLevel === level || q.gradeLevel === level - 1);
 
   const [question, setQuestion] = useState<typeof ALL_GEOGRAPHY_QUESTIONS[0] | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
@@ -302,10 +305,24 @@ const AdvancedGeographyRoom: React.FC<GeographyRoomProps> = ({ level, onBack, on
   }, [level]);
 
   const getNewQuestion = () => {
-    const freshPool = availableQuestions.filter(item => !recentQuestionKeys.current.includes(item.question));
-    const pool = freshPool.length > 0 ? freshPool : availableQuestions;
     const step = lessonStep.current;
     lessonStep.current += 1;
+
+    // Alternate bank + generator. The generator only ever builds questions from
+    // facts tagged for this exact grade, so a Pre-K child can never be asked
+    // for a capital city.
+    const generated = step % 2 === 1 ? generateGeographyQuestion(level, step) : null;
+    if (generated) {
+      setQuestion(generated);
+      setSelectedAnswer(null);
+      setShowResult(false);
+      setCoachTip(geographyTip);
+      void speakMultipleChoiceQuestion(generated.question, generated.options);
+      return;
+    }
+
+    const freshPool = availableQuestions.filter(item => !recentQuestionKeys.current.includes(item.question));
+    const pool = freshPool.length > 0 ? freshPool : availableQuestions;
     const randomQ = pickDailyItem(pool, `geography-grade-${level}`, step);
     recentQuestionKeys.current = [randomQ.question, ...recentQuestionKeys.current].slice(0, Math.min(8, availableQuestions.length - 1));
     const shuffledOptions = shuffleDailyItems(randomQ.options, `geography-options-${level}-${randomQ.question}`, step);
@@ -357,7 +374,7 @@ const AdvancedGeographyRoom: React.FC<GeographyRoomProps> = ({ level, onBack, on
         selectedAnswer: answer,
         correctAnswer: question.answer,
       }, false);
-      void speakWrong(`The answer is ${question.answer}. ${question.funFact}`);
+      void speakWrong(`Good try, explorer! The answer is ${question.answer}. ${question.funFact}`);
     }
   };
 
@@ -510,7 +527,7 @@ const AdvancedGeographyRoom: React.FC<GeographyRoomProps> = ({ level, onBack, on
                 </span>
                 <div>
                   <p className={`font-bold ${isCorrect ? 'text-green-700' : 'text-orange-700'}`}>
-                    {isCorrect ? 'Correct.' : `The answer is ${question.answer}.`}
+                    {isCorrect ? 'Correct.' : `Good try! The answer is ${question.answer}. Now you know for next time!`}
                   </p>
                   <p className="mt-1 text-sm font-bold text-slate-600">
                     Your answer: {selectedAnswer || 'Not selected'}

@@ -532,10 +532,18 @@ export const speakMultipleChoiceQuestion = async (
   options: Array<string | number>,
   intro = ''
 ): Promise<void> => {
-  const choiceText = options
-    .map((option, index) => `${String.fromCharCode(65 + index)}. ${option}.`)
-    .join(' ');
-  await speakAsync([intro, question, choiceText].filter(Boolean).join(' '), 0.82, 1.02, 'gentle');
+  const segments = [
+    intro,
+    question,
+    ...options.flatMap((option, index) => [
+      `Choice ${String.fromCharCode(65 + index)}.`,
+      String(option),
+    ]),
+  ].filter(Boolean);
+
+  for (const segment of segments) {
+    await speakAsync(segment, 0.82, 1.02, 'gentle');
+  }
 };
 
   // Welcome messages for rooms

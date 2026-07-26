@@ -9,12 +9,14 @@ const dryRun = process.argv.includes('--dry-run');
 const allAges = process.argv.includes('--all-ages');
 const migrateOnly = process.argv.includes('--migrate-only');
 const mathOnly = process.argv.includes('--math-only');
+const speechOnly = process.argv.includes('--speech-only');
 const maxCharsArg = process.argv.find(arg => arg.startsWith('--max-chars='));
 const maxChars = maxCharsArg ? Number(maxCharsArg.split('=')[1]) : 0;
 const endpointArg = process.argv.slice(2).find(arg => !arg.startsWith('--'));
 const endpoint = endpointArg || process.env.KID_GENIUS_URL || 'http://127.0.0.1:5177';
 const tempDir = path.join(root, '.tmp-voice-cache');
 const bundledFile = path.join(tempDir, 'voice-cache-service.mjs');
+const publicVoiceDir = path.join(root, 'public', 'voice-cache');
 
 fs.mkdirSync(tempDir, { recursive: true });
 
@@ -32,12 +34,16 @@ execFileSync(process.execPath, [
   `--outfile=${bundledFile}`,
 ], { stdio: 'ignore' });
 
-const { getMathVoiceCacheTexts, getVoiceCacheTexts } = await import(pathToFileURL(bundledFile).href);
+const { getMathVoiceCacheTexts, getSpeechVoiceCacheTexts, getVoiceCacheTexts } = await import(pathToFileURL(bundledFile).href);
 
 const uniqueTexts = Array.from(
     new Set(
       Array.from({ length: 7 }, (_, index) => index + 1)
-        .flatMap(level => mathOnly ? getMathVoiceCacheTexts(level) : getVoiceCacheTexts(level))
+        .flatMap(level => speechOnly
+          ? getSpeechVoiceCacheTexts(level)
+          : mathOnly
+            ? getMathVoiceCacheTexts(level)
+            : getVoiceCacheTexts(level))
         .map(text => String(text || '').replace(/\s+/g, ' ').trim())
         .filter(Boolean)
   )
@@ -108,7 +114,7 @@ const applyCharacterBudget = (texts, profile) => {
   let usedChars = 0;
   const selected = [];
   for (const text of texts) {
-    const isCached = fs.existsSync(getCachePath(text, profile));
+    const isCached = hasCachedVoiceFile(getCachePath(text, profile));
     const cost = isCached ? 0 : text.length;
     if (cost > 0 && usedChars + cost > maxChars) continue;
     selected.push(text);
@@ -118,6 +124,10 @@ const applyCharacterBudget = (texts, profile) => {
 };
 
 const cacheDir = path.join(root, '.tts-cache');
+const hasCachedVoiceFile = (filePath) => {
+  const fileName = path.basename(filePath);
+  return fs.existsSync(filePath) || fs.existsSync(path.join(publicVoiceDir, fileName));
+};
 const beforeCount = fs.existsSync(cacheDir)
   ? fs.readdirSync(cacheDir).filter(file => file.endsWith('.mp3')).length
   : 0;
@@ -125,7 +135,7 @@ const beforeCount = fs.existsSync(cacheDir)
 if (dryRun) {
   const profileStatus = voiceProfiles.map(profile => {
     const budgetedTexts = applyCharacterBudget(uniqueTexts, profile);
-    const missingTexts = budgetedTexts.filter(text => !fs.existsSync(getCachePath(text, profile)));
+    const missingTexts = budgetedTexts.filter(text => !hasCachedVoiceFile(getCachePath(text, profile)));
     return {
       profile: profile.label,
       requested: budgetedTexts.length,
@@ -139,6 +149,7 @@ if (dryRun) {
     endpoint,
     dryRun: true,
     mathOnly,
+    speechOnly,
     uniqueTexts: uniqueTexts.length,
     profiles: profileStatus,
     maxRequestsIfEmpty: uniqueTexts.length * voiceProfiles.length,
@@ -160,7 +171,10 @@ for (const profile of voiceProfiles) {
     skipped: 0,
   };
 
-  const textsForProfile = applyCharacterBudget(uniqueTexts, profile);
+  const budgetedTexts = applyCharacterBudget(uniqueTexts, profile);
+  const textsForProfile = budgetedTexts.filter(text => !hasCachedVoiceFile(getCachePath(text, profile)));
+  profileResult.hits = budgetedTexts.length - textsForProfile.length;
+  profileResult.requested = profileResult.hits;
 
   for (let index = 0; index < textsForProfile.length; index += chunkSize) {
     const texts = textsForProfile.slice(index, index + chunkSize);
@@ -202,6 +216,7 @@ console.log(JSON.stringify({
   endpoint,
   migrateOnly,
   mathOnly,
+  speechOnly,
   uniqueTexts: uniqueTexts.length,
   maxChars,
   profiles: results,

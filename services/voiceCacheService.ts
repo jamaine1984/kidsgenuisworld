@@ -8,6 +8,9 @@ import { AccessibilitySettings, GradeLevel, RoomType, createDefaultProgress } fr
 import { getUnitsForGrade } from './curriculum';
 import { getStaticVoiceManifestUrl } from './mediaApi';
 import { AI_TEACHER, SCHOOL_LESSON_PHASES, getTeacherScript } from './schoolMode';
+import { getEarlySpeechQuestionBank } from './curriculum/earlySpeech';
+import { getElementarySpeechQuestionBank } from './curriculum/elementarySpeech';
+import { getUpperElementarySpeechQuestionBank } from './curriculum/upperElementarySpeech';
 
 interface VoiceWarmupResult {
   requested: number;
@@ -118,6 +121,10 @@ const GENERAL_FEEDBACK = [
   'Almost!',
   'Do not worry.',
   'Nice try!',
+  'Choice A.',
+  'Choice B.',
+  'Choice C.',
+  'Choice D.',
 ];
 
 const normalizeSpeechText = (text: string) =>
@@ -181,6 +188,36 @@ const getTeacherVoiceTexts = (clampedLevel: number) => {
     ...lessonPhaseTexts,
     ...teacherLessonTexts,
   ];
+};
+
+const getSpeechAndLanguageVoiceTexts = (clampedLevel: number) => {
+  const questions = Array.from({ length: clampedLevel }, (_, index) => index + 1)
+    .flatMap(level => {
+      if (level <= 2) return getEarlySpeechQuestionBank(level as 1 | 2);
+      if (level <= 4) return getElementarySpeechQuestionBank(level as 3 | 4);
+      return getUpperElementarySpeechQuestionBank(level as 5 | 6 | 7);
+    });
+
+  return questions.flatMap(question => [
+    question.prompt,
+    question.focusText,
+    question.coachCue,
+    question.explanation,
+    question.answer,
+    ...question.options,
+    `The answer is ${question.answer}. ${question.explanation}`,
+  ]);
+};
+
+export const getSpeechVoiceCacheTexts = (level: number): string[] => {
+  const clampedLevel = Math.min(Math.max(level, 1), 7);
+  return uniqueTexts([
+    'Welcome back to Kid Genius World!',
+    'Welcome to Kid Genius World!',
+    ...GENERAL_FEEDBACK,
+    ...ROOM_INTROS.filter(text => text.includes('Language')),
+    ...getSpeechAndLanguageVoiceTexts(clampedLevel),
+  ]);
 };
 
 export const getMathVoiceCacheTexts = (level: number): string[] => {
@@ -310,6 +347,7 @@ export const getVoiceCacheTexts = (level: number): string[] => {
     ...languageTexts,
     ...codingTexts,
     ...storyTexts,
+    ...getSpeechAndLanguageVoiceTexts(clampedLevel),
     ...getTeacherVoiceTexts(clampedLevel),
   ]);
 };

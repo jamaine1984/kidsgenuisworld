@@ -146,6 +146,19 @@ const secondGradeFactories = (random: () => number): Array<() => QuestionSeed> =
   }),
 ];
 
+export const getElementarySpeechQuestionBank = (level: ElementarySpeechLevel): EarlySpeechQuestion[] => {
+  const random = createSeededRandom(`voice-cache-elementary-speech-${level}`);
+  const factories = level === 3 ? firstGradeFactories(random) : secondGradeFactories(random);
+  return factories.map((factory, index) => {
+    const question = factory();
+    return {
+      ...question,
+      id: `elementary-speech-bank-${level}-${index}-${question.skill.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}`,
+      phase: PHASES[index % PHASES.length],
+    };
+  });
+};
+
 export const generateElementarySpeechQuestion = (level: ElementarySpeechLevel, step: number): EarlySpeechQuestion => {
   const random = createSeededRandom(getDailySeed(`elementary-speech-grade-${level}`, step));
   const factories = level === 3 ? firstGradeFactories(random) : secondGradeFactories(random);

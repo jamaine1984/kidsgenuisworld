@@ -198,6 +198,19 @@ const kindergartenFactories: QuestionFactory[] = [
   }),
 ];
 
+export const getEarlySpeechQuestionBank = (level: 1 | 2): EarlySpeechQuestion[] => {
+  const random = createSeededRandom(`voice-cache-early-speech-${level}`);
+  const factories = level === 1 ? preKFactories : kindergartenFactories;
+  return factories.map((factory, index) => {
+    const question = factory(random);
+    return {
+      ...question,
+      id: `early-speech-bank-${level}-${index}-${question.skill.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}`,
+      phase: PHASES[index % PHASES.length],
+    };
+  });
+};
+
 export const generateEarlySpeechQuestion = (level: 1 | 2, step: number): EarlySpeechQuestion => {
   const random = createSeededRandom(getDailySeed(`early-speech-grade-${level}`, step));
   const factories = level === 1 ? preKFactories : kindergartenFactories;

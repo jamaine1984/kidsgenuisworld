@@ -26,6 +26,7 @@
     "qa:production-live": "npm run qa:site-live && npm run qa:billing-live",
     "voice:check": "node scripts/check-elevenlabs-key.mjs",
     "voice:cache": "node scripts/warm-voice-cache.mjs",
+    "voice:speech": "node scripts/warm-voice-cache.mjs --speech-only",
     "voice:static": "node scripts/export-static-voice-cache.mjs",
     "covers:static": "node scripts/generate-static-story-covers.mjs",
     "r2:upload-tts": "node scripts/upload-tts-cache-r2.mjs",

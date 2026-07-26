@@ -8,19 +8,16 @@ const manifestPath = path.join(publicVoiceDir, 'manifest.json');
 
 fs.mkdirSync(publicVoiceDir, { recursive: true });
 
-const files = fs.existsSync(cacheDir)
+const cachedFiles = fs.existsSync(cacheDir)
   ? fs.readdirSync(cacheDir)
       .filter(file => /^[a-f0-9]{64}\.mp3$/.test(file))
       .sort()
   : [];
+const existingPublicFiles = fs.readdirSync(publicVoiceDir)
+  .filter(file => /^[a-f0-9]{64}\.mp3$/.test(file));
+const files = Array.from(new Set([...existingPublicFiles, ...cachedFiles])).sort();
 
-for (const file of fs.readdirSync(publicVoiceDir)) {
-  if (/^[a-f0-9]{64}\.mp3$/.test(file) && !files.includes(file)) {
-    fs.rmSync(path.join(publicVoiceDir, file), { force: true });
-  }
-}
-
-for (const file of files) {
+for (const file of cachedFiles) {
   const sourcePath = path.join(cacheDir, file);
   const destinationPath = path.join(publicVoiceDir, file);
   if (!fs.existsSync(destinationPath) || fs.statSync(destinationPath).size !== fs.statSync(sourcePath).size) {
@@ -28,7 +25,7 @@ for (const file of files) {
   }
 }
 
-const totalBytes = files.reduce((sum, file) => sum + fs.statSync(path.join(cacheDir, file)).size, 0);
+const totalBytes = files.reduce((sum, file) => sum + fs.statSync(path.join(publicVoiceDir, file)).size, 0);
 const manifest = {
   generatedAt: new Date().toISOString(),
   storage: 'firebase-hosting',

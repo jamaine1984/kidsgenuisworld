@@ -51,6 +51,16 @@ const gradeFive = (random: () => number) => [
   q('How should the same science idea change for younger students?', 'Original: Photosynthesis converts light energy into chemical energy.', 'Use familiar words, a plant example, and a simple diagram.', ['Use more unexplained technical terms.', 'Speak faster.', 'Remove every example.'], 'adapting speech to audience', 'Keep the science accurate while adjusting vocabulary and examples.', 'Familiar language and a concrete diagram make the accurate idea accessible to younger listeners.', random),
 ];
 
+export const getUpperElementarySpeechQuestionBank = (level: UpperElementarySpeechLevel): EarlySpeechQuestion[] => {
+  const random = createSeededRandom(`voice-cache-upper-speech-${level}`);
+  const bank = level === 5 ? gradeThree(random) : level === 6 ? gradeFour(random) : gradeFive(random);
+  return bank.map((question, index) => ({
+    ...question,
+    id: `upper-speech-bank-${level}-${index}-${question.skill.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}`,
+    phase: PHASES[index % PHASES.length],
+  }));
+};
+
 export const generateUpperElementarySpeechQuestion = (level: UpperElementarySpeechLevel, step: number): EarlySpeechQuestion => {
   const random = createSeededRandom(getDailySeed(`upper-elementary-speech-grade-${level}`, step));
   const bank = level === 5 ? gradeThree(random) : level === 6 ? gradeFour(random) : gradeFive(random);

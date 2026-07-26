@@ -10,6 +10,8 @@ const allAges = process.argv.includes('--all-ages');
 const migrateOnly = process.argv.includes('--migrate-only');
 const mathOnly = process.argv.includes('--math-only');
 const speechOnly = process.argv.includes('--speech-only');
+const direct = process.argv.includes('--direct');
+const requireComplete = process.argv.includes('--require-complete');
 const maxCharsArg = process.argv.find(arg => arg.startsWith('--max-chars='));
 const maxChars = maxCharsArg ? Number(maxCharsArg.split('=')[1]) : 0;
 const endpointArg = process.argv.slice(2).find(arg => !arg.startsWith('--'));
@@ -72,6 +74,7 @@ const readEnvFile = (file) => {
 };
 
 const localEnv = readEnvFile(path.join(root, '.env.local'));
+const elevenLabsApiKey = process.env.ELEVENLABS_API_KEY || localEnv.ELEVENLABS_API_KEY || '';
 const voiceId = process.env.ELEVENLABS_VOICE_ID || localEnv.ELEVENLABS_VOICE_ID || 'JBFqnCBsd6RMkjVDRZzb';
 const modelId = process.env.ELEVENLABS_MODEL_ID || localEnv.ELEVENLABS_MODEL_ID || 'eleven_flash_v2_5';
 
@@ -124,6 +127,7 @@ const applyCharacterBudget = (texts, profile) => {
 };
 
 const cacheDir = path.join(root, '.tts-cache');
+const wait = (milliseconds) => new Promise(resolve => setTimeout(resolve, milliseconds));
 const hasCachedVoiceFile = (filePath) => {
   const fileName = path.basename(filePath);
   return fs.existsSync(filePath) || fs.existsSync(path.join(publicVoiceDir, fileName));
@@ -156,6 +160,11 @@ if (dryRun) {
     maxChars,
     cacheBefore: beforeCount,
   }, null, 2));
+  const missingCount = profileStatus.reduce((sum, profile) => sum + profile.estimatedMissing, 0);
+  if (requireComplete && missingCount > 0) {
+    console.error(`Natural voice coverage is incomplete: ${missingCount} registered phrase(s) are missing.`);
+    process.exit(1);
+  }
   process.exit(0);
 }
 
@@ -178,6 +187,81 @@ for (const profile of voiceProfiles) {
 
   for (let index = 0; index < textsForProfile.length; index += chunkSize) {
     const texts = textsForProfile.slice(index, index + chunkSize);
+    if (direct) {
+      if (!elevenLabsApiKey) {
+        throw new Error('ELEVENLABS_API_KEY is required for --direct voice generation.');
+      }
+
+      const generateDirectVoice = async (text) => {
+        const cachePath = getCachePath(text, profile);
+        for (let attempt = 0; attempt < 3; attempt += 1) {
+          try {
+            const response = await fetch(
+              `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=mp3_44100_128`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'xi-api-key': elevenLabsApiKey,
+                },
+                body: JSON.stringify({
+                  text,
+                  model_id: modelId,
+                  voice_settings: resolveVoiceSettings(profile),
+                }),
+              }
+            );
+
+            if (response.ok) {
+              fs.writeFileSync(cachePath, Buffer.from(await response.arrayBuffer()));
+              return { ok: true };
+            }
+
+            const message = (await response.text()).slice(0, 220);
+            if ((response.status === 429 || response.status >= 500) && attempt < 2) {
+              const retryAfter = Number(response.headers.get('retry-after'));
+              await wait(Number.isFinite(retryAfter) ? retryAfter * 1000 : 750 * (attempt + 1));
+              continue;
+            }
+
+            return { ok: false, status: response.status, message };
+          } catch (error) {
+            if (attempt < 2) {
+              await wait(750 * (attempt + 1));
+              continue;
+            }
+            return {
+              ok: false,
+              message: error instanceof Error ? error.message.slice(0, 220) : 'Unexpected ElevenLabs request error.',
+            };
+          }
+        }
+        return { ok: false, message: 'ElevenLabs generation exhausted all retry attempts.' };
+      };
+
+      const directConcurrency = 4;
+      for (let directIndex = 0; directIndex < texts.length; directIndex += directConcurrency) {
+        const directBatch = texts.slice(directIndex, directIndex + directConcurrency);
+        const directResults = await Promise.all(directBatch.map(generateDirectVoice));
+        profileResult.requested += directBatch.length;
+        for (const result of directResults) {
+          if (result.ok) {
+            profileResult.misses += 1;
+          } else {
+            profileResult.errors += 1;
+            if (!profileResult.errorSamples || profileResult.errorSamples.length < 3) {
+              profileResult.errorSamples ||= [];
+              profileResult.errorSamples.push({
+                status: result.status,
+                message: result.message,
+              });
+            }
+          }
+        }
+      }
+      continue;
+    }
+
     const response = await fetch(`${endpoint.replace(/\/$/, '')}/api/tts-precache`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -214,6 +298,7 @@ const afterCount = fs.existsSync(cacheDir)
 
 console.log(JSON.stringify({
   endpoint,
+  direct,
   migrateOnly,
   mathOnly,
   speechOnly,

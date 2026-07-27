@@ -192,13 +192,13 @@ export const EarlyReadingLesson: React.FC<EarlyReadingLessonProps> = ({ onBack, 
             </div>
 
             {feedback === 'correct' && (
-              <div className="mt-5 flex items-start gap-3 rounded-2xl bg-emerald-50 p-4 text-left text-emerald-900 ring-2 ring-emerald-200">
+              <div data-testid="reading-correct-feedback" className="mt-5 flex items-start gap-3 rounded-2xl bg-emerald-50 p-4 text-left text-emerald-900 ring-2 ring-emerald-200">
                 <CheckCircle2 className="shrink-0 text-emerald-600" />
                 <div><p className="font-black">Great Job!</p><p className="font-semibold">{question.explanation}</p></div>
               </div>
             )}
             {feedback === 'wrong' && (
-              <div className="mt-5 flex items-start gap-3 rounded-2xl bg-rose-50 p-4 text-left text-rose-900 ring-2 ring-rose-200">
+              <div data-testid="reading-wrong-feedback" className="mt-5 flex items-start gap-3 rounded-2xl bg-rose-50 p-4 text-left text-rose-900 ring-2 ring-rose-200">
                 <XCircle className="shrink-0 text-rose-600" />
                 <div><p className="font-black">Let us learn it together.</p><p className="font-semibold">The answer is {question.answer}. {question.explanation}</p></div>
               </div>

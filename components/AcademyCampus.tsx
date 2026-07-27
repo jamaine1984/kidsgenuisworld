@@ -17,6 +17,7 @@ import {
   Globe2,
   Languages,
   LockKeyhole,
+  LogOut,
   Music2,
   Palette,
   PawPrint,
@@ -56,6 +57,7 @@ export interface AcademyCampusProps {
   profiles?: ChildProfile[];
   activeProfileId?: string;
   onSwitchChildProfile?: (profileId: string) => void;
+  onLogOut?: () => void;
 }
 
 const roomConfig = [
@@ -92,6 +94,7 @@ export const AcademyCampus: React.FC<AcademyCampusProps> = ({
   profiles = [],
   activeProfileId = '',
   onSwitchChildProfile,
+  onLogOut,
 }) => {
   const [showReviewQuest, setShowReviewQuest] = useState(false);
   const [showBreakCoach, setShowBreakCoach] = useState(false);
@@ -187,6 +190,11 @@ export const AcademyCampus: React.FC<AcademyCampusProps> = ({
             <button type="button" onClick={onOpenSettings} aria-label="Parent Settings" title="Settings" className="academy-campus-header-action">
               <Settings size={19} /><span className="hidden lg:inline">Parent Settings</span>
             </button>
+            {onLogOut && (
+              <button type="button" onClick={onLogOut} aria-label="Log out" title="Log out" className="academy-campus-icon-button">
+                <LogOut size={20} />
+              </button>
+            )}
           </div>
         </div>
       </header>

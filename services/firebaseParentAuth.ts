@@ -1,5 +1,5 @@
 import {
-  browserSessionPersistence,
+  browserLocalPersistence,
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
   onAuthStateChanged,
@@ -21,39 +21,17 @@ export interface ParentCloudSession {
 
 const buildFamilyId = (uid: string) => `family-${uid}`;
 const TEST_PARENT_SESSION_KEY = 'kidGeniusTestParentSession';
-const PARENT_SESSION_ACTIVE_KEY = 'kidGeniusParentSessionActive';
 
-const hasActiveBrowserSession = () => {
-  try {
-    return window.sessionStorage.getItem(PARENT_SESSION_ACTIVE_KEY) === 'true';
-  } catch {
-    return false;
-  }
-};
-
-const markActiveBrowserSession = () => {
-  try {
-    window.sessionStorage.setItem(PARENT_SESSION_ACTIVE_KEY, 'true');
-  } catch {
-    // Session storage may be blocked; Firebase session persistence still applies.
-  }
-};
-
-const clearActiveBrowserSession = () => {
-  try {
-    window.sessionStorage.removeItem(PARENT_SESSION_ACTIVE_KEY);
-  } catch {
-    // Session storage may be blocked.
-  }
-};
-
-const prepareSessionOnlyAuth = async () => {
+const preparePersistentAuth = async () => {
   const services = getFirebaseServices();
   if (!services) {
     throw new Error('Firebase is not configured for this browser.');
   }
 
-  await setPersistence(services.auth, browserSessionPersistence);
+  // A family should stay signed in on its own device until the parent chooses
+  // Log out. Firebase owns that persisted session; profile data stays scoped
+  // to the authenticated parent's family id.
+  await setPersistence(services.auth, browserLocalPersistence);
   return services;
 };
 
@@ -85,15 +63,6 @@ export const getCurrentParentSession = (): ParentCloudSession => {
   if (testSession) return testSession;
   const services = getFirebaseServices();
   const user = services?.auth.currentUser || null;
-  if (user && !hasActiveBrowserSession()) {
-    return {
-      configured: Boolean(services),
-      signedIn: false,
-      uid: null,
-      email: null,
-      familyId: null,
-    };
-  }
   return {
     configured: Boolean(services),
     signedIn: Boolean(user),
@@ -106,7 +75,7 @@ export const getCurrentParentSession = (): ParentCloudSession => {
 export const getCurrentParentIdToken = async () => {
   const services = getFirebaseServices();
   const user = services?.auth.currentUser || null;
-  if (!user || !hasActiveBrowserSession()) {
+  if (!user) {
     throw new Error('Sign in with a parent account before opening billing.');
   }
 
@@ -135,18 +104,6 @@ export const subscribeParentCloudSession = (
   }
 
   return onAuthStateChanged(services.auth, (user: User | null) => {
-    if (user && !hasActiveBrowserSession()) {
-      void signOut(services.auth);
-      onChange({
-        configured: true,
-        signedIn: false,
-        uid: null,
-        email: null,
-        familyId: null,
-      });
-      return;
-    }
-
     onChange({
       configured: true,
       signedIn: Boolean(user),
@@ -158,8 +115,7 @@ export const subscribeParentCloudSession = (
 };
 
 export const createParentAccount = async (email: string, password: string) => {
-  const services = await prepareSessionOnlyAuth();
-  markActiveBrowserSession();
+  const services = await preparePersistentAuth();
 
   const credential = await createUserWithEmailAndPassword(
     services.auth,
@@ -170,8 +126,7 @@ export const createParentAccount = async (email: string, password: string) => {
 };
 
 export const signInParentAccount = async (email: string, password: string) => {
-  const services = await prepareSessionOnlyAuth();
-  markActiveBrowserSession();
+  const services = await preparePersistentAuth();
 
   const credential = await signInWithEmailAndPassword(
     services.auth,
@@ -182,8 +137,7 @@ export const signInParentAccount = async (email: string, password: string) => {
 };
 
 export const signInParentWithGoogle = async () => {
-  const services = await prepareSessionOnlyAuth();
-  markActiveBrowserSession();
+  const services = await preparePersistentAuth();
 
   const provider = new GoogleAuthProvider();
   provider.setCustomParameters({
@@ -195,7 +149,9 @@ export const signInParentWithGoogle = async () => {
 };
 
 export const signOutParentAccount = async () => {
-  clearActiveBrowserSession();
+  if (import.meta.env.DEV) {
+    window.localStorage.removeItem(TEST_PARENT_SESSION_KEY);
+  }
   const services = getFirebaseServices();
   if (!services) {
     return;

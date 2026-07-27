@@ -1573,8 +1573,27 @@ const App: React.FC = () => {
   };
 
   const handleSignOutParentAccount = async () => {
-    await signOutParentAccount();
-    setCloudSyncStatus('Parent signed out. Local progress still works on this browser.');
+    stopSpeaking();
+    try {
+      await signOutParentAccount();
+    } finally {
+      // Firebase auth is persistent on a family device. This is the one
+      // intentional path that clears the parent session and returns to login.
+      setParentCloudSession(getCurrentParentSession());
+      setShowParentWelcome(true);
+      setShowGradeSelection(false);
+      setShowPetSelection(false);
+      setShowParentDashboard(false);
+      setShowDashboard(false);
+      setShowAchievements(false);
+      setShowPet(false);
+      setShowGameArcade(false);
+      setShowAccessGate(false);
+      setCurrentRoom(RoomType.HUB);
+      setActiveUnitId(null);
+      setShowLessonIntro(false);
+      setCloudSyncStatus('Parent signed out. Sign in again to open this family\'s profiles.');
+    }
   };
 
   const syncActiveProgressToCloud = async (mode: 'manual' | 'auto' = 'manual') => {
@@ -3540,6 +3559,9 @@ const App: React.FC = () => {
             profiles={profiles}
             activeProfileId={activeProfileId}
             onSwitchChildProfile={handleSwitchChildProfile}
+            onLogOut={() => {
+              void handleSignOutParentAccount();
+            }}
           />
         );
     }

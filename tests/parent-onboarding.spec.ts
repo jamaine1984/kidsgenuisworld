@@ -126,6 +126,56 @@ test('returning parent with child profile continues without creating another chi
   await expect(page.getByRole('heading', { name: 'Create your child profile' })).toBeHidden();
 });
 
+test('parent session and child profile persist until the parent explicitly logs out', async ({ page }) => {
+  await page.goto('/');
+  await page.evaluate(() => {
+    window.localStorage.clear();
+    window.localStorage.setItem('kidGeniusTestParentSession', JSON.stringify({
+      uid: 'persistent-parent',
+      email: 'persistent-parent@kidgenius.test',
+      familyId: 'family-persistent-parent',
+    }));
+    window.localStorage.setItem('kidGeniusDevAccessOverride', 'true');
+    window.localStorage.setItem('kidGeniusParentOnboarded:family-persistent-parent', 'true');
+    window.localStorage.setItem('kidGeniusProfiles:family-persistent-parent', JSON.stringify([
+      {
+        id: 'child-persistent',
+        name: 'Jordan',
+        grade: 'Pre-K',
+        createdAt: Date.now(),
+        lastActiveAt: Date.now(),
+      },
+    ]));
+    window.localStorage.setItem('kidGeniusActiveProfileId:family-persistent-parent', 'child-persistent');
+    window.localStorage.setItem('kidGeniusProgress:family-persistent-parent:child-persistent', JSON.stringify({
+      childName: 'Jordan',
+      currentGrade: 'Pre-K',
+      currentLevel: 1,
+      totalXP: 0,
+      stickers: [],
+      achievements: [],
+    }));
+  });
+  await page.reload();
+
+  await page.getByRole('button', { name: /Start Adventure/i }).click();
+  await page.getByRole('button', { name: 'Continue as Parent' }).click();
+  await expect(page.getByTestId('daily-mission-card')).toBeVisible();
+  await expect(page.getByText('Jordan').first()).toBeVisible();
+
+  await page.reload();
+  await page.getByRole('button', { name: /Start Adventure/i }).click();
+  await page.getByRole('button', { name: 'Continue as Parent' }).click();
+  await expect(page.getByTestId('daily-mission-card')).toBeVisible();
+  await expect(page.getByText('Jordan').first()).toBeVisible();
+
+  await page.getByRole('button', { name: 'Log out' }).click();
+  await expect(page.getByRole('heading', { name: 'Sign in or create account' })).toBeVisible();
+  await expect(page.getByText('Signed in parent')).toBeHidden();
+  const profileStorage = await page.evaluate(() => window.localStorage.getItem('kidGeniusProfiles:family-persistent-parent'));
+  expect(profileStorage).toContain('Jordan');
+});
+
 test('returning parent prefers saved child over placeholder profile', async ({ page }) => {
   await page.goto('/');
   await page.evaluate(() => {

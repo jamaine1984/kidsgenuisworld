@@ -276,8 +276,8 @@ test('reading room completion creates reward and parent-visible journal proof', 
   for (let round = 0; round < 6; round += 1) {
     await page.locator('[data-testid="reading-answer-option"][data-reading-correct="true"]').click();
     if (round < 5) {
-      await expect(page.getByText('Great Job!')).toBeVisible();
-      await expect(page.getByText('Great Job!')).toBeHidden({ timeout: 5_000 });
+      await expect(page.getByTestId('reading-correct-feedback')).toBeVisible();
+      await expect(page.getByTestId('reading-correct-feedback')).toBeHidden({ timeout: 5_000 });
     }
   }
 

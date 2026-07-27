@@ -103,6 +103,10 @@ export const subscribeParentCloudSession = (
     return () => undefined;
   }
 
+  // Migrate an already-open parent session as well as new sign-ins. This keeps
+  // a family signed in after closing and reopening the same browser or tablet.
+  void setPersistence(services.auth, browserLocalPersistence).catch(() => undefined);
+
   return onAuthStateChanged(services.auth, (user: User | null) => {
     onChange({
       configured: true,

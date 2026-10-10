@@ -1,0 +1,6241 @@
+[
+  {
+    "id": 0,
+    "text": "wonderlane:lesson:v1",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 1,
+    "text": "null",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 2,
+    "text": "Watch",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 3,
+    "text": "Try together",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 4,
+    "text": "Practice",
+    "files": [
+      "App.jsx",
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 5,
+    "text": "Independent check",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 6,
+    "text": "brand",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 7,
+    "text": "Kid Genius World home",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 8,
+    "text": "bold",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 9,
+    "text": "Kid Genius",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 10,
+    "text": "World",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 11,
+    "text": "tutor ${0}",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 12,
+    "text": "Theo your tutor",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 13,
+    "text": "Theo, your friendly bear tutor in a blue apron",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 14,
+    "text": "es",
+    "files": [
+      "App.jsx",
+      "FamilyAccount.tsx",
+      "TourVideo.tsx",
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 15,
+    "text": "Kid Genius World · Matemáticas y lectura",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 16,
+    "text": "Kid Genius World · Math and reading",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 17,
+    "text": ":es",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 18,
+    "text": "home",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 19,
+    "text": "math",
+    "files": [
+      "App.jsx",
+      "LearningHub.tsx",
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 20,
+    "text": "All",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 21,
+    "text": "check",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 22,
+    "text": "reading",
+    "files": [
+      "App.jsx",
+      "LearningHub.tsx",
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 23,
+    "text": "Independent",
+    "files": [
+      "App.jsx",
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 24,
+    "text": "Retained",
+    "files": [
+      "App.jsx",
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 25,
+    "text": "Practiced",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 26,
+    "text": "Storage is full. Export progress in the parent space.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 27,
+    "text": "lesson",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 28,
+    "text": "catalog",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 29,
+    "text": "parents",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 30,
+    "text": "privacy",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 31,
+    "text": "terms",
+    "files": [
+      "App.jsx",
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 32,
+    "text": "lab",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 33,
+    "text": "popstate",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 34,
+    "text": "instant",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 35,
+    "text": "smooth",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 36,
+    "text": "Choose a lesson at your current level.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 37,
+    "text": "You’ve explored this activity’s current questions. Choose another discovery for fresh questions.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 38,
+    "text": "watch",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 39,
+    "text": "mathGrade",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 40,
+    "text": "readingGrade",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 41,
+    "text": "preparing",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 42,
+    "text": "speaking",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 43,
+    "text": "Voice is unavailable on this device. You can still read the directions and practice.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 44,
+    "text": "fluency",
+    "files": [
+      "App.jsx",
+      "LessonDemo.tsx"
+    ]
+  },
+  {
+    "id": 45,
+    "text": "practice",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 46,
+    "text": "You worked it out. Nice thinking!",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 47,
+    "text": "Let’s work through this together.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 48,
+    "text": "Nice thinking.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 49,
+    "text": "complete",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 50,
+    "text": "Ask a parent or grown-up to open this space.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 51,
+    "text": "SHA-256",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 52,
+    "text": "That PIN did not match.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 53,
+    "text": "application/json",
+    "files": [
+      "App.jsx",
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 54,
+    "text": "a",
+    "files": [
+      "App.jsx",
+      "TourVideo.tsx",
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 55,
+    "text": "wonderlane-family-progress.json",
+    "files": [
+      "App.jsx",
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 56,
+    "text": "This device supports up to four learners.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 57,
+    "text": "Your next task.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 58,
+    "text": "Sounds and Listening",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 59,
+    "text": "Phonics and Word Patterns",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 60,
+    "text": "Spelling and Sentence Building",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 61,
+    "text": "Language and Vocabulary",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 62,
+    "text": "Stories and Comprehension",
+    "files": [
+      "App.jsx",
+      "LessonDemo.tsx"
+    ]
+  },
+  {
+    "id": 63,
+    "text": "Fluency and Read-along",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 64,
+    "text": "app ${0}",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 65,
+    "text": "topbar",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 66,
+    "text": "Main navigation",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 67,
+    "text": "My lessons",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 68,
+    "text": "nav-link active",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 69,
+    "text": "Math",
+    "files": [
+      "App.jsx",
+      "LearningHub.tsx",
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 70,
+    "text": "Reading",
+    "files": [
+      "App.jsx",
+      "LearningHub.tsx",
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 71,
+    "text": "learning grade",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 72,
+    "text": "Grade 1",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 73,
+    "text": "Grade 2",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 74,
+    "text": "Grade 3",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 75,
+    "text": "Theo’s Discovery Lab",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 76,
+    "text": "Theo’s lab",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 77,
+    "text": "For parents",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 78,
+    "text": "fill",
+    "files": [
+      "App.jsx",
+      "FamilyAccount.tsx",
+      "NarratedExample.tsx"
+    ]
+  },
+  {
+    "id": 79,
+    "text": "Hello,",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 80,
+    "text": "explorer",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 81,
+    "text": "What will we learn today?",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 82,
+    "text": "subject-home math",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 83,
+    "text": "Wooden numbers, counting counters and geometric blocks",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 84,
+    "text": "Math Studio",
+    "files": [
+      "App.jsx",
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 85,
+    "text": "Grade",
+    "files": [
+      "App.jsx",
+      "LearningHub.tsx",
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 86,
+    "text": "· Numbers. Patterns. Big ideas.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 87,
+    "text": "button terracotta",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 88,
+    "text": "Start math",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 89,
+    "text": "subject-home reading",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 90,
+    "text": "A handmade pop-up storybook and spelling tiles",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 91,
+    "text": "Reading Room",
+    "files": [
+      "App.jsx",
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 92,
+    "text": "· Letters. Sounds. A bigger world.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 93,
+    "text": "button gold",
+    "files": [
+      "App.jsx",
+      "FamilyAccount.tsx",
+      "TourModal.tsx",
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 94,
+    "text": "Start reading",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 95,
+    "text": "Let’s try it together.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 96,
+    "text": "Continue ·",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 97,
+    "text": "A little practice. A little discovery.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 98,
+    "text": "Let’s build confidence, one small step at a time.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 99,
+    "text": "button cobalt",
+    "files": [
+      "App.jsx",
+      "FamilyAccount.tsx",
+      "TourModal.tsx",
+      "LearningHub.tsx",
+      "ParentFeatures.tsx",
+      "NarratedExample.tsx",
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 100,
+    "text": "Continue",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 101,
+    "text": "Your daily discoveries",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 102,
+    "text": "Explore all lessons",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 103,
+    "text": "Take a tour · 2 min",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 104,
+    "text": "catalog page",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 105,
+    "text": "eyebrow",
+    "files": [
+      "App.jsx",
+      "FamilyAccount.tsx",
+      "TourModal.tsx",
+      "LearningHub.tsx",
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 106,
+    "text": "YOUR LEARNING STUDIO",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 107,
+    "text": "Big discoveries.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 108,
+    "text": "Small steps.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 109,
+    "text": "Pick a lesson. Theo will help you along the way.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 110,
+    "text": "Theo welcomes you to the lesson library",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 111,
+    "text": "tablist",
+    "files": [
+      "App.jsx",
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 112,
+    "text": "Subject",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 113,
+    "text": "tab",
+    "files": [
+      "App.jsx",
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 114,
+    "text": "Find a lesson",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 115,
+    "text": "Learning areas",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 116,
+    "text": "active",
+    "files": [
+      "App.jsx",
+      "FamilyAccount.tsx",
+      "TourModal.tsx",
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 117,
+    "text": "activities",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 118,
+    "text": "Choose an area, or explore below.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 119,
+    "text": "activities in this area",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 120,
+    "text": "lesson-row ${0}",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 121,
+    "text": "New",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 122,
+    "text": "Watch, try together, then show what you know.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 123,
+    "text": "${0} · ${1} independent check answers",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 124,
+    "text": "status ${0}",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 125,
+    "text": "Ready to revisit",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 126,
+    "text": "Showing",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 127,
+    "text": "of",
+    "files": [
+      "App.jsx",
+      "LearningHub.tsx",
+      "NarratedExample.tsx"
+    ]
+  },
+  {
+    "id": 128,
+    "text": "button secondary",
+    "files": [
+      "App.jsx",
+      "FamilyAccount.tsx",
+      "LearningHub.tsx",
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 129,
+    "text": "Explore 40 more",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 130,
+    "text": "Let’s try another search.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 131,
+    "text": "See all lessons",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 132,
+    "text": "lesson-page ${0}",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 133,
+    "text": "My studio",
+    "files": [
+      "App.jsx",
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 134,
+    "text": "Resume",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 135,
+    "text": "Pause",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 136,
+    "text": "Take your time. I’ll be right here.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 137,
+    "text": "A little pause.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 138,
+    "text": "Your progress is saved.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 139,
+    "text": "Keep learning",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 140,
+    "text": "Look at what you learned!",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 141,
+    "text": "A LITTLE PROGRESS TO BE PROUD OF",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 142,
+    "text": "You kept thinking.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 143,
+    "text": "answers worked out.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 144,
+    "text": "You solved fresh examples independently. We’ll revisit this skill another day.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 145,
+    "text": "Practice helps ideas stick. More practice is ready whenever you need it.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 146,
+    "text": "Next activity",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 147,
+    "text": "Practice again",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 148,
+    "text": "Choose a new lesson",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 149,
+    "text": "Lesson progress",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 150,
+    "text": "arrival",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 151,
+    "text": "Theo arrives in the Maker Lab",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 152,
+    "text": "Let’s begin",
+    "files": [
+      "App.jsx",
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 153,
+    "text": "Let’s get ready.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 154,
+    "text": "Hear this idea",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 155,
+    "text": "Press Play. I’ll explain each step.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 156,
+    "text": "FAMILIAR PRACTICE",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 157,
+    "text": "YOUR OWN THINKING",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 158,
+    "text": "LET’S TRY TOGETHER",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 159,
+    "text": "A LITTLE MORE PRACTICE",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 160,
+    "text": "text-button ${0}",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 161,
+    "text": "Hear directions",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 162,
+    "text": "Tap here first.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 163,
+    "text": "Theo will tell you what to do.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 164,
+    "text": "text-button word-audio",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 165,
+    "text": "Hear the clue",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 166,
+    "text": "Hear the word",
+    "files": [
+      "App.jsx",
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 167,
+    "text": "Help me",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 168,
+    "text": "checkbox",
+    "files": [
+      "App.jsx",
+      "FamilyAccount.tsx",
+      "TourModal.tsx",
+      "LearningHub.tsx",
+      "ParentFeatures.tsx",
+      "NarratedExample.tsx"
+    ]
+  },
+  {
+    "id": 169,
+    "text": "Slower voice",
+    "files": [
+      "App.jsx",
+      "TourModal.tsx",
+      "NarratedExample.tsx"
+    ]
+  },
+  {
+    "id": 170,
+    "text": "Stop voice",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 171,
+    "text": "status",
+    "files": [
+      "App.jsx",
+      "FamilyAccount.tsx",
+      "TourModal.tsx",
+      "LearningHub.tsx",
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 172,
+    "text": "Theo is speaking…",
+    "files": [
+      "App.jsx",
+      "TourModal.tsx",
+      "NarratedExample.tsx"
+    ]
+  },
+  {
+    "id": 173,
+    "text": "Getting Theo’s voice ready…",
+    "files": [
+      "App.jsx",
+      "NarratedExample.tsx"
+    ]
+  },
+  {
+    "id": 174,
+    "text": "reading-passage ${0}",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 175,
+    "text": "spoken",
+    "files": [
+      "App.jsx",
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 176,
+    "text": "text-button read-together",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 177,
+    "text": "Read together",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 178,
+    "text": "Preparing your work mat…",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 179,
+    "text": "polite",
+    "files": [
+      "App.jsx",
+      "TourModal.tsx",
+      "LearningHub.tsx",
+      "NarratedExample.tsx",
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 180,
+    "text": "Build the sentence here",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 181,
+    "text": "Build the word here",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 182,
+    "text": "Undo",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 183,
+    "text": "Check my sentence",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 184,
+    "text": "Check my word",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 185,
+    "text": "tenframe",
+    "files": [
+      "App.jsx",
+      "LessonDemo.tsx",
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 186,
+    "text": "group",
+    "files": [
+      "App.jsx",
+      "NarratedExample.tsx"
+    ]
+  },
+  {
+    "id": 187,
+    "text": "Answer choices",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 188,
+    "text": "answer-choice ${0}",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 189,
+    "text": "correct",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 190,
+    "text": "Hear choice",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 191,
+    "text": "listening",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 192,
+    "text": "A familiar example to practice again. We’ll count it as practice.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 193,
+    "text": "feedback ${0}",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 194,
+    "text": "success",
+    "files": [
+      "App.jsx",
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 195,
+    "text": "support",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 196,
+    "text": "See my progress",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 197,
+    "text": "Next discovery",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 198,
+    "text": "Try a fresh question",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 199,
+    "text": "You found a way!",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 200,
+    "text": "Mistakes help us learn.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 201,
+    "text": "Your turn. Show what you know.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 202,
+    "text": "Let’s build it together.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 203,
+    "text": "You can ask for help. We’ll remember that it was supported practice.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 204,
+    "text": "Look carefully, try a step, and ask Theo whenever you need help.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 205,
+    "text": "Simple work mat",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 206,
+    "text": "parent-page page",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 207,
+    "text": "YOUR FAMILY’S LEARNING",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 208,
+    "text": "Real understanding.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 209,
+    "text": "See what’s growing, where help was useful, and what comes next.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 210,
+    "text": "Back to the studio",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 211,
+    "text": "parent-section previous-family",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 212,
+    "text": "Already learning with Kid Genius World?",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 213,
+    "text": "Your earlier account, subscriptions, saved learning, and the wider subject library are available in the previous app. The new studio saves its learning separately.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 214,
+    "text": "Open earlier app and account (English)",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 215,
+    "text": "In the earlier app, open the parent dashboard for account and subscription controls. The studio uses your existing parent account and membership. New subscriptions cost $4.99 monthly.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 216,
+    "text": "Earlier studio progress merged into this family account.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 217,
+    "text": "Topics solved independently",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 218,
+    "text": "Fresh checks without hints",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 219,
+    "text": "Answers without hints",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 220,
+    "text": "Practice and independent checks",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 221,
+    "text": "Supported attempts",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 222,
+    "text": "Help is part of learning",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 223,
+    "text": "Keep earlier skills fresh",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 224,
+    "text": "Your learners",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 225,
+    "text": "Math level",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 226,
+    "text": "Reading level",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 227,
+    "text": "Math and reading can start at different levels. Changing a level keeps earlier progress.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 228,
+    "text": "off",
+    "files": [
+      "App.jsx",
+      "LearningHub.tsx",
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 229,
+    "text": "New learner nickname",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 230,
+    "text": "Learner nickname",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 231,
+    "text": "Add learner",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 232,
+    "text": "parent-section next-up",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 233,
+    "text": "A useful next step",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 234,
+    "text": "Start math with Theo",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 235,
+    "text": "Start reading with Theo",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 236,
+    "text": "Two minutes away from the screen",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 237,
+    "text": "Ask your child to show today’s math idea with real objects, or read a short page together and talk about what happened. Ask “How did you know?”",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 238,
+    "text": "parent-section progress-section",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 239,
+    "text": "Learning evidence",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 240,
+    "text": "Completed activities show practice. Independent checks show a child working without hints. Retained skills also have a successful check on a later day.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 241,
+    "text": "Skill",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 242,
+    "text": "Evidence",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 243,
+    "text": "Independent checks",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 244,
+    "text": "With support",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 245,
+    "text": "· Grade",
+    "files": [
+      "App.jsx",
+      "LearningHub.tsx",
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 246,
+    "text": "Your child’s first lesson will start this picture of their learning.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 247,
+    "text": "Make it comfortable",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 248,
+    "text": "voice",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 249,
+    "text": "Spoken encouragement",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 250,
+    "text": "reducedMotion",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 251,
+    "text": "Less movement",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 252,
+    "text": "flatMode",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 253,
+    "text": "Simple work mats",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 254,
+    "text": "Export family progress",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 255,
+    "text": "Progress is saved on this device. Export a backup whenever you like.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 256,
+    "text": "Protect this parent space with a PIN",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 257,
+    "text": "password",
+    "files": [
+      "App.jsx",
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 258,
+    "text": "numeric",
+    "files": [
+      "App.jsx",
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 259,
+    "text": "Choose 4 to 8 digits",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 260,
+    "text": "Parent PIN saved on this device.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 261,
+    "text": "A family space of your own",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 262,
+    "text": "Device progress is kept separately for each parent account. Use the private backup below to move new studio progress to another device.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 263,
+    "text": "Privacy and family data",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 264,
+    "text": "Learning progress is an educational guide, not a diagnostic assessment.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 265,
+    "text": "page privacy",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 266,
+    "text": "Back",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 267,
+    "text": "Kid Genius World’s early-access learning runs without a child account. Nicknames, chosen grade levels and learning attempts are saved in your browser on this device.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 268,
+    "text": "Voice and optional read-aloud practice",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 269,
+    "text": "Directions and stories use your browser’s built-in speaking voice. Kid Genius World does not call a paid voice API. A parent can enable optional microphone practice. It starts only after the learner presses the microphone button and the browser grants access. Speech recognition is allowed only on-device when supported; otherwise listening and self-check practice remain available. Kid Genius World does not store or upload audio or recognized transcripts.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 270,
+    "text": "Private cloud backups",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 271,
+    "text": "A parent can save encrypted family progress to Cloudflare and restore it with a private family code. The code contains an access token and a separate encryption key. The key is not sent to the server. Backups include nicknames, levels, learning evidence and saved writing. A save renews the backup for 30 days; expired backups are removed during daily cleanup. Anyone with the complete code can open the backup, and there is no email recovery. You can delete the cloud backup from the parent space. Device progress is kept separately.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 272,
+    "text": "Parent accounts",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 273,
+    "text": "Parents sign in through Firebase Authentication. Our Firebase billing service verifies membership with Stripe. Card details stay with Stripe. Device progress is separated by parent account. Optional encrypted backups move progress between devices.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 274,
+    "text": "Your choices",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 275,
+    "text": "You can turn spoken encouragement off, export progress, and use a nickname instead of a real name. Removing this site’s stored browser data removes device progress. Parent account deletion will remove server account and progress records when accounts are enabled.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 276,
+    "text": "This early-access notice describes the implemented data flows. Kid Genius World is operated by CrateShip Studios. Contact crateshipstudios@gmail.com for account, billing or data support.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 277,
+    "text": "membership-gate page",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 278,
+    "text": "Theo welcomes your family",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 279,
+    "text": "A LITTLE LEARNING. EVERY DAY.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 280,
+    "text": "A whole studio of discoveries.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 281,
+    "text": "Math and reading for grades 1–3. $4.99 a month.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 282,
+    "text": "Open parent space",
+    "files": [
+      "App.jsx",
+      "TourModal.tsx"
+    ]
+  },
+  {
+    "id": 283,
+    "text": "Take a tour",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 284,
+    "text": "dialog",
+    "files": [
+      "App.jsx",
+      "TourModal.tsx"
+    ]
+  },
+  {
+    "id": 285,
+    "text": "true",
+    "files": [
+      "App.jsx",
+      "TourModal.tsx",
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 286,
+    "text": "Close parent space",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 287,
+    "text": "A space for grown-ups.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 288,
+    "text": "Ask a parent or trusted grown-up to open this part.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 289,
+    "text": "I’m the parent or grown-up.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 290,
+    "text": "Parent PIN",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 291,
+    "text": "This screen keeps adult controls separate from play. Account access uses a separate sign-in.",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 292,
+    "text": "toast",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 293,
+    "text": "Dismiss message",
+    "files": [
+      "App.jsx"
+    ]
+  },
+  {
+    "id": 294,
+    "text": "short",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 295,
+    "text": "signin",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 296,
+    "text": "auth/",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 297,
+    "text": "auth/weak-password",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 298,
+    "text": "Choose a stronger password.",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 299,
+    "text": "auth/email-already-in-use",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 300,
+    "text": "This email already has an account. Sign in instead.",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 301,
+    "text": "auth/popup-closed-by-user",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 302,
+    "text": "Sign-in was closed. Try again when you are ready.",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 303,
+    "text": "auth/too-many-requests",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 304,
+    "text": "Please wait a moment before trying again.",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 305,
+    "text": "We could not sign you in. Check your email and password, then try again.",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 306,
+    "text": "Please try again.",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 307,
+    "text": "parent-section account-section family-membership",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 308,
+    "text": "THE FAMILY MEMBERSHIP",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 309,
+    "text": "Math, reading, and room to grow.",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 310,
+    "text": "All three grades, every learning studio, Theo’s spoken guidance, and parent progress tools. Four learner profiles per family.",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 311,
+    "text": "Your first payment is due at checkout. The membership renews monthly until you cancel. Cancel in the Stripe billing portal; access continues to the end of your paid period.",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 312,
+    "text": "Restoring parent sign-in…",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 313,
+    "text": "Signed in as",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 314,
+    "text": "Checking your membership securely…",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 315,
+    "text": "Owner access",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 316,
+    "text": "trialing",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 317,
+    "text": "Existing trial active",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 318,
+    "text": "past_due",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 319,
+    "text": "Payment needs attention",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 320,
+    "text": "Membership active",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 321,
+    "text": "Cancellation is scheduled${0}. Your paid access stays available until the period ends.",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 322,
+    "text": "for",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 323,
+    "text": "Your existing trial continues${0} under its original terms.",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 324,
+    "text": "until",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 325,
+    "text": "This account has complimentary owner access. No payment is needed.",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 326,
+    "text": "Current paid period ends ${0}.",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 327,
+    "text": "Your membership unlocks the learning studios.",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 328,
+    "text": "Your existing membership is ready.",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 329,
+    "text": "Subscribe for $4.99/month",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 330,
+    "text": "Manage or cancel subscription",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 331,
+    "text": "Refresh membership",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 332,
+    "text": "Sign out",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 333,
+    "text": "Earlier studio progress on this device",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 334,
+    "text": "This membership has its own saved family space. You can bring in the earlier free studio progress on this device if it belongs to your family.",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 335,
+    "text": "Import this family’s earlier studio progress",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 336,
+    "text": "Use your existing Kid Genius World parent account, or create one before subscribing.",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 337,
+    "text": "button",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 338,
+    "text": "Sign in",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 339,
+    "text": "create",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 340,
+    "text": "Create account",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 341,
+    "text": "Parent email",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 342,
+    "text": "email",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 343,
+    "text": "Password",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 344,
+    "text": "I am a parent or grown-up and agree to the",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 345,
+    "text": "#/terms",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 346,
+    "text": "and",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 347,
+    "text": "#/privacy",
+    "files": [
+      "FamilyAccount.tsx",
+      "TermsPage.tsx"
+    ]
+  },
+  {
+    "id": 348,
+    "text": "privacy notice",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 349,
+    "text": "One moment…",
+    "files": [
+      "FamilyAccount.tsx",
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 350,
+    "text": "Create parent account",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 351,
+    "text": "Continue with Google",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 352,
+    "text": "If this email has an account, a password reset message has been requested.",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 353,
+    "text": "Reset password",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 354,
+    "text": "Stripe handles card details. Existing active memberships unlock this studio; there is no second subscription to buy.",
+    "files": [
+      "FamilyAccount.tsx"
+    ]
+  },
+  {
+    "id": 355,
+    "text": "privacy-page page",
+    "files": [
+      "TermsPage.tsx"
+    ]
+  },
+  {
+    "id": 356,
+    "text": "Back home",
+    "files": [
+      "TermsPage.tsx"
+    ]
+  },
+  {
+    "id": 357,
+    "text": "Family membership terms",
+    "files": [
+      "TermsPage.tsx"
+    ]
+  },
+  {
+    "id": 358,
+    "text": "Kid Genius World is operated by CrateShip Studios. A family membership costs USD $4.99 per month. Stripe collects the first payment at checkout and renews monthly until you cancel.",
+    "files": [
+      "TermsPage.tsx"
+    ]
+  },
+  {
+    "id": 359,
+    "text": "Cancel whenever you choose",
+    "files": [
+      "TermsPage.tsx"
+    ]
+  },
+  {
+    "id": 360,
+    "text": "Open For parents, sign in, and choose Manage or cancel subscription. Cancellation stops future renewal; access continues until the end of your paid period. Existing subscriptions and trials retain their original terms. No automatic refund is promised; contact crateshipstudios@gmail.com about billing errors or refund requests.",
+    "files": [
+      "TermsPage.tsx"
+    ]
+  },
+  {
+    "id": 361,
+    "text": "Your family account",
+    "files": [
+      "TermsPage.tsx"
+    ]
+  },
+  {
+    "id": 362,
+    "text": "A parent account is required to purchase and access the studios. Keep sign-in details and private backup codes secure. The app provides learning practice, not diagnostic assessments, accreditation or guaranteed outcomes. Parents are responsible for setting appropriate grade levels and supervising use as needed.",
+    "files": [
+      "TermsPage.tsx"
+    ]
+  },
+  {
+    "id": 363,
+    "text": "Data and support",
+    "files": [
+      "TermsPage.tsx"
+    ]
+  },
+  {
+    "id": 364,
+    "text": "Our privacy notice explains parent authentication, device progress, optional encrypted backups and voice choices. For account or data support, contact crateshipstudios@gmail.com.",
+    "files": [
+      "TermsPage.tsx"
+    ]
+  },
+  {
+    "id": 365,
+    "text": "Read the privacy notice",
+    "files": [
+      "TermsPage.tsx"
+    ]
+  },
+  {
+    "id": 366,
+    "text": "frameupdate",
+    "files": [
+      "TourModal.tsx",
+      "NarratedExample.tsx"
+    ]
+  },
+  {
+    "id": 367,
+    "text": "ended",
+    "files": [
+      "TourModal.tsx"
+    ]
+  },
+  {
+    "id": 368,
+    "text": "Escape",
+    "files": [
+      "TourModal.tsx"
+    ]
+  },
+  {
+    "id": 369,
+    "text": "Tab",
+    "files": [
+      "TourModal.tsx"
+    ]
+  },
+  {
+    "id": 370,
+    "text": "button:not([disabled]),input:not([disabled]),a[href]",
+    "files": [
+      "TourModal.tsx"
+    ]
+  },
+  {
+    "id": 371,
+    "text": "keydown",
+    "files": [
+      "TourModal.tsx"
+    ]
+  },
+  {
+    "id": 372,
+    "text": "hidden",
+    "files": [
+      "TourModal.tsx",
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 373,
+    "text": "MEET YOUR FAMILY’S LEARNING STUDIO",
+    "files": [
+      "TourModal.tsx"
+    ]
+  },
+  {
+    "id": 374,
+    "text": "Take a tour with Theo.",
+    "files": [
+      "TourModal.tsx"
+    ]
+  },
+  {
+    "id": 375,
+    "text": "Close tour",
+    "files": [
+      "TourModal.tsx"
+    ]
+  },
+  {
+    "id": 376,
+    "text": "Pause tour",
+    "files": [
+      "TourModal.tsx"
+    ]
+  },
+  {
+    "id": 377,
+    "text": "Play narrated tour",
+    "files": [
+      "TourModal.tsx"
+    ]
+  },
+  {
+    "id": 378,
+    "text": "Watch the idea take shape…",
+    "files": [
+      "TourModal.tsx"
+    ]
+  },
+  {
+    "id": 379,
+    "text": "About 2 minutes · Voice starts when you press Play",
+    "files": [
+      "TourModal.tsx"
+    ]
+  },
+  {
+    "id": 380,
+    "text": "Tour chapters",
+    "files": [
+      "TourModal.tsx"
+    ]
+  },
+  {
+    "id": 381,
+    "text": "Reading · 30 seconds",
+    "files": [
+      "TourModal.tsx"
+    ]
+  },
+  {
+    "id": 382,
+    "text": "Math · 30 seconds",
+    "files": [
+      "TourModal.tsx"
+    ]
+  },
+  {
+    "id": 383,
+    "text": "Explore the app · 1 minute",
+    "files": [
+      "TourModal.tsx"
+    ]
+  },
+  {
+    "id": 384,
+    "text": "Voice is unavailable on this device. The captions stay available; use the chapter buttons to explore the graphics.",
+    "files": [
+      "TourModal.tsx"
+    ]
+  },
+  {
+    "id": 385,
+    "text": "$4.99 / month",
+    "files": [
+      "TourModal.tsx"
+    ]
+  },
+  {
+    "id": 386,
+    "text": "· Cancel through Stripe",
+    "files": [
+      "TourModal.tsx"
+    ]
+  },
+  {
+    "id": 387,
+    "text": "Kid Genius World animated title",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 388,
+    "text": "clamp",
+    "files": [
+      "TourVideo.tsx",
+      "LessonDemo.tsx"
+    ]
+  },
+  {
+    "id": 389,
+    "text": "Your family’s learning",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 390,
+    "text": "2px solid #e7d6bc",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 391,
+    "text": "0 8px 0 #d9c4a3",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 392,
+    "text": "Nunito, sans-serif",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 393,
+    "text": "KID GENIUS WORLD ·",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 394,
+    "text": "absolute",
+    "files": [
+      "TourVideo.tsx",
+      "LessonDemo.tsx"
+    ]
+  },
+  {
+    "id": 395,
+    "text": "drop-shadow(0 10px 10px #79553320)",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 396,
+    "text": "19px 0 26px",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 397,
+    "text": "Una sílaba. Otra sílaba. Una palabra.",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 398,
+    "text": "A little letter. A new sound.",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 399,
+    "text": "flex",
+    "files": [
+      "TourVideo.tsx",
+      "LessonDemo.tsx"
+    ]
+  },
+  {
+    "id": 400,
+    "text": "10px 0 24px",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 401,
+    "text": "ma",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 402,
+    "text": "pa",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 403,
+    "text": "m",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 404,
+    "text": "p",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 405,
+    "text": "cape",
+    "files": [
+      "TourVideo.tsx",
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 406,
+    "text": "center",
+    "files": [
+      "TourVideo.tsx",
+      "LessonDemo.tsx",
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 407,
+    "text": "ma · pa",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 408,
+    "text": "ma + pa → mapa",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 409,
+    "text": "Escucha. Construye. Lee.",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 410,
+    "text": "cap · short a",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 411,
+    "text": "cap → cape · long a",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 412,
+    "text": "Hear it. Build it. Read it.",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 413,
+    "text": "Escucha las sílabas. Mira las letras.",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 414,
+    "text": "Unimos ma y pa. Mapa tiene dos sílabas.",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 415,
+    "text": "Ahora prueba otra palabra. Theo te ayuda cuando lo necesites.",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 416,
+    "text": "Listen to Theo. Look at the letters.",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 417,
+    "text": "The final e is quiet. The vowel sound changes.",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 418,
+    "text": "Then try a different word, with support when you need it.",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 419,
+    "text": "19px 0 24px",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 420,
+    "text": "Make a ten. See the answer.",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 421,
+    "text": "grid",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 422,
+    "text": "inset 0 -6px 0 #00000012",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 423,
+    "text": "Build the numbers with counters.",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 424,
+    "text": "Use two of the five to fill the first ten frame.",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 425,
+    "text": "Explain the strategy. Then try a fresh problem.",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 426,
+    "text": "19px 0 25px",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 427,
+    "text": "A library with room to grow.",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 428,
+    "text": "Read. Listen. Write.",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 429,
+    "text": "Ideas children can build.",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 430,
+    "text": "Progress you can understand.",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 431,
+    "text": "One family. A whole learning studio.",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 432,
+    "text": "curriculum activities",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 433,
+    "text": "in every section",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 434,
+    "text": "grade levels",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 435,
+    "text": "5px 0 18px",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 436,
+    "text": "Cancel through Stripe",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 437,
+    "text": "Open the parent space to subscribe",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 438,
+    "text": "1fr 1fr",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 439,
+    "text": "24 little books",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 440,
+    "text": "Sound and word practice",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 441,
+    "text": "Dictation and spelling",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 442,
+    "text": "Original writing",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 443,
+    "text": "Trade ones and tens",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 444,
+    "text": "Build coin totals",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 445,
+    "text": "Set a story-time clock",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 446,
+    "text": "Measure, share, and tile",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 447,
+    "text": "Starting-point checks",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 448,
+    "text": "Supported practice",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 449,
+    "text": "Independent answers",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 450,
+    "text": "Private progress backups",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 451,
+    "text": "A separate starting level for math and reading.",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 452,
+    "text": "Theo’s voice and written support throughout.",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 453,
+    "text": "Grade-specific missions turn practice into making.",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 454,
+    "text": "Practice evidence helps parents choose what comes next.",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 455,
+    "text": "First payment at checkout. Renews monthly until cancellation.",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 456,
+    "text": "A preview for parents · Demonstration examples",
+    "files": [
+      "TourVideo.tsx"
+    ]
+  },
+  {
+    "id": 457,
+    "text": "Replay directions",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 458,
+    "text": "Hear Theo",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 459,
+    "text": "Slower",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 460,
+    "text": "Stop",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 461,
+    "text": "Today",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 462,
+    "text": "Starting point",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 463,
+    "text": "Little books",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 464,
+    "text": "Missions",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 465,
+    "text": "Writing",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 466,
+    "text": "Read aloud",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 467,
+    "text": "Sound workshop",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 468,
+    "text": "en",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 469,
+    "text": "page learning-hub",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 470,
+    "text": "THEO’S DISCOVERY LAB",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 471,
+    "text": "Make it. Read it.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 472,
+    "text": "Make it yours.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 473,
+    "text": "Math Grade",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 474,
+    "text": "· Reading Grade",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 475,
+    "text": "Theo in his blue apron, ready to help",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 476,
+    "text": "Discovery activities",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 477,
+    "text": "A LITTLE EVERY DAY",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 478,
+    "text": "Your discoveries for today",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 479,
+    "text": "About 14 minutes, at your pace. Take a break whenever you like.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 480,
+    "text": "Let’s learn a little math, a little reading, then build and read together. Choose a card to begin. You can take a break whenever you need it.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 481,
+    "text": "daily-card ${0}",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 482,
+    "text": "book",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 483,
+    "text": "mission",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 484,
+    "text": "min",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 485,
+    "text": "Practiced today · explore again",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 486,
+    "text": "Starting somewhere new?",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 487,
+    "text": "Find a comfortable starting point",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 488,
+    "text": "for math and reading separately.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 489,
+    "text": "FIND YOUR FIRST STEP",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 490,
+    "text": "A comfortable place to begin",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 491,
+    "text": "This short check suggests a starting lesson within your chosen grade. It doesn’t change your level or count as mastery.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 492,
+    "text": "Try a few questions with me. It is okay if you are not sure. We will find a good first lesson for you.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 493,
+    "text": "Find my starting point",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 494,
+    "text": "Your next step is ready.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 495,
+    "text": "answers without reading help. Let’s build from here.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 496,
+    "text": "Learn with Theo",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 497,
+    "text": "Try a new check",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 498,
+    "text": "Preparing the question…",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 499,
+    "text": "__not_sure__",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 500,
+    "text": "I’m not sure yet",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 501,
+    "text": "You found a detail in your book. Try telling the story in your own words.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 502,
+    "text": "Look back at the pages for a clue. You can listen and try again.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 503,
+    "text": "YOUR LITTLE BOOKSHELF",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 504,
+    "text": "One pattern. One small story.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 505,
+    "text": "Eight books for Grade ${0}. Read in order, or explore any book with Theo.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 506,
+    "text": "Choose a book from the shelf. We will meet its word patterns first. Then you can read each page, or press Read with Theo for help.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 507,
+    "text": "book-cover book-color-${0}",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 508,
+    "text": "Read together ✓",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 509,
+    "text": "Next on your shelf",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 510,
+    "text": "Ready to read",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 511,
+    "text": "Explore with Theo",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 512,
+    "text": "Bookshelf",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 513,
+    "text": "Meet the words before you read",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 514,
+    "text": "Pattern words:",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 515,
+    "text": "Our pattern is ${0}. Listen to these words. ${1}.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 516,
+    "text": "Words to meet with Theo:",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 517,
+    "text": "Let's meet these words before reading. ${0}.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 518,
+    "text": "PAGE",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 519,
+    "text": "Read with Theo",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 520,
+    "text": "Previous page",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 521,
+    "text": "Turn the page",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 522,
+    "text": "You’ve explored this book’s fresh questions. Choose another book for a new question.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 523,
+    "text": "Next little book",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 524,
+    "text": "Your build works.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 525,
+    "text": "ruler",
+    "files": [
+      "LearningHub.tsx",
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 526,
+    "text": "${0} inches.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 527,
+    "text": "Let’s check the build.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 528,
+    "text": "Round ${0}",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 529,
+    "text": "BUILD AN ANSWER",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 530,
+    "text": "Theo’s workshop missions",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 531,
+    "text": "· Use your hands and your thinking.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 532,
+    "text": "You’ve explored the fresh questions in this mission.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 533,
+    "text": "Choose another workshop mission above.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 534,
+    "text": "Theo invites you to build",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 535,
+    "text": "· Mission",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 536,
+    "text": "Show me a clue",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 537,
+    "text": "trade",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 538,
+    "text": "Hundreds",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 539,
+    "text": "Tens",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 540,
+    "text": "Ones",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 541,
+    "text": "place-tray ${0}",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 542,
+    "text": "one ten",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 543,
+    "text": "one hundred",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 544,
+    "text": "one one",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 545,
+    "text": "Trade 10 ones for 1 ten",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 546,
+    "text": "Trade 10 tens for 1 hundred",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 547,
+    "text": "clock",
+    "files": [
+      "LearningHub.tsx",
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 548,
+    "text": "img",
+    "files": [
+      "LearningHub.tsx",
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 549,
+    "text": "Clock hands set to ${0}:${1}",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 550,
+    "text": "middle",
+    "files": [
+      "LearningHub.tsx",
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 551,
+    "text": "round",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 552,
+    "text": "Hour hand ·",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 553,
+    "text": "range",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 554,
+    "text": "Hour hand",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 555,
+    "text": "Minute hand ·",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 556,
+    "text": "Minute hand",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 557,
+    "text": "The ribbon begins at",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 558,
+    "text": "My measured length:",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 559,
+    "text": "Measured length",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 560,
+    "text": "coins",
+    "files": [
+      "LearningHub.tsx",
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 561,
+    "text": "mass",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 562,
+    "text": "1 kg",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 563,
+    "text": "g",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 564,
+    "text": "+ add",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 565,
+    "text": "Your purse",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 566,
+    "text": "Your scale",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 567,
+    "text": "Remove ${0} ${1}",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 568,
+    "text": "Choose coins for your purse.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 569,
+    "text": "Add weights to your scale.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 570,
+    "text": "Your total:",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 571,
+    "text": "tiles",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 572,
+    "text": "${0} rows with ${1} spaces each",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 573,
+    "text": "filled",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 574,
+    "text": "Tile ${0}",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 575,
+    "text": "My",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 576,
+    "text": "area",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 577,
+    "text": "tile count",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 578,
+    "text": "number",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 579,
+    "text": "Area in square units",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 580,
+    "text": "Number of tiles",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 581,
+    "text": "share",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 582,
+    "text": "One whole snack with ${0} equal parts",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 583,
+    "text": "chosen",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 584,
+    "text": "Equal piece ${0}",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 585,
+    "text": "Choose",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 586,
+    "text": "Check my build",
+    "files": [
+      "LearningHub.tsx",
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 587,
+    "text": "Start this build again",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 588,
+    "text": "Next mission",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 589,
+    "text": "tool-feedback ${0}",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 590,
+    "text": "dictation",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 591,
+    "text": "writing",
+    "files": [
+      "LearningHub.tsx",
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 592,
+    "text": "dictation-",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 593,
+    "text": "Try starting with a capital letter.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 594,
+    "text": "Add a sentence ending so your reader knows where to pause.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 595,
+    "text": "Add another detail. What happened, or how did you know?",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 596,
+    "text": "Your draft is saved. Read it aloud and check: does it tell your idea clearly?",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 597,
+    "text": "tool-panel writing-studio",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 598,
+    "text": "WORDS YOU CAN MAKE",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 599,
+    "text": "Writing with Theo",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 600,
+    "text": "Listen and write",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 601,
+    "text": "story",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 602,
+    "text": "My own writing",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 603,
+    "text": "You’ve explored these writing ideas. Choose another activity for a fresh task.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 604,
+    "text": "Listen to a sentence, then write it. You can replay the sentence as often as you need.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 605,
+    "text": "Listen, then write this sentence. ${0} ${1}",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 606,
+    "text": "Show the sentence for help",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 607,
+    "text": "My writing",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 608,
+    "text": "Your words belong here…",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 609,
+    "text": "You can also write on paper, then type your words here. Your saved writing appears in the parent space.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 610,
+    "text": "Check my writing",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 611,
+    "text": "Save my draft",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 612,
+    "text": "Next writing idea",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 613,
+    "text": "This browser does not offer local speech recognition. Read aloud and tap each word you practiced instead.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 614,
+    "text": "processLocally",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 615,
+    "text": "function",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 616,
+    "text": "Local speech recognition is not available here. Read aloud and tap the words you practiced. Your voice will not be sent to a service.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 617,
+    "text": "available",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 618,
+    "text": "An on-device voice-recognition pack for the selected language is not ready. Use the word practice below.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 619,
+    "text": "We could not hear clearly. You can read and practice the words without a microphone.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 620,
+    "text": "Listening on this device. Read one sentence, then press Stop.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 621,
+    "text": "Local microphone practice is unavailable. Try the words below with a grown-up.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 622,
+    "text": "READ IT IN YOUR OWN VOICE",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 623,
+    "text": "Read-aloud practice",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 624,
+    "text": "Practice a short sentence. This activity does not grade pronunciation or count as independent reading mastery.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 625,
+    "text": "A grown-up can enable optional on-device microphone practice in the parent space. You can still listen and read together here.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 626,
+    "text": "Ask a grown-up",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 627,
+    "text": "Microphone use is optional. It starts only when you press the button. Recognition is allowed only on your device; Kid Genius World does not save audio or transcripts.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 628,
+    "text": "You’ve explored the fresh read-aloud sentences for this grade. Choose a new book or activity.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 629,
+    "text": "Read to my microphone",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 630,
+    "text": "Stop listening",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 631,
+    "text": "uncertain",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 632,
+    "text": "matched",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 633,
+    "text": "review",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 634,
+    "text": "Words to practice",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 635,
+    "text": "Say a word, then tap it to mark your practice. These taps are a self-check.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 636,
+    "text": "checked",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 637,
+    "text": "readaloud",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 638,
+    "text": "Read-aloud practice · self-check",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 639,
+    "text": "Your practice is saved. Keep reading at your own pace.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 640,
+    "text": "Save this practice",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 641,
+    "text": "Next sentence",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 642,
+    "text": "Short a",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 643,
+    "text": "map",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 644,
+    "text": "mat",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 645,
+    "text": "sat",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 646,
+    "text": "cat",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 647,
+    "text": "Keep the vowel sound in map. Change the first or last sound, then read the new word.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 648,
+    "text": "Short i",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 649,
+    "text": "pin",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 650,
+    "text": "pan",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 651,
+    "text": "pen",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 652,
+    "text": "Keep the first and last sounds. Listen to the middle vowel change.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 653,
+    "text": "The sh team",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 654,
+    "text": "ship",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 655,
+    "text": "shop",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 656,
+    "text": "shed",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 657,
+    "text": "fish",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 658,
+    "text": "The letters S and H work together as one sound. Say the word ship, then listen for that sound.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 659,
+    "text": "Silent e",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 660,
+    "text": "cap",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 661,
+    "text": "cub",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 662,
+    "text": "cube",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 663,
+    "text": "A final silent e often changes the earlier vowel. Compare cap and cape, then cub and cube.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 664,
+    "text": "Vowel teams",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 665,
+    "text": "rain",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 666,
+    "text": "train",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 667,
+    "text": "seed",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 668,
+    "text": "feed",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 669,
+    "text": "Look at the two-letter vowel spellings. Read them as a team in these words.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 670,
+    "text": "R-controlled vowels",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 671,
+    "text": "car",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 672,
+    "text": "card",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 673,
+    "text": "park",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 674,
+    "text": "star",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 675,
+    "text": "The letter R changes the vowel sound in these words. Listen to the whole word.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 676,
+    "text": "Two syllables",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 677,
+    "text": "rabbit",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 678,
+    "text": "basket",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 679,
+    "text": "sunset",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 680,
+    "text": "picnic",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 681,
+    "text": "Listen for two vowel beats. Read each part, then join the whole word.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 682,
+    "text": "Base and ending",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 683,
+    "text": "help",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 684,
+    "text": "helped",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 685,
+    "text": "helping",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 686,
+    "text": "helps",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 687,
+    "text": "Find the base word help. Read the ending and notice how it changes the word.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 688,
+    "text": "Prefixes",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 689,
+    "text": "pack",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 690,
+    "text": "unpack",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 691,
+    "text": "read",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 692,
+    "text": "reread",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 693,
+    "text": "Un can mean the opposite. Re can mean again. Read the base word, then add the prefix meaning.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 694,
+    "text": "Suffixes",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 695,
+    "text": "care",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 696,
+    "text": "careful",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 697,
+    "text": "careless",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 698,
+    "text": "kindness",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 699,
+    "text": "Ful means having, less means without, and ness names a state or quality.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 700,
+    "text": "Compound words",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 701,
+    "text": "sun",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 702,
+    "text": "shine",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 703,
+    "text": "sunshine",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 704,
+    "text": "raincoat",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 705,
+    "text": "Find the two smaller words in a compound word. Their meanings help you understand it.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 706,
+    "text": "The tion ending",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 707,
+    "text": "action",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 708,
+    "text": "motion",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 709,
+    "text": "station",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 710,
+    "text": "direction",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 711,
+    "text": "The T I O N ending often sounds like shun. Listen, then read the whole word.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 712,
+    "text": "tool-panel sound-studio",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 713,
+    "text": "NOTICE. CHANGE. BLEND.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 714,
+    "text": "The sound workshop",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 715,
+    "text": "Listen to real words, notice the spelling, then say them yourself.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 716,
+    "text": "You’ve explored this pattern’s fresh word tasks. Choose another pattern above.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 717,
+    "text": "Now read ${0}. ${1}.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 718,
+    "text": "Change the word",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 719,
+    "text": "Say it slowly, then smoothly. Ask yourself what changed.",
+    "files": [
+      "LearningHub.tsx"
+    ]
+  },
+  {
+    "id": 720,
+    "text": "A CLEARER LEARNING PICTURE",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 721,
+    "text": "Practice, independence, and retention",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 722,
+    "text": "Independent skills",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 723,
+    "text": "Fresh checks, without help.",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 724,
+    "text": "Retained skills",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 725,
+    "text": "Successful fresh checks on a later day.",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 726,
+    "text": "Workshop attempts",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 727,
+    "text": "Books, missions and writing practice.",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 728,
+    "text": "Workshop completions, starting-point checks and self-checked read-aloud practice do not establish independent mastery. Repeated lesson questions count as practice.",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 729,
+    "text": "Where support could help",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 730,
+    "text": "As your child practices, skills needing more support will appear here.",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 731,
+    "text": "Next small steps",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 732,
+    "text": "Open",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 733,
+    "text": "starting-point check: Grade",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 734,
+    "text": "without reading help ·",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 735,
+    "text": "THE CURRICULUM MAP",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 736,
+    "text": "What each grade practices",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 737,
+    "text": "Matemáticas conserva sus objetivos por grado. Lectura usa objetivos propios de sonidos, sílabas, escritura, vocabulario, comprensión y fluidez en español. ES identifica objetivos internos; no es una certificación oficial.",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 738,
+    "text": "Related Common Core standards connect activities to learning goals. An activity count shows practice opportunities; it does not certify complete coverage of a standard.",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 739,
+    "text": "Map grade",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 740,
+    "text": "Curriculum map grade",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 741,
+    "text": "Find a skill or standard",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 742,
+    "text": "Find a mapped skill",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 743,
+    "text": "For example: fractions or 3.NF",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 744,
+    "text": "${0} related lesson activities",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 745,
+    "text": "W.",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 746,
+    "text": "Writing studio: dictation and original drafts",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 747,
+    "text": "Practice also appears in the Discovery Lab",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 748,
+    "text": "Lesson evidence:",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 749,
+    "text": "independent or retained",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 750,
+    "text": "View activity-to-standard links",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 751,
+    "text": "Goal-based practice",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 752,
+    "text": "Showing the first 40. Use the search above to find another skill or standard.",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 753,
+    "text": "Grade 1 uses counting, addition and subtraction; Grade 2 adds equal groups and deeper place value; Grade 3 adds formal multiplication, division, fractions, area and perimeter. Reading moves from sounds and word patterns into word parts, fluent reading and text evidence.",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 754,
+    "text": "_blank",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 755,
+    "text": "noreferrer",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 756,
+    "text": "Math standards source",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 757,
+    "text": "Reading standards source",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 758,
+    "text": "Read-aloud choices",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 759,
+    "text": "Directions and stories use the same built-in browser voice. No ElevenLabs key or paid narration subscription is needed.",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 760,
+    "text": "Allow optional on-device microphone practice",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 761,
+    "text": "Your child must press the microphone button to start. Local recognition is used only when the browser supports it and a recognition pack for the selected language is already available. Otherwise the activity offers listening and a word self-check. Kid Genius World does not send audio to a voice service or save recordings or transcripts.",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 762,
+    "text": "Your child’s writing",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 763,
+    "text": "story-",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 764,
+    "text": "Original draft",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 765,
+    "text": "Dictation matched",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 766,
+    "text": "Dictation practice",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 767,
+    "text": "Sentences and drafts saved in the writing studio will appear here.",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 768,
+    "text": "Remove this learner’s saved writing",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 769,
+    "text": "The backup could not be completed. Device progress is still saved.",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 770,
+    "text": "Family progress saved privately. Keep your family code for the next device.",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 771,
+    "text": "No saved progress found for this family code.",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 772,
+    "text": "Saved progress merged. Earlier attempts on this device were kept.",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 773,
+    "text": "That backup is too large.",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 774,
+    "text": "Choose a Kid Genius World family-progress JSON backup.",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 775,
+    "text": "Backup imported and merged with device progress.",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 776,
+    "text": "parent-section private-backup",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 777,
+    "text": "TAKE YOUR LEARNING WITH YOU",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 778,
+    "text": "Private family progress",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 779,
+    "text": "Save an encrypted backup to our Cloudflare service. Use the same private family code in this parent space on another device to restore progress. No child email account is needed.",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 780,
+    "text": "The server receives encrypted progress and a separate access token. The encryption key stays in your family code. Anyone with the complete code can open your backup. Store it privately; there is no email recovery. Each save renews the backup for 30 days.",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 781,
+    "text": "I’m the grown-up and want to save this family’s encrypted progress online.",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 782,
+    "text": "Code created on this device. Download it, then save your family progress.",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 783,
+    "text": "Create a private family code",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 784,
+    "text": "Hide",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 785,
+    "text": "Enter or show",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 786,
+    "text": "family code",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 787,
+    "text": "Private family code",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 788,
+    "text": "wl1.…",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 789,
+    "text": "Save family progress",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 790,
+    "text": "Merge saved progress",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 791,
+    "text": "wonderlane-private-family-code.json",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 792,
+    "text": "Family code downloaded. Keep this file private.",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 793,
+    "text": "Download private code",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 794,
+    "text": "Open a saved family code",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 795,
+    "text": "file",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 796,
+    "text": "Open private family code file",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 797,
+    "text": "Choose the small family-code file.",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 798,
+    "text": "Family code opened. Press Merge saved progress to use it.",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 799,
+    "text": "Last saved:",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 800,
+    "text": "· expires 30 days after that save",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 801,
+    "text": "Cloud backup is currently unavailable. You can use the file backup below.",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 802,
+    "text": "DELETE",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 803,
+    "text": "Bearer ${0}",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 804,
+    "text": "The cloud backup could not be removed.",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 805,
+    "text": "Cloud backup removed. Device progress is kept.",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 806,
+    "text": "Remove this cloud backup",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 807,
+    "text": "Family file backup",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 808,
+    "text": "Export from this device, then import on another device. A progress file contains learner nicknames and saved writing, so keep it private.",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 809,
+    "text": "Export progress file",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 810,
+    "text": "button secondary import-button",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 811,
+    "text": "Import progress file",
+    "files": [
+      "ParentFeatures.tsx"
+    ]
+  },
+  {
+    "id": 812,
+    "text": "Pause example",
+    "files": [
+      "NarratedExample.tsx"
+    ]
+  },
+  {
+    "id": 813,
+    "text": "Play again",
+    "files": [
+      "NarratedExample.tsx"
+    ]
+  },
+  {
+    "id": 814,
+    "text": "Play with Theo",
+    "files": [
+      "NarratedExample.tsx"
+    ]
+  },
+  {
+    "id": 815,
+    "text": "Replay",
+    "files": [
+      "NarratedExample.tsx"
+    ]
+  },
+  {
+    "id": 816,
+    "text": "Step",
+    "files": [
+      "NarratedExample.tsx"
+    ]
+  },
+  {
+    "id": 817,
+    "text": "Ready to try a new one?",
+    "files": [
+      "NarratedExample.tsx"
+    ]
+  },
+  {
+    "id": 818,
+    "text": "Press Play to listen.",
+    "files": [
+      "NarratedExample.tsx"
+    ]
+  },
+  {
+    "id": 819,
+    "text": "Voice is unavailable on this device. Follow the written steps below.",
+    "files": [
+      "NarratedExample.tsx"
+    ]
+  },
+  {
+    "id": 820,
+    "text": "Example steps",
+    "files": [
+      "NarratedExample.tsx"
+    ]
+  },
+  {
+    "id": 821,
+    "text": "blocks",
+    "files": [
+      "LessonDemo.tsx",
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 822,
+    "text": "array",
+    "files": [
+      "LessonDemo.tsx",
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 823,
+    "text": "fraction",
+    "files": [
+      "LessonDemo.tsx",
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 824,
+    "text": "counters",
+    "files": [
+      "LessonDemo.tsx",
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 825,
+    "text": "transparent",
+    "files": [
+      "LessonDemo.tsx"
+    ]
+  },
+  {
+    "id": 826,
+    "text": "Nunito Sans",
+    "files": [
+      "LessonDemo.tsx"
+    ]
+  },
+  {
+    "id": 827,
+    "text": "TRY IT WITH THEO ·",
+    "files": [
+      "LessonDemo.tsx"
+    ]
+  },
+  {
+    "id": 828,
+    "text": "Nunito",
+    "files": [
+      "LessonDemo.tsx"
+    ]
+  },
+  {
+    "id": 829,
+    "text": "silentE",
+    "files": [
+      "LessonDemo.tsx"
+    ]
+  },
+  {
+    "id": 830,
+    "text": "final e",
+    "files": [
+      "LessonDemo.tsx"
+    ]
+  },
+  {
+    "id": 831,
+    "text": "2px solid #e2cba7",
+    "files": [
+      "LessonDemo.tsx"
+    ]
+  },
+  {
+    "id": 832,
+    "text": "0 7px 0 #d5b78c",
+    "files": [
+      "LessonDemo.tsx"
+    ]
+  },
+  {
+    "id": 833,
+    "text": "Listen to the vowel. The final e is quiet.",
+    "files": [
+      "LessonDemo.tsx"
+    ]
+  },
+  {
+    "id": 834,
+    "text": "Watch and listen. Then read it with Theo.",
+    "files": [
+      "LessonDemo.tsx"
+    ]
+  },
+  {
+    "id": 835,
+    "text": "Read the text with Theo. Then practice finding clues.",
+    "files": [
+      "LessonDemo.tsx"
+    ]
+  },
+  {
+    "id": 836,
+    "text": "Watch and listen. Your turn uses a new problem.",
+    "files": [
+      "LessonDemo.tsx"
+    ]
+  },
+  {
+    "id": 837,
+    "text": "rectangle",
+    "files": [
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 838,
+    "text": "canvas",
+    "files": [
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 839,
+    "text": "2d",
+    "files": [
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 840,
+    "text": "800 112px Nunito Sans",
+    "files": [
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 841,
+    "text": "rows ·",
+    "files": [
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 842,
+    "text": "in each",
+    "files": [
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 843,
+    "text": "h",
+    "files": [
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 844,
+    "text": "t",
+    "files": [
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 845,
+    "text": "o",
+    "files": [
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 846,
+    "text": "equal parts",
+    "files": [
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 847,
+    "text": "shape",
+    "files": [
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 848,
+    "text": "Rectangle",
+    "files": [
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 849,
+    "text": "Square",
+    "files": [
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 850,
+    "text": "units",
+    "files": [
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 851,
+    "text": "Analog clock with hour hand at ${0} and minute hand at ${1} minutes",
+    "files": [
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 852,
+    "text": "rotate(${0}deg)",
+    "files": [
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 853,
+    "text": "Short hand: hours · Long hand: minutes",
+    "files": [
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 854,
+    "text": "coin",
+    "files": [
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 855,
+    "text": "${0} cent coin",
+    "files": [
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 856,
+    "text": "Tap each coin as you count its value.",
+    "files": [
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 857,
+    "text": "Equal units. Start at",
+    "files": [
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 858,
+    "text": "; end at",
+    "files": [
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 859,
+    "text": "chart",
+    "files": [
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 860,
+    "text": "Key: ● =",
+    "files": [
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 861,
+    "text": "votes",
+    "files": [
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 862,
+    "text": "${0} symbols, ${1} votes each",
+    "files": [
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 863,
+    "text": "Read the labels and key before comparing.",
+    "files": [
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 864,
+    "text": "blue counters and",
+    "files": [
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 865,
+    "text": "gold counters. There are ten spaces.",
+    "files": [
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 866,
+    "text": "Remove one counter",
+    "files": [
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 867,
+    "text": "added",
+    "files": [
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 868,
+    "text": "Add one counter",
+    "files": [
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 869,
+    "text": "Work mat",
+    "files": [
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 870,
+    "text": "Row",
+    "files": [
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 871,
+    "text": "unit squares",
+    "files": [
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 872,
+    "text": "Highlight a row",
+    "files": [
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 873,
+    "text": "Touch the objects. Turn the mat to explore.",
+    "files": [
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 874,
+    "text": "tap",
+    "files": [
+      "MathScene.tsx"
+    ]
+  },
+  {
+    "id": 875,
+    "text": "taps",
+    "files": [
+      "MathScene.tsx"
+    ]
+  }
+]

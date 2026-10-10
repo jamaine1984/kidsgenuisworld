@@ -1,5 +1,6 @@
-import {CURRICULUM,type Skill} from './curriculum';
+import {curriculumFor,type Skill} from './curriculum';
 export function relatedStandards(s:Skill):string[]{
+ if(s.p.language==='es')return [`ES.${s.grade}.${['Sonidos','Decodificación','Oraciones','Vocabulario','Comprensión','Fluidez'][s.p.section]}`];
  if(s.p.standards?.length)return s.p.standards.map((c:string)=>c.replace(/^(\d)\.(RF|RL|RI|SL|L|W)\./,'$2.$1.'));
  const g=s.grade,k=s.kind;
  if(s.subject==='reading')return k==='listening'?[`SL.${g}.2`,`RF.${g}.${g===1?'2':'3'}`]:['phonics','spelling','syllable','morph','readingDepth'].includes(k)?[`RF.${g}.3`,`L.${g}.2`]:k==='grammar'?[`L.${g}.1`,`L.${g}.2`]:k==='vocab'?[`L.${g}.4`]:k==='fluency'?[`RF.${g}.4`]:[`RL.${g}.1`,`RI.${g}.1`];
@@ -12,9 +13,10 @@ export function relatedStandards(s:Skill):string[]{
  if(k==='word'&&g===2&&s.p.unit)return ['2.MD.B.5','2.OA.A.1'];
  return map[g][k]?[`${g}.${map[g][k]}`]:[];
 }
+import {getLocale} from './locale';
 export const COVERAGE_TARGETS:Record<number,{code:string;name:string}[]>={
  1:[{code:'1.OA',name:'Addition, subtraction and equal equations'},{code:'1.NBT',name:'Counting and place value'},{code:'1.MD',name:'Lengths, clocks and data'},{code:'1.G',name:'Shapes and equal shares'},{code:'RF.1',name:'Sounds, decoding and connected reading'},{code:'RL.1',name:'Literature and evidence'},{code:'RI.1',name:'Informational text'},{code:'L.1',name:'Vocabulary, spelling and sentences'},{code:'SL.1',name:'Listening and speaking'},{code:'W.1',name:'Writing and dictation'}],
  2:[{code:'2.OA',name:'Fluent facts and equal groups'},{code:'2.NBT',name:'Three-digit numbers and operations'},{code:'2.MD',name:'Measurement, money, clocks and data'},{code:'2.G',name:'Shapes, arrays and equal shares'},{code:'RF.2',name:'Word patterns and fluency'},{code:'RL.2',name:'Stories and evidence'},{code:'RI.2',name:'Informational text'},{code:'L.2',name:'Vocabulary, grammar and spelling'},{code:'SL.2',name:'Listening and speaking'},{code:'W.2',name:'Writing and dictation'}],
  3:[{code:'3.OA',name:'Multiplication, division and patterns'},{code:'3.NBT',name:'Rounding and whole-number operations'},{code:'3.NF',name:'Fractions and comparisons'},{code:'3.MD',name:'Area, perimeter, measurement and data'},{code:'3.G',name:'Shape categories and equal parts'},{code:'RF.3',name:'Word parts and connected reading'},{code:'RL.3',name:'Stories and evidence'},{code:'RI.3',name:'Informational text'},{code:'L.3',name:'Vocabulary, grammar and spelling'},{code:'SL.3',name:'Listening and speaking'},{code:'W.3',name:'Writing and dictation'}]
 };
-export function coverageRows(grade:number){return COVERAGE_TARGETS[grade].map(t=>({...t,skills:CURRICULUM.filter(s=>s.grade===grade&&relatedStandards(s).some(c=>c.startsWith(t.code+'.')))}));}
+export function coverageRows(grade:number){return [...COVERAGE_TARGETS[grade].filter(t=>getLocale()==='en'||/^\d/.test(t.code)),...(getLocale()==='es'?['Sonidos','Decodificación','Oraciones','Vocabulario','Comprensión','Fluidez'].map(name=>({code:`ES.${grade}.${name}`,name})):[])].map(t=>({...t,skills:curriculumFor().filter(s=>s.grade===grade&&relatedStandards(s).some(c=>c===t.code||c.startsWith(t.code+'.')))}));}

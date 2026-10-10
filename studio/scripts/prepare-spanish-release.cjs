@@ -1,0 +1,9 @@
+// Read current runtime configuration without displaying credentials. Keep existing
+// Stripe keys, prices, and complimentary accounts unchanged for this locale release.
+const fs=require('node:fs'),path=require('node:path');const lib='C:/Users/koike/AppData/Roaming/npm/node_modules/firebase-tools/lib';const {requireAuth}=require(lib+'/requireAuth'),{getGlobalDefaultAccount}=require(lib+'/auth'),{Client}=require(lib+'/apiv2');
+(async()=>{await requireAuth({project:'kid-genius-world',...getGlobalDefaultAccount()});const c=new Client({urlPrefix:'https://cloudfunctions.googleapis.com',apiVersion:'v2',auth:true}),names=['billingCheckout','billingPortal'],functions=await Promise.all(names.map(n=>c.get('/projects/kid-genius-world/locations/us-central1/functions/'+n).then(r=>r.body)));
+ const keys=['STRIPE_SECRET_KEY','STRIPE_WEBHOOK_SECRET','STRIPE_STARTER_PRICE_ID','STRIPE_PREMIUM_PRICE_ID','STRIPE_TEST_PRICE_ID','COMPED_PARENT_EMAILS'],env=functions[0].serviceConfig.environmentVariables;
+ if(!functions.every(f=>keys.every(k=>(f.serviceConfig.environmentVariables?.[k]||'')===(env[k]||''))))throw Error('Checkout/portal configuration differs. Preserve their configurations individually.');
+ const p=path.resolve('firebase-billing/functions/.env'),local=Object.fromEntries(fs.readFileSync(p,'utf8').trim().split('\n').map(l=>{const at=l.indexOf('=');return [l.slice(0,at),JSON.parse(l.slice(at+1))];}));if(!keys.every(k=>(local[k]||'')===(env[k]||'')))throw Error('Saved release configuration differs from live runtime.');
+ fs.mkdirSync('output/spanish',{recursive:true});fs.writeFileSync('output/spanish/billing-before.json',JSON.stringify({checkedAt:new Date().toISOString(),runtimeConfigurationUnchanged:true,functions:functions.map(f=>({name:f.name,updateTime:f.updateTime,uri:f.serviceConfig.uri}))},null,2));console.log('Checkout and portal retain the current live Stripe configuration.');
+})().catch(e=>{console.error(e.message);process.exitCode=1;});

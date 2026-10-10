@@ -1,4 +1,6 @@
-import {CURRICULUM, makeQuestion, questionContentId, type Question, type Skill, type Subject} from './curriculum';
+import {ALL_CURRICULUM as CURRICULUM,curriculumFor, makeQuestion, questionContentId, type Question, type Skill, type Subject} from './curriculum';
+import {getLocale} from './locale';
+import {tr} from './translation';
 import {progress, recommendation, type Profile} from './learning';
 import {ACTIVITY_BUDGETS} from './activityBudgets';
 import {questionKey,markSeen} from './questionIdentity';
@@ -11,7 +13,7 @@ export function addEvidence(p:ExtendedProfile,e:ToolEvidence):ExtendedProfile{re
 export function dayKey(at=Date.now()){const d=new Date(at);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
 export function gradeOf(p:Profile,subject:Subject){return subject==='math'?p.mathGrade:p.readingGrade;}
 export function placementItems(p:Profile,subject:Subject,seed:number){
- const grade=gradeOf(p,subject),pool=CURRICULUM.filter(s=>s.grade===grade&&s.subject===subject),domains=[...new Set(pool.map(s=>s.domain))];
+ const grade=gradeOf(p,subject),pool=curriculumFor().filter(s=>s.grade===grade&&s.subject===subject),domains=[...new Set(pool.map(s=>s.domain))];
  const seen=knownQuestions(p);return domains.flatMap(d=>{const skills=pool.filter(s=>s.domain===d);return [skills[0],skills[Math.min(3,skills.length-1)]];}).flatMap((skill,i)=>{for(let n=0;n<600;n++){const question=makeQuestion(skill,seed+i*173+n*101),key=questionKey(question);if(!seen.keys.has(key)&&!seen.content.has(questionContentId(question))){seen.keys.add(key);return [{skill,question}];}}return [];});
 }
 export function placementResult(p:Profile,subject:Subject,answers:Placement['answers'],at=Date.now()):Placement{
@@ -62,15 +64,15 @@ export function coach(q:Question,chosen:string,skill:Skill){
   else if(/past|tense|verb/i.test(skill.title))message='Look for a time clue such as yesterday or today, then match the action word to that time.';
   else if(/punctuation|ending|capital/i.test(skill.title))message='Check the first letter and the ending. A question asks something; a statement tells something.';
  }
- return `${message} ${q.explanation}`;
+ return `${tr(message)} ${q.explanation}`;
 }
 export type DailyTask={id:string;type:'lesson'|'book'|'mission'|'writing';subject:Subject;title:string;minutes:number;skill?:Skill;reason:string;done:boolean};
 export function dailyPlan(p:ExtendedProfile,now=Date.now()):DailyTask[]{
  const today=dayKey(now),done=(id:string)=>new Set(p.attempts.filter(a=>a.skillId===id&&dayKey(a.at)===today).map(a=>a.contentId||a.questionId)).size>=(ACTIVITY_BUDGETS[id]||10)||p.evidence?.some(e=>e.itemId===id&&dayKey(e.at)===today&&e.correct)||false;
- const choose=(subject:Subject)=>{const grade=gradeOf(p,subject),pool=CURRICULUM.filter(s=>s.grade===grade&&s.subject===subject&&!p.exhaustedSkills?.includes(s.id)),due=pool.filter(s=>progress(p,s.id,now).due).sort((a,b)=>progress(p,a.id).last-progress(p,b.id).last)[0],placed=p.placements?.[subject];
+ const choose=(subject:Subject)=>{const grade=gradeOf(p,subject),pool=curriculumFor().filter(s=>s.grade===grade&&s.subject===subject&&!p.exhaustedSkills?.includes(s.id)),due=pool.filter(s=>progress(p,s.id,now).due).sort((a,b)=>progress(p,a.id).last-progress(p,b.id).last)[0],placed=p.placements?.[subject];
   const starting=placed?.grade===grade&&pool.find(s=>s.id===placed.startSkillId&&!['Independent','Retained','Practiced'].includes(progress(p,s.id).state));return {skill:due||starting||recommendation(p,subject),reason:due?'Revisit an earlier idea after a break.':starting?'Picked from your starting-point check.':'Build your next idea with Theo.'};};
  const m=choose('math'),r=choose('reading');
- return [{id:m.skill.id,type:'lesson',subject:'math',title:m.skill.title,minutes:4,skill:m.skill,reason:m.reason,done:done(m.skill.id)},{id:r.skill.id,type:'lesson',subject:'reading',title:r.skill.title,minutes:4,skill:r.skill,reason:r.reason,done:done(r.skill.id)},{id:`daily-book-${p.readingGrade}`,type:'book',subject:'reading',title:'A little book together',minutes:3,reason:'Practice reading connected text.',done:(p.evidence||[]).some(e=>e.kind==='book'&&e.grade===p.readingGrade&&dayKey(e.at)===today&&e.correct)},{id:`daily-mission-${p.mathGrade}`,type:'mission',subject:'math',title:'Build it in Theo’s workshop',minutes:3,reason:'Show the idea with your hands.',done:(p.evidence||[]).some(e=>e.kind==='mission'&&e.grade===p.mathGrade&&dayKey(e.at)===today&&e.correct)}];
+ return [{id:m.skill.id,type:'lesson',subject:'math',title:m.skill.title,minutes:4,skill:m.skill,reason:m.reason,done:done(m.skill.id)},{id:r.skill.id,type:'lesson',subject:'reading',title:r.skill.title,minutes:4,skill:r.skill,reason:r.reason,done:done(r.skill.id)},{id:`daily-book-${getLocale()}-${p.readingGrade}`,type:'book',subject:'reading',title:'A little book together',minutes:3,reason:'Practice reading connected text.',done:(p.evidence||[]).some(e=>e.kind==='book'&&(e.itemId.startsWith('es-')===(getLocale()==='es'))&&e.grade===p.readingGrade&&dayKey(e.at)===today&&e.correct)},{id:`daily-mission-${p.mathGrade}`,type:'mission',subject:'math',title:'Build it in Theo’s workshop',minutes:3,reason:'Show the idea with your hands.',done:(p.evidence||[]).some(e=>e.kind==='mission'&&e.grade===p.mathGrade&&dayKey(e.at)===today&&e.correct)}];
 }
 export function learningReport(p:ExtendedProfile){
  const activities=CURRICULUM.filter(s=>p.attempts.some(a=>a.skillId===s.id)),independent=activities.filter(s=>progress(p,s.id).state==='Independent'),retained=activities.filter(s=>progress(p,s.id).state==='Retained');
@@ -78,14 +80,15 @@ export function learningReport(p:ExtendedProfile){
  return {independent,retained,support,evidence:p.evidence||[],plans:dailyPlan(p)};
 }
 export function compareReading(expected:string,heard:string,confidence:number){
- const tokenize=(s:string)=>s.toLowerCase().replace(/[^a-z'\s]/g,' ').trim().split(/\s+/).filter(Boolean),a=tokenize(expected),b=tokenize(heard);
+ const tokenize=(s:string)=>s.normalize('NFC').toLowerCase().replace(/[^\p{L}'\s]/gu,' ').trim().split(/\s+/).filter(Boolean),a=tokenize(expected),b=tokenize(heard);
  if(!heard.trim()||confidence<.65)return {uncertain:true,words:a.map(word=>({word,matched:false})),message:'The microphone was not sure. Try a shorter sentence, or read with a grown-up.'};
  const dp=Array.from({length:a.length+1},()=>Array(b.length+1).fill(0));for(let i=1;i<=a.length;i++)for(let j=1;j<=b.length;j++)dp[i][j]=a[i-1]===b[j-1]?dp[i-1][j-1]+1:Math.max(dp[i-1][j],dp[i][j-1]);
  const matched=new Set<number>();let i=a.length,j=b.length;while(i&&j){if(a[i-1]===b[j-1]){matched.add(--i);j--;}else if(dp[i-1][j]>=dp[i][j-1])i--;else j--;}
  return {uncertain:false,words:a.map((word,i)=>({word,matched:matched.has(i)})),message:matched.size===a.length?'The browser heard the words in order. Read it once more smoothly.':'The browser may have missed some words. Listen to the sentence, then try the highlighted words again.'};
 }
 export function checkWriting(target:string,input:string){
- const words=(s:string)=>s.toLowerCase().match(/[a-z']+/g)||[],a=words(target),b=words(input),spelling=a.length===b.length&&a.every((w,i)=>w===b[i]),capital=/^[A-Z]/.test(input.trim()),end=input.trim().at(-1)===target.at(-1),sentence=/[.!?]$/.test(target),correct=spelling&&(!sentence||capital&&end);
+ const words=(s:string)=>s.normalize('NFC').toLowerCase().match(/[\p{L}']+/gu)||[],a=words(target),b=words(input),spelling=a.length===b.length&&a.every((w,i)=>w===b[i]),capital=/^[¿¡]?[A-ZÁÉÍÓÚÜÑ]/u.test(input.trim()),opening=!/^[¿¡]/.test(target.trim())||input.trim()[0]===target.trim()[0],end=input.trim().at(-1)===target.at(-1),sentence=/[.!?]$/.test(target),correct=spelling&&(!sentence||capital&&end&&opening);
  const hints:string[]=[];if(!spelling){const index=a.findIndex((w,i)=>w!==b[i]);hints.push(`Check word ${index<0?a.length+1:index+1}. Listen again and check its spelling and order.`);}if(sentence&&!capital)hints.push('Start the sentence with a capital letter.');if(sentence&&!end)hints.push(target.endsWith('?')?'End the question with a question mark.':'End this statement with a period.');
+ if(sentence&&!opening)hints.push(target.startsWith('¿')?'Open the question with an inverted question mark.':'Open the exclamation with an inverted exclamation mark.');
  return {correct,spelling,capital,end,message:correct?'Your spelling and sentence marks match. Read your work aloud.':hints.join(' ')};
 }

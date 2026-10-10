@@ -507,9 +507,10 @@ export const billingCheckout = onRequest(functionOptions, async (req, res) => {
     const active = ownedSubscription(subscriptions.data,[getEnv('STRIPE_STARTER_PRICE_ID'),getEnv('STRIPE_PREMIUM_PRICE_ID')].filter(Boolean));
     if (active) return sendJson(res,200,{alreadyActive:true,url:`${returnUrl}/?billing=success`,active:true,status:active.status});
     const open = await stripe.checkout.sessions.list({customer:customer.id,status:'open',limit:20});
-    const pending = open.data.find(s=>s.metadata?.firebase_uid===parent.uid&&s.metadata?.billing_policy===CHECKOUT_POLICY&&s.expires_at>Date.now()/1000);
+    const locale=req.body?.locale==='es'?'es':'en';
+    const pending = open.data.find(s=>(s.locale||'auto')===locale&&s.metadata?.firebase_uid===parent.uid&&s.metadata?.billing_policy===CHECKOUT_POLICY&&s.expires_at>Date.now()/1000);
     if (pending?.url) return sendJson(res,200,{url:pending.url});
-    const session = await stripe.checkout.sessions.create(checkoutParams({customerId:customer.id,priceId,uid:parent.uid,familyId,returnUrl}),{idempotencyKey:`${CHECKOUT_POLICY}:${parent.uid}:${Math.floor(Date.now()/1800000)}`});
+    const session = await stripe.checkout.sessions.create(checkoutParams({customerId:customer.id,priceId,uid:parent.uid,familyId,returnUrl,locale}),{idempotencyKey:`${CHECKOUT_POLICY}:${locale}:${parent.uid}:${Math.floor(Date.now()/1800000)}`});
 
     return sendJson(res, 200, { url: session.url });
   } catch (error) {
@@ -536,7 +537,8 @@ export const billingPortal = onRequest(functionOptions, async (req, res) => {
     const customer = await findOrCreateCustomer(stripe, parent, familyId);
     const session = await stripe.billingPortal.sessions.create({
       customer: customer.id,
-      return_url: safeReturnUrl(req, req.body?.returnUrl),
+      locale:req.body?.locale==='es'?'es':'en',
+      return_url: safeReturnUrl(req, req.body?.returnUrl)+'/?lang='+(req.body?.locale==='es'?'es':'en'),
     });
 
     return sendJson(res, 200, { url: session.url });

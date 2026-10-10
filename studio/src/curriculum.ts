@@ -1,11 +1,13 @@
 import {MATH_DEPTH,depthQuestion} from './mathDepth';
+import {SPANISH_CURRICULUM,SPANISH_ACTIVITY_BUDGETS,spanishQuestion} from './spanishCurriculum';
+import {getLocale,type Locale} from './locale';import {translateText} from './translation';import {questionKey} from './questionIdentity';import {ACTIVITY_BUDGETS} from './activityBudgets';
 import {READING_DEPTH,readingDepthQuestion} from './readingDepth';
 import {MORE_STORIES} from './moreStories';
 import {expandMath,mathStudioQuestion} from './mathExpansion';
 import {expandReading,readingStudioQuestion} from './readingExpansion';
 export type Subject = 'math' | 'reading';
-export type Skill = { id:string; grade:number; subject:Subject; domain:string; title:string; kind:string; p:any; objective:string; teach:string; order:number; prerequisite?:string };
-export type Question = { id:string; prompt:string; answer:string; choices:string[]; hint:string; explanation:string; visual?:any; passage?:string; tiles?:string[]; word?:string; listeningText?:string; tileJoin?:string; repeated?:boolean };
+export type Skill = { id:string; grade:number; subject:Subject; domain:string; title:string; kind:string; p:any; objective:string; teach:string; order:number; prerequisite?:string;language?:Locale };
+export type Question = { id:string; prompt:string; answer:string; choices:string[]; hint:string; explanation:string; visual?:any; passage?:string; tiles?:string[]; word?:string; listeningText?:string; tileJoin?:string; repeated?:boolean;canonicalKey?:string;canonicalContentId?:string;language?:Locale };
 type Row = [string,string,any?];
 const skills:Skill[]=[];
 function group(grade:number, subject:Subject, domain:string, rows:Row[]) { rows.forEach(([title,kind,p={}])=>{const previous=skills.filter(s=>s.grade===grade&&s.subject===subject&&s.domain===domain).at(-1);skills.push({id:`${subject[0]}${grade}-${skills.filter(s=>s.grade===grade&&s.subject===subject).length+1}`,grade,subject,domain,title,kind,p,order:skills.length,objective:`Practice ${title.toLowerCase()} with a model, then solve a fresh example.`,teach:teaching[kind]||'Look carefully. Try one step at a time, and explain how you know.',prerequisite:previous?.id});}); }
@@ -70,6 +72,11 @@ for(const s of skills.filter(s=>s.subject==='reading')){
 }
 const existing=[...skills,...MATH_DEPTH,...READING_DEPTH];
 export const CURRICULUM=[...existing,...expandMath(existing),...expandReading(existing)];
+export const ALL_CURRICULUM=[...CURRICULUM,...SPANISH_CURRICULUM];
+Object.assign(ACTIVITY_BUDGETS,SPANISH_ACTIVITY_BUDGETS);
+const spanishMath=CURRICULUM.filter(s=>s.subject==='math').map(s=>({...s,language:'es' as const,title:translateText(s.title,'es'),objective:translateText(s.objective,'es'),teach:translateText(s.teach,'es')}));
+export function curriculumFor(locale:Locale=getLocale()):Skill[]{return locale==='es'?[...spanishMath,...SPANISH_CURRICULUM]:CURRICULUM;}
+export function skillForId(id:string,locale:Locale=getLocale()){return curriculumFor(locale).find(s=>s.id===id);}
 export function rng(seed:number){let t=seed>>>0;return()=>{t+=0x6D2B79F5;let x=Math.imul(t^(t>>>15),1|t);x^=x+Math.imul(x^(x>>>7),61|x);return((x^(x>>>14))>>>0)/4294967296;};}
 const storyBank=[
  {grade:1,text:'Sam has a red cap. Sam puts the cap in a bag. Sam and Dad walk to the park.',character:'Sam',setting:'The park',first:'Sam has a red cap.',detail:'A red cap',main:'Sam gets ready to go to the park.',cause:'To carry the cap',inference:'Sam is going outside.',fact:'Sam puts the cap in a bag.'},
@@ -95,7 +102,7 @@ storyBank.push(...MORE_STORIES);
 const vocabulary=[['tiny','small','large'],['quick','fast','slow'],['joyful','happy','sad'],['silent','quiet','noisy'],['begin','start','finish'],['brave','courageous','afraid'],['bright','shiny','dim'],['simple','easy','difficult'],['warm','mildly hot','cold'],['neat','tidy','messy']];
 function syllables(word:string){return phonics.three.includes(word)?3:2;}
 function segments(word:string){return word.match(/sh|ch|th|ee|ai|oa|[a-z]/g)||[word];}
-export function makeQuestion(skill:Skill,seed:number):Question {
+function makeBaseQuestion(skill:Skill,seed:number):Question {
  const random=rng(seed);if(skill.kind==='mathStudio')return mathStudioQuestion(skill,seed,random);if(skill.p.studio)return readingStudioQuestion(skill,seed,random);if(skill.kind==='mathDepth')return depthQuestion(skill,seed,random);if(skill.p.mode&&['listening','readingDepth'].includes(skill.kind)||skill.p.mode?.startsWith('book'))return readingDepthQuestion(skill,seed,random);const int=(a:number,b:number)=>a+Math.floor(random()*(b-a+1));const pick=<T,>(items:T[])=>items[int(0,items.length-1)];
  const q:Question={id:`${skill.id}:${seed}`,prompt:'',answer:'',choices:[],hint:skill.teach,explanation:'',};let variants:string[]=[];const p=skill.p;
  const numeric=(n:number)=>{q.answer=String(n);variants=[String(n+1),String(Math.max(0,n-1)),String(n+2),String(n+10),String(Math.max(0,n-10))];};
@@ -140,5 +147,11 @@ export function makeQuestion(skill:Skill,seed:number):Question {
 export function questionFingerprint(q:Question){return JSON.stringify([q.prompt,q.passage,q.word,q.answer,q.visual,q.listeningText,q.tiles]);}
 // Compact content identity lets later sessions recognize a practiced item.
 // This is an evidence key, not a security hash or a learner identifier.
-export function questionContentId(q:Question){let hash=0xcbf29ce484222325n;for(const char of questionFingerprint(q)){hash^=BigInt(char.codePointAt(0)!);hash=BigInt.asUintN(64,hash*0x100000001b3n);}return hash.toString(16).padStart(16,'0');}
+export function questionContentId(q:Question){if(q.canonicalContentId)return q.canonicalContentId;let hash=0xcbf29ce484222325n;for(const char of questionFingerprint(q)){hash^=BigInt(char.codePointAt(0)!);hash=BigInt.asUintN(64,hash*0x100000001b3n);}return hash.toString(16).padStart(16,'0');}
+export function makeQuestion(skill:Skill,seed:number):Question{
+ if(skill.p.language==='es')return {...spanishQuestion(skill,seed),language:'es'};
+ const base=makeBaseQuestion(skill,seed);if(skill.subject!=='math'||(skill.language||getLocale())!=='es')return base;
+ const translated={...base,canonicalKey:questionKey(base),canonicalContentId:questionContentId(base),language:'es' as const};
+ for(const key of ['prompt','answer','hint','explanation','passage','word','listeningText'] as const){const value=base[key];if(value)(translated as any)[key]=translateText(value,'es',0,false);}translated.choices=base.choices.map(c=>translateText(c,'es',0,false));if(base.visual?.labels)translated.visual={...base.visual,labels:base.visual.labels.map((s:string)=>translateText(s,'es',0,false))};return translated;
+}
 export function freshQuestion(skill:Skill,seed:number,index:number){const seen=new Set([questionFingerprint(makeQuestion(skill,seed+913))]);let q=makeQuestion(skill,seed);for(let i=0;i<=index;i++){for(let attempt=0;attempt<80;attempt++){q=makeQuestion(skill,seed+i*7919+attempt*101);if(!seen.has(questionFingerprint(q)))break;}q.repeated=seen.has(questionFingerprint(q));seen.add(questionFingerprint(q));}return q;}

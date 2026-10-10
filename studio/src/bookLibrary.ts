@@ -1,5 +1,6 @@
 import type {ExtendedProfile} from './learningTools';
-export type LittleBook={id:string;grade:number;title:string;pattern:string;focus:string[];bridge:string[];pages:string[];question:string;answer:string;wrong:string[];cover:string};
+import {SPANISH_BOOKS} from './spanishBooks';import {getLocale,type Locale} from './locale';
+export type LittleBook={id:string;grade:number;title:string;pattern:string;focus:string[];bridge:string[];pages:string[];question:string;answer:string;wrong:string[];cover:string;language?:Locale};
 const make=(grade:number,index:number,title:string,pattern:string,focus:string,bridge:string,pages:string[],question:string,answer:string,wrong:string[],cover:string):LittleBook=>({id:`book-${grade}-${index}`,grade,title,pattern,focus:focus.split(' '),bridge:bridge.split(' ').filter(Boolean),pages,question,answer,wrong,cover});
 export const BOOK_LIBRARY:LittleBook[]=[
  make(1,0,'Sam’s red bag','Short a / short e','sam red bag cap tan map pen ben mat has can','a the is in on', ['Sam has a red bag. A tan cap is in the bag.','Sam has a map. The map is on a mat.','Ben has a pen. The pen is in the bag.'],'What is in Sam’s bag?','A tan cap.',['A pig.','A log.'],'bag'),
@@ -28,6 +29,8 @@ export const BOOK_LIBRARY:LittleBook[]=[
  make(3,7,'A station for invention','The tion ending','station action motion direction attention invention section fiction','a the is we', ['The class built an invention station. One section had wheels and ramps for testing motion.','Theo asked for attention before giving directions. Every team predicted what its cart would do.','The teams recorded each action and result. Their notes helped them improve the next design.'],'What helped the teams improve?','Their notes about actions and results.',['Choosing the loudest cart.','Removing every wheel.'],'wheel'),
 ];
 // Every unfamiliar bridge word is visible before reading. No word is silently treated as already taught.
-export function bookWords(book:LittleBook){const focus=new Set(book.focus),basic=new Set(book.bridge);return [...new Set(book.pages.join(' ').toLowerCase().match(/[a-z']+/g)||[])].filter(w=>!focus.has(w)&&!basic.has(w));}
-export function bookReady(book:LittleBook,p:ExtendedProfile){const siblings=BOOK_LIBRARY.filter(b=>b.grade===book.grade),index=siblings.indexOf(book);return index===0||!!p.bookProgress?.[siblings[index-1].id]?.finished;}
-export function nextBook(p:ExtendedProfile){return BOOK_LIBRARY.find(b=>b.grade===p.readingGrade&&!p.bookProgress?.[b.id]?.finished)||BOOK_LIBRARY.find(b=>b.grade===p.readingGrade)!;}
+export const ALL_BOOKS=[...BOOK_LIBRARY,...SPANISH_BOOKS];
+export function booksFor(locale:Locale=getLocale()){return locale==='es'?SPANISH_BOOKS:BOOK_LIBRARY;}
+export function bookWords(book:LittleBook){const focus=new Set(book.focus),basic=new Set(book.bridge);return [...new Set(book.pages.join(' ').toLowerCase().match(/[\p{L}']+/gu)||[])].filter(w=>!focus.has(w)&&!basic.has(w));}
+export function bookReady(book:LittleBook,p:ExtendedProfile){const siblings=booksFor(book.language||'en').filter(b=>b.grade===book.grade),index=siblings.indexOf(book);return index===0||!!p.bookProgress?.[siblings[index-1].id]?.finished;}
+export function nextBook(p:ExtendedProfile){return booksFor().find(b=>b.grade===p.readingGrade&&!p.bookProgress?.[b.id]?.finished)||booksFor().find(b=>b.grade===p.readingGrade)!;}

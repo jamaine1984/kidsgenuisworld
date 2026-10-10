@@ -1,5 +1,5 @@
 import fs from 'node:fs';import crypto from 'node:crypto';import zlib from 'node:zlib';import assert from 'node:assert/strict';
-const membership=process.argv.includes('--membership'),reportDir=membership?'output/billing':'output/primary-hosting';
+const spanish=process.argv.includes('--spanish'),membership=spanish||process.argv.includes('--membership'),reportDir=spanish?'output/spanish':membership?'output/billing':'output/primary-hosting';
 const stage=JSON.parse(fs.readFileSync(reportDir+'/'+(membership?'hosting-staged.json':'staged-release.json'))),before=JSON.parse(fs.readFileSync(reportDir+'/'+(membership?'hosting-before.json':'current-release.json')));
 const base=process.argv.includes('--live')?'https://kid-genius-world.com':stage.previewUrl;
 const hashes=new Map(before.files.map(f=>[f.path,f.hash]));for(const [p,h] of Object.entries(stage.overlay))hashes.set(p,h);

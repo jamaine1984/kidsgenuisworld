@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "test:sites": "node --test tests/sites-worker.test.mjs",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test tests/curriculum.test.ts tests/audio.test.ts tests/expansion.test.ts tests/content-audit.test.ts tests/tutor-tools.test.ts tests/question-history.test.ts tests/billing.test.ts",
+    "test": "tsx --test tests/curriculum.test.ts tests/audio.test.ts tests/expansion.test.ts tests/content-audit.test.ts tests/tutor-tools.test.ts tests/question-history.test.ts tests/billing.test.ts tests/spanish.test.ts",
     "dev:cloudflare": "wrangler dev --port 8789",
     "deploy:cloudflare": "npm run typecheck && npm test && npm run build && wrangler deploy"
   },

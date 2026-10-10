@@ -1,0 +1,3 @@
+import React,{useSyncExternalStore} from 'react';import {getLocale,setLocale,subscribeLocale} from './locale';export {tr,translateText} from './translation';
+export function useLocale(){const locale=useSyncExternalStore(subscribeLocale,getLocale,()=> 'en' as const);return {locale,setLocale};}
+export function LanguageSwitch(){const{locale}=useLocale();return <label className='language-switch'><span>{locale==='es'?'Idioma':'Language'}</span><select aria-label={locale==='es'?'Idioma de aprendizaje':'Learning language'} value={locale} onChange={e=>setLocale(e.target.value==='es'?'es':'en')}><option value='en'>English</option><option value='es'>Español</option></select></label>;}

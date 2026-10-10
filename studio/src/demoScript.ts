@@ -1,9 +1,14 @@
 import type {Question,Skill} from './curriculum';
+import {spanishWords} from './spanishWords';import {tr} from './translation';
 export type DemoStep={label:string;text:string;display:string;from:number;frames:number};
 const realPairs:Record<string,string>={cube:'cub',kite:'kit',tube:'tub',note:'not',hope:'hop'};
 export function demoScript(skill:Skill,q:Question):DemoStep[]{
  let steps:{label:string;text:string;display:string}[];
- if((skill.p.bank==='silentE'||skill.p.patterns?.includes('final e'))&&q.word){const w=q.word,base=realPairs[w],vowel=w.match(/[aeiou]/)?.[0]||'u';
+ if(skill.p.language==='es'&&q.word){const w=spanishWords(skill.grade).find(w=>w.word===q.word);
+  steps=[{label:'Escucha',text:`Escucha la palabra completa: ${q.word}. Repítela conmigo: ${q.word}.`,display:q.word},
+   {label:'Observa las sílabas',text:w?`${q.word} se separa así: ${w.syllables.join('. ')}. ${skill.teach}`:skill.teach,display:w?w.syllables.join(' · '):q.word},
+   {label:'Une y lee',text:`${q.explanation} Ahora practicarás una tarea nueva. Puedes volver a escuchar o elegir una voz más lenta.`,display:q.answer}];
+ }else if((skill.p.bank==='silentE'||skill.p.patterns?.includes('final e'))&&q.word){const w=q.word,base=realPairs[w],vowel=w.match(/[aeiou]/)?.[0]||'u';
   steps=[{label:'Listen',text:base?`Listen to these words. ${base}. ${w}. Adding a final silent e changes the vowel sound.`:`Listen to the word ${w}. Look for the vowel ${vowel} and the final e.`,display:base?`${base} → ${w}`:w},
    {label:'Notice the pattern',text:`In ${w}, listen to the long ${vowel} sound. The final e is quiet. We write the e, but we do not give it a separate sound.`,display:`${w} · final e is silent`},
    {label:'Build and read',text:`The letters are ${w.split('').join(', ')}. Together they spell ${w}. Read the whole word: ${w}. Then you will try a new word.`,display:w.split('').join(' · ')}];
@@ -20,6 +25,6 @@ export function demoScript(skill:Skill,q:Question):DemoStep[]{
   steps=[{label:'Look at the problem',text:q.prompt,display:q.prompt},{label:'Try a strategy',text:q.hint,display:q.hint},{label:'See how it works',text:q.explanation+' Your turn will use a new problem.',display:q.explanation}];
  }
  // Keep longer explanations readable and let every spoken chunk finish.
- steps=steps.flatMap(s=>{const words=s.text.split(/\s+/);if(words.length<=36)return[s];const chunks=[];for(let i=0;i<words.length;i+=32){const text=words.slice(i,i+32).join(' ');chunks.push({label:s.label+(i?' · continued':''),text,display:text});}return chunks;});
+ steps=steps.map(s=>({label:tr(s.label),text:tr(s.text),display:tr(s.display)})).flatMap(s=>{const words=s.text.split(/\s+/);if(words.length<=36)return[s];const chunks=[];for(let i=0;i<words.length;i+=32){const text=words.slice(i,i+32).join(' ');chunks.push({label:s.label+(i?tr(' · continued'):''),text,display:text});}return chunks;});
  let from=0;return steps.map(s=>{const frames=Math.max(150,Math.ceil(s.text.split(/\s+/).length/1.8*30));const step={...s,from,frames};from+=frames;return step;});
 }

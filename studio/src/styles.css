@@ -26,3 +26,6 @@
 
 .chart-symbols{display:flex;gap:5px;flex-wrap:wrap;flex:1;color:#294ee8;font-size:18px;min-width:0}.graph-key{font-weight:800;color:#132756}.listening-answer .answer-choice{flex:1}.question-actions{row-gap:12px}
 @media(max-width:600px){.lesson-page.reading .answer-grid{grid-template-columns:minmax(0,1fr)}.lesson-page.reading .answer-choice{overflow-wrap:normal}}
+
+.language-switch{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;order:3}.language-switch select{border:1px solid #c6b89e;border-radius:12px;padding:9px 10px;background:#fffaf2;color:#132756;font:inherit}.topbar .brand{order:0}.topbar nav{order:1}.topbar .parent-link{order:4}.language-switch span{position:absolute;clip:rect(0,0,0,0)}@media(max-width:700px){.language-switch select{font-size:12px;padding:7px 5px}.topbar{gap:8px}.topbar .brand{margin-right:auto}.topbar nav{order:5}.language-switch{margin-left:auto}.catalog-card h3{overflow-wrap:anywhere}}
+@media(max-width:700px){.topbar{height:auto;min-height:96px;flex-wrap:wrap;padding:10px 16px;row-gap:10px}.topbar nav{flex-basis:100%;width:100%;margin:0;justify-content:center;gap:24px}.topbar .parent-link{margin-left:0}.topbar .brand{margin-right:0}.language-switch{margin-left:auto}.home-stage{min-height:calc(100vh - 96px)}}

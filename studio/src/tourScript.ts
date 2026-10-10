@@ -14,3 +14,18 @@ export const TOUR_STEPS=[
  {label:'Your family · $4.99 a month',text:'Open the parent space to subscribe for four dollars and ninety-nine cents a month. Membership renews monthly until you cancel through Stripe.'},
 ].map((s,i)=>({...s,from:i*300,frames:300}));
 export const TOUR_FRAMES=3600;
+export const SPANISH_TOUR_STEPS=[
+ ['Lectura · Escucha las sílabas','Bienvenidos a la sala de lectura. Theo explica una idea a la vez. Escucha las sílabas ma y pa. Mira las letras y une las dos partes.'],
+ ['Lectura · Une y lee','Ma y pa forman mapa. Leemos de izquierda a derecha. La palabra tiene dos sílabas. La lectura en español practica sus propios sonidos, sílabas, letras y tildes.'],
+ ['Lectura · Prueba algo nuevo','Escucha, construye y lee. Después practica con una palabra nueva. Puedes repetir las instrucciones o elegir una voz más lenta para tener tiempo de pensar.'],
+ ['Matemáticas · Construye el problema','En el estudio de matemáticas vemos ocho más cinco. Ocho fichas azules y cinco doradas representan las cantidades. Primero escuchamos la explicación de Theo.'],
+ ['Matemáticas · Forma una decena','A ocho le faltan dos para llegar a diez. Movemos dos fichas doradas a los espacios vacíos. Quedan tres fichas doradas. La imagen ayuda a entender la estrategia.'],
+ ['Matemáticas · Explica la respuesta','Diez más tres son trece. Theo explica los pasos antes de que tu hijo pruebe un problema nuevo. Las pistas ayudan a aprender de un error.'],
+ ['Explora · Grados 1 a 3','Kid Genius World reúne matemáticas y lectura para primero, segundo y tercer grado. La familia puede elegir un nivel diferente para cada materia y cambiar entre inglés y español.'],
+ ['Explora · Una biblioteca amplia','Cada idioma ofrece mil trescientas veinte actividades: cuarenta en cada sección por grado. La lectura en español tiene su propio currículo. El historial evita repetir preguntas ya presentadas.'],
+ ['Explora · Lee y crea','El laboratorio de Theo incluye veinticuatro libros en español, sonidos, escritura de palabras, dictado y textos propios. Las instrucciones escritas acompañan la voz del tutor.'],
+ ['Explora · Aprende construyendo','Las misiones permiten cambiar unidades por decenas, contar monedas, poner relojes en hora, medir y explorar figuras. Las tareas corresponden al grado seleccionado.'],
+ ['Para familias · Observa el aprendizaje','La familia ve por separado la práctica con apoyo y las respuestas independientes. Las actividades iniciales y el plan diario ayudan a elegir el siguiente paso. Las copias privadas guardan el progreso.'],
+ ['Tu familia · 4,99 dólares al mes','Abre el espacio para familias para suscribirte por cuatro dólares con noventa y nueve centavos al mes. La suscripción se renueva cada mes hasta que la canceles mediante Stripe.']
+].map(([label,text],i)=>({label,text,from:i*300,frames:300}));
+export const tourSteps=(locale:'en'|'es')=>locale==='es'?SPANISH_TOUR_STEPS:TOUR_STEPS;

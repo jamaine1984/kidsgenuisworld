@@ -16,11 +16,13 @@ The production frontend is `dist/client`. `npm run dev:cloudflare` serves the co
 
 ## Learning and narration
 
-Each grade has 200 math activities across five sections and 240 English reading activities across six sections: 1,320 entries, with 40 activities per section. Entries have learning objectives and grade-specific question generators; activity counts do not mean that every question is infinite. The library also includes 24 little books, manipulative missions, dictation, writing, optional local read-aloud practice, starting-point checks, daily suggestions and parent reports.
+English and Spanish each offer 200 math activities across five sections and 240 reading activities across six sections per grade: 1,320 activities per language, with 40 activities per section. Spanish reading has its own 720 native activities covering sounds, syllables, spelling, vocabulary, comprehension and fluency, plus 24 Spanish books and 60 writing prompts. Math content and exposure identity are shared across languages; reading content and exposure identity remain language-specific. Entries have grade-specific question generators; activity counts do not mean every question is infinite. Missions, dictation, writing, optional local read-aloud practice, starting-point checks, daily suggestions and parent reports use the selected language.
 
 Learner-wide exposure history prevents reused questions from being assigned again, including across overlapping activities and imported backups. Exhausted banks offer another activity. Replayable narration and unfinished work remain available. Supported answers are separate from independent checks; retention needs fresh checks on a later day. Automated checks and standards links do not establish external curriculum approval, full school-program coverage or guaranteed outcomes.
 
 Browser speech supplies the voice throughout. No ElevenLabs key is required. Remotion examples match the exact question and narration. The public Take a tour player gives reading approximately 30 seconds, math 30 seconds, and the app overview 60 seconds, with a HyperFrames title composition. Captions, replay, chapters and slower speech are available; long spoken steps can extend the nominal two-minute duration.
+
+The header language switch selects English or Español throughout the studio, parent tools and native narrated tour. Spanish speech selects an available Spanish browser voice; it never substitutes an English voice when Spanish is missing. Voice availability depends on the browser/device, with written guidance retained. See `design/spanish-curriculum.md` for sequencing, primary references and validation limits. Existing publisher articles and the explicitly labeled earlier app remain English.
 
 ## Parent membership
 

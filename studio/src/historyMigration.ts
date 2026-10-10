@@ -1,4 +1,4 @@
-import {CURRICULUM,makeQuestion,questionContentId} from './curriculum';
+import {ALL_CURRICULUM as CURRICULUM,makeQuestion,questionContentId} from './curriculum';
 import {questionKey} from './questionIdentity';
 import type {Profile} from './learning';
 const byId=new Map(CURRICULUM.map(s=>[s.id,s]));

@@ -1,0 +1,5 @@
+const fs=require('node:fs');const {pipeline}=require('node:stream/promises');
+const lib='C:/Users/koike/AppData/Roaming/npm/node_modules/firebase-tools/lib';
+const {requireAuth}=require(lib+'/requireAuth');const {getGlobalDefaultAccount}=require(lib+'/auth');const {Client}=require(lib+'/apiv2');
+(async()=>{await requireAuth({project:'kid-genius-world',...getGlobalDefaultAccount()});const source=JSON.parse(fs.readFileSync('output/billing/function-source-location.json')).storageSource;
+ const client=new Client({urlPrefix:'https://storage.googleapis.com',apiVersion:'storage/v1',auth:true});const r=await client.get('/b/'+source.bucket+'/o/'+encodeURIComponent(source.object),{queryParams:{alt:'media',generation:source.generation},responseType:'stream',resolveOnHTTPError:true});if(r.status!==200)throw Error('Billing source backup failed: '+r.status);await pipeline(r.body,fs.createWriteStream('output/billing/original-function-source.zip'));console.log('Exact deployed billing source backed up locally.');})().catch(e=>{console.error(e.message);process.exitCode=1;});

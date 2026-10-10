@@ -1,0 +1,8 @@
+{
+  "name": "kgw-parent-tour-brand",
+  "composition": "index.html",
+  "width": 960,
+  "height": 540,
+  "fps": 30,
+  "duration": 10
+}

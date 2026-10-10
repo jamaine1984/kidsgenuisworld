@@ -1,0 +1,17 @@
+# Kid Genius World
+
+Canonical URL: https://kid-genius-world.com/
+Last updated: 2026-10-09
+
+Kid Genius World by CrateShip Studios is a voice-guided math and reading studio for grades 1–3 with Theo. It includes 1,320 curriculum activities, 40 in each section, 24 original little books, hands-on missions, writing practice, starting-point checks and parent learning reports.
+
+A family membership costs USD $4.99 per month. The first payment is collected through Stripe Checkout, and the membership renews monthly until cancellation. Parents can manage or cancel in the Stripe customer portal. Existing subscribers keep their current terms and use the same Firebase parent account.
+
+The homepage offers a public narrated tour: reading for about 30 seconds, math for about 30 seconds, and an app overview for about a minute. Directions use browser speech. Optional on-device speech recognition has a listening/self-check fallback. Optional encrypted backups expire 30 days after the last save.
+
+Earlier app and accounts: https://kid-genius-world.com/legacy/
+Parent guides: https://kid-genius-world.com/blog/
+Sitemap: https://kid-genius-world.com/sitemap.xml
+Support: crateshipstudios@gmail.com
+
+The app is not an accredited school and does not issue credits, diplomas or official grades. Equivalence to one-to-one tutoring and guaranteed learning outcomes have not been established.

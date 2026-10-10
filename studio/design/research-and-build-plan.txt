@@ -1,0 +1,277 @@
+Grades 1 to 3 Tutoring Research and Build Plan
+October 9, 2026
+
+Research and six visual concepts. The tutoring app, voices, games and animations described below are planned.
+
+A premium, tablet-friendly English-language web app for US grades 1–3, with math and reading placed independently by skill, a friendly spoken tutor, accessible games and parent progress. $10/month is a target to validate.
+
+Affordable guided practice that teaches, helps and checks understanding. Replacing a human tutor or being 100 times better is an ambition, not an established result. Measure learning with unseen tasks and delayed checks before making comparative claims.
+
+Recommended visual direction
+Use the inviting world of UI 1 with the focused manipulatives and reading surface of Classroom 5, then unify the mascot and palette in a selected mockup. Keep grade 3 art mature enough for nine-year-olds.
+
+Competitor research
+Comparison of official public product, support and curriculum documentation on October 9, 2026. This is a product research benchmark, not a signed-in hands-on audit or an independently verified ranking. Vendor outcome claims are not used to promise results for this new product.
+
+Khan Academy Kids
+Free ages 2–8 program with story-based reading and math activities.
+Our design lesson: Set a high bar for warmth, ease of use and value. Price alone will not distinguish us from free alternatives.
+Source: https://www.khanacademy.org/kids
+
+Duolingo ABC
+Explicit systematic phonics, short lessons, sequenced skills and interactive comprehension stories.
+Our design lesson: Keep each interaction small, cumulative and readable. Extend our scope deliberately through grade 3.
+Source: https://abc.duolingo.com/how-we-teach
+
+Teach Your Monster
+Phonics and reading adventures, plus early mathematics games; web games are free.
+Our design lesson: Use a meaningful character relationship and quest. Make the learning action itself part of the adventure.
+Source: https://www.teachyourmonster.org/teachyourmonstertoread
+
+Reading Eggs and Mathseeds
+Reading, phonics and math programs with placement, interactive lessons, rewards and family reports.
+Our design lesson: Keep a coherent instructional sequence, decodable texts and a clear adult view of progress.
+Source: https://support.readingeggs.com/support/solutions/articles/266070-getting-started
+
+DreamBox
+Adaptive instruction that uses children's interactions to adjust learning; math focuses on conceptual understanding.
+Our design lesson: Evaluate the child's strategy and representation, as well as whether an answer was correct.
+Source: https://www.dreambox.com/
+
+IXL
+Diagnostics generate personalized action plans and skill recommendations.
+Our design lesson: Build an explicit skill map and tell parents the exact next skill. The linked article notes assessment naming has changed.
+Source: https://blog.ixl.com/2021/08/17/what-is-ixls-diagnostic-action-plan/
+
+Prodigy
+Math quests and battles, English world-building, adaptive placement and parent progress tools.
+Our design lesson: Retain the quest motivation, with teaching and feedback tied directly to the skill used in play.
+Source: https://www.prodigygame.com/main-en/parents/
+
+Boddle
+3D math and ELA games with adaptive paths, quests, pets, performance tracking and content assignments.
+Our design lesson: 3D alone is already available. Our proposed advantage must be clearer instruction, useful help and evidence of retention.
+Source: https://www.boddlelearning.com/
+
+SplashLearn
+Pre-K–5 math and reading games, personalized paths, books, worksheets and live classes.
+Our design lesson: Connect the home lesson, the practice game and a simple offline activity around the same learning objective.
+Source: https://support.splashlearn.com/hc/en-us/articles/12275062512658-What-is-SplashLearn
+
+ABCmouse
+Separate math and reading learning paths with independently chosen levels, from toddler through second grade.
+Our design lesson: Give each child a separate math and reading starting point. Our grade 3 coverage needs its own deliberate scope.
+Source: https://support.abcmouse.com/hc/en-us/articles/34386400234263-Getting-Started-with-the-Learning-Paths-in-ABCmouse
+
+Learning foundation
+
+Reading
+IES recommends linking speech sounds to letters, teaching decoding and word parts, and daily connected-text reading. It also includes vocabulary and narrative/inferential language; its evidence ratings differ across recommendations.
+Use sound boxes, blending and spelling, followed by text matched to taught patterns. Separate listening comprehension from independent decoding. Reveal story illustrations after the decoding attempt when they could give away the word.
+Source: https://ies.ed.gov/ncee/wwc/PracticeGuide/21
+
+Math
+IES recommends systematic instruction, clear mathematical language, concrete and semi-concrete representations, number lines and deliberate word-problem teaching. It also recommends timed activities as one way to build fluency.
+Model a strategy, practice with manipulatives, connect it to pictures and symbols, then apply it to a new problem. Keep initial teaching untimed; offer short optional fluency practice after understanding, without pressure or ranking.
+Source: https://ies.ed.gov/ncee/wwc/PracticeGuide/26
+
+Curriculum
+
+Grade 1
+Math: Number relationships; addition and subtraction within 20; tens and ones; length and shape reasoning.
+Reading: Review sound awareness and letter-sound links; CVC words, digraphs and blends; taught long-vowel patterns; spelling; short connected texts, oral vocabulary and comprehension.
+Sources: https://www.thecorestandards.org/Math/Content/1/introduction/
+https://www.thecorestandards.org/ELA-Literacy/RF/1/
+
+Grade 2
+Math: Base-ten understanding; addition and subtraction strategies within 100 and models within 1,000; equal-group foundations; measurement and shapes.
+Reading: Additional vowel teams, two-syllable decoding, spelling patterns and word endings; supported fluency; vocabulary, retelling and text questions.
+Sources: https://www.thecorestandards.org/Math/Content/2/introduction/
+https://www.thecorestandards.org/ELA-Literacy/RF/2/
+
+Grade 3
+Math: Multiplication and division within 100; equal groups and arrays; unit fractions and number lines; area and shape reasoning.
+Reading: Multisyllable decoding, prefixes and suffixes; accuracy, expression and comprehension; proposed lessons in evidence, inference and informational text.
+Sources: https://www.thecorestandards.org/Math/Content/3/introduction/
+https://www.thecorestandards.org/ELA-Literacy/RF/3/
+
+This is a starting scope, not a complete standards alignment. Build a versioned prerequisite graph, add comprehension standards, and have a qualified elementary educator and reading specialist approve the scope, sequence, words, stories and audio. Grade is a starting suggestion, not a hard learning ceiling.
+
+A short class
+
+Remember (1 minute)
+Two short retrieval questions from earlier lessons. Resume the child's actual last skill.
+
+Watch (1 minute)
+A 30–60-second spoken, replayable worked example. Highlight only the object, sound or word being explained.
+
+Try together (3 minutes)
+Tutor guides two or three examples, names the strategy and fades help.
+
+Play (4 minutes)
+A game with varied examples, corrective hints and actions that require the skill.
+
+Show what you know (2 minutes)
+New examples without modeled answers or picture cues. Separate assisted from independent attempts.
+
+Close and revisit (1 minute)
+Specific process praise, one concrete result for parents and a later review scheduled by the learning engine.
+
+The approximate 12-minute sequence is a design hypothesis to test with families. Offer one subject per session; a mixed daily adventure can contain shorter math and reading segments, with a natural stopping point after either. Do not require a child to complete both.
+
+Games and motion
+
+Ten Frame Bridge — Math, grades 1; extension into 2
+Move counted objects into a ten-frame, then represent a new sum with a number line or equation.
+One object moves per count. Completing a ten visually exposes the make-ten strategy.
+Motion: 3D counters lift and snap into fixed slots; a short bridge reveal follows success; the board stays still while counting.
+
+Place Value Workshop — Math, grades 1–2
+Build numbers in tens and ones, combine quantities and later exchange ten ones for a ten.
+Children see equivalent quantities and connect them to the written digits.
+Motion: A group of ten unit cubes bundles into one rod without changing its quantity; labels remain aligned.
+
+Array Garden — Math, grades 2–3
+Plant equal rows, connect repeated addition to multiplication, then partition the same array for division.
+Highlight one row at a time; ask for an explanation using groups and quantities.
+Motion: Camera stays fixed over the grid; planting and row highlights show the grouping. Decorative ambient motion pauses during work.
+
+Sound Builder — Reading, grades 1–2; remediation in 3
+Hear a sound, select its grapheme, segment or blend a word, spell it and read an unseen word with the same pattern.
+A digraph such as sh occupies one sound box. Use educator-approved pure phonemes, without added schwa.
+Motion: Sound boxes light in spoken order; grapheme tiles join without stretching or distorting letterforms.
+
+Pop-up Story — Reading, grades 1–3
+Read a short pattern-controlled text, reread for fluency and answer an oral or text question appropriate to the learner.
+Use model mode, supported mode and independent mode with distinct evidence; audio follows text only in supported modes.
+Motion: Pages turn between passages. Word highlights use narration timings. An illustration reveal follows the decoding attempt.
+
+Story Detective — Reading, grades 2–3
+Choose an answer, select supporting words from the passage and explain the connection.
+Collect the evidence actually used, rather than earning rewards for guessing.
+Motion: A gentle underline follows the chosen clue; the story and answer positions stay stable.
+
+Use motion to show a concept, point attention or mark a transition. Keep answer layouts stable. Provide reduced-motion mode, captions, independent music and speech controls, repeat/slow-play controls, a visible stop point and high-contrast text. Start audio after the child's explicit tap; narration should not be hidden behind music.
+
+Tutor behavior and parent reports
+
+A lesson state machine with reviewed explanations and misconception-specific hint ladders. Correctness and lesson progression are controlled by the validated answer model. An optional language model may rephrase approved hints later, with checks and fallback; it does not invent answers or teach unrestricted content.
+
+If a child combines the ones in 24 + 13 but omits a ten, say: You joined the seven ones. Now count the tens together. Show the tens before offering another independent example.
+
+For ship, treat sh as one grapheme representing one phoneme: /sh/ /i/ /p/. Model only when help is requested, then check a fresh word separately.
+
+Record New, Practicing, Independent and Retained. Use varied tasks, aid usage and later checks; calibrate thresholds with educators and pilot evidence. Correct answers after a demonstrated solution do not establish independent mastery.
+
+After repeated errors, diagnose the likely prerequisite, reduce complexity and reteach with a representation. Review learned skills on later days; exact spacing is a pilot setting. Offer a break when frustration or repeated difficulty is apparent, without labeling the child.
+
+Show the skill practiced, independent and assisted successes, recurring difficulty, the next lesson and a two-minute offline activity. Completion, time spent and rewards are not reading proficiency or a clinical assessment.
+
+Architecture
+
+React and TypeScript
+Responsive app, parent and child interfaces, accessibility, game state and lesson orchestration.
+Learning state stays outside video timelines. Use touch and keyboard alternatives for drag operations.
+
+Three.js or React Three Fiber
+Actual interactive 3D manipulatives and restrained character/world scenes.
+Use generated images as visual targets and backgrounds, then author reusable models and animations. Pre-rendered art is not an interactive 3D scene. Provide a flat accessible fallback for low-power devices.
+
+Hyperframes
+Author short chapter introductions, tutor arrivals, story transitions and reusable reward scenes with HTML/CSS/GSAP; render reusable media assets.
+Use the selected design tokens and reviewed voice. Supply assets to the app through a content manifest. Keep instructional answers and learner state in the app.
+Source: https://hyperframes.heygen.com/quickstart
+
+Remotion
+Data-driven worked examples and synchronized word/number highlights; embed compositions in React using Player, with pause/replay and lesson parameters.
+Use one timeline per explanatory scene; consume Hyperframes assets where useful. Render repeated content ahead of time when cheaper, rather than running two competing playback systems.
+Source: https://www.remotion.dev/docs/player
+
+ElevenLabs
+Warm tutor narration, directions and story audio. Character timings from the speech-with-timestamps endpoint can be grouped into words for synchronized highlights.
+Keep the API key in a server secret. Cache approved clips by text, voice, model and content version. Single-phoneme clips require listening review or specialist recordings; natural-sounding TTS alone does not guarantee accurate phonics.
+Source: https://elevenlabs.io/docs/api-reference/text-to-speech/convert-with-timestamps
+
+Speech input later
+Optional read-aloud practice after consent and validation.
+TTS, transcription and forced alignment do not establish reliable child pronunciation scoring. Test accents, quiet speech, disfluencies and noise with consented samples. Low-confidence audio prompts a neutral retry and never automatically fails the child.
+Source: https://elevenlabs.io/docs/overview/capabilities/forced-alignment
+
+Backend and content pipeline
+Proposed separate Firebase project for parent authentication, child profiles, lesson attempts, progress, assets and billing service endpoints; an editor for versioned reviewed content.
+Select the final backend before implementation. Use family-level access controls and server-owned entitlements. This research does not authorize sharing an existing app's child data or billing accounts.
+
+Voice and privacy
+
+FTC COPPA guidance covers child-directed services collecting personal information and includes recordings containing a child's voice. Plan appropriate parent notice and verifiable consent before covered collection, parent access/deletion, minimum data collection, limited retention and vendor review.
+
+Parent-owned accounts; avatar and nickname child profiles; adult-only billing; no public chat or child-facing advertising. Reading remains usable without a microphone. Minimize identifiers and do not send the child's real name in generic narration requests.
+
+Default to no raw recording storage in our app, and separately verify processor retention and training settings before enabling microphone uploads. A parent gate is not itself verifiable parental consent. Provider retention must not be assumed to be zero; ElevenLabs documents availability restrictions for zero-retention mode.
+
+Review the current rule and actual data flows with children's privacy counsel before a paid public launch. Do not market the product as certified or compliant based only on this plan.
+
+https://www.ftc.gov/business-guidance/resources/complying-coppa-frequently-asked-questions
+
+https://elevenlabs.io/docs/api-reference/text-to-speech/convert-with-timestamps
+
+Ten dollar economics
+
+Proposed $10/month household plan with up to two child profiles, all learning activities and parent reports; validate the included profile count in the pilot.
+
+Generate and review common narration once; serve cached audio and animation through a CDN; use template-based lessons; cap exceptional live generation at the service layer. Spend on content quality before always-on conversation.
+
+At 1,000 paying households, $10/month produces $10,000 gross monthly revenue before fees, taxes, refunds and other costs. A $2/household/month variable infrastructure budget is a proposed engineering target, not a vendor quote or a validated margin.
+
+Measure narration-generation/cache costs, optional speech-input minutes, AI requests, media bandwidth, database operations and support load. Report average and high-use costs before deciding that $10 is sustainable.
+
+Payment processing, content production, specialist review, support, licenses and acquisition also need budgets. Verify the applicable Remotion commercial license and voice usage terms before launch.
+
+https://github.com/remotion-dev/remotion/blob/main/LICENSE.md
+
+Build milestones
+
+1. Choose the visual target
+Select one home and one classroom direction; create one coherent refined mockup, mascot, palette, typography and motion rules.
+Ready to move on when: Selected screenshot and responsive design specification. This research package completes the initial exploration.
+
+2. Build six complete lesson slices
+One math and one reading lesson per grade, a working spoken tutor, replayable Hyperframes intro, a Remotion demonstration and a playable activity with independent checks.
+Ready to move on when: All six paths teach, accept input, handle mistakes, pause/resume and report honest attempt evidence. Initial fixtures are explicitly marked prototype data.
+
+3. Build the learning and parent foundation
+Parent account/consent flow, separate subject placement, persistent progress, review scheduler, parent report, asset manifest and reviewed content editor.
+Ready to move on when: Progress survives refresh and device switching; no duplicate rewards; family access is isolated; assisted and independent results remain distinct.
+
+4. Run a focused curriculum pilot
+Expand to 36 carefully reviewed lessons: six per subject per grade, using six reusable game templates. Include supporting offline activities.
+Ready to move on when: Educators approve every lesson. Consented family pilots measure unseen-task learning, later retention, child usability, parent understanding, device performance and actual costs. Thirty-six lessons are pilot coverage, not full grade coverage.
+
+5. Prepare the paid launch
+Adult-only $10 billing, cancellation and subscription recovery, privacy review, support, accessibility, mobile/tablet QA and monitored production operations.
+Ready to move on when: Real subscription lifecycle and signed-in flows pass; tablet Safari and low-power devices are checked; applicable data deletion and consent flows are verified; paid pilot supports the cost model.
+
+6. Expand full grade coverage
+Fill the reviewed prerequisite and standards map, add word problems, spelling/fluency stories, fractions/measurement and spaced reviews, using the same tested templates.
+Ready to move on when: Publish a transparent coverage map and learning evidence; retain honest limits for learners who need specialist or human support.
+
+Verification
+
+- Curriculum: review answer keys, quantity preservation, phoneme/grapheme mapping, decodability and prerequisites; make independent tasks unseen and remove modeled answers.
+
+- Tutor: exercise wrong answers, escalating hints, prerequisite reteaching, uncertainty and audio failure; confirm specific encouragement without pressure.
+
+- Progress: refresh, reconnect, device switching, retries and duplicate events; no double credit; no family can read another family's records.
+
+- Access: keyboard and touch input, captions, reduced motion, clear child text, optional microphone and accessible non-3D routes.
+
+- Performance: target smooth manipulation on supported tablets, prefetch the next small asset set, measure cold and cached playback; avoid treating a desktop screenshot as tablet QA.
+
+- Learning evidence: measure independent accuracy, transfer to different examples and later retention. A usage metric or pilot without a valid comparison cannot support equivalence to a human tutor.
+
+- Payments and privacy: real adult account, subscription webhook/recovery/cancel flows, secret exposure scan, consent/deletion and processor settings before public launch.
+
+Next step
+
+Choose a home direction (1–3) and classroom direction (4–6). A combination can be unified into one refined image before the playable prototype is built.
+

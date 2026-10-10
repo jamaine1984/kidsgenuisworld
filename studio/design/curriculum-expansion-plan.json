@@ -1,0 +1,383 @@
+{
+  "title": "Wonderlane curriculum depth and activity expansion",
+  "date": "2026-10-09",
+  "status": "40 activities in every section implemented; educator and audio review pending",
+  "userDirection": {
+    "retain": [
+      "Little Studio",
+      "Maker Lab",
+      "same Theo character",
+      "current math sections"
+    ],
+    "targetActivitiesPerSection": [
+      40,
+      50
+    ],
+    "additionalReadingSections": 3,
+    "gradeRule": "Every launch, resume, review and visible grade label must agree with the selected subject grade. No automatic promotion to another grade.",
+    "audioCue": "Theo points at Hear directions on first use of a game. Tap here to hear what to do. Dismiss after activation; keep written directions and replay available.",
+    "workedExampleVoice": "Pressing Play must start Theo narration and the demonstration together. The explanation must match the actual example word or math model."
+  },
+  "definitions": {
+    "section": "A broad learning area such as addition and subtraction",
+    "unit": "A sequenced skill cluster with explicit prerequisites",
+    "activity": "A distinct learning task or scenario, not merely another seed for the same question",
+    "question": "A fresh validated example inside an activity"
+  },
+  "planningTargets": {
+    "mathSectionsPerGrade": 5,
+    "mathActivitiesPerGrade": [
+      200,
+      250
+    ],
+    "readingSectionsPerGrade": 6,
+    "readingActivitiesPerGrade": [
+      240,
+      300
+    ],
+    "allThreeGradesCombinedActivities": [
+      1320,
+      1650
+    ],
+    "note": "Targets include expanded existing content. Grade-specific scope and educator review determine final counts; grade 3 sound work is differentiated and foundational remediation is clearly marked."
+  },
+  "currentAudit": {
+    "verified": "1,320 activities across 33 grade/subject sections; 40 per section. 78 original passages plus four Grade 1 little books.",
+    "gradeIssues": [
+      "Changing grade does not reset an already open lesson",
+      "Home continuation can pick lastSkill from the earlier grade",
+      "Header uses mathGrade while parent settings permit a different readingGrade"
+    ],
+    "contentIssues": [
+      "Sequence activities use sequence as a passage field while stories store first, producing undefined answer text in r1-26, r2-25 and r3-25",
+      "Several named topics share a question mechanic without teaching all of the named skill",
+      "Phonics currently emphasizes whole-word recognition/spelling rather than a full sound-to-text progression",
+      "Passages are grade-tagged but lack taught-pattern decodability metadata",
+      "Fluency is practice and is not measured oral reading",
+      "Remotion Play currently runs a visual demonstration while Hear the example is a separate control; children can miss the explanation. The generic teaching caption can discuss cap/cape while the example asks about cube."
+    ],
+    "requiredTestImprovement": "Validate educational content and named objectives, grade ranges, valid story fields, and representation-to-skill agreement beyond selectable-answer structure.",
+    "resolvedInFirstExpansion": [
+      "All three grade/session issues",
+      "Sequence invalid-answer field",
+      "Separate silent Play behavior and mismatched silent-e caption",
+      "Repeated content within a session no longer counts as a fresh independent check"
+    ]
+  },
+  "mathExpansion": [
+    {
+      "section": "Place value",
+      "activities": [
+        "compose and decompose numbers",
+        "expanded form",
+        "compare representations",
+        "exchange ten ones for a ten",
+        "exchange ten tens for a hundred",
+        "explain digit values"
+      ],
+      "games": [
+        "Theo's Block Workshop",
+        "Number Line Trail"
+      ]
+    },
+    {
+      "section": "Addition and subtraction",
+      "activities": [
+        "count on",
+        "make ten",
+        "doubles and near doubles",
+        "inverse relationships",
+        "unknowns in different positions",
+        "true and false equations",
+        "regroup by exchanging blocks",
+        "different story-problem structures"
+      ],
+      "games": [
+        "Ten Frame Bridge",
+        "Fix Theo's Mistake"
+      ]
+    },
+    {
+      "section": "Equal groups or multiplication and division",
+      "activities": [
+        "odd and even",
+        "pairs",
+        "repeated addition",
+        "rows and columns",
+        "group size versus number of groups",
+        "distributive strategies in grade 3",
+        "related multiplication and division facts"
+      ],
+      "games": [
+        "Array Garden",
+        "Share the Picnic"
+      ]
+    },
+    {
+      "section": "Measurement money and time",
+      "activities": [
+        "estimate then measure",
+        "align a ruler at zero",
+        "compare units",
+        "read clocks",
+        "solve appropriate money tasks",
+        "elapsed-time timelines",
+        "mass and volume investigations"
+      ],
+      "games": [
+        "Theo's Market",
+        "Clock Workshop",
+        "Measure the Build"
+      ]
+    },
+    {
+      "section": "Shapes and data or grade-appropriate fractions/geometry",
+      "activities": [
+        "compose and classify shapes",
+        "distinguish equal from unequal shares",
+        "fractions on number lines",
+        "read and create graphs",
+        "use graph scales",
+        "area versus perimeter",
+        "explain equal amounts"
+      ],
+      "games": [
+        "Shape Architect",
+        "Fraction Kitchen",
+        "Survey Studio"
+      ]
+    }
+  ],
+  "readingExpansion": [
+    {
+      "section": "Sounds and Listening",
+      "change": "new",
+      "activities": [
+        "initial medial and final sounds",
+        "blend spoken sounds",
+        "segment words with sound counters",
+        "change a sound to form a word",
+        "grade-appropriate listening comprehension"
+      ],
+      "game": "Sound Detective"
+    },
+    {
+      "section": "Phonics and Word Patterns",
+      "change": "expanded current section",
+      "activities": [
+        "explicit letter-sound sequences",
+        "digraphs and consonant clusters",
+        "silent e and vowel teams",
+        "r-controlled vowels",
+        "syllable types",
+        "decode multisyllable words"
+      ],
+      "game": "Word Workshop"
+    },
+    {
+      "section": "Spelling and Sentence Building",
+      "change": "new dedicated section",
+      "activities": [
+        "sound-to-spelling mapping",
+        "word chains",
+        "irregular spelling parts",
+        "dictation",
+        "build and edit sentences"
+      ],
+      "game": "Sentence Studio"
+    },
+    {
+      "section": "Language and Vocabulary",
+      "change": "expanded current section",
+      "activities": [
+        "context clues",
+        "word families and meanings",
+        "prefixes and suffixes",
+        "parts of speech",
+        "punctuation",
+        "compare meanings in different contexts"
+      ],
+      "game": "Meaning Quest"
+    },
+    {
+      "section": "Stories and Comprehension",
+      "change": "expanded current section with fluency separated",
+      "activities": [
+        "sequence multiple events",
+        "retell",
+        "find supporting text",
+        "infer from clues",
+        "main idea and details",
+        "compare texts",
+        "fiction and informational passages"
+      ],
+      "game": "Story Detective"
+    },
+    {
+      "section": "Fluency and Read-along",
+      "change": "new dedicated section",
+      "activities": [
+        "model expressive reading",
+        "phrase-by-phrase practice",
+        "reread familiar controlled text",
+        "apply to fresh text",
+        "read poems and dialogue"
+      ],
+      "game": "Theo's Book Club"
+    }
+  ],
+  "unitStructure": [
+    "brief prior-skill check",
+    "explicit worked example",
+    "guided construction",
+    "independent game task",
+    "application or explanation",
+    "later fresh review"
+  ],
+  "contentRequirements": [
+    "grade and standards mapping",
+    "prerequisite links",
+    "allowed numerical ranges and operations",
+    "taught phonics pattern tags",
+    "reviewed word and phoneme maps",
+    "original controlled-decodable texts",
+    "specific misconception hints",
+    "independent and supported evidence recorded separately",
+    "expert review before being marked approved"
+  ],
+  "gameplayAndMotion": {
+    "hyperframes": "brief Theo arrivals, world transitions and restrained completion moments",
+    "remotion": "replayable narrated worked examples showing a mathematical or reading concept",
+    "interactive3D": "child actions that create, exchange, partition, measure or share real model quantities",
+    "reward": "earn pieces for a persistent workshop or garden after learning tasks, with natural stopping points",
+    "accessibility": "stable answer layouts, reduced motion, touch and keyboard alternatives, written text, speaker replay"
+  },
+  "voice": {
+    "narration": "ElevenLabs for reviewed Theo directions and whole-word/text narration when configured",
+    "phonemes": "separately reviewed sound clips; do not assume general TTS pronounces isolated phonemes correctly",
+    "fluencyAssessment": "optional future parent-enabled feature requiring separate validation; do not infer oral fluency from multiple-choice answers",
+    "workedExample": {
+      "controls": "Unified play, pause, stop and replay behavior; prevent overlapping speech.",
+      "timing": "Set the demonstration duration from reviewed narration; do not assume the current eight-second visual duration is sufficient.",
+      "example": "For cube, use the curated pair cub to cube, emphasize the u, and explain the final silent e. Show the spelling letters without presenting silent e as a separate spoken phoneme.",
+      "scaffolding": "Give one short instruction at a time, optional extra explanation, slower replay and a fresh independent task after modeling.",
+      "assessment": "Directions and the spoken target of a spelling task are normal task input. Narrating the passage being independently decoded, revealing a solution or using a hint must be recorded as supported work.",
+      "fallback": "Use the browser voice for early implementation, then validate the configured ElevenLabs voice and isolated sound clips.",
+      "acceptance": [
+        "Play produces audible narration after user activation",
+        "narration and visuals refer to the same example",
+        "all spoken explanation fits before completion",
+        "pause or navigation stops old speech",
+        "replay does not overlap other speech",
+        "captions remain readable with audio off",
+        "fresh independent examples do not receive modeled answers"
+      ]
+    }
+  },
+  "implementationBatches": [
+    {
+      "order": 1,
+      "name": "Correctness and grade isolation",
+      "deliverables": [
+        "grade-safe active sessions and continuation",
+        "subject-specific grade labels",
+        "sequence field correction",
+        "semantic content regression checks",
+        "speaker arrow cue",
+        "unified narrated video playback",
+        "word-specific silent-e demonstrations",
+        "spoken explanations matched to math models",
+        "voice/control and no-overlap browser checks"
+      ],
+      "status": "implemented and checked in the early-access build"
+    },
+    {
+      "order": 2,
+      "name": "Grade 1 teaching depth",
+      "deliverables": [
+        "40–50 addition/subtraction activities",
+        "Sound Detective and Word Workshop",
+        "reviewed phoneme clips",
+        "controlled-decodable mini-books"
+      ],
+      "status": "partially implemented: 40 addition/subtraction activities, first listening/word tasks and four little books; reviewed isolated phoneme clips and educator review remain outstanding"
+    },
+    {
+      "order": 3,
+      "name": "Grade 1 breadth and differentiated grades 2–3",
+      "deliverables": [
+        "expand remaining math sections",
+        "add three reading sections",
+        "grade 2 regrouping and word-study paths",
+        "grade 3 division/fraction/area and advanced reading paths"
+      ],
+      "status": "Implemented: all grade/subject areas have forty activities; original IDs preserved."
+    },
+    {
+      "order": 4,
+      "name": "Tutor adaptation and retention",
+      "deliverables": [
+        "misconception-specific hints",
+        "prerequisite-aware recommendations within chosen grade",
+        "mixed retrieval reviews",
+        "new-task and later-day evidence",
+        "clear parent next steps"
+      ]
+    },
+    {
+      "order": 5,
+      "name": "Validation and full content rollout",
+      "deliverables": [
+        "educator content and audio review",
+        "child/parent usability pilots",
+        "all target sections expanded",
+        "fresh versus repeated content audits",
+        "device and accessibility checks",
+        "measure transfer and retention before outcome claims"
+      ],
+      "status": "Activity count target implemented. Educator/audio review, family pilots, device review and measured learning outcomes remain pending."
+    }
+  ],
+  "researchSources": [
+    "https://www.thecorestandards.org/Math/Content/1/introduction/",
+    "https://www.thecorestandards.org/Math/Content/2/introduction/",
+    "https://www.thecorestandards.org/Math/Content/3/introduction/",
+    "https://www.thecorestandards.org/ELA-Literacy/RF/1/",
+    "https://www.thecorestandards.org/ELA-Literacy/RF/2/",
+    "https://www.thecorestandards.org/ELA-Literacy/RF/3/",
+    "https://ies.ed.gov/ncee/wwc/PracticeGuide/26",
+    "https://ies.ed.gov/ncee/wwc/PracticeGuide/21",
+    "https://ies.ed.gov/ncee/wwc/PracticeGuide/14",
+    "https://ufli.education.ufl.edu/foundations/",
+    "https://abc.duolingo.com/how-we-teach",
+    "https://readingeggs.com/schools/phonics/",
+    "https://dreamboxlearning.zendesk.com/hc/en-us/articles/27281843188243-How-Does-DreamBox-Math-Work"
+  ],
+  "researchScope": "Official curriculum, research-guide and vendor documentation; no new signed-in competitor audit or independently verified ranking. Game designs and count targets are proposed Wonderlane design decisions.",
+  "implementedOctober9": {
+    "activityTotal": 224,
+    "grade1Math": 60,
+    "grade1Reading": 44,
+    "grade1AdditionSubtraction": 40,
+    "grade1ReadingAreas": 6,
+    "newMathActivities": 30,
+    "newReadingActivities": 14,
+    "voice": "browser narration; ElevenLabs key not configured",
+    "remaining": "Historical first-batch snapshot. All section count targets are now implemented; see implementedFullExpansionOctober9. Expert review and family pilots remain outstanding."
+  },
+  "implementedFullExpansionOctober9": {
+    "activityTotal": 1320,
+    "activitiesPerSection": 40,
+    "mathPerGrade": 200,
+    "readingPerGrade": 240,
+    "gradeCount": 3,
+    "newMathActivities": 480,
+    "newReadingActivities": 616,
+    "newTexts": 30,
+    "newWordBanks": 30,
+    "voice": "Browser narration, automatic next-task guidance after the first Hear directions activation, spoken choices, slower replay and stop. No ElevenLabs key configured.",
+    "ui": "Original Little Studio home and Maker Lab preserved.",
+    "review": "Draft standards and pattern metadata. Educator review and pronunciation/decodability review remain pending.",
+    "evidence": "design/curriculum-inventory.json"
+  }
+}

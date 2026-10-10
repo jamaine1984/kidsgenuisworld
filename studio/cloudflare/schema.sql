@@ -1,0 +1,10 @@
+PRAGMA foreign_keys = ON;
+CREATE TABLE IF NOT EXISTS accounts (id TEXT PRIMARY KEY, email TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL, salt TEXT NOT NULL, created_at INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS sessions (token_hash TEXT PRIMARY KEY, account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE, expires_at INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS family_progress (account_id TEXT PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE, payload TEXT NOT NULL, updated_at INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS billing (account_id TEXT PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE, customer_id TEXT, subscription_id TEXT, status TEXT NOT NULL DEFAULT 'inactive', updated_at INTEGER NOT NULL DEFAULT 0);
+CREATE TABLE IF NOT EXISTS webhook_events (id TEXT PRIMARY KEY, at INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS rate_limits (key TEXT PRIMARY KEY, hits INTEGER NOT NULL, expires_at INTEGER NOT NULL);
+CREATE INDEX IF NOT EXISTS session_expiry ON sessions(expires_at);
+CREATE TABLE IF NOT EXISTS private_family_backups (token_hash TEXT PRIMARY KEY, iv TEXT NOT NULL, ciphertext TEXT NOT NULL, revision INTEGER NOT NULL, updated_at INTEGER NOT NULL, expires_at INTEGER NOT NULL);
+CREATE INDEX IF NOT EXISTS private_family_expiry ON private_family_backups(expires_at);

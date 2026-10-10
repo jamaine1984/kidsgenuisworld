@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="title desc">
+  <title id="title">Kid Genius World app icon</title>
+  <desc id="desc">A bright learning globe rising from an open book with stars.</desc>
+  <defs>
+    <linearGradient id="bg" x1="130" y1="94" x2="894" y2="930" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#38bdf8"/>
+      <stop offset="0.48" stop-color="#7c3aed"/>
+      <stop offset="1" stop-color="#22c55e"/>
+    </linearGradient>
+    <linearGradient id="book" x1="204" y1="602" x2="820" y2="828" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#dbeafe"/>
+    </linearGradient>
+    <linearGradient id="globe" x1="340" y1="234" x2="684" y2="590" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fef08a"/>
+      <stop offset="0.45" stop-color="#67e8f9"/>
+      <stop offset="1" stop-color="#34d399"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="28" stdDeviation="26" flood-color="#0f172a" flood-opacity="0.28"/>
+    </filter>
+  </defs>
+  <rect width="1024" height="1024" rx="228" fill="url(#bg)"/>
+  <circle cx="238" cy="228" r="94" fill="#ffffff" opacity="0.18"/>
+  <circle cx="814" cy="242" r="58" fill="#ffffff" opacity="0.16"/>
+  <path d="M162 713c112-86 216-91 350-18 134-73 238-68 350 18v100c-112-86-216-91-350-18-134-73-238-68-350 18V713Z" fill="#0f766e" opacity="0.22"/>
+  <g filter="url(#shadow)">
+    <path d="M174 642c122-88 237-88 338 0v205c-101-88-216-88-338 0V642Z" fill="url(#book)"/>
+    <path d="M512 642c101-88 216-88 338 0v205c-122-88-237-88-338 0V642Z" fill="#f8fafc"/>
+    <path d="M512 642v205" fill="none" stroke="#94a3b8" stroke-width="18" stroke-linecap="round"/>
+    <path d="M230 707c74-32 148-25 218 20M230 771c74-31 148-24 218 21M576 727c70-45 144-53 218-20M576 792c70-45 144-53 218-21" fill="none" stroke="#38bdf8" stroke-width="20" stroke-linecap="round" opacity="0.9"/>
+  </g>
+  <g filter="url(#shadow)">
+    <circle cx="512" cy="420" r="170" fill="url(#globe)" stroke="#ffffff" stroke-width="20"/>
+    <path d="M398 312c52 34 169 34 228 0M362 420h300M398 528c52-34 169-34 228 0" fill="none" stroke="#0284c7" stroke-width="20" stroke-linecap="round" opacity="0.62"/>
+    <path d="M512 250c-54 52-80 109-80 170s26 118 80 170M512 250c54 52 80 109 80 170s-26 118-80 170" fill="none" stroke="#065f46" stroke-width="18" stroke-linecap="round" opacity="0.5"/>
+  </g>
+  <path d="M262 352c148-130 350-152 506-52" fill="none" stroke="#fef3c7" stroke-width="22" stroke-linecap="round" opacity="0.92"/>
+  <path d="M780 294l-8 44 42 16-45 8-12 44-20-41-46 5 33-32-19-41 40 21 35-24Z" fill="#facc15" stroke="#fff7ed" stroke-width="10" stroke-linejoin="round"/>
+  <path d="M272 244l22 54 58 5-45 38 13 56-49-30-50 30 14-56-45-38 58-5 24-54Z" fill="#ffffff" opacity="0.94"/>
+</svg>

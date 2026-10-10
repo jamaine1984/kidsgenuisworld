@@ -1,0 +1,42 @@
+{
+  "name": "wonderlane-tutor",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsx scripts/audit-curriculum.ts && vite build && node scripts/prepare-sites-build.mjs",
+    "preview": "vite preview",
+    "test:sites": "node --test tests/sites-worker.test.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/curriculum.test.ts tests/audio.test.ts tests/expansion.test.ts tests/content-audit.test.ts tests/tutor-tools.test.ts tests/question-history.test.ts tests/billing.test.ts",
+    "dev:cloudflare": "wrangler dev --port 8789",
+    "deploy:cloudflare": "npm run typecheck && npm test && npm run build && wrangler deploy"
+  },
+  "dependencies": {
+    "@fontsource/nunito": "^5.3.0",
+    "@fontsource/nunito-sans": "^5.3.0",
+    "@phosphor-icons/react": "^2.1.10",
+    "@react-three/drei": "^10.7.9",
+    "@react-three/fiber": "^9.8.1",
+    "@remotion/player": "^4.0.534",
+    "@remotion/three": "^4.0.534",
+    "@vitejs/plugin-react": "5.0.4",
+    "firebase": "12.6.0",
+    "gsap": "^3.15.0",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "remotion": "^4.0.534",
+    "three": "^0.179.1",
+    "vite": "6.4.2"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@types/three": "^0.179.0",
+    "sharp": "^0.35.5",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "wrangler": "^4.149.0"
+  }
+}

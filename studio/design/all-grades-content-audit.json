@@ -1,0 +1,189 @@
+{
+  "date": "2026-10-09",
+  "scope": {
+    "grades": [
+      1,
+      2,
+      3
+    ],
+    "activities": 1320,
+    "math": 600,
+    "reading": 720,
+    "sections": 33,
+    "perSection": 40,
+    "review": "All registered generators and curated text/word-bank source content reviewed; representative browser lessons tested. Generated variations were sampled, not exhaustively enumerated."
+  },
+  "corrections": [
+    {
+      "area": "Grammar routing",
+      "detail": "Adjective/adverb topics no longer match the verb handler; related soft/softly pair corrected."
+    },
+    {
+      "area": "Grammar answer ambiguity",
+      "detail": "Connecting-word questions state the intended relationship, verb prompts specify present tense, ongoing forms use correct spellings, and pronoun examples state plural antecedents."
+    },
+    {
+      "area": "Punctuation",
+      "detail": "Statement dialogue uses a comma before the speaker tag; sentence-ending distractors avoid a second valid exclamation interpretation."
+    },
+    {
+      "area": "Word sounds and syllables",
+      "detail": "Middle-vowel contrast uses hot/pot/top instead of dialect-sensitive hot/dog; syllable prompts ask for counts rather than claiming to split the word."
+    },
+    {
+      "area": "Reading evidence",
+      "detail": "Two Grade 1 motivations are explicit in the text; puddle evaporation is supported by an explicit explanation; towel distractor now contradicts equal spoonfuls rather than asserting different total volumes."
+    },
+    {
+      "area": "Reading phrasing",
+      "detail": "Thirty manually selected phrase models replace arbitrary word-count splits."
+    },
+    {
+      "area": "Math answer ambiguity",
+      "detail": "Area/perimeter expressions have one correct value; equal-group representation specifies a multiplication equation; fraction correction gives both compared amounts."
+    },
+    {
+      "area": "Shape definitions",
+      "detail": "Composition states that matching right triangles have two equal short sides. Shape classification asks for the most specific name and explains the square/rectangle/rhombus relationship."
+    },
+    {
+      "area": "Math ranges and units",
+      "detail": "Counting can reach stated endpoints, first-grade survey totals remain within twenty, scaled graph prompts count represented votes, and Grade 3 volume uses liters consistent with 3.MD.A.2."
+    },
+    {
+      "area": "Word-problem consistency",
+      "detail": "Comparison stories cannot give Theo two different quantities by choosing Theo as both participants."
+    },
+    {
+      "area": "Math models",
+      "detail": "Area and square-array lessons use square tiles; perimeter shape proportions follow side lengths; simple mats describe rectangles; model labels join text without inserted commas."
+    },
+    {
+      "area": "Progress evidence",
+      "detail": "New attempts carry compact content identity. Repeated content across sessions remains practice; duplicate check evidence cannot create mastery; Retained requires at least four fresh checks at 80 percent on a later day at least 24 hours after older successful evidence."
+    }
+  ],
+  "automatedChecks": {
+    "tests": 27,
+    "deterministicGeneratedInstances": 396000,
+    "additionalChecks": "Independent equation solutions, expression-choice uniqueness, clock intervals, fraction ordering, endpoints, grade ranges, spelling/word references, syllables, sound matches, phrase models, diagram proportions, simple mats, narration and progress evidence."
+  },
+  "languageReference": {
+    "targets": 398,
+    "cmuMatches": 397,
+    "manuallyConfirmedCompounds": [
+      "lunchbox"
+    ],
+    "syllableGeneratedChecks": 5400,
+    "soundGeneratedChecks": 5100,
+    "unresolvedIssues": 0,
+    "reference": "https://github.com/cmusphinx/cmudict",
+    "snapshotSha256": "81917843c7f44ce2b094ac63873c2c7a4cf802040792c455ba3ca406891c3d22",
+    "note": "Dictionary matching does not validate browser or ElevenLabs pronunciation, grade placement, or decodability."
+  },
+  "remainingLimits": [
+    "No elementary educator has approved all content or the standards map. Many original activities still have no granular standards metadata.",
+    "Full standards coverage is not established. Examples needing more coverage include Grade 3 fractional measurement line plots, explicit multiplication properties/zero facts, kilograms, and stronger Grade 1 phoneme segmentation and two-syllable decoding.",
+    "Small word/question banks and fixed text tasks limit assessment depth. Larger separate teaching and check banks are needed so practiced items do not exhaust fresh checks.",
+    "Curated texts are original, but are not a verified controlled-decodable sequence tied to individual learned patterns.",
+    "There is no validated oral-reading assessment or speech input. Browser speech-engine events are evidence of playback progression, not physical-speaker or pronunciation quality.",
+    "Many lesson actions remain multiple-choice or tiles; full interactive measuring/building and misconception-specific animated coaching remain expansion work.",
+    "Real-child usability, learning outcomes, real-device Safari, assistive technology and low-end-device performance remain unverified."
+  ],
+  "sources": [
+    "https://www.thecorestandards.org/Math/Content/1/introduction/",
+    "https://www.thecorestandards.org/Math/Content/2/introduction/",
+    "https://www.thecorestandards.org/Math/Content/3/introduction/",
+    "https://www.thecorestandards.org/Math/Content/3/MD/",
+    "https://www.thecorestandards.org/ELA-Literacy/RF/1/",
+    "https://www.thecorestandards.org/ELA-Literacy/RF/2/",
+    "https://www.thecorestandards.org/ELA-Literacy/RF/3/",
+    "https://ies.ed.gov/ncee/wwc/PracticeGuide/21",
+    "https://ies.ed.gov/ncee/wwc/PracticeGuide/26"
+  ],
+  "recommendations": [
+    {
+      "priority": 1,
+      "name": "Educator review and standards coverage map",
+      "add": "A teacher review queue and per-grade standards checklist with approved texts, answer keys and remaining gaps."
+    },
+    {
+      "priority": 2,
+      "name": "Placement and adaptive learning paths",
+      "add": "A short starting assessment and concept-level paths that choose suitable difficulty separately for math and reading."
+    },
+    {
+      "priority": 3,
+      "name": "Mistake-specific tutor coaching",
+      "add": "Recognize common misconceptions, show a matching short worked example and follow with a fresh transfer problem."
+    },
+    {
+      "priority": 4,
+      "name": "Reviewed voice and phoneme clips",
+      "add": "A consistent Theo voice, educator-reviewed isolated sounds and accurate phonics pronunciations with replay and slower playback."
+    },
+    {
+      "priority": 5,
+      "name": "Controlled-decodable book library",
+      "add": "Books linked to already-taught spellings, growing in difficulty with vocabulary and meaningful comprehension work."
+    },
+    {
+      "priority": 6,
+      "name": "Hands-on story missions",
+      "add": "Drag to regroup tens, tile real areas, share equal groups, set clock hands, measure objects and spend coins in Theo quests; reward learning effort."
+    },
+    {
+      "priority": 7,
+      "name": "Opt-in read-aloud practice",
+      "add": "Parent-controlled speech practice with careful, confidence-aware feedback and a repeat option; validate it with children before using it for assessment."
+    },
+    {
+      "priority": 8,
+      "name": "Writing and dictation studio",
+      "add": "Type or write words and sentences from spoken prompts, then get feedback on spelling, capitals, punctuation and word order."
+    },
+    {
+      "priority": 9,
+      "name": "Personalized daily plan and fresh check banks",
+      "add": "Short daily sequences, spaced retrieval, larger separate teaching/practice/assessment banks and new transfer questions."
+    },
+    {
+      "priority": 10,
+      "name": "Parent progress and cloud continuity",
+      "add": "Reliable parent accounts and cross-device progress with reports showing supported work, independent evidence, retained skills and the next useful home activity."
+    }
+  ],
+  "browserVerification": {
+    "allGradeLibraries": "output/qa/all-grades-browser-counts.json",
+    "localSuccessfulFlows": [
+      "Grade 1 vowel matching",
+      "Grade 1 triangle composition",
+      "Grade 2 adjective/adverb pairs",
+      "Grade 2 offset ruler subtraction on phone",
+      "Grade 3 area tiles and row highlighting",
+      "Grade 3 perimeter and simple mat",
+      "Grade 3 statement dialogue on tablet"
+    ],
+    "consoleErrorsObserved": 0,
+    "viewportOverridesReset": true,
+    "public": "output/qa/all-grades-audit-public-checks.json",
+    "publicScreenshot": "output/qa/all-grades-audit-public.png",
+    "noPublicLearnerAnswersOrLevelChanges": true
+  },
+  "deployment": {
+    "date": "2026-10-09",
+    "version": "7c3ee9a2-819f-46c4-94cc-0b94c3ec51ef",
+    "home": 200,
+    "asset": "/assets/index-BT2JtbY2.js",
+    "js": 200,
+    "contentType": "text/javascript",
+    "matchesBuild": true,
+    "sha256": "35672459d19e9ac695fcaebd2489ef8285e27bcb5d158f14e23a87efabd12196",
+    "statusCode": 200,
+    "status": {
+      "accounts": false,
+      "billing": false,
+      "voice": false
+    }
+  }
+}

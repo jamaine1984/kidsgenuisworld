@@ -1,0 +1,15 @@
+const fs=require('node:fs');const path=require('node:path');
+const lib='C:/Users/koike/AppData/Roaming/npm/node_modules/firebase-tools/lib';const {requireAuth}=require(lib+'/requireAuth');const {getGlobalDefaultAccount}=require(lib+'/auth');const {Client}=require(lib+'/apiv2');
+(async()=>{await requireAuth({project:'kid-genius-world',...getGlobalDefaultAccount()});const c=new Client({urlPrefix:'https://cloudfunctions.googleapis.com',apiVersion:'v2',auth:true});
+ const list=(await c.get('/projects/kid-genius-world/locations/us-central1/functions')).body.functions;
+ const functions=list.filter(f=>['billingCheckout','billingAccess'].includes(f.name.split('/').at(-1)));
+ const allowed=['STRIPE_SECRET_KEY','STRIPE_WEBHOOK_SECRET','STRIPE_STARTER_PRICE_ID','STRIPE_PREMIUM_PRICE_ID','STRIPE_TEST_PRICE_ID','COMPED_PARENT_EMAILS'];
+ const env=functions.find(f=>f.name.endsWith('/billingCheckout')).serviceConfig.environmentVariables||{};
+ if(!functions.every(f=>allowed.every(k=>(f.serviceConfig.environmentVariables?.[k]||'')===(env[k]||''))))throw Error('Billing function configurations differ; preserve each separately.');
+ const dir=path.resolve('firebase-billing/functions');fs.mkdirSync(dir,{recursive:true});for(const f of ['index.js','billing-policy.js','package.json','package-lock.json'])fs.copyFileSync('C:/Users/koike/OneDrive/Desktop/kidsgeniusworld/functions/'+f,path.join(dir,f));
+ fs.writeFileSync(path.join(dir,'.env'),allowed.filter(k=>env[k]).map(k=>k+'='+JSON.stringify(env[k])).join('\n')+'\n');
+ fs.writeFileSync('firebase-billing/firebase.json',JSON.stringify({functions:[{source:'functions',codebase:'default',ignore:['node_modules','.git','firebase-debug.log','firebase-debug.*.log']}]}));
+ fs.writeFileSync('firebase-billing/.gitignore','.env\nfunctions/.env\nfunctions/node_modules/\n');
+ fs.writeFileSync('output/billing/functions-before-release.json',JSON.stringify(functions.map(f=>({name:f.name,updateTime:f.updateTime,source:f.buildConfig.source,uri:f.serviceConfig.uri})),null,2));
+ console.log('Prepared two-function release using unchanged live Stripe configuration. No keys printed.');
+})().catch(e=>{console.error(e.message);process.exitCode=1;});

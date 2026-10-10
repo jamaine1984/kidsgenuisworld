@@ -69,6 +69,50 @@ d.update({
  'Picture graph':'Gráfico de dibujos','groups of five':'grupos de cinco','Scaled bars':'Barras con escala','Pattern detective':'Detective de patrones','threes':'de tres en tres','fours':'de cuatro en cuatro','sixes':'de seis en seis','Picnic':'Merienda','how many joined?':'¿cuántos se sumaron?','Workshop':'Taller','how many were used?':'¿cuántos se usaron?','Garden':'Jardín','find the smaller group':'encontrar el grupo más pequeño',
  'Check a comparison':'Comprobar una comparación','Match the minute hand':'Relacionar el minutero','Choose a fair measuring method':'Elegir cómo medir correctamente','Write expanded form':'Escribir la forma desarrollada','Find a digit value':'Encontrar el valor de una cifra','Find an unknown number':'Encontrar el número que falta','Find the unknown':'Encontrar lo que falta','Multiplication stories':'Problemas de multiplicación','Division stories':'Problemas de división'
 })
+d.update({'Hear choice ${0}':'Escuchar la opción ${0}','Theo is speaking…':'Theo está hablando…','Pause example':'Pausar el ejemplo','LET’S TRY TOGETHER':'PROBEMOS JUNTOS','Subject':'Materia','Let’s begin':'Comencemos','Watch, try together, then show what you know.':'Observa, prueba conmigo y después muestra lo que aprendiste.','Choose an area, or explore below.':'Elige un área o explora las actividades de abajo.'})
+d.update({
+ 'counters':'fichas','blue counters and':'fichas azules y','gold counters. There are ten spaces.':'fichas doradas. Hay diez espacios.','Remove one counter':'Quitar una ficha','Add one counter':'Añadir una ficha','${0} counters':'${0} fichas','${0} counter':'${0} ficha',
+ 'Count each counter once. There are ${0} counters.':'Cuenta cada ficha una vez. Hay ${0} fichas.',
+ '${0} counters go in groups of ${1}. How many groups?':'Organiza ${0} fichas en grupos de ${1}. ¿Cuántos grupos hay?',
+ 'Share ${0} counters equally into ${1} groups. How many in each group?':'Reparte ${0} fichas por igual en ${1} grupos. ¿Cuántas hay en cada grupo?',
+ 'Pair the counters. One remains, so the number is odd.':'Forma pares de fichas. Sobra una, así que el número es impar.',
+ 'All counters can be paired, so the number is even.':'Todas las fichas forman pares, así que el número es par.',
+ 'Touch every counter once. There are ${0}.':'Toca cada ficha una vez. Hay ${0}.',
+ 'There are ${0} counters. Add one. How many now?':'Hay ${0} fichas. Añade una. ¿Cuántas hay ahora?',
+ 'There are ${0} counters. Remove one. How many remain?':'Hay ${0} fichas. Quita una. ¿Cuántas quedan?',
+ 'There were ${0} counters. ${1} are covered. How many are not covered?':'Había ${0} fichas. Hay ${1} tapadas. ¿Cuántas están sin tapar?',
+ 'The collection has ${0} counters.':'La colección tiene ${0} fichas.',
+ 'Count once for every counter. The total is ${0}.':'Cuenta cada ficha una vez. El total es ${0}.',
+ 'The mat has ${0} equal ${1} and ${2} counters. Count one ${3}. How many in it?':'El tapete tiene ${0} ${1} iguales y ${2} fichas. Cuenta las fichas de una ${3}. ¿Cuántas hay?',
+ 'There are ${0} counters, ${1} in each ${2}. Count the ${3}. How many?':'Hay ${0} fichas, con ${1} en cada ${2}. Cuenta las ${3}. ¿Cuántas hay?',
+ 'Which repeated addition counts all the counters by ${0}?':'¿Qué suma repetida cuenta todas las fichas por ${0}?',
+ '${0} equal ${1} of ${2} contain ${3} counters.':'Hay ${0} ${1} iguales con ${2} fichas en cada una. En total hay ${3} fichas.',
+ 'Pair ${0} counters. Is the total odd or even?':'Forma pares con ${0} fichas. ¿El total es par o impar?',
+ '${0} pairs leave ${1} counter.':'Con ${0} pares, sobra ${1} ficha.',
+ 'How many complete pairs can you make from ${0} counters?':'¿Cuántos pares completos puedes formar con ${0} fichas?',
+ 'Pair ${0} counters. How many remain unpaired?':'Forma pares con ${0} fichas. ¿Cuántas quedan sin pareja?',
+ 'Theo pairs ${0} counters and says ${1} remain. How many actually remain?':'Theo forma pares con ${0} fichas y dice que sobran ${1}. ¿Cuántas sobran realmente?',
+ 'Which equation describes ${0} counters paired as far as possible?':'¿Qué ecuación representa ${0} fichas organizadas en todos los pares posibles?'
+})
+d.update({'ruler':'regla','teen':'del 11 al 19','shares':'partes iguales',
+ 'Teen numbers have one ten. Compare the ones to decide which is greater.':'Los números del 11 al 19 tienen una decena. Compara las unidades para saber cuál es mayor.',
+ 'Subtract the starting mark from the ending mark. A ruler need not start at zero.':'Resta la marca inicial de la marca final. Puedes medir con una regla sin comenzar en cero.',
+ 'The whole has equal shares. What do we call the selected shares?':'El entero tiene partes iguales. ¿Cómo llamamos a las partes seleccionadas?',
+ 'The whole is divided into equal shares. What do we call the selected shares?':'El entero se divide en partes iguales. ¿Cómo llamamos a las partes seleccionadas?',
+ 'Two equal shares of one whole are halves. Count how many shares are chosen.':'Dos partes iguales de un entero son mitades. Cuenta las partes seleccionadas.',
+ 'Three equal shares of one whole are thirds. Count chosen shares and all shares.':'Tres partes iguales de un entero son tercios. Cuenta las partes seleccionadas y todas las partes.',
+ 'There are ${0} equal shares. ${1} ${2} selected.':'Hay ${0} partes iguales. Partes seleccionadas: ${1}.',
+ 'How many equal shares are selected?':'¿Cuántas partes iguales están seleccionadas?',
+ 'There are ${0} equal shares. ${1} are not selected. How many are selected?':'Hay ${0} partes iguales. Hay ${1} sin seleccionar. ¿Cuántas están seleccionadas?',
+ '${0} − ${1} = ${2} selected shares.':'${0} − ${1} = ${2} partes seleccionadas.',
+ 'There are ${0} selected shares.':'Hay ${0} partes seleccionadas.',
+ 'Count ${0} selected shares out of ${1} equal shares.':'Cuenta ${0} partes seleccionadas de un total de ${1} partes iguales.',
+ '${0} selected shares of ${1} equal shares in one whole':'${0} partes seleccionadas de ${1} partes iguales de un entero',
+ 'Shapes, arrays and equal shares':'Figuras, filas, columnas y partes iguales'
+})
+d.update({'How many ${0} are in ${1}?':'¿Cuántas ${0} hay en ${1}?','Measurement money and time':'Medición, dinero y tiempo','Hundreds tens and ones':'Centenas, decenas y unidades'})
+d['${0} counter${1}']='${0} ficha${1}'
+for key in d:d[key]=d[key].replace('¿Cuantos','¿Cuántos').replace('¿Cuantas','¿Cuántas')
 d={' '.join(key.split()):value for key,value in d.items()}
 # Keep placeholders intact; mathematical notation must not be translated into a different operation.
 for key,value in d.items():

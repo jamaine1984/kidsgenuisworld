@@ -1,7 +1,7 @@
 // Reusable frontend-only overlay: current publisher files, legacy app, and hosting config survive.
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),zlib=require('node:zlib');
 const lib='C:/Users/koike/AppData/Roaming/npm/node_modules/firebase-tools/lib';const {requireAuth}=require(lib+'/requireAuth'),{getGlobalDefaultAccount}=require(lib+'/auth'),{Client}=require(lib+'/apiv2'),api=require(lib+'/hosting/api'),{Uploader}=require(lib+'/deploy/hosting/uploader');
-const site='kid-genius-world',out=path.resolve('output/spanish'),channelId='spanish-preview-20261010',backupId='kgw-before-spanish-polish-20261010';
+const site='kid-genius-world',out=path.resolve('output/spanish'),channelId='spanish-preview-20261010',backupId=process.env.KGW_ROLLBACK_CHANNEL||'kgw-before-spanish-final-20261010';
 const stable=v=>JSON.stringify(v,(_,x)=>x&&typeof x==='object'&&!Array.isArray(x)?Object.fromEntries(Object.keys(x).sort().map(k=>[k,x[k]])):x),hash=b=>crypto.createHash('sha256').update(b).digest('hex');
 function walk(root,dir=root){return fs.readdirSync(dir,{withFileTypes:true}).flatMap(e=>e.isDirectory()?walk(root,path.join(dir,e.name)):[path.relative(root,path.join(dir,e.name)).replaceAll('\\','/')]);}
 async function listFiles(c,name){let token,all=[];do{const r=(await c.get('/'+name+'/files',{queryParams:{pageSize:1000,...(token?{pageToken:token}:{})}})).body;all.push(...(r.files||[]));token=r.nextPageToken;}while(token);return all;}
